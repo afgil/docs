@@ -1,8 +1,8 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
+    "title": "Tu Pana API",
+    "description": "API para la gestión de documentos y facturación electrónica",
     "license": {
       "name": "MIT"
     },
@@ -10,7 +10,7 @@
   },
   "servers": [
     {
-      "url": "http://sandbox.mintlify.com"
+      "url": "https://api.tupana.cl"
     }
   ],
   "security": [
@@ -128,6 +128,65 @@
           }
         }
       }
+    },
+    "/documents/batch": {
+      "post": {
+        "description": "Create up to 100 documents in one call",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Prevents duplicate batches (≤ 256 chars, expires after 24 h)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Batch of documents to create",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentBatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Documents created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "More than 100 documents in the array",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Malformed body or validation failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "webhooks": {
@@ -189,6 +248,322 @@
             }
           }
         ]
+      },
+      "DocumentBatch": {
+        "type": "object",
+        "required": [
+          "documents"
+        ],
+        "properties": {
+          "documents": {
+            "type": "array",
+            "description": "Array of documents to create (max 100)",
+            "items": {
+              "$ref": "#/components/schemas/Document"
+            }
+          }
+        }
+      },
+      "Document": {
+        "type": "object",
+        "required": [
+          "date_issued",
+          "dte_type",
+          "document_issuer",
+          "document_receiver",
+          "details"
+        ],
+        "properties": {
+          "date_issued": {
+            "type": "string",
+            "format": "date",
+            "description": "Invoice date (YYYY-MM-DD)"
+          },
+          "dte_type": {
+            "$ref": "#/components/schemas/DteType"
+          },
+          "document_issuer": {
+            "$ref": "#/components/schemas/DocumentIssuer"
+          },
+          "document_receiver": {
+            "$ref": "#/components/schemas/DocumentReceiver"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DetailItem"
+            }
+          },
+          "folio": {
+            "type": "integer",
+            "description": "Sequential number (auto-assigned if omitted)"
+          },
+          "amount_with_iva": {
+            "type": "number",
+            "format": "float",
+            "description": "Auto-calculated if omitted"
+          },
+          "header": {
+            "$ref": "#/components/schemas/DocumentHeader"
+          },
+          "document_total": {
+            "$ref": "#/components/schemas/DocumentTotal"
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReferenceItem"
+            }
+          },
+          "sender": {
+            "$ref": "#/components/schemas/MasterEntity"
+          },
+          "receiver": {
+            "$ref": "#/components/schemas/MasterEntity"
+          },
+          "json_param": {
+            "type": "object",
+            "description": "Arbitrary JSON stored verbatim"
+          }
+        }
+      },
+      "DteType": {
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Document type code (e.g., '33', '39')"
+          }
+        }
+      },
+      "DocumentHeader": {
+        "type": "object",
+        "properties": {
+          "purchase_transaction_type": {
+            "type": "integer"
+          },
+          "sale_transaction_type": {
+            "type": "integer"
+          },
+          "payment_method": {
+            "type": "string"
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "DocumentIssuer": {
+        "type": "object",
+        "required": [
+          "rut"
+        ],
+        "properties": {
+          "rut": {
+            "type": "string",
+            "description": "Formatted e.g. 76.543.210-K"
+          },
+          "business_name": {
+            "type": "string"
+          },
+          "phone_number": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "business_activity": {
+            "type": "string"
+          },
+          "activity_code": {
+            "type": "integer"
+          },
+          "sii_branch_code": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "district": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          }
+        }
+      },
+      "DocumentReceiver": {
+        "type": "object",
+        "required": [
+          "rut"
+        ],
+        "properties": {
+          "rut": {
+            "type": "string",
+            "description": "Formatted e.g. 76.543.210-K"
+          },
+          "business_name": {
+            "type": "string"
+          },
+          "contact": {
+            "type": "string"
+          },
+          "business_activity": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "district": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          }
+        }
+      },
+      "DocumentTotal": {
+        "type": "object",
+        "properties": {
+          "net_amount": {
+            "type": "number",
+            "format": "float"
+          },
+          "iva_rate": {
+            "type": "number",
+            "format": "float"
+          },
+          "iva_amount": {
+            "type": "number",
+            "format": "float"
+          },
+          "total_amount": {
+            "type": "number",
+            "format": "float"
+          }
+        }
+      },
+      "DetailItem": {
+        "type": "object",
+        "required": [
+          "item_name",
+          "quantity",
+          "unit_price"
+        ],
+        "properties": {
+          "item_name": {
+            "type": "string",
+            "description": "Item name"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Item quantity"
+          },
+          "unit_price": {
+            "type": "number",
+            "format": "float",
+            "description": "Item price"
+          },
+          "line_number": {
+            "type": "integer"
+          },
+          "item_description": {
+            "type": "string"
+          },
+          "discount_percent": {
+            "type": "number",
+            "format": "float"
+          },
+          "item_total": {
+            "type": "number",
+            "format": "float"
+          },
+          "item_code": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "other_tax": {
+            "type": "number",
+            "format": "float"
+          },
+          "item_type_code": {
+            "type": "integer"
+          }
+        }
+      },
+      "ReferenceItem": {
+        "type": "object",
+        "properties": {
+          "reference_type": {
+            "type": "integer"
+          },
+          "reference_folio": {
+            "type": "integer"
+          },
+          "reference_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "reference_reason": {
+            "type": "string"
+          },
+          "dte_type_code": {
+            "type": "string"
+          }
+        }
+      },
+      "MasterEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "MasterEntity ID"
+          }
+        }
+      },
+      "BatchResponse": {
+        "type": "object",
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the batch"
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "description": "Index of the document in the original request array"
+                },
+                "document_id": {
+                  "type": "integer",
+                  "description": "ID of the created document"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "created",
+                    "invalid"
+                  ],
+                  "description": "Status of the document creation"
+                },
+                "errors": {
+                  "type": "object",
+                  "description": "Validation errors if status is 'invalid'"
+                }
+              }
+            }
+          }
+        }
       },
       "Error": {
         "required": [
