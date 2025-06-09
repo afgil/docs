@@ -315,12 +315,6 @@
               "$ref": "#/components/schemas/ReferenceItem"
             }
           },
-          "sender": {
-            "$ref": "#/components/schemas/MasterEntity"
-          },
-          "receiver": {
-            "$ref": "#/components/schemas/MasterEntity"
-          },
           "json_param": {
             "type": "object",
             "description": "Arbitrary JSON stored verbatim"
@@ -515,15 +509,6 @@
           },
           "dte_type_code": {
             "type": "string"
-          }
-        }
-      },
-      "MasterEntity": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "description": "MasterEntity ID"
           }
         }
       },
