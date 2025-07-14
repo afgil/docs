@@ -10,7 +10,7 @@
   },
   "servers": [
     {
-      "url": "https://api.tupana.cl"
+      "url": "https://api.tupana.ai/v1"
     }
   ],
   "security": [
@@ -294,20 +294,8 @@
               "$ref": "#/components/schemas/DetailItem"
             }
           },
-          "folio": {
-            "type": "integer",
-            "description": "Sequential number (auto-assigned if omitted)"
-          },
-          "amount_with_iva": {
-            "type": "number",
-            "format": "float",
-            "description": "Auto-calculated if omitted"
-          },
           "header": {
             "$ref": "#/components/schemas/DocumentHeader"
-          },
-          "document_total": {
-            "$ref": "#/components/schemas/DocumentTotal"
           },
           "references": {
             "type": "array",
@@ -417,27 +405,6 @@
           },
           "city": {
             "type": "string"
-          }
-        }
-      },
-      "DocumentTotal": {
-        "type": "object",
-        "properties": {
-          "net_amount": {
-            "type": "number",
-            "format": "float"
-          },
-          "iva_rate": {
-            "type": "number",
-            "format": "float"
-          },
-          "iva_amount": {
-            "type": "number",
-            "format": "float"
-          },
-          "total_amount": {
-            "type": "number",
-            "format": "float"
           }
         }
       },

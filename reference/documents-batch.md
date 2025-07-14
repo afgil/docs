@@ -46,16 +46,12 @@ the single-document endpoint.
 |-------|------|----------|-------|
 | folio | integer | No | Sequential number; optional (auto-assigned). |
 | date_issued | string (YYYY-MM-DD) | Yes | Invoice date. |
-| amount_with_iva | decimal | No | Auto-calculated if omitted. |
 | header | object | Yes | See Header subsection. |
 | document_issuer | object | Yes | See Document Issuer subsection. |
 | document_receiver | object | No | Required for invoices, optional for receipts. |
-| document_total | object | Yes | See Document Total subsection. |
-| details | array<object> | Yes* | Can be empty; see Detail item subsection. |
-| references | array<object> | No | See Reference item subsection. |
-| sender | object | Yes | { "id": <MasterEntity id> }. |
-| receiver | object | No | { "id": <MasterEntity id> }. |
-| dte_type | object | Yes | { "code": "33" }, "39", etc. |
+| details | array | Yes* | Can be empty; see Detail item subsection. |
+| references | array | No | See Reference item subsection. |
+| dte_type | object | Yes | Contains the document type code (33, 39, etc). |
 | json_param | object | No | Arbitrary JSON stored verbatim. |
 
 ### Header
@@ -125,17 +121,12 @@ Same fields as Document Issuer plus optional contact.
 
 ```json
 {
-  "folio": 12345,
   "date_issued": "2025-06-09",
-  "amount_with_iva": 1190.00,
   "header": { "purchase_transaction_type": 1, "sale_transaction_type": 1, "payment_method": "EF", "due_date": "2025-07-09" },
   "document_issuer": { "rut": "76.543.210-K", "business_name": "Mi Empresa SpA", "phone_number": "+56 2 1234567", "email": "ventas@miempresa.cl", "business_activity": "Wholesale", "activity_code": 47190, "sii_branch_code": "123", "address": "Av. Siempre Viva 123", "district": "Santiago", "city": "Santiago" },
   "document_receiver": { "rut": "12.345.678-9", "business_name": "Cliente Ejemplo Ltda.", "business_activity": "Consulting", "contact": "Juan Pérez", "address": "Camino del Cliente 456", "district": "Providencia", "city": "Santiago" },
-  "document_total": { "net_amount": 1000.00, "iva_rate": 0.19, "iva_amount": 190.00, "total_amount": 1190.00 },
   "details": [ { "line_number": 1, "item_name": "Servicio X", "item_description": "Descripción", "quantity": 1, "unit_price": 1000.00, "discount_percent": 0, "item_total": 1000.00, "item_code": "SVC-001", "unit": "UN", "other_tax": 0, "item_type_code": 1 } ],
   "references": [ { "reference_type": 33, "reference_folio": 9876, "reference_date": "2025-05-31", "reference_reason": "Anula folio 9876", "dte_type_code": "33" } ],
-  "sender": { "id": 7 },
-  "receiver": { "id": 12 },
   "dte_type": { "code": "33" },
   "json_param": { "customField": "valor" }
 }

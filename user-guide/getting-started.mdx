@@ -1,0 +1,151 @@
+---
+title: 'Paso a Paso'
+description: 'Comienza a usar Tu Pana en minutos'
+---
+
+
+## Requisitos Previos
+
+Antes de comenzar, necesitarás:
+
+1. Una cuenta en Tu Pana
+2. Certificado digital vigente
+3. Datos de tu empresa actualizados en el SII
+
+## Paso 1: Configura tu Cuenta
+
+### Registro
+1. Visita [tupana.ai](https://tupana.ai)
+2. Haz clic en "Registrarse"
+3. Completa tus datos y los de tu empresa
+4. Verifica tu correo electrónico
+
+### Configuración Inicial
+1. Sube tu certificado digital
+2. Configura los datos de tu empresa
+3. Verifica tu RUT en el SII
+
+## Paso 2: Obtén tus Credenciales
+
+### API Keys
+
+En la vista de Ajustes de la plataforma encontrarás la sección de API Keys, donde podrás ver todas tus claves existentes y crear nuevas:
+
+<img src="/images/apikey.png" alt="Vista de API Keys en Ajustes" />
+
+1. Ve a "Configuración" > "API Keys"
+2. Haz clic en "Nueva API Key" para generar una nueva clave
+3. Guarda la API Key en un lugar seguro - no podrás verla nuevamente
+
+<Warning>
+Las API Keys son secretas. Nunca compartas tus claves ni las expongas en código público.
+</Warning>
+
+### Ambiente de Pruebas
+Todas las API Keys nuevas comienzan en modo sandbox (pruebas). Esto te permite:
+- Probar la integración sin emitir documentos reales
+- Validar el formato de tus documentos
+- Familiarizarte con la API
+
+## Paso 3: Emite tu Primera Factura
+
+### Usando el Panel Web (Forma más Rápida)
+1. Ingresa al panel de control
+2. Haz clic en "Nueva Factura"
+3. Completa los datos del receptor y los detalles de la factura
+4. Revisa el documento y haz clic en "Emitir"
+
+### Emisión por API (Para Automatización)
+Si necesitas automatizar tu facturación:
+1. Integra con nuestra API usando tu lenguaje de programación favorito
+2. Emite documentos individuales o en lote
+3. [Ver documentación de la API →](/api-reference/documents-batch)
+
+## Paso 4: Configura las Notificaciones (Webhooks)
+
+Los webhooks te permiten recibir notificaciones automáticas cuando ocurren eventos importantes en tu cuenta. Configúralos en "Configuración" > "Webhooks".
+
+### Configuración de Endpoints
+
+<img src="/images/webhook2.png" alt="Configuración de Webhook" />
+
+<Note>
+Actualmente solo está disponible el evento **document.issued**, que se dispara cuando un documento es emitido exitosamente. Próximamente se habilitarán los siguientes eventos:
+- **document.delivered**: Cuando el PDF/XML sea enviado al receptor
+- **document.rejected**: Cuando el SII rechace el documento
+- **document.paid**: Cuando se registre el pago del documento
+- **document.cancelled**: Cuando el documento sea anulado o se emita una Nota de Crédito
+</Note>
+
+### Ejemplo de Payload
+
+Cuando se emite un documento (`document.issued`), recibirás un POST con el siguiente formato:
+
+```json
+{
+  "event": "document.issued",
+  "created_at": "2023-10-30T15:30:45.123456Z",
+  "data": {
+    "id": 1234,
+    "folio": "12345",
+    "date_issued": "2023-10-30",
+    "amount_with_iva": 119000.0,
+    "dte_type": {
+      "code": "33",
+      "description": "Factura Electrónica"
+    },
+    "sender": {
+      "id": 1,
+      "name": "Empresa Emisora S.A.",
+      "tax_id": "76.123.456-7",
+      "email": "contacto@empresa.cl"
+    },
+    "receiver": {
+      "id": 2,
+      "name": "Cliente Receptor S.A.",
+      "tax_id": "77.987.654-3",
+      "email": "contacto@cliente.cl"
+    },
+    "document_total": {
+      "net_amount": 100000.0,
+      "iva_rate": 19.0,
+      "iva_amount": 19000.0,
+      "total_amount": 119000.0
+    }
+  }
+}
+```
+
+### Headers
+
+Cada notificación incluye los siguientes headers:
+```
+Content-Type: application/json
+User-Agent: Pana-Webhook/1.0
+X-Pana-Event: document.issued
+X-Pana-Delivery: unique-delivery-id-per-attempt
+```
+
+Si configuraste una clave secreta, también recibirás:
+```
+X-Pana-Signature: hmac-sha256-signature
+```
+
+<Tip>
+Para mayor seguridad, configura una clave secreta (secret) para verificar la autenticidad de las notificaciones mediante la firma HMAC-SHA256 incluida en el header X-Pana-Signature.
+</Tip>
+
+## Siguientes Pasos
+
+Una vez que hayas emitido tu primer documento, puedes:
+
+1. [Configurar la autenticación](/user-guide/authentication)
+2. [Explorar tipos de documentos](/user-guide/documents)
+3. [Ver la referencia completa de la API](/api-reference/introduction)
+
+## Soporte
+
+¿Necesitas ayuda? Contáctanos:
+- Email: contacto@tupana.ai
+- Chat: Disponible en el panel de control
+- Documentación: [Centro de Ayuda](https://ayuda.tupana.ai) 

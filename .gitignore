@@ -1,0 +1,24 @@
+# Dependencies
+/node_modules
+package-lock.json
+
+# Build
+.next
+.turbo
+dist/
+out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo 
