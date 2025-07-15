@@ -18,11 +18,11 @@ Para comenzar a utilizar la API de Tu Pana, necesitarás configurar la autentica
 
 ### Headers de Autenticación
 
-Para autenticarte con la API, incluye tu API Key en el header de tus peticiones:
+Para autenticarte con la API, incluye tu API Key en el header de tus peticiones usando el prefijo `Api-Key`:
 
 ```bash
 curl -X POST https://api.tupana.ai/v1/documents \
-  -H "Authorization: Bearer TU_API_KEY" \
+  -H "Authorization: Api-Key TU_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"type": "33", ...}'
 ```
@@ -34,7 +34,7 @@ import requests
 
 api_key = "tu_api_key"
 headers = {
-    "Authorization": f"Bearer {api_key}",
+    "Authorization": f"Api-Key {api_key}",
     "Content-Type": "application/json"
 }
 
@@ -60,7 +60,8 @@ Si recibes un error de autenticación (401), verifica:
 
 1. Que estás usando la API Key correcta
 2. Que la API Key no ha expirado
-3. Que el formato del header es correcto
+3. Que el formato del header es correcto (debe ser `Authorization: Api-Key TU_API_KEY`)
+4. Que la API Key está activa en tu panel de control
 
 ## Siguientes Pasos
 
