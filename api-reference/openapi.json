@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Tu Pana API",
-    "description": "API para la gestión de documentos y facturación electrónica",
+    "description": "API para la gestión de documentos y facturación electrónica.\n\nTipos de DTE soportados:\n- 33: Factura Electrónica\n- 34: Factura Exenta Electrónica\n- 39: Boleta Electrónica\n- 61: Nota de Crédito Electrónica",
     "license": {
       "name": "MIT"
     },
@@ -131,12 +131,12 @@
     },
     "/documents/batch": {
       "post": {
-        "description": "Create up to 100 documents in one call",
+        "description": "Crea hasta 100 documentos en una sola llamada",
         "parameters": [
           {
             "name": "Idempotency-Key",
             "in": "header",
-            "description": "Prevents duplicate batches (≤ 256 chars, expires after 24 h)",
+            "description": "Previene lotes duplicados (≤ 256 caracteres, expira después de 24 h)",
             "required": false,
             "schema": {
               "type": "string"
@@ -144,7 +144,7 @@
           }
         ],
         "requestBody": {
-          "description": "Batch of documents to create",
+          "description": "Lote de documentos a crear",
           "content": {
             "application/json": {
               "schema": {
@@ -156,7 +156,7 @@
         },
         "responses": {
           "201": {
-            "description": "Documents created successfully",
+            "description": "Documentos creados exitosamente",
             "content": {
               "application/json": {
                 "schema": {
@@ -166,7 +166,7 @@
             }
           },
           "413": {
-            "description": "More than 100 documents in the array",
+            "description": "Más de 100 documentos en el array",
             "content": {
               "application/json": {
                 "schema": {
@@ -176,7 +176,7 @@
             }
           },
           "422": {
-            "description": "Malformed body or validation failure",
+            "description": "Cuerpo malformado o fallo de validación",
             "content": {
               "application/json": {
                 "schema": {
@@ -257,7 +257,7 @@
         "properties": {
           "documents": {
             "type": "array",
-            "description": "Array of documents to create (max 100)",
+            "description": "Array de documentos a crear (máximo 100)",
             "items": {
               "$ref": "#/components/schemas/Document"
             }
@@ -277,7 +277,7 @@
           "date_issued": {
             "type": "string",
             "format": "date",
-            "description": "Invoice date (YYYY-MM-DD)"
+            "description": "Fecha de emisión (YYYY-MM-DD)"
           },
           "dte_type": {
             "$ref": "#/components/schemas/DteType"
@@ -305,7 +305,7 @@
           },
           "json_param": {
             "type": "object",
-            "description": "Arbitrary JSON stored verbatim"
+            "description": "JSON arbitrario almacenado textualmente"
           }
         }
       },
@@ -317,7 +317,13 @@
         "properties": {
           "code": {
             "type": "string",
-            "description": "Document type code (e.g., '33', '39')"
+            "description": "Código del tipo de documento:\n- 33: Factura Electrónica\n- 34: Factura Exenta Electrónica\n- 39: Boleta Electrónica\n- 61: Nota de Crédito Electrónica",
+            "enum": [
+              "33",
+              "34",
+              "39",
+              "61"
+            ]
           }
         }
       },
@@ -325,17 +331,21 @@
         "type": "object",
         "properties": {
           "purchase_transaction_type": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Tipo de transacción de compra"
           },
           "sale_transaction_type": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Tipo de transacción de venta"
           },
           "payment_method": {
-            "type": "string"
+            "type": "string",
+            "description": "Método de pago"
           },
           "due_date": {
             "type": "string",
-            "format": "date"
+            "format": "date",
+            "description": "Fecha de vencimiento"
           }
         }
       },
@@ -347,34 +357,43 @@
         "properties": {
           "rut": {
             "type": "string",
-            "description": "Formatted e.g. 76.543.210-K"
+            "description": "RUT con formato, ej: 76.543.210-K"
           },
           "business_name": {
-            "type": "string"
+            "type": "string",
+            "description": "Razón social"
           },
           "phone_number": {
-            "type": "string"
+            "type": "string",
+            "description": "Número de teléfono"
           },
           "email": {
-            "type": "string"
+            "type": "string",
+            "description": "Correo electrónico"
           },
           "business_activity": {
-            "type": "string"
+            "type": "string",
+            "description": "Giro comercial"
           },
           "activity_code": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Código de actividad económica"
           },
           "sii_branch_code": {
-            "type": "string"
+            "type": "string",
+            "description": "Código de sucursal SII"
           },
           "address": {
-            "type": "string"
+            "type": "string",
+            "description": "Dirección"
           },
           "district": {
-            "type": "string"
+            "type": "string",
+            "description": "Comuna"
           },
           "city": {
-            "type": "string"
+            "type": "string",
+            "description": "Ciudad"
           }
         }
       },
@@ -386,25 +405,31 @@
         "properties": {
           "rut": {
             "type": "string",
-            "description": "Formatted e.g. 76.543.210-K"
+            "description": "RUT con formato, ej: 76.543.210-K"
           },
           "business_name": {
-            "type": "string"
+            "type": "string",
+            "description": "Razón social"
           },
           "contact": {
-            "type": "string"
+            "type": "string",
+            "description": "Contacto"
           },
           "business_activity": {
-            "type": "string"
+            "type": "string",
+            "description": "Giro comercial"
           },
           "address": {
-            "type": "string"
+            "type": "string",
+            "description": "Dirección"
           },
           "district": {
-            "type": "string"
+            "type": "string",
+            "description": "Comuna"
           },
           "city": {
-            "type": "string"
+            "type": "string",
+            "description": "Ciudad"
           }
         }
       },
@@ -418,43 +443,51 @@
         "properties": {
           "item_name": {
             "type": "string",
-            "description": "Item name"
+            "description": "Nombre del ítem"
           },
           "quantity": {
             "type": "number",
-            "description": "Item quantity"
+            "description": "Cantidad"
           },
           "unit_price": {
             "type": "number",
             "format": "float",
-            "description": "Item price"
+            "description": "Precio unitario"
           },
           "line_number": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Número de línea"
           },
           "item_description": {
-            "type": "string"
+            "type": "string",
+            "description": "Descripción del ítem"
           },
           "discount_percent": {
             "type": "number",
-            "format": "float"
+            "format": "float",
+            "description": "Porcentaje de descuento"
           },
           "item_total": {
             "type": "number",
-            "format": "float"
+            "format": "float",
+            "description": "Total del ítem"
           },
           "item_code": {
-            "type": "string"
+            "type": "string",
+            "description": "Código del ítem"
           },
           "unit": {
-            "type": "string"
+            "type": "string",
+            "description": "Unidad de medida"
           },
           "other_tax": {
             "type": "number",
-            "format": "float"
+            "format": "float",
+            "description": "Otros impuestos"
           },
           "item_type_code": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Código de tipo de ítem"
           }
         }
       },
@@ -462,20 +495,25 @@
         "type": "object",
         "properties": {
           "reference_type": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Tipo de referencia"
           },
           "reference_folio": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Folio de referencia"
           },
           "reference_date": {
             "type": "string",
-            "format": "date"
+            "format": "date",
+            "description": "Fecha de referencia"
           },
           "reference_reason": {
-            "type": "string"
+            "type": "string",
+            "description": "Razón de referencia"
           },
           "dte_type_code": {
-            "type": "string"
+            "type": "string",
+            "description": "Código de tipo de DTE referenciado"
           }
         }
       },
@@ -485,7 +523,7 @@
           "batch_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Unique identifier for the batch"
+            "description": "Identificador único del lote"
           },
           "documents": {
             "type": "array",
@@ -494,11 +532,11 @@
               "properties": {
                 "index": {
                   "type": "integer",
-                  "description": "Index of the document in the original request array"
+                  "description": "Índice del documento en el array original"
                 },
                 "document_id": {
                   "type": "integer",
-                  "description": "ID of the created document"
+                  "description": "ID del documento creado"
                 },
                 "status": {
                   "type": "string",
@@ -506,11 +544,11 @@
                     "created",
                     "invalid"
                   ],
-                  "description": "Status of the document creation"
+                  "description": "Estado de la creación del documento"
                 },
                 "errors": {
                   "type": "object",
-                  "description": "Validation errors if status is 'invalid'"
+                  "description": "Errores de validación si el estado es 'invalid'"
                 }
               }
             }
@@ -526,10 +564,12 @@
         "properties": {
           "error": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "description": "Código de error"
           },
           "message": {
-            "type": "string"
+            "type": "string",
+            "description": "Mensaje de error"
           }
         }
       }
@@ -537,7 +577,8 @@
     "securitySchemes": {
       "bearerAuth": {
         "type": "http",
-        "scheme": "bearer"
+        "scheme": "bearer",
+        "description": "Token de autenticación Bearer"
       }
     }
   }
