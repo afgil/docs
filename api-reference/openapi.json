@@ -5,6 +5,12 @@
     "description": "API para integración con el sistema Pana",
     "version": "1.0.0"
   },
+  "servers": [
+    {
+      "url": "https://api.tupana.ai/v1",
+      "description": "Servidor de producción"
+    }
+  ],
   "security": [
     {
       "apiKeyAuth": []
@@ -71,7 +77,7 @@
         }
       }
     },
-    "/api/v1/credentials": {
+    "/credentials": {
       "get": {
         "summary": "Listar credenciales",
         "description": "Obtiene todas las credenciales activas del usuario autenticado",
@@ -335,6 +341,47 @@
           },
           "422": {
             "description": "Error de validación en el SII",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/master-entities": {
+      "get": {
+        "summary": "Listar entidades maestras",
+        "description": "Obtiene todas las entidades maestras disponibles para el usuario autenticado",
+        "responses": {
+          "200": {
+            "description": "Lista de entidades maestras obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MasterEntity"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API key inválida o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin permisos para acceder a entidades maestras",
             "content": {
               "application/json": {
                 "schema": {
@@ -672,6 +719,41 @@
           "message": {
             "type": "string",
             "description": "Mensaje de error"
+          }
+        }
+      },
+      "MasterEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "ID único de la entidad maestra",
+            "example": 123
+          },
+          "name": {
+            "type": "string",
+            "description": "Nombre de la entidad maestra",
+            "example": "Empresa Ejemplo SpA"
+          },
+          "tax_id": {
+            "type": "string",
+            "description": "RUT de la entidad maestra",
+            "example": "76543210-1"
+          },
+          "status": {
+            "type": "string",
+            "description": "Estado de la entidad maestra",
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "example": "active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha de creación de la entidad maestra",
+            "example": "2024-01-01T10:00:00Z"
           }
         }
       }
