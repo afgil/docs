@@ -129,9 +129,9 @@
         }
       }
     },
-    "/documents/batch": {
+    "/documents/batch/": {
       "post": {
-        "description": "Crea hasta 100 documentos en una sola llamada",
+        "description": "Crea hasta 200 documentos en una sola llamada",
         "parameters": [
           {
             "name": "Idempotency-Key",
