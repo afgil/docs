@@ -1,0 +1,14 @@
+---
+title: 'Buscar Entidad por RUT'
+openapi: 'GET /api/v1/master-entities'
+---
+
+Este endpoint es necesario para que el usuario pueda consultar todas las actividades económicas y direcciones de un cliente determinado antes de enviar documentos electrónicos.
+
+<RequestExample>
+  ```bash GET
+  curl --request GET \
+    --url 'https://api.tupana.ai/v1/api/v1/master-entities?rut=76543210-1' \
+    --header 'Authorization: Api-Key YOUR_API_KEY'
+  ```
+</RequestExample> 

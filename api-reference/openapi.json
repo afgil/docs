@@ -1,137 +1,20 @@
 {
-  "openapi": "3.1.0",
+  "openapi": "3.0.0",
   "info": {
-    "title": "Tu Pana API",
-    "description": "API para la gestión de documentos y facturación electrónica.\n\nTipos de DTE soportados:\n- 33: Factura Electrónica\n- 34: Factura Exenta Electrónica\n- 39: Boleta Electrónica\n- 61: Nota de Crédito Electrónica",
-    "license": {
-      "name": "MIT"
-    },
+    "title": "API de Pana",
+    "description": "API para integración con el sistema Pana",
     "version": "1.0.0"
   },
-  "servers": [
-    {
-      "url": "https://api.tupana.ai/v1"
-    }
-  ],
   "security": [
     {
       "apiKeyAuth": []
     }
   ],
   "paths": {
-    "/plants": {
-      "get": {
-        "description": "Returns all plants from the system that the user has access to",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
+    "/documents/batch": {
       "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/documents/batch/": {
-      "post": {
-        "description": "Crea hasta 200 documentos en una sola llamada",
+        "summary": "Envío de documentos en lote",
+        "description": "Crea hasta 200 documentos en una sola llamada. La respuesta con el PDF y los detalles completos se entrega a través del webhook configurado.",
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -166,7 +49,7 @@
             }
           },
           "413": {
-            "description": "Más de 100 documentos en el array",
+            "description": "Más de 200 documentos en el array",
             "content": {
               "application/json": {
                 "schema": {
@@ -187,25 +70,278 @@
           }
         }
       }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
+    },
+    "/api/v1/credentials": {
+      "get": {
+        "summary": "Listar credenciales",
+        "description": "Obtiene todas las credenciales activas del usuario autenticado",
+        "responses": {
+          "200": {
+            "description": "Lista de credenciales obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "description": "ID único de la credencial",
+                        "example": 1
+                      },
+                      "user": {
+                        "type": "string",
+                        "description": "RUT del usuario de la credencial",
+                        "example": "12345678-9"
+                      },
+                      "master_entity": {
+                        "type": "object",
+                        "description": "Información de la entidad maestra asociada",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "description": "ID de la entidad maestra",
+                            "example": 123
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Nombre de la entidad maestra",
+                            "example": "Empresa Ejemplo SpA"
+                          },
+                          "tax_id": {
+                            "type": "string",
+                            "description": "RUT de la entidad maestra",
+                            "example": "76543210-1"
+                          }
+                        }
+                      },
+                      "credential_type": {
+                        "type": "object",
+                        "description": "Tipo de credencial",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "description": "ID del tipo de credencial",
+                            "example": 70
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Nombre del tipo de credencial",
+                            "example": "SII"
+                          }
+                        }
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "Estado de la credencial",
+                        "enum": [
+                          "VALID",
+                          "INVALID",
+                          "EXPIRED"
+                        ],
+                        "example": "VALID"
+                      },
+                      "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Fecha de creación de la credencial",
+                        "example": "2024-01-01T10:00:00Z"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API key inválida o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin permisos para acceder a credenciales",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
-        "description": "Information about a new plant added to the store",
+        "summary": "Crear credencial",
+        "description": "Crea una nueva credencial validándola en el SII",
         "requestBody": {
-          "description": "Plant added to the store",
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+                "type": "object",
+                "required": [
+                  "user_rut",
+                  "password",
+                  "master_entity_id"
+                ],
+                "properties": {
+                  "user_rut": {
+                    "type": "string",
+                    "description": "RUT del usuario (sin puntos y con guión)",
+                    "pattern": "^[0-9]+-[0-9kK]$",
+                    "example": "12345678-9"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "Contraseña del usuario en el SII",
+                    "example": "mi_password_segura"
+                  },
+                  "master_entity_id": {
+                    "type": "integer",
+                    "description": "ID de la entidad maestra a la que pertenece la credencial",
+                    "example": 123
+                  },
+                  "credential_type_id": {
+                    "type": "integer",
+                    "description": "ID del tipo de credencial (opcional, por defecto SII)",
+                    "example": 70
+                  }
+                }
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
+          "201": {
+            "description": "Credencial creada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "ID único de la credencial creada",
+                      "example": 1
+                    },
+                    "user": {
+                      "type": "string",
+                      "description": "RUT del usuario de la credencial",
+                      "example": "12345678-9"
+                    },
+                    "master_entity": {
+                      "type": "object",
+                      "description": "Información de la entidad maestra asociada",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "description": "ID de la entidad maestra",
+                          "example": 123
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Nombre de la entidad maestra",
+                          "example": "Empresa Ejemplo SpA"
+                        },
+                        "tax_id": {
+                          "type": "string",
+                          "description": "RUT de la entidad maestra",
+                          "example": "76543210-1"
+                        }
+                      }
+                    },
+                    "credential_type": {
+                      "type": "object",
+                      "description": "Tipo de credencial",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "description": "ID del tipo de credencial",
+                          "example": 70
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Nombre del tipo de credencial",
+                          "example": "SII"
+                        }
+                      }
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "Estado de la credencial",
+                      "enum": [
+                        "VALID",
+                        "INVALID",
+                        "EXPIRED"
+                      ],
+                      "example": "VALID"
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Fecha de creación de la credencial",
+                      "example": "2024-01-01T10:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error en la validación de datos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API key inválida o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin permisos para crear credenciales",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad maestra no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error de validación en el SII",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -213,42 +349,6 @@
   },
   "components": {
     "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
-          },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
-          }
-        }
-      },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
-            }
-          }
-        ]
-      },
       "DocumentBatch": {
         "type": "object",
         "required": [
@@ -257,7 +357,7 @@
         "properties": {
           "documents": {
             "type": "array",
-            "description": "Array de documentos a crear (máximo 100)",
+            "description": "Array de documentos a crear (máximo 200)",
             "items": {
               "$ref": "#/components/schemas/Document"
             }
@@ -357,7 +457,8 @@
         "properties": {
           "rut": {
             "type": "string",
-            "description": "RUT con formato, ej: 76.543.210-K"
+            "description": "RUT sin puntos y con guion, ej: 76543210-K",
+            "pattern": "^[0-9]{7,8}-[0-9K]$"
           },
           "business_name": {
             "type": "string",
@@ -405,7 +506,8 @@
         "properties": {
           "rut": {
             "type": "string",
-            "description": "RUT con formato, ej: 76.543.210-K"
+            "description": "RUT sin puntos y con guion, ej: 76543210-K",
+            "pattern": "^[0-9]{7,8}-[0-9K]$"
           },
           "business_name": {
             "type": "string",

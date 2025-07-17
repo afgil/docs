@@ -1,0 +1,154 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "API de Pana",
+        "description": "API para integración con el sistema Pana",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/v1/master-entities": {
+            "get": {
+                "summary": "Obtener entidad por RUT",
+                "description": "Obtiene los detalles completos de una entidad maestra por su RUT",
+                "parameters": [
+                    {
+                        "name": "rut",
+                        "in": "query",
+                        "description": "RUT de la entidad a buscar (formato: sin puntos y con guión)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[0-9]+-[0-9kK]$",
+                            "example": "76543210-1"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Operación exitosa",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "description": "ID único de la entidad maestra",
+                                            "example": 123
+                                        },
+                                        "tax_id": {
+                                            "type": "string",
+                                            "description": "RUT de la entidad con formato",
+                                            "example": "76543210-1"
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "description": "Nombre o razón social de la entidad",
+                                            "example": "Empresa Ejemplo SpA"
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "description": "Email de contacto de la entidad",
+                                            "example": "contacto@ejemplo.cl"
+                                        },
+                                        "addresses": {
+                                            "type": "array",
+                                            "description": "Lista de direcciones asociadas a la entidad",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "address": {
+                                                        "type": "string",
+                                                        "description": "Dirección completa",
+                                                        "example": "Av. Ejemplo 123"
+                                                    },
+                                                    "district": {
+                                                        "type": "string",
+                                                        "description": "Comuna",
+                                                        "example": "Santiago"
+                                                    },
+                                                    "city": {
+                                                        "type": "string",
+                                                        "description": "Ciudad",
+                                                        "example": "Santiago"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "activities": {
+                                            "type": "array",
+                                            "description": "Lista de actividades económicas de la entidad",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "code": {
+                                                        "type": "string",
+                                                        "description": "Código de la actividad económica",
+                                                        "example": "620200"
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "description": "Descripción de la actividad económica",
+                                                        "example": "Actividades de consultoría de informática y de gestión de instalaciones informáticas"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error en el formato del RUT proporcionado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Formato de RUT no válido"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Entidad no encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Entidad no encontrada"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Error interno del servidor"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
