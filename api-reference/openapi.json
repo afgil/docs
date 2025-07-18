@@ -30,6 +30,20 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Use-Defaults",
+            "in": "header",
+            "description": "Si se establece como 'true', el sistema usará valores por defecto para campos no proporcionados:\n- Fecha actual para date_issued\n- Datos del emisor según configuración de la plataforma o primera actividad/dirección disponible\n- Datos del receptor según configuración del cliente o primera actividad/dirección disponible",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ],
+              "default": "false"
+            }
           }
         ],
         "requestBody": {
@@ -414,7 +428,6 @@
       "Document": {
         "type": "object",
         "required": [
-          "date_issued",
           "dte_type",
           "document_issuer",
           "document_receiver",
@@ -424,7 +437,11 @@
           "date_issued": {
             "type": "string",
             "format": "date",
-            "description": "Fecha de emisión (YYYY-MM-DD)"
+            "description": "Fecha de emisión (YYYY-MM-DD). Si X-Use-Defaults es true y no se proporciona, se usa la fecha actual."
+          },
+          "folio": {
+            "type": "string",
+            "description": "Folio del documento. Si X-Use-Defaults es true y no se proporciona, se genera automáticamente."
           },
           "dte_type": {
             "$ref": "#/components/schemas/DteType"
@@ -504,7 +521,7 @@
         "properties": {
           "rut": {
             "type": "string",
-            "description": "RUT sin puntos y con guion, ej: 76543210-K",
+            "description": "RUT sin puntos y con guion, ej: 76543210-K. Si X-Use-Defaults es true, los demás campos se rellenarán automáticamente según la configuración.",
             "pattern": "^[0-9]{7,8}-[0-9K]$"
           },
           "business_name": {
@@ -553,7 +570,7 @@
         "properties": {
           "rut": {
             "type": "string",
-            "description": "RUT sin puntos y con guion, ej: 76543210-K",
+            "description": "RUT sin puntos y con guion, ej: 76543210-K. Si X-Use-Defaults es true, los demás campos se rellenarán automáticamente según la configuración.",
             "pattern": "^[0-9]{7,8}-[0-9K]$"
           },
           "business_name": {
