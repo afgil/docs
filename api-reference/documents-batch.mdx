@@ -4,3 +4,100 @@ openapi: 'POST /documents/batch'
 ---
 
 La respuesta con el PDF y los detalles completos de la factura se entrega a través del [webhook configurado](/user-guide/getting-started#paso-4%3A-configura-las-notificaciones-webhooks/). 
+
+### Ejemplo de Payload del Webhook
+
+```json
+{
+  "event": "document.issued",
+  "created_at": "2023-10-30T15:30:45.123456Z",
+  "data": {
+    "id": 1234,
+    "folio": "12345",
+    "date_issued": "2023-10-30",
+    "amount_with_iva": 119000.0,
+    "dte_type": {
+      "code": "33",
+      "description": "Factura Electrónica"
+    },
+    "sender": {
+      "id": 1,
+      "name": "Empresa Emisora S.A.",
+      "tax_id": "76.123.456-7",
+      "email": "contacto@empresa.cl"
+    },
+    "receiver": {
+      "id": 2,
+      "name": "Cliente Receptor S.A.",
+      "tax_id": "77.987.654-3",
+      "email": "contacto@cliente.cl"
+    },
+    "header": {
+      "purchase_transaction_type": 1,
+      "sale_transaction_type": 1,
+      "payment_method": "Contado",
+      "due_date": "2023-11-30"
+    },
+    "document_issuer": {
+      "rut": "76123456-7",
+      "business_name": "Empresa Emisora S.A.",
+      "business_activity": "Desarrollo de Software",
+      "phone_number": "+56912345678",
+      "email": "facturacion@empresa.cl",
+      "activity_code": 620900,
+      "sii_branch_code": "12345",
+      "address": "Av. Principal 123",
+      "district": "Santiago",
+      "city": "Santiago"
+    },
+    "document_receiver": {
+      "rut": "77987654-3",
+      "business_name": "Cliente Receptor S.A.",
+      "business_activity": "Comercio",
+      "contact": "contacto@cliente.cl",
+      "address": "Calle Comercial 456",
+      "district": "Providencia",
+      "city": "Santiago"
+    },
+    "document_total": {
+      "net_amount": 100000.0,
+      "iva_rate": 19.0,
+      "iva_amount": 19000.0,
+      "total_amount": 119000.0
+    },
+    "details": [
+      {
+        "line_number": 1,
+        "item_name": "Servicio de desarrollo",
+        "item_description": "Desarrollo de aplicación web",
+        "quantity": 1.0,
+        "unit_price": 100000.0,
+        "item_total": 100000.0,
+        "item_code": "SERV001",
+        "item_type_code": "",
+        "unit": "UN",
+        "discount_percent": 0.0,
+        "other_tax": 0.0
+      }
+    ],
+    "references": [
+      {
+        "reference_type": {
+          "code": "801"
+        },
+        "reference_folio": "OC12345",
+        "reference_date": "2023-10-15",
+        "reference_reason": "Orden de compra"
+      }
+    ],
+    "pdf_file": "https://tupanabucketdata.s3.us-east-2.amazonaws.com/pdf_files/example.pdf?AWSAccessKeyId=...&Expires=...",
+    "json_param": {
+      "custom_field": "valor_personalizado",
+      "metadata": {
+        "source": "api",
+        "integration": "sistema_externo"
+      }
+    }
+  }
+}
+``` 
