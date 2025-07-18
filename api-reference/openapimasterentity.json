@@ -6,7 +6,7 @@
         "version": "1.0.0"
     },
     "paths": {
-        "/api/v1/master-entities": {
+        "/v1/master-entities": {
             "get": {
                 "summary": "Obtener entidad por RUT",
                 "description": "Obtiene los detalles completos de una entidad maestra por su RUT",

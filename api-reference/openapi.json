@@ -368,24 +368,34 @@
     },
     "/master-entities": {
       "get": {
-        "summary": "Listar entidades maestras",
-        "description": "Obtiene todas las entidades maestras disponibles para el usuario autenticado",
+        "summary": "Buscar entidad por RUT",
+        "description": "Busca una entidad maestra específica por su RUT. Requiere autenticación por API Key.",
+        "parameters": [
+          {
+            "name": "rut",
+            "in": "query",
+            "description": "RUT del cliente a consultar (formato: 76543210-1, sin puntos)",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{7,8}-[0-9K]$",
+              "example": "76543210-1"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Lista de entidades maestras obtenida exitosamente",
+            "description": "Entidad encontrada exitosamente",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/MasterEntity"
-                  }
+                  "$ref": "#/components/schemas/MasterEntity"
                 }
               }
             }
           },
-          "401": {
-            "description": "No autorizado - API key inválida o faltante",
+          "400": {
+            "description": "Parámetro 'rut' faltante o formato inválido",
             "content": {
               "application/json": {
                 "schema": {
@@ -394,8 +404,28 @@
               }
             }
           },
-          "403": {
-            "description": "Prohibido - Sin permisos para acceder a entidades maestras",
+          "401": {
+            "description": "API Key inválida o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
             "content": {
               "application/json": {
                 "schema": {
@@ -747,30 +777,70 @@
             "description": "ID único de la entidad maestra",
             "example": 123
           },
-          "name": {
-            "type": "string",
-            "description": "Nombre de la entidad maestra",
-            "example": "Empresa Ejemplo SpA"
-          },
           "tax_id": {
             "type": "string",
             "description": "RUT de la entidad maestra",
             "example": "76543210-1"
           },
-          "status": {
+          "business_name": {
             "type": "string",
-            "description": "Estado de la entidad maestra",
-            "enum": [
-              "active",
-              "inactive"
-            ],
-            "example": "active"
+            "description": "Razón social de la entidad",
+            "example": "Empresa Ejemplo SpA"
           },
-          "created_at": {
+          "phone_number": {
             "type": "string",
-            "format": "date-time",
-            "description": "Fecha de creación de la entidad maestra",
-            "example": "2024-01-01T10:00:00Z"
+            "description": "Número de teléfono de contacto",
+            "example": "+56912345678"
+          },
+          "email": {
+            "type": "string",
+            "description": "Correo electrónico de contacto",
+            "example": "contacto@empresa.cl"
+          },
+          "business_activity": {
+            "type": "string",
+            "description": "Giro comercial de la entidad",
+            "example": "Desarrollo de Software"
+          },
+          "activity_code": {
+            "type": "integer",
+            "description": "Código de actividad económica",
+            "example": 620100
+          },
+          "sii_branch_code": {
+            "type": "string",
+            "description": "Código de sucursal SII",
+            "example": "001"
+          },
+          "address": {
+            "type": "string",
+            "description": "Dirección de la entidad",
+            "example": "Av. Providencia 1234"
+          },
+          "district": {
+            "type": "string",
+            "description": "Comuna de la entidad",
+            "example": "Providencia"
+          },
+          "city": {
+            "type": "string",
+            "description": "Ciudad de la entidad",
+            "example": "Santiago"
+          },
+          "region": {
+            "type": "string",
+            "description": "Región de la entidad",
+            "example": "Región Metropolitana"
+          },
+          "country": {
+            "type": "string",
+            "description": "País de la entidad",
+            "example": "Chile"
+          },
+          "postal_code": {
+            "type": "string",
+            "description": "Código postal de la entidad",
+            "example": "7500000"
           }
         }
       }
