@@ -17,178 +17,6 @@
     }
   ],
   "paths": {
-    "/credentials": {
-      "get": {
-        "summary": "Listar Credenciales",
-        "description": "Obtiene todas las credenciales activas del usuario autenticado",
-        "responses": {
-          "200": {
-            "description": "Lista de credenciales obtenida exitosamente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "integer",
-                        "example": 1
-                      },
-                      "user": {
-                        "type": "string",
-                        "example": "12345678-9"
-                      },
-                      "status": {
-                        "type": "string",
-                        "enum": [
-                          "VALID",
-                          "INVALID",
-                          "EXPIRED"
-                        ],
-                        "example": "VALID"
-                      },
-                      "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "example": "2024-01-01T10:00:00Z"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No autorizado",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "summary": "Crear Credencial",
-        "description": "Crea una nueva credencial validándola en el SII",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "user_rut",
-                  "password",
-                  "master_entity_id"
-                ],
-                "properties": {
-                  "user_rut": {
-                    "type": "string",
-                    "description": "RUT del usuario (sin puntos y con guión)",
-                    "example": "12345678-9"
-                  },
-                  "password": {
-                    "type": "string",
-                    "description": "Contraseña del usuario en el SII",
-                    "example": "mi_password_segura"
-                  },
-                  "master_entity_id": {
-                    "type": "integer",
-                    "description": "ID de la entidad maestra",
-                    "example": 123
-                  },
-                  "credential_type_id": {
-                    "type": "integer",
-                    "description": "ID del tipo de credencial (opcional, por defecto SII = 70)",
-                    "example": 70
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Credencial creada exitosamente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "integer",
-                      "example": 1
-                    },
-                    "user": {
-                      "type": "string",
-                      "example": "12345678-9"
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "VALID",
-                        "INVALID",
-                        "EXPIRED"
-                      ],
-                      "example": "VALID"
-                    },
-                    "created_at": {
-                      "type": "string",
-                      "format": "date-time",
-                      "example": "2024-01-01T10:00:00Z"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Error de validación",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No autorizado",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Entidad maestra no encontrada",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Error de validación en el SII",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/documents/batch": {
       "post": {
         "summary": "Envío de documentos en lote",
@@ -252,6 +80,287 @@
           },
           "422": {
             "description": "Cuerpo malformado o fallo de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/credentials": {
+      "get": {
+        "summary": "Listar credenciales",
+        "description": "Obtiene todas las activas del usuario autenticado",
+        "responses": {
+          "200": {
+            "description": "Lista de credenciales obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "description": "ID único de la credencial",
+                        "example": 1
+                      },
+                      "user": {
+                        "type": "string",
+                        "description": "RUT del usuario de la credencial",
+                        "example": "12345678-9"
+                      },
+                      "master_entity": {
+                        "type": "object",
+                        "description": "Información de la entidad maestra asociada",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "description": "ID de la entidad maestra",
+                            "example": 123
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Nombre de la entidad maestra",
+                            "example": "Empresa Ejemplo SpA"
+                          },
+                          "tax_id": {
+                            "type": "string",
+                            "description": "RUT de la entidad maestra",
+                            "example": "76543210-1"
+                          }
+                        }
+                      },
+                      "credential_type": {
+                        "type": "object",
+                        "description": "Tipo de credencial",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "description": "ID del tipo de credencial",
+                            "example": 70
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Nombre del tipo de credencial",
+                            "example": "SII"
+                          }
+                        }
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "Estado de la credencial",
+                        "enum": [
+                          "VALID",
+                          "INVALID",
+                          "EXPIRED"
+                        ],
+                        "example": "VALID"
+                      },
+                      "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Fecha de creación de la credencial",
+                        "example": "2024-01-01T10:00:00Z"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API key inválida o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin permisos para acceder a credenciales",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear credencial",
+        "description": "Crea una nueva credencial validándola en el SII",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "user_rut",
+                  "password",
+                  "digital_certificate_password",
+                  "master_entity_id"
+                ],
+                "properties": {
+                  "user_rut": {
+                    "type": "string",
+                    "description": "RUT del usuario (sin puntos y con guión)",
+                    "pattern": "^[0-9]+-[0-9kK]$",
+                    "example": "12345678-9"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "Contraseña del usuario en el SII",
+                    "example": "mi_password_segura"
+                  },
+                  "digital_certificate_password": {
+                    "type": "string",
+                    "description": "Contraseña del certificado digital",
+                    "example": "mi_password_certificado"
+                  },
+                  "master_entity_id": {
+                    "type": "integer",
+                    "description": "ID de la entidad maestra a la que pertenece la credencial",
+                    "example": 123
+                  },
+                  "credential_type_id": {
+                    "type": "integer",
+                    "description": "ID del tipo de credencial (opcional, por defecto SII)",
+                    "example": 70
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Credencial creada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "ID único de la credencial creada",
+                      "example": 1
+                    },
+                    "user": {
+                      "type": "string",
+                      "description": "RUT del usuario de la credencial",
+                      "example": "12345678-9"
+                    },
+                    "master_entity": {
+                      "type": "object",
+                      "description": "Información de la entidad maestra asociada",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "description": "ID de la entidad maestra",
+                          "example": 123
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Nombre de la entidad maestra",
+                          "example": "Empresa Ejemplo SpA"
+                        },
+                        "tax_id": {
+                          "type": "string",
+                          "description": "RUT de la entidad maestra",
+                          "example": "76543210-1"
+                        }
+                      }
+                    },
+                    "credential_type": {
+                      "type": "object",
+                      "description": "Tipo de credencial",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "description": "ID del tipo de credencial",
+                          "example": 70
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Nombre del tipo de credencial",
+                          "example": "SII"
+                        }
+                      }
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "Estado de la credencial",
+                      "enum": [
+                        "VALID",
+                        "INVALID",
+                        "EXPIRED"
+                      ],
+                      "example": "VALID"
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Fecha de creación de la credencial",
+                      "example": "2024-01-01T10:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error en la validación de datos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API key inválida o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin permisos para crear credenciales",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad maestra no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error de validación en el SII",
             "content": {
               "application/json": {
                 "schema": {
@@ -451,6 +560,10 @@
             "description": "RUT sin puntos y con guion, ej: 76543210-K. Si X-Use-Defaults es true, los demás campos se rellenarán automáticamente según la configuración.",
             "pattern": "^[0-9]{7,8}-[0-9K]$"
           },
+          "business_name": {
+            "type": "string",
+            "description": "Razón social"
+          },
           "phone_number": {
             "type": "string",
             "description": "Número de teléfono"
@@ -495,6 +608,10 @@
             "type": "string",
             "description": "RUT sin puntos y con guion, ej: 76543210-K. Si X-Use-Defaults es true, los demás campos se rellenarán automáticamente según la configuración.",
             "pattern": "^[0-9]{7,8}-[0-9K]$"
+          },
+          "business_name": {
+            "type": "string",
+            "description": "Razón social"
           },
           "contact": {
             "type": "string",
