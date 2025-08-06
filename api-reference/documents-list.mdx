@@ -1,0 +1,62 @@
+---
+title: 'Listar documentos'
+openapi: 'GET /api/v1/documents'
+---
+
+Este endpoint permite obtener una lista paginada de documentos emitidos o recibidos por una entidad específica. Soporta búsqueda por folio, nombre del receptor y filtros avanzados.
+
+### Características principales
+
+- **Paginación**: Resultados paginados con control de tamaño de página
+- **Búsqueda**: Por folio, nombre del receptor o RUT del receptor
+- **Filtros**: Por tipo de DTE, monto, fecha de emisión y más
+- **Integración SII**: Si se busca por folio y no existe localmente, intenta obtenerlo desde el SII
+
+### Autenticación
+
+Este endpoint requiere autenticación mediante API Key. La key debe enviarse en el header `Authorization`:
+
+```bash
+Authorization: Api-Key tu_api_key_aqui
+```
+
+### Ejemplos de uso
+
+#### Listar documentos de una entidad
+```bash
+curl -X GET "https://api.tupana.ai/v1/documents?master_entity_id=123" \
+     -H "Authorization: Api-Key tu_api_key_aqui"
+```
+
+#### Buscar por folio específico
+```bash
+curl -X GET "https://api.tupana.ai/v1/documents?master_entity_id=123&folio=12345" \
+     -H "Authorization: Api-Key tu_api_key_aqui"
+```
+
+#### Filtrar por tipo de DTE
+```bash
+curl -X GET "https://api.tupana.ai/v1/documents?master_entity_id=123&dte_type__code__in=33,34" \
+     -H "Authorization: Api-Key tu_api_key_aqui"
+```
+
+#### Búsqueda por texto
+```bash
+curl -X GET "https://api.tupana.ai/v1/documents?master_entity_id=123&search=Empresa%20ABC" \
+     -H "Authorization: Api-Key tu_api_key_aqui"
+```
+
+### Paginación
+
+El endpoint soporta paginación mediante los parámetros `page` y `page_size`:
+
+```bash
+curl -X GET "https://api.tupana.ai/v1/documents?master_entity_id=123&page=2&page_size=20" \
+     -H "Authorization: Api-Key tu_api_key_aqui"
+```
+
+La respuesta incluye:
+- `count`: Total de documentos
+- `next`: URL para la siguiente página (si existe)
+- `previous`: URL para la página anterior (si existe)
+- `results`: Array de documentos en la página actual 

@@ -91,6 +91,123 @@
         }
       }
     },
+    "/documents": {
+      "get": {
+        "summary": "Listar documentos",
+        "description": "Obtiene la lista de documentos emitidos o recibidos por una entidad específica. Soporta búsqueda por folio, nombre del receptor y filtros avanzados.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad maestra",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "folio",
+            "in": "query",
+            "description": "Número de folio del documento a buscar. Si se proporciona, intenta obtener el documento desde el SII si no existe localmente",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "issuer_tax_id",
+            "in": "query",
+            "description": "RUT del emisor para buscar documentos recibidos de un emisor específico (formato: 12345678-9)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Búsqueda de texto libre en folio, nombre del receptor o RUT del receptor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dte_type__code__in",
+            "in": "query",
+            "description": "Filtrar por tipos de DTE específicos. Por defecto incluye: 33, 34, 39, 61",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [
+                "33",
+                "34",
+                "39",
+                "61"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Número de página para paginación",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "description": "Cantidad de elementos por página (máximo 100)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de documentos obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentListResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para acceder a esta entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/master-entities": {
       "get": {
         "summary": "Buscar entidad por RUT",
@@ -757,6 +874,113 @@
                 }
               }
             }
+          }
+        }
+      },
+      "DocumentListResponse": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Número total de documentos"
+          },
+          "next": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL de la siguiente página"
+          },
+          "previous": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL de la página anterior"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentDetail"
+            }
+          }
+        }
+      },
+      "DocumentDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "ID único del documento"
+          },
+          "folio": {
+            "type": "string",
+            "description": "Número de folio del documento"
+          },
+          "date_issued": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha de emisión del documento"
+          },
+          "amount_with_iva": {
+            "type": "number",
+            "format": "float",
+            "description": "Monto total con IVA"
+          },
+          "dte_type": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Código del tipo de DTE"
+              },
+              "description": {
+                "type": "string",
+                "description": "Descripción del tipo de DTE"
+              }
+            }
+          },
+          "sender": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "integer",
+                "description": "ID de la entidad emisora"
+              },
+              "name": {
+                "type": "string",
+                "description": "Nombre de la entidad emisora"
+              },
+              "tax_id": {
+                "type": "string",
+                "description": "RUT de la entidad emisora"
+              }
+            }
+          },
+          "receiver": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "integer",
+                "description": "ID de la entidad receptora"
+              },
+              "name": {
+                "type": "string",
+                "description": "Nombre de la entidad receptora"
+              },
+              "tax_id": {
+                "type": "string",
+                "description": "RUT de la entidad receptora"
+              }
+            }
+          },
+          "pdf_s3_url": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL del PDF del documento en S3"
+          },
+          "pdf_base64": {
+            "type": "string",
+            "nullable": true,
+            "description": "PDF en formato base64 (solo cuando se obtiene desde SII)"
           }
         }
       },
