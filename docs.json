@@ -27,16 +27,16 @@
         "tab": "API Facturación",
         "groups": [
           {
-            "group": "Entidades",
+            "group": "Credenciales",
             "pages": [
-              "api-reference/endpoint/master-entity"
+              "api-reference/credentials-list",
+              "api-reference/credentials-create"
             ]
           },
           {
-            "group": "Credenciales",
+            "group": "Entidades",
             "pages": [
-              "api-reference/endpoint/credentials-get",
-              "api-reference/endpoint/credentials"
+              "api-reference/endpoint/master-entity"
             ]
           },
           {
@@ -52,23 +52,29 @@
       "anchors": []
     }
   },
-  "logo": {
-    "light": "/images/tupana.png",
-    "dark": "/images/tupana.png"
-  },
   "openapi": [
-    "docs/api-reference/openapi.json",
-    "docs/api-reference/openapimasterentity.json",
-    "docs/api-reference/openapicredentials.json"
+    "api-reference/openapi.json"
   ],
-  "api-reference": {
-    "title": "API Reference",
-    "pages": {
-      "introduction": "Introduction",
-      "endpoint/credentials": "Crear Credencial",
-      "endpoint/credentials-get": "Listar Credenciales",
-      "documents-batch": "Documentos en Lote",
-      "endpoint/webhook": "Webhook"
+  "topbarLinks": [
+    {
+      "name": "Soporte",
+      "url": "mailto:soporte@tupana.cl"
     }
-  }
+  ],
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "https://app.tupana.cl"
+  },
+  "anchors": [
+    {
+      "name": "Guía de Usuario",
+      "icon": "book-open",
+      "url": "user-guide"
+    },
+    {
+      "name": "API Reference",
+      "icon": "code",
+      "url": "api-reference"
+    }
+  ]
 }
