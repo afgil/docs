@@ -34,7 +34,7 @@
           {
             "name": "X-Use-Defaults",
             "in": "header",
-            "description": "Si se establece como 'true', el sistema usará valores por defecto para campos no proporcionados:\n- Fecha actual para date_issued\n- Datos del emisor según configuración de la plataforma o primera actividad/dirección disponible\n- Datos del receptor según configuración del cliente o primera actividad/dirección disponible",
+            "description": "Si se establece como 'true', el sistema usará valores por defecto para campos no proporcionados:\n- Fecha actual para date_issued\n- Datos del emisor según configuración de la plataforma o primera actividad/dirección disponible\n- Datos del receptor según configuración del cliente o primera actividad/dirección disponible\n- Payment method = '2' (crédito) en el header del documento",
             "required": false,
             "schema": {
               "type": "string",
@@ -179,33 +179,12 @@
                       "id": {
                         "type": "integer",
                         "description": "ID único de la credencial",
-                        "example": 1
+                        "example": 245
                       },
                       "user": {
                         "type": "string",
                         "description": "RUT del usuario de la credencial",
-                        "example": "12345678-9"
-                      },
-                      "master_entity": {
-                        "type": "object",
-                        "description": "Información de la entidad maestra asociada",
-                        "properties": {
-                          "id": {
-                            "type": "integer",
-                            "description": "ID de la entidad maestra",
-                            "example": 123
-                          },
-                          "name": {
-                            "type": "string",
-                            "description": "Nombre de la entidad maestra",
-                            "example": "Empresa Ejemplo SpA"
-                          },
-                          "tax_id": {
-                            "type": "string",
-                            "description": "RUT de la entidad maestra",
-                            "example": "76543210-1"
-                          }
-                        }
+                        "example": "16659618-1"
                       },
                       "credential_type": {
                         "type": "object",
@@ -223,6 +202,12 @@
                           }
                         }
                       },
+                      "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Fecha de creación de la credencial",
+                        "example": "2025-08-06T01:24:45.422918Z"
+                      },
                       "status": {
                         "type": "string",
                         "description": "Estado de la credencial",
@@ -233,11 +218,29 @@
                         ],
                         "example": "VALID"
                       },
-                      "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "description": "Fecha de creación de la credencial",
-                        "example": "2024-01-01T10:00:00Z"
+                      "master_entities": {
+                        "type": "array",
+                        "description": "Lista de entidades maestras asociadas a la credencial",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "description": "ID de la entidad maestra",
+                              "example": 4355
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "Nombre de la entidad maestra",
+                              "example": "HIDDEN CORE SPA"
+                            },
+                            "tax_id": {
+                              "type": "string",
+                              "description": "RUT de la entidad maestra",
+                              "example": "78.121.555-4"
+                            }
+                          }
+                        }
                       }
                     }
                   }
