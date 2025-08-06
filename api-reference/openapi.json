@@ -91,6 +91,77 @@
         }
       }
     },
+    "/master-entities": {
+      "get": {
+        "summary": "Buscar entidad por RUT",
+        "description": "Busca una entidad maestra específica por su RUT. Requiere autenticación por API Key.",
+        "parameters": [
+          {
+            "name": "rut",
+            "in": "query",
+            "description": "RUT del cliente a consultar (formato: 76543210-1, sin puntos)",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{7,8}-[0-9K]$",
+              "example": "76543210-1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entidad encontrada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MasterEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetro 'rut' faltante o formato inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API Key inválida o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/credentials": {
       "get": {
         "summary": "Listar credenciales",
@@ -361,77 +432,6 @@
           },
           "422": {
             "description": "Error de validación en el SII",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/master-entities": {
-      "get": {
-        "summary": "Buscar entidad por RUT",
-        "description": "Busca una entidad maestra específica por su RUT. Requiere autenticación por API Key.",
-        "parameters": [
-          {
-            "name": "rut",
-            "in": "query",
-            "description": "RUT del cliente a consultar (formato: 76543210-1, sin puntos)",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "pattern": "^[0-9]{7,8}-[0-9K]$",
-              "example": "76543210-1"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Entidad encontrada exitosamente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MasterEntity"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Parámetro 'rut' faltante o formato inválido",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "API Key inválida o faltante",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Entidad no encontrada",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Error interno del servidor",
             "content": {
               "application/json": {
                 "schema": {
@@ -781,72 +781,108 @@
           "id": {
             "type": "integer",
             "description": "ID único de la entidad maestra",
-            "example": 123
+            "example": 371
           },
           "tax_id": {
             "type": "string",
             "description": "RUT de la entidad maestra",
-            "example": "76543210-1"
+            "example": "76.798.398-0"
           },
-          "business_name": {
+          "name": {
             "type": "string",
             "description": "Razón social de la entidad",
-            "example": "Empresa Ejemplo SpA"
-          },
-          "phone_number": {
-            "type": "string",
-            "description": "Número de teléfono de contacto",
-            "example": "+56912345678"
+            "example": "SUPLO SPA"
           },
           "email": {
             "type": "string",
             "description": "Correo electrónico de contacto",
-            "example": "contacto@empresa.cl"
+            "nullable": true,
+            "example": null
           },
-          "business_activity": {
-            "type": "string",
-            "description": "Giro comercial de la entidad",
-            "example": "Desarrollo de Software"
+          "addresses": {
+            "type": "array",
+            "description": "Lista de direcciones de la entidad",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "description": "ID único de la dirección",
+                  "example": 6
+                },
+                "address": {
+                  "type": "string",
+                  "description": "Dirección completa",
+                  "example": "AV TAJAMAR 183 OF 401   OFIC"
+                },
+                "district": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "ID único de la comuna",
+                      "example": 7
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Nombre de la comuna",
+                      "example": "LAS CONDES"
+                    },
+                    "city": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "description": "ID único de la ciudad",
+                          "example": 3
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Nombre de la ciudad",
+                          "example": "SANTIAGO"
+                        }
+                      }
+                    }
+                  }
+                },
+                "sii_branch_code": {
+                  "type": "string",
+                  "description": "Código de sucursal SII",
+                  "nullable": true,
+                  "example": null
+                },
+                "phone": {
+                  "type": "string",
+                  "description": "Teléfono de la sucursal",
+                  "nullable": true,
+                  "example": null
+                }
+              }
+            }
           },
-          "activity_code": {
-            "type": "integer",
-            "description": "Código de actividad económica",
-            "example": 620100
-          },
-          "sii_branch_code": {
-            "type": "string",
-            "description": "Código de sucursal SII",
-            "example": "001"
-          },
-          "address": {
-            "type": "string",
-            "description": "Dirección de la entidad",
-            "example": "Av. Providencia 1234"
-          },
-          "district": {
-            "type": "string",
-            "description": "Comuna de la entidad",
-            "example": "Providencia"
-          },
-          "city": {
-            "type": "string",
-            "description": "Ciudad de la entidad",
-            "example": "Santiago"
-          },
-          "region": {
-            "type": "string",
-            "description": "Región de la entidad",
-            "example": "Región Metropolitana"
-          },
-          "country": {
-            "type": "string",
-            "description": "País de la entidad",
-            "example": "Chile"
-          },
-          "postal_code": {
-            "type": "string",
-            "description": "Código postal de la entidad",
-            "example": "7500000"
+          "activities": {
+            "type": "array",
+            "description": "Lista de actividades económicas de la entidad",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "description": "ID único de la actividad",
+                  "example": 1
+                },
+                "code": {
+                  "type": "string",
+                  "description": "Código de actividad económica",
+                  "example": "620900"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Nombre de la actividad económica",
+                  "example": "OTRAS ACTIVIDADES DE TECNOLOGIA DE LA IN"
+                }
+              }
+            }
           }
         }
       }

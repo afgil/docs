@@ -27,16 +27,16 @@
         "tab": "API Facturación",
         "groups": [
           {
+            "group": "Entidades",
+            "pages": [
+              "api-reference/endpoint/master-entity"
+            ]
+          },
+          {
             "group": "Credenciales",
             "pages": [
               "api-reference/credentials-list",
               "api-reference/credentials-create"
-            ]
-          },
-          {
-            "group": "Entidades",
-            "pages": [
-              "api-reference/endpoint/master-entity"
             ]
           },
           {
