@@ -10,15 +10,7 @@ Este endpoint permite obtener una lista paginada de documentos emitidos o recibi
 - **Paginación**: Resultados paginados con control de tamaño de página
 - **Búsqueda**: Por folio, nombre del receptor o RUT del receptor
 - **Filtros**: Por tipo de DTE, monto, fecha de emisión y más
-- **Integración SII**: Si se busca por folio y no existe localmente, intenta obtenerlo desde el SII
 
-### Autenticación
-
-Este endpoint requiere autenticación mediante API Key. La key debe enviarse en el header `Authorization`:
-
-```bash
-Authorization: Api-Key tu_api_key_aqui
-```
 
 ### Ejemplos de uso
 
@@ -33,6 +25,8 @@ curl -X GET "https://api.tupana.ai/v1/documents?master_entity_id=123" \
 curl -X GET "https://api.tupana.ai/v1/documents?master_entity_id=123&folio=12345" \
      -H "Authorization: Api-Key tu_api_key_aqui"
 ```
+
+Cuando se busca por folio específico, el sistema devolverá el documento junto con su PDF en formato base64 en el campo `pdf_base64`.
 
 #### Filtrar por tipo de DTE
 ```bash

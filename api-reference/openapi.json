@@ -116,7 +116,7 @@
           {
             "name": "folio",
             "in": "query",
-            "description": "Número de folio del documento a buscar. Si se proporciona, intenta obtener el documento desde el SII si no existe localmente",
+            "description": "Número de folio del documento a buscar. Si se proporciona, el sistema devolverá el documento junto con su PDF en formato base64.",
             "required": false,
             "schema": {
               "type": "string"
@@ -980,15 +980,10 @@
               }
             }
           },
-          "pdf_s3_url": {
-            "type": "string",
-            "nullable": true,
-            "description": "URL del PDF del documento en S3"
-          },
           "pdf_base64": {
             "type": "string",
             "nullable": true,
-            "description": "PDF en formato base64 (solo cuando se obtiene desde SII)"
+            "description": "PDF en formato base64. Solo se incluye cuando se busca por folio específico."
           }
         }
       },
