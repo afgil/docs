@@ -5,6 +5,39 @@ openapi: 'POST /documents/batch'
 
 La respuesta con el PDF y los detalles completos de la factura se entrega a través del [webhook configurado](/user-guide/getting-started#paso-4%3A-configura-las-notificaciones-webhooks/). 
 
+## Notas de Crédito
+
+Las notas de crédito (DTE 61) requieren referencias obligatorias al documento que anulan. La razón de referencia debe ser **"ANULA DOCUMENTO DE LA REFERENCIA"** para notas de crédito totales.
+
+### Ejemplo de Nota de Crédito
+
+```json
+{
+  "documents": [{
+    "dte_type": {"code": "61"},
+    "document_issuer": {
+      "rut": "76123456-7",
+      "business_name": "Mi Empresa S.A."
+    },
+    "document_receiver": {
+      "rut": "77987654-3",
+      "business_name": "Cliente S.A."
+    },
+    "details": [{
+      "item_name": "Anulación de servicio",
+      "quantity": 1,
+      "unit_price": 100000
+    }],
+    "references": [{
+      "dte_type_code": "33",
+      "reference_folio": 12345,
+      "reference_date": "2023-10-25",
+      "reference_reason": "ANULA DOCUMENTO DE LA REFERENCIA"
+    }]
+  }]
+}
+```
+
 ### Ejemplo de Payload del Webhook
 
 ```json
@@ -101,3 +134,54 @@ La respuesta con el PDF y los detalles completos de la factura se entrega a trav
   }
 }
 ``` 
+
+### Boletas de honorarios (DTE 80)
+
+Para emitir boletas de honorarios dentro del flujo de emisión masiva debes considerar lo siguiente:
+
+- Usa `dte_type.code = "80"` (el backend también acepta `"1080"` para borradores internos).
+- Incluye el campo `header.retention_type`, que determina quién realiza la retención legal del 14,5%:
+  - `RETRECEPTOR`: la retención la realiza el receptor (por defecto).
+  - `RETCONTRIBUYENTE`: la retención la realiza el contribuyente que emite.
+- Si omites el campo, el backend asumirá `RETRECEPTOR`, pero se recomienda enviarlo explícitamente para evitar ambigüedades.
+
+#### Ejemplo de request para boleta de honorarios
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": { "code": "80" },
+      "date_issued": "2025-01-31",
+      "document_issuer": {
+        "rut": "76958409-2",
+        "business_name": "Servicios Profesionales SPA",
+        "address": "Av. Libertador 123",
+        "district": "Providencia",
+        "city": "Santiago"
+      },
+      "document_receiver": {
+        "rut": "77123456-8",
+        "business_name": "Cliente Receptor Ltda.",
+        "address": "Calle Central 456",
+        "district": "Las Condes",
+        "city": "Santiago"
+      },
+      "details": [
+        {
+          "line_number": 1,
+          "item_name": "Servicios profesionales",
+          "quantity": 1,
+          "unit_price": 100000,
+          "item_total": 100000
+        }
+      ],
+      "header": {
+        "retention_type": "RETCONTRIBUYENTE"
+      }
+    }
+  ]
+}
+```
+
+En la respuesta del batch y en los webhooks, `retention_type` se devuelve junto al documento para que puedas identificar quién retuvo el impuesto.

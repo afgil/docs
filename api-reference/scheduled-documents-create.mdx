@@ -1,0 +1,26 @@
+---
+title: 'Crear documento programado'
+openapi: 'POST /scheduled-documents'
+---
+
+Crea un nuevo documento programado que se ejecutará automáticamente según la frecuencia especificada. Es ideal para automatizar facturas recurrentes a clientes específicos sin intervención manual.
+
+### Parámetros Requeridos
+
+- **master_entity_id** (integer): ID de la entidad maestra emisora
+- **dte_type** (string): Código del tipo de DTE (ej: '33' para Factura Electrónica)
+- **frequency** (string): Frecuencia de ejecución (`daily`, `weekly`, `monthly`, `quarterly`)
+- **amount** (number): Monto total del documento
+- **details** (array): Lista de productos/servicios del documento
+
+### Parámetros Opcionales
+
+- **receiver** (integer): ID de la entidad receptora ya registrada
+- **receiver_tax_id** (string): RUT del receptor para crear cliente automáticamente
+- **receiver_business_name** (string): Razón social del receptor
+- **day_of_month** (integer): Día del mes para ejecución (requerido para frecuencia mensual/trimestral)
+- **day_of_week** (integer): Día de la semana para ejecución (requerido para frecuencia semanal)
+- **currency** (string): Moneda del documento (CLP, UF, USD, EUR) - por defecto CLP
+- **status** (string): Estado inicial (`active`, `inactive`) - por defecto active
+- **max_occurrences** (integer): Número máximo de ejecuciones (null = infinito)
+

@@ -1,0 +1,54 @@
+---
+title: 'Listar documentos programados'
+openapi: 'GET /scheduled-documents'
+---
+
+Este endpoint permite obtener una lista paginada de documentos programados de una entidad específica. Los documentos programados son plantillas que se ejecutan automáticamente según una frecuencia definida (diaria, semanal, mensual o trimestral).
+
+### Características principales
+
+- **Paginación**: Resultados paginados con control de tamaño de página
+- **Filtros**: Por estado, frecuencia, tipo de DTE y más
+- **Gestión completa**: Crear, listar, actualizar y eliminar documentos programados
+- **Automatización**: Los documentos se emiten automáticamente según la programación
+
+### Estados de documentos programados
+
+Los documentos programados pueden tener los siguientes estados:
+
+| Estado | Descripción |
+|--------|-------------|
+| `active` | El documento está activo y se ejecutará según su programación |
+| `inactive` | El documento está pausado y no se ejecutará |
+| `completed` | El documento ha completado todas sus ejecuciones programadas |
+
+### Frecuencias disponibles
+
+| Frecuencia | Descripción |
+|------------|-------------|
+| `daily` | Se ejecuta diariamente |
+| `weekly` | Se ejecuta semanalmente |
+| `monthly` | Se ejecuta mensualmente |
+| `quarterly` | Se ejecuta trimestralmente |
+
+### Campos de respuesta
+
+Cada documento programado incluye:
+
+- `id`: ID único del documento programado
+- `sender`: Información de la entidad emisora
+- `receiver`: Información de la entidad receptora (si aplica)
+- `dte_type`: Tipo de documento tributario
+- `frequency`: Frecuencia de ejecución
+- `next_execution`: Fecha y hora de la próxima ejecución
+- `status`: Estado actual del documento
+- `amount`: Monto del documento
+- `currency`: Moneda del documento
+- `details`: Detalles/productos del documento
+- `references`: Referencias a otros documentos (si aplica)
+- `completed_occurrences`: Número de veces que se ha ejecutado
+- `max_occurrences`: Número máximo de ejecuciones (si aplica)
+- `created_at`: Fecha de creación
+- `updated_at`: Fecha de última actualización
+
+Todos los endpoints requieren el parámetro `master_entity_id` como query parameter y autenticación mediante API Key.

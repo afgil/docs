@@ -49,6 +49,13 @@
               "api-reference/documents-list",
               "api-reference/documents-batch"
             ]
+          },
+          {
+            "group": "Documentos Programados",
+            "pages": [
+              "api-reference/scheduled-documents-list",
+              "api-reference/scheduled-documents-create"
+            ]
           }
         ]
       }

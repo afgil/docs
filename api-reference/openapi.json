@@ -141,6 +141,17 @@
             }
           },
           {
+            "name": "document_type",
+            "in": "query",
+            "description": "Tipo de documentos a listar. 'issued' para documentos emitidos (por defecto), 'received' para documentos recibidos",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["issued", "received"],
+              "default": "issued"
+            }
+          },
+          {
             "name": "dte_type__code__in",
             "in": "query",
             "description": "Filtrar por tipos de DTE específicos. Por defecto incluye: 33, 34, 39, 61",
@@ -570,6 +581,498 @@
           }
         }
       }
+    },
+    "/scheduled-documents": {
+      "get": {
+        "tags": [
+          "Documentos Programados"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar documentos programados",
+        "description": "Obtiene una lista paginada de documentos programados de una entidad específica. Los documentos programados son plantillas que se ejecutan automáticamente según una frecuencia definida.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad maestra",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filtrar por estado del documento programado",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["active", "inactive", "completed"],
+              "example": "active"
+            }
+          },
+          {
+            "name": "frequency",
+            "in": "query",
+            "description": "Filtrar por frecuencia de ejecución",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["daily", "weekly", "monthly", "quarterly"],
+              "example": "monthly"
+            }
+          },
+          {
+            "name": "dte_type",
+            "in": "query",
+            "description": "Filtrar por tipo de DTE",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "33"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Número de página para paginación",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "example": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "description": "Número de elementos por página",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100,
+              "example": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de documentos programados obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledDocumentListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API Key inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Documentos Programados"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Crear documento programado",
+        "description": "Crea un nuevo documento programado que se ejecutará automáticamente según la frecuencia especificada.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad maestra emisora",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Datos del documento programado a crear",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduledDocumentCreate"
+              },
+              "example": {
+                "dte_type": "33",
+                "receiver_tax_id": "76111111-1",
+                "receiver_business_name": "Cliente ABC SPA",
+                "frequency": "monthly",
+                "day_of_month": 10,
+                "amount": 150000,
+                "currency": "CLP",
+                "details": [
+                  {
+                    "product_name": "Servicio mensual",
+                    "description": "Asistencia contable",
+                    "quantity": 1,
+                    "unit_price": 150000
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Documento programado creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledDocument"
+                },
+                "example": {
+                  "id": 987,
+                  "dte_type": "33",
+                  "frequency": "monthly",
+                  "day_of_month": 10,
+                  "status": "active",
+                  "amount": 150000,
+                  "currency": "CLP",
+                  "next_execution": "2024-03-10T10:00:00Z",
+                  "details": [
+                    {
+                      "id": 1,
+                      "product_name": "Servicio mensual",
+                      "quantity": 1,
+                      "unit_price": 150000,
+                      "total": 150000
+                    }
+                  ],
+                  "created_at": "2024-02-05T12:15:00Z",
+                  "updated_at": "2024-02-05T12:15:00Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API Key inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error de validación en el SII",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scheduled-documents/{id}": {
+      "get": {
+        "tags": [
+          "Documentos Programados"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Obtener documento programado",
+        "description": "Obtiene los detalles de un documento programado específico.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del documento programado",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 789
+            }
+          },
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad maestra",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Documento programado obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledDocument"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documento programado no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API Key inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Documentos Programados"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Actualizar documento programado",
+        "description": "Actualiza parcialmente un documento programado existente.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del documento programado",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 789
+            }
+          },
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad maestra",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Campos a actualizar del documento programado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduledDocumentUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Documento programado actualizado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledDocument"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documento programado no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API Key inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Documentos Programados"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Eliminar documento programado",
+        "description": "Elimina un documento programado existente.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del documento programado",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 789
+            }
+          },
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad maestra",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Documento programado eliminado exitosamente"
+          },
+          "404": {
+            "description": "Documento programado no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API Key inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -634,6 +1137,9 @@
           "json_param": {
             "type": "object",
             "description": "JSON arbitrario almacenado textualmente"
+          },
+          "export_data": {
+            "$ref": "#/components/schemas/ExportData"
           }
         }
       },
@@ -645,12 +1151,15 @@
         "properties": {
           "code": {
             "type": "string",
-            "description": "Código del tipo de documento:\n- 33: Factura Electrónica\n- 34: Factura Exenta Electrónica\n- 39: Boleta Electrónica\n- 61: Nota de Crédito Electrónica",
+            "description": "Código del tipo de documento:\n- 33: Factura Electrónica\n- 34: Factura Exenta Electrónica\n- 39: Boleta Electrónica\n- 46: Factura de Compra Electrónica\n- 61: Nota de Crédito Electrónica\n- 80: Boleta de Honorarios Electrónica\n- 110: Factura de Exportación Electrónica",
             "enum": [
               "33",
               "34",
               "39",
-              "61"
+              "46",
+              "61",
+              "80",
+              "110"
             ]
           }
         }
@@ -674,6 +1183,20 @@
             "type": "string",
             "format": "date",
             "description": "Fecha de vencimiento"
+          },
+          "vat_withheld": {
+            "type": "boolean",
+            "description": "Indica si el IVA está retenido. Solo aplicable para facturas de compra (DTE 46) y notas de crédito que referencian facturas de compra.",
+            "example": false
+          },
+          "retention_type": {
+            "type": "string",
+            "description": "Tipo de retención obligatorio para boletas de honorarios (DTE 80). Define quién retiene el 14,5% legal.",
+            "enum": [
+              "RETRECEPTOR",
+              "RETCONTRIBUYENTE"
+            ],
+            "example": "RETRECEPTOR"
           }
         }
       },
@@ -839,7 +1362,8 @@
           },
           "reference_reason": {
             "type": "string",
-            "description": "Razón de referencia"
+            "description": "Razón de referencia. Para notas de crédito totales debe ser 'ANULA DOCUMENTO DE LA REFERENCIA'.",
+            "example": "ANULA DOCUMENTO DE LA REFERENCIA"
           },
           "dte_type_code": {
             "type": "string",
@@ -1113,6 +1637,431 @@
                 }
               }
             }
+          }
+        }
+      },
+      "ScheduledDocumentListResponse": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Total de documentos programados",
+            "example": 25
+          },
+          "next": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL de la siguiente página",
+            "example": "https://api.tupana.ai/v1/scheduled-documents?master_entity_id=123&page=2"
+          },
+          "previous": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL de la página anterior",
+            "example": null
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledDocument"
+            }
+          }
+        }
+      },
+      "ScheduledDocument": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "ID único del documento programado",
+            "example": 789
+          },
+          "sender": {
+            "type": "object",
+            "description": "Información de la entidad emisora",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 123
+              },
+              "name": {
+                "type": "string",
+                "example": "Empresa Ejemplo SpA"
+              },
+              "rut": {
+                "type": "string",
+                "example": "76543210-1"
+              }
+            }
+          },
+          "receiver": {
+            "type": "object",
+            "nullable": true,
+            "description": "Información de la entidad receptora",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 456
+              },
+              "name": {
+                "type": "string",
+                "example": "Cliente ABC Ltda"
+              },
+              "rut": {
+                "type": "string",
+                "example": "12345678-9"
+              }
+            }
+          },
+          "dte_type": {
+            "type": "object",
+            "description": "Tipo de documento tributario",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 1
+              },
+              "code": {
+                "type": "string",
+                "example": "33"
+              },
+              "description": {
+                "type": "string",
+                "example": "Factura Electrónica"
+              }
+            }
+          },
+          "frequency": {
+            "type": "string",
+            "enum": ["daily", "weekly", "monthly", "quarterly"],
+            "description": "Frecuencia de ejecución",
+            "example": "monthly"
+          },
+          "frequency_display": {
+            "type": "string",
+            "description": "Frecuencia en formato legible",
+            "example": "Mensual"
+          },
+          "day_of_month": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Día del mes para ejecución (1-31)",
+            "example": 15
+          },
+          "day_of_week": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Día de la semana para ejecución (0=Lunes, 6=Domingo)",
+            "example": null
+          },
+          "next_execution": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha y hora de la próxima ejecución",
+            "example": "2024-02-15T10:00:00Z"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "inactive", "completed"],
+            "description": "Estado del documento programado",
+            "example": "active"
+          },
+          "status_display": {
+            "type": "string",
+            "description": "Estado en formato legible",
+            "example": "Activo"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Monto del documento",
+            "example": 100000
+          },
+          "currency": {
+            "type": "string",
+            "description": "Moneda del documento",
+            "example": "CLP"
+          },
+          "completed_occurrences": {
+            "type": "integer",
+            "description": "Número de veces que se ha ejecutado",
+            "example": 5
+          },
+          "max_occurrences": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Número máximo de ejecuciones",
+            "example": null
+          },
+          "details": {
+            "type": "array",
+            "description": "Detalles/productos del documento",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledDocumentDetail"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha de creación",
+            "example": "2024-01-15T10:00:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha de última actualización",
+            "example": "2024-01-20T15:30:00Z"
+          }
+        }
+      },
+      "ScheduledDocumentCreate": {
+        "type": "object",
+        "required": ["dte_type", "frequency", "amount", "details"],
+        "properties": {
+          "dte_type": {
+            "type": "string",
+            "description": "Código del tipo de DTE (ej: '33' para Factura Electrónica)",
+            "example": "33"
+          },
+          "receiver": {
+            "type": "integer",
+            "description": "ID de la entidad receptora (opcional para algunos tipos de DTE)",
+            "example": 456
+          },
+          "receiver_tax_id": {
+            "type": "string",
+            "description": "RUT del receptor para crear cliente automáticamente",
+            "example": "12345678-9"
+          },
+          "receiver_business_name": {
+            "type": "string",
+            "description": "Razón social del receptor",
+            "example": "Cliente ABC Ltda"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": ["daily", "weekly", "monthly", "quarterly"],
+            "description": "Frecuencia de ejecución",
+            "example": "monthly"
+          },
+          "day_of_month": {
+            "type": "integer",
+            "description": "Día del mes para ejecución (1-31, requerido para frecuencia mensual/trimestral)",
+            "minimum": 1,
+            "maximum": 31,
+            "example": 15
+          },
+          "day_of_week": {
+            "type": "integer",
+            "description": "Día de la semana para ejecución (0=Lunes, 6=Domingo, requerido para frecuencia semanal)",
+            "minimum": 0,
+            "maximum": 6,
+            "example": 1
+          },
+          "amount": {
+            "type": "number",
+            "description": "Monto total del documento",
+            "minimum": 0,
+            "example": 100000
+          },
+          "currency": {
+            "type": "string",
+            "description": "Moneda del documento",
+            "enum": ["CLP", "UF", "USD", "EUR"],
+            "default": "CLP",
+            "example": "CLP"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "inactive"],
+            "description": "Estado inicial del documento programado",
+            "default": "active",
+            "example": "active"
+          },
+          "max_occurrences": {
+            "type": "integer",
+            "description": "Número máximo de ejecuciones (opcional, null = infinito)",
+            "minimum": 1,
+            "example": 12
+          },
+          "details": {
+            "type": "array",
+            "description": "Detalles/productos del documento",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/ScheduledDocumentDetailCreate"
+            }
+          }
+        }
+      },
+      "ScheduledDocumentUpdate": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["active", "inactive"],
+            "description": "Estado del documento programado",
+            "example": "inactive"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Monto total del documento",
+            "minimum": 0,
+            "example": 120000
+          },
+          "frequency": {
+            "type": "string",
+            "enum": ["daily", "weekly", "monthly", "quarterly"],
+            "description": "Frecuencia de ejecución",
+            "example": "weekly"
+          },
+          "day_of_month": {
+            "type": "integer",
+            "description": "Día del mes para ejecución (1-31)",
+            "minimum": 1,
+            "maximum": 31,
+            "example": 20
+          },
+          "day_of_week": {
+            "type": "integer",
+            "description": "Día de la semana para ejecución (0=Lunes, 6=Domingo)",
+            "minimum": 0,
+            "maximum": 6,
+            "example": 2
+          },
+          "max_occurrences": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Número máximo de ejecuciones",
+            "minimum": 1,
+            "example": 24
+          }
+        }
+      },
+      "ScheduledDocumentDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "ID único del detalle",
+            "example": 1
+          },
+          "product_name": {
+            "type": "string",
+            "description": "Nombre del producto o servicio",
+            "example": "Servicio mensual de consultoría"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción detallada",
+            "example": "Consultoría especializada en tecnología"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Cantidad",
+            "example": 1
+          },
+          "unit_price": {
+            "type": "number",
+            "description": "Precio unitario",
+            "example": 100000
+          },
+          "total": {
+            "type": "number",
+            "description": "Total de la línea",
+            "example": 100000
+          },
+          "unit_of_measurement": {
+            "type": "string",
+            "description": "Unidad de medida",
+            "example": "UN"
+          }
+        }
+      },
+      "ExportData": {
+        "type": "object",
+        "description": "Datos específicos para facturas de exportación (DTE 110) y notas de crédito de exportación (DTE 112). Solo requerido cuando se selecciona uno de estos tipos de documento.",
+        "properties": {
+          "tax_id_receptor": {
+            "type": "string",
+            "description": "Identificación tributaria del receptor en el país de destino"
+          },
+          "destination_country_code": {
+            "type": "string",
+            "description": "Código del país de destino (ISO 3166-1 alpha-2)",
+            "example": "US"
+          },
+          "currency_code": {
+            "type": "string",
+            "description": "Código de la moneda (ISO 4217)",
+            "example": "USD"
+          },
+          "exchange_rate": {
+            "type": "string",
+            "description": "Tipo de cambio aplicado",
+            "example": "800.50"
+          },
+          "departure_port_code": {
+            "type": "string",
+            "description": "Código del puerto de embarque"
+          },
+          "arrival_port_code": {
+            "type": "string",
+            "description": "Código del puerto de desembarque"
+          },
+          "departure_port_name": {
+            "type": "string",
+            "description": "Nombre del puerto de embarque"
+          },
+          "arrival_port_name": {
+            "type": "string",
+            "description": "Nombre del puerto de desembarque"
+          },
+          "total_packages": {
+            "type": "string",
+            "description": "Número total de bultos"
+          },
+          "sale_mode_code": {
+            "type": "string",
+            "description": "Código de modalidad de venta"
+          },
+          "export_type": {
+            "type": "string",
+            "description": "Tipo de exportación",
+            "default": "0"
+          }
+        }
+      },
+      "ScheduledDocumentDetailCreate": {
+        "type": "object",
+        "required": ["product_name", "quantity", "unit_price"],
+        "properties": {
+          "product_name": {
+            "type": "string",
+            "description": "Nombre del producto o servicio",
+            "example": "Servicio mensual de consultoría"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción detallada",
+            "example": "Consultoría especializada en tecnología"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Cantidad",
+            "minimum": 0.01,
+            "example": 1
+          },
+          "unit_price": {
+            "type": "number",
+            "description": "Precio unitario",
+            "minimum": 0,
+            "example": 100000
+          },
+          "unit_of_measurement": {
+            "type": "string",
+            "description": "Unidad de medida",
+            "default": "UN",
+            "example": "UN"
           }
         }
       }

@@ -10,44 +10,54 @@ Este endpoint permite obtener una lista paginada de documentos emitidos o recibi
 - **Paginación**: Resultados paginados con control de tamaño de página
 - **Búsqueda**: Por folio, nombre del receptor o RUT del receptor
 - **Filtros**: Por tipo de DTE, monto, fecha de emisión y más
+- **Documentos emitidos y recibidos**: Controla qué tipo de documentos mostrar usando el parámetro `document_type`
 
 
-### Ejemplos de uso
+### Parámetros principales
 
-#### Listar documentos de una entidad
+| Parámetro | Tipo | Requerido | Descripción |
+|-----------|------|-----------|-------------|
+| `master_entity_id` | integer | Sí | ID de la entidad emisora o receptora cuyos documentos quieres consultar. |
+| `document_type` | string | No | `issued` (default) o `received` para seleccionar el rol de la entidad. |
+| `folio` | integer | No | Folio exacto del documento. Si se envía, se ignoran otros filtros y se devuelve el PDF en `pdf_base64`. |
+| `search` | string | No | Busca por nombre o RUT del receptor (emitidos) o del emisor (recibidos). |
+| `dte_type__code__in` | string | No | Lista de códigos DTE separados por coma (ej: `33,34`). |
+| `issuer_tax_id` | string | No | RUT del emisor cuando `document_type=received`. |
+| `page` | integer | No | Página actual, parte de la paginación estándar. |
+| `page_size` | integer | No | Tamaño de página (máx. 100). |
+
+### Ejemplo de petición
+
 ```bash
-curl -X GET "https://api.tupana.ai/v1/documents?master_entity_id=123" \
+curl -X GET "https://api.tupana.ai/v1/documents?master_entity_id=123&document_type=issued&page=1&page_size=20" \
      -H "Authorization: Api-Key tu_api_key_aqui"
 ```
 
-#### Buscar por folio específico
-```bash
-curl -X GET "https://api.tupana.ai/v1/documents?master_entity_id=123&folio=12345" \
-     -H "Authorization: Api-Key tu_api_key_aqui"
-```
+### Respuesta exitosa
 
-Cuando se busca por folio específico, el sistema devolverá el documento junto con su PDF en formato base64 en el campo `pdf_base64`.
+La respuesta `200 OK` incluye un objeto paginado con:
 
-#### Filtrar por tipo de DTE
-```bash
-curl -X GET "https://api.tupana.ai/v1/documents?master_entity_id=123&dte_type__code__in=33,34" \
-     -H "Authorization: Api-Key tu_api_key_aqui"
-```
+- `count`, `next`, `previous` para la navegación
+- `results`: arreglo de documentos con información de emisor, receptor, montos, estado, PDF y referencias
+- `pdf_base64` únicamente cuando la búsqueda es por folio específico
 
-#### Búsqueda por texto
-```bash
-curl -X GET "https://api.tupana.ai/v1/documents?master_entity_id=123&search=Empresa%20ABC" \
-     -H "Authorization: Api-Key tu_api_key_aqui"
-```
+
+### Tipos de documentos
+
+El parámetro `document_type` controla qué tipo de documentos se devuelven:
+
+| Valor | Descripción | Comportamiento |
+|-------|-------------|----------------|
+| `issued` (por defecto) | Documentos emitidos | Devuelve documentos donde la entidad especificada es el **emisor** |
+| `received` | Documentos recibidos | Devuelve documentos donde la entidad especificada es el **receptor** |
+
+**Nota importante**: Cuando consultas documentos recibidos (`document_type=received`), los campos de búsqueda y filtros se ajustan automáticamente:
+- El parámetro `search` buscará en el nombre y RUT del **emisor** (no del receptor)
+- El parámetro `issuer_tax_id` permite filtrar por RUT del emisor específico
 
 ### Paginación
 
 El endpoint soporta paginación mediante los parámetros `page` y `page_size`:
-
-```bash
-curl -X GET "https://api.tupana.ai/v1/documents?master_entity_id=123&page=2&page_size=20" \
-     -H "Authorization: Api-Key tu_api_key_aqui"
-```
 
 La respuesta incluye:
 - `count`: Total de documentos
