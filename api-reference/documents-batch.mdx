@@ -3,51 +3,308 @@ title: 'Emisión masiva de documentos'
 openapi: 'POST /documents/batch'
 ---
 
-La respuesta con el PDF y los detalles completos de la factura se entrega a través del [webhook configurado](/user-guide/getting-started#paso-4%3A-configura-las-notificaciones-webhooks/). 
+Crea hasta 200 documentos tributarios electrónicos en una sola llamada. La respuesta con el PDF y los detalles completos se entrega a través del [webhook configurado](/user-guide/getting-started#paso-4%3A-configura-las-notificaciones-webhooks/).
 
-## Notas de Crédito
+## Headers Opcionales
 
-Las notas de crédito (DTE 61) requieren referencias obligatorias al documento que anulan. La razón de referencia debe ser **"ANULA DOCUMENTO DE LA REFERENCIA"** para notas de crédito totales.
+### Idempotency-Key
+Header opcional que previene la creación de lotes duplicados. Debe tener un máximo de 256 caracteres y expira después de 24 horas.
 
-### Ejemplo de Nota de Crédito
+### X-Use-Defaults
+
+> **⚠️ IMPORTANTE: Se recomienda encarecidamente usar el header `X-Use-Defaults: true` en todas tus solicitudes de emisión masiva de documentos.** Este header simplifica significativamente la creación de documentos al hacer opcionales muchos campos y completar automáticamente los datos faltantes según tu configuración en Tu Pana.
+
+Si se establece como `"true"`, el sistema usará valores por defecto para campos no proporcionados, reduciendo la complejidad y cantidad de datos que necesitas enviar:
+
+#### Campos que se vuelven opcionales o se completan automáticamente:
+
+**A nivel del documento:**
+- `date_issued`: Si no se proporciona, se usa la fecha actual (en zona horaria de Chile)
+- `folio`: Si no se proporciona, se genera automáticamente por el sistema
+- `dte_type.code`: Si no se proporciona, se usa `"33"` (Factura Electrónica) por defecto
+- `header.payment_method`: Si no se proporciona, se establece como `"2"` (crédito)
+
+**En `document_issuer` (solo con RUT):**
+Con `X-Use-Defaults: true`, solo necesitas proporcionar el `rut` del emisor. El sistema completa automáticamente todos los demás campos desde tu configuración:
+- `business_name`: Razón social del emisor
+- `business_activity`: Giro o actividad económica
+- `address`: Dirección del emisor
+- `district`: Comuna
+- `city`: Ciudad
+- `email`: Email de contacto
+- `phone_number`: Teléfono
+- `activity_code`: Código de actividad económica
+
+**En `document_receiver` (solo con RUT):**
+Con `X-Use-Defaults: true`, solo necesitas proporcionar el `rut` del receptor. El sistema completa automáticamente todos los demás campos desde la configuración del cliente o datos disponibles:
+- `business_name`: Razón social del receptor ✅ **Opcional**
+- `contact`: Contacto del receptor ✅ **Opcional**
+- `business_activity`: Giro o actividad económica ✅ **Opcional** (no se valida si está vacío)
+- `address`: Dirección del receptor ✅ **Opcional** (no se valida si está vacío)
+- `district`: Comuna ✅ **Opcional** (no se valida si está vacío)
+- `city`: Ciudad ✅ **Opcional** (no se valida si está vacío)
+
+**Ejemplo simplificado con X-Use-Defaults:**
+```json
+{
+  "documents": [{
+    "dte_type": {"code": "33"},
+    "document_issuer": {
+      "rut": "76123456-7"
+    },
+    "document_receiver": {
+      "rut": "77987654-3"
+    },
+    "details": [{
+      "item_name": "Servicio de desarrollo",
+      "quantity": 1,
+      "unit_price": 100000,
+      "item_total": 100000
+    }]
+  }]
+}
+```
+
+En este ejemplo, solo necesitas proporcionar:
+- El tipo de documento (`dte_type.code`)
+- Los RUTs del emisor y receptor
+- Los detalles del documento (items, cantidades, precios)
+
+El sistema completa automáticamente todos los demás campos desde tu configuración.
+
+## Campos Obligatorios por Tipo de Documento
+
+> **Nota:** Si usas el header `X-Use-Defaults: true`, algunos campos como `date_issued` y datos del emisor/receptor pueden ser opcionales. El sistema usará valores por defecto según la configuración.
+
+### Facturas Electrónicas (DTE 33, 34)
+
+**Campos del documento:**
+- `dte_type.code`: "33" (Factura) o "34" (Factura Exenta)
+- `date_issued`: Fecha de emisión (formato YYYY-MM-DD) - Opcional si `X-Use-Defaults: true`
+
+**Campos del emisor (document_issuer):**
+- `rut`: RUT del emisor
+- `business_name`: Razón social
+- `business_activity`: Giro o actividad económica
+- `address`: Dirección
+- `district`: Comuna
+- `city`: Ciudad
+- `email`: Email de contacto
+- `phone_number`: Teléfono
+- `activity_code`: Código de actividad económica
+
+**Campos del receptor (document_receiver):**
+- `rut`: RUT del receptor
+- `business_name`: Razón social
+- `business_activity`: Giro o actividad económica
+- `address`: Dirección
+- `district`: Comuna
+- `city`: Ciudad
+
+**Detalles (details):**
+- `item_name`: Nombre del producto/servicio
+- `quantity`: Cantidad (mayor a 0)
+- `unit_price`: Precio unitario
+- `item_total`: Total (debe ser igual a quantity × unit_price)
+
+#### Ejemplo de Factura Electrónica
+
+```json
+{
+  "documents": [{
+    "dte_type": {"code": "33"},
+    "date_issued": "2024-01-15",
+    "document_issuer": {
+      "rut": "76123456-7",
+      "business_name": "Mi Empresa S.A.",
+      "business_activity": "Desarrollo de Software",
+      "address": "Av. Principal 123",
+      "district": "Santiago",
+      "city": "Santiago",
+      "email": "facturacion@empresa.cl",
+      "phone_number": "+56912345678",
+      "activity_code": 620900
+    },
+    "document_receiver": {
+      "rut": "77987654-3",
+      "business_name": "Cliente S.A.",
+      "business_activity": "Comercio",
+      "address": "Calle Comercial 456",
+      "district": "Providencia",
+      "city": "Santiago"
+    },
+    "details": [{
+      "item_name": "Servicio de desarrollo",
+      "quantity": 1,
+      "unit_price": 100000,
+      "item_total": 100000
+    }]
+  }]
+}
+```
+
+### Notas de Crédito (DTE 61)
+
+**Campos adicionales obligatorios:**
+- `references`: Array con referencia al documento que se anula
+
+**Referencia obligatoria:**
+- `dte_type_code`: Código del documento original (ej: "33")
+- `reference_folio`: Folio del documento original
+- `reference_date`: Fecha del documento original
+- `reference_reason`: **"ANULA DOCUMENTO DE LA REFERENCIA"** (para anulación total)
+
+#### Ejemplo de Nota de Crédito
 
 ```json
 {
   "documents": [{
     "dte_type": {"code": "61"},
+    "date_issued": "2024-01-20",
     "document_issuer": {
       "rut": "76123456-7",
-      "business_name": "Mi Empresa S.A."
+      "business_name": "Mi Empresa S.A.",
+      "business_activity": "Desarrollo de Software",
+      "address": "Av. Principal 123",
+      "district": "Santiago",
+      "city": "Santiago",
+      "email": "facturacion@empresa.cl",
+      "phone_number": "+56912345678",
+      "activity_code": 620900
     },
     "document_receiver": {
       "rut": "77987654-3",
-      "business_name": "Cliente S.A."
+      "business_name": "Cliente S.A.",
+      "business_activity": "Comercio",
+      "address": "Calle Comercial 456",
+      "district": "Providencia",
+      "city": "Santiago"
     },
     "details": [{
       "item_name": "Anulación de servicio",
       "quantity": 1,
-      "unit_price": 100000
+      "unit_price": 100000,
+      "item_total": 100000
     }],
     "references": [{
       "dte_type_code": "33",
       "reference_folio": 12345,
-      "reference_date": "2023-10-25",
+      "reference_date": "2024-01-15",
       "reference_reason": "ANULA DOCUMENTO DE LA REFERENCIA"
     }]
   }]
 }
 ```
 
-### Ejemplo de Payload del Webhook
+### Boletas de Honorarios (DTE 80)
+
+**Campos específicos:**
+- `dte_type.code`: "80"
+- `header.retention_type`: Tipo de retención (obligatorio)
+  - `"RETRECEPTOR"`: La retención la realiza el receptor (por defecto)
+  - `"RETCONTRIBUYENTE"`: La retención la realiza el contribuyente emisor
+
+**Nota:** Para boletas de honorarios, el campo `document_receiver` es opcional. Si no se proporciona, se puede usar solo el RUT en el campo `receiver_rut`.
+
+#### Ejemplo de Boleta de Honorarios
+
+```json
+{
+  "documents": [{
+    "dte_type": {"code": "80"},
+    "date_issued": "2024-01-15",
+    "document_issuer": {
+      "rut": "12345678-9",
+      "business_name": "Juan Pérez",
+      "business_activity": "Servicios Profesionales",
+      "address": "Av. Libertador 123",
+      "district": "Providencia",
+      "city": "Santiago",
+      "email": "juan@email.cl",
+      "phone_number": "+56912345678",
+      "activity_code": 749900
+    },
+    "document_receiver": {
+      "rut": "77123456-8",
+      "business_name": "Cliente Receptor Ltda.",
+      "business_activity": "Comercio",
+      "address": "Calle Central 456",
+      "district": "Las Condes",
+      "city": "Santiago"
+    },
+    "details": [{
+      "item_name": "Servicios profesionales",
+      "quantity": 1,
+      "unit_price": 100000,
+      "item_total": 100000
+    }],
+    "header": {
+      "retention_type": "RETCONTRIBUYENTE"
+    }
+  }]
+}
+```
+
+### Boletas de Honorarios de Terceros (DTE 90)
+
+**Campos específicos:**
+- `dte_type.code`: "90"
+- `header.retention_type`: Tipo de retención (obligatorio)
+- Misma estructura que DTE 80, pero para honorarios de terceros
+
+**Diferencia principal:** Se usa cuando una empresa emite boletas de honorarios en nombre de un tercero (ej: plataformas digitales).
+
+#### Ejemplo de Boleta de Honorarios de Terceros
+
+```json
+{
+  "documents": [{
+    "dte_type": {"code": "90"},
+    "date_issued": "2024-01-15",
+    "document_issuer": {
+      "rut": "76555666-7",
+      "business_name": "Plataforma Digital S.A.",
+      "business_activity": "Servicios de Intermediación",
+      "address": "Av. Digital 789",
+      "district": "Las Condes",
+      "city": "Santiago",
+      "email": "plataforma@email.cl",
+      "phone_number": "+56987654321",
+      "activity_code": 631100
+    },
+    "document_receiver": {
+      "rut": "77123456-8",
+      "business_name": "Cliente Final Ltda.",
+      "business_activity": "Comercio",
+      "address": "Calle Final 123",
+      "district": "Providencia",
+      "city": "Santiago"
+    },
+    "details": [{
+      "item_name": "Servicios de freelancer",
+      "quantity": 1,
+      "unit_price": 50000,
+      "item_total": 50000
+    }],
+    "header": {
+      "retention_type": "RETRECEPTOR"
+    }
+  }]
+}
+```
+
+## Respuesta del Webhook
+
+Cuando un documento se emite exitosamente, Tu Pana envía un webhook con la siguiente estructura:
 
 ```json
 {
   "event": "document.issued",
-  "created_at": "2023-10-30T15:30:45.123456Z",
+  "created_at": "2024-01-15T15:30:45.123456Z",
   "data": {
     "id": 1234,
     "folio": "12345",
-    "date_issued": "2023-10-30",
+    "date_issued": "2024-01-15",
     "amount_with_iva": 119000.0,
     "dte_type": {
       "code": "33",
@@ -55,13 +312,13 @@ Las notas de crédito (DTE 61) requieren referencias obligatorias al documento q
     },
     "sender": {
       "id": 1,
-      "name": "Empresa Emisora S.A.",
+      "name": "Mi Empresa S.A.",
       "tax_id": "76.123.456-7",
       "email": "contacto@empresa.cl"
     },
     "receiver": {
       "id": 2,
-      "name": "Cliente Receptor S.A.",
+      "name": "Cliente S.A.",
       "tax_id": "77.987.654-3",
       "email": "contacto@cliente.cl"
     },
@@ -69,11 +326,11 @@ Las notas de crédito (DTE 61) requieren referencias obligatorias al documento q
       "purchase_transaction_type": 1,
       "sale_transaction_type": 1,
       "payment_method": "Contado",
-      "due_date": "2023-11-30"
+      "due_date": "2024-02-15"
     },
     "document_issuer": {
       "rut": "76123456-7",
-      "business_name": "Empresa Emisora S.A.",
+      "business_name": "Mi Empresa S.A.",
       "business_activity": "Desarrollo de Software",
       "phone_number": "+56912345678",
       "email": "facturacion@empresa.cl",
@@ -85,7 +342,7 @@ Las notas de crédito (DTE 61) requieren referencias obligatorias al documento q
     },
     "document_receiver": {
       "rut": "77987654-3",
-      "business_name": "Cliente Receptor S.A.",
+      "business_name": "Cliente S.A.",
       "business_activity": "Comercio",
       "contact": "contacto@cliente.cl",
       "address": "Calle Comercial 456",
@@ -98,32 +355,30 @@ Las notas de crédito (DTE 61) requieren referencias obligatorias al documento q
       "iva_amount": 19000.0,
       "total_amount": 119000.0
     },
-    "details": [
-      {
-        "line_number": 1,
-        "item_name": "Servicio de desarrollo",
-        "item_description": "Desarrollo de aplicación web",
-        "quantity": 1.0,
-        "unit_price": 100000.0,
-        "item_total": 100000.0,
-        "item_code": "SERV001",
-        "item_type_code": "",
-        "unit": "UN",
-        "discount_percent": 0.0,
-        "other_tax": 0.0
-      }
-    ],
-    "references": [
-      {
-        "reference_type": {
-          "code": "801"
-        },
-        "reference_folio": "OC12345",
-        "reference_date": "2023-10-15",
-        "reference_reason": "Orden de compra"
-      }
-    ],
+    "details": [{
+      "line_number": 1,
+      "item_name": "Servicio de desarrollo",
+      "item_description": "Desarrollo de aplicación web",
+      "quantity": 1.0,
+      "unit_price": 100000.0,
+      "item_total": 100000.0,
+      "item_code": "SERV001",
+      "item_type_code": "",
+      "unit": "UN",
+      "discount_percent": 0.0,
+      "other_tax": 0.0
+    }],
+    "references": [{
+      "reference_type": {
+        "code": "801"
+      },
+      "reference_folio": "OC12345",
+      "reference_date": "2024-01-10",
+      "reference_reason": "Orden de compra"
+    }],
     "pdf_file": "https://tupanabucketdata.s3.us-east-2.amazonaws.com/pdf_files/example.pdf?AWSAccessKeyId=...&Expires=...",
+    "xml_file": "https://tupanabucketdata.s3.us-east-2.amazonaws.com/xml_files/example.xml?AWSAccessKeyId=...&Expires=...",
+    "is_sandbox": false,
     "json_param": {
       "custom_field": "valor_personalizado",
       "metadata": {
@@ -133,55 +388,19 @@ Las notas de crédito (DTE 61) requieren referencias obligatorias al documento q
     }
   }
 }
-``` 
-
-### Boletas de honorarios (DTE 80)
-
-Para emitir boletas de honorarios dentro del flujo de emisión masiva debes considerar lo siguiente:
-
-- Usa `dte_type.code = "80"` (el backend también acepta `"1080"` para borradores internos).
-- Incluye el campo `header.retention_type`, que determina quién realiza la retención legal del 14,5%:
-  - `RETRECEPTOR`: la retención la realiza el receptor (por defecto).
-  - `RETCONTRIBUYENTE`: la retención la realiza el contribuyente que emite.
-- Si omites el campo, el backend asumirá `RETRECEPTOR`, pero se recomienda enviarlo explícitamente para evitar ambigüedades.
-
-#### Ejemplo de request para boleta de honorarios
-
-```json
-{
-  "documents": [
-    {
-      "dte_type": { "code": "80" },
-      "date_issued": "2025-01-31",
-      "document_issuer": {
-        "rut": "76958409-2",
-        "business_name": "Servicios Profesionales SPA",
-        "address": "Av. Libertador 123",
-        "district": "Providencia",
-        "city": "Santiago"
-      },
-      "document_receiver": {
-        "rut": "77123456-8",
-        "business_name": "Cliente Receptor Ltda.",
-        "address": "Calle Central 456",
-        "district": "Las Condes",
-        "city": "Santiago"
-      },
-      "details": [
-        {
-          "line_number": 1,
-          "item_name": "Servicios profesionales",
-          "quantity": 1,
-          "unit_price": 100000,
-          "item_total": 100000
-        }
-      ],
-      "header": {
-        "retention_type": "RETCONTRIBUYENTE"
-      }
-    }
-  ]
-}
 ```
 
-En la respuesta del batch y en los webhooks, `retention_type` se devuelve junto al documento para que puedas identificar quién retuvo el impuesto.
+### Campos Específicos del Webhook
+
+**Campos principales:**
+- `event`: Siempre "document.issued" para documentos emitidos
+- `created_at`: Timestamp de cuando se generó el webhook
+- `data.id`: ID único del documento en Tu Pana
+- `data.folio`: Folio asignado por el SII
+- `data.pdf_file`: URL temporal para descargar el PDF
+- `data.xml_file`: URL temporal para descargar el XML
+- `data.is_sandbox`: Indica si es un documento de prueba
+
+**Para boletas de honorarios:**
+- `data.header.retention_type`: Tipo de retención aplicada
+- Los campos de totales reflejan el cálculo con retención del 14.5%
