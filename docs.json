@@ -24,6 +24,12 @@
               "user-guide/getting-started",
               "user-guide/authentication"
             ]
+          },
+          {
+            "group": "Referencia",
+            "pages": [
+              "user-guide/documents"
+            ]
           }
         ]
       },
