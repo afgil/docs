@@ -12,6 +12,24 @@ Este endpoint permite obtener una lista paginada de documentos programados de un
 - **Gestión completa**: Crear, listar, actualizar y eliminar documentos programados
 - **Automatización**: Los documentos se emiten automáticamente según la programación
 
+### Parámetros principales
+
+| Parámetro | Tipo | Requerido | Descripción |
+|-----------|------|-----------|-------------|
+| `master_entity_id` | integer | Sí | ID de la entidad emisora cuyos documentos programados quieres consultar. |
+| `status` | string | No | Filtrar por estado del documento programado: `active`, `inactive` o `completed`. |
+| `frequency` | string | No | Filtrar por frecuencia de ejecución: `daily`, `weekly`, `monthly` o `quarterly`. |
+| `dte_type` | string | No | Filtrar por tipo de DTE (ej: `33` para Factura Electrónica). |
+| `page` | integer | No | Página actual, parte de la paginación estándar. |
+| `page_size` | integer | No | Tamaño de página (máx. 100). |
+
+### Respuesta exitosa
+
+La respuesta `200 OK` incluye un objeto paginado con:
+
+- `count`, `next`, `previous` para la navegación
+- `results`: arreglo de documentos programados con información de emisor, receptor, montos, estado, frecuencia, próxima ejecución y detalles
+
 ### Estados de documentos programados
 
 Los documentos programados pueden tener los siguientes estados:
@@ -31,24 +49,71 @@ Los documentos programados pueden tener los siguientes estados:
 | `monthly` | Se ejecuta mensualmente |
 | `quarterly` | Se ejecuta trimestralmente |
 
+### Paginación
+
+El endpoint soporta paginación mediante los parámetros `page` y `page_size`:
+
+La respuesta incluye:
+- `count`: Total de documentos programados
+- `next`: URL para la siguiente página (si existe)
+- `previous`: URL para la página anterior (si existe)
+- `results`: Array de documentos programados en la página actual
+
 ### Campos de respuesta
 
-Cada documento programado incluye:
+Cada documento programado en el array `results` incluye:
 
 - `id`: ID único del documento programado
-- `sender`: Información de la entidad emisora
-- `receiver`: Información de la entidad receptora (si aplica)
-- `dte_type`: Tipo de documento tributario
-- `frequency`: Frecuencia de ejecución
+- `sender`: Información de la entidad emisora (id, name, rut)
+- `receiver`: Información de la entidad receptora (id, name, rut) - puede ser null
+- `dte_type`: Tipo de documento tributario (id, code, description)
+- `frequency`: Frecuencia de ejecución (`daily`, `weekly`, `monthly`, `quarterly`)
+- `frequency_display`: Frecuencia en formato legible
+- `day_of_month`: Día del mes para ejecución (1-31, para frecuencias mensual/trimestral)
+- `day_of_week`: Día de la semana para ejecución (0=Lunes, 6=Domingo, para frecuencia semanal)
 - `next_execution`: Fecha y hora de la próxima ejecución
-- `status`: Estado actual del documento
-- `amount`: Monto del documento
-- `currency`: Moneda del documento
-- `details`: Detalles/productos del documento
-- `references`: Referencias a otros documentos (si aplica)
-- `completed_occurrences`: Número de veces que se ha ejecutado
-- `max_occurrences`: Número máximo de ejecuciones (si aplica)
-- `created_at`: Fecha de creación
-- `updated_at`: Fecha de última actualización
+- `status`: Estado actual del documento (`active`, `inactive`, `completed`)
+- `status_display`: Estado en formato legible
+- `amount`: Monto total del documento (number)
+- `currency`: Moneda del documento (string: `CLP`, `UF`, `USD`, `EUR`)
+- `details`: Array de detalles/productos del documento (ver formato abajo)
+- `completed_occurrences`: Número de veces que se ha ejecutado (integer)
+- `max_occurrences`: Número máximo de ejecuciones (integer, null = infinito)
+- `created_at`: Fecha de creación (datetime ISO 8601)
+- `updated_at`: Fecha de última actualización (datetime ISO 8601)
+
+### Formato del campo `details`
+
+El campo `details` es un array de objetos que representa los productos o servicios incluidos en el documento programado. Cada elemento del array contiene:
+
+| Campo | Tipo | Requerido | Descripción |
+|-------|------|-----------|-------------|
+| `id` | integer | No | ID único del detalle (solo en respuesta) |
+| `product_name` | string | Sí | Nombre del producto o servicio |
+| `description` | string | No | Descripción detallada del producto o servicio |
+| `quantity` | number | Sí | Cantidad del producto (mínimo 0.01) |
+| `unit_price` | number | Sí | Precio unitario del producto (mínimo 0) |
+| `total` | number | No | Total de la línea (calculado automáticamente: quantity × unit_price, solo en respuesta) |
+| `unit_of_measurement` | string | No | Unidad de medida (por defecto: `UN`) |
+
+**Ejemplo de formato:**
+
+```json
+{
+  "details": [
+    {
+      "id": 1,
+      "product_name": "Servicio mensual de consultoría",
+      "description": "Consultoría especializada en tecnología",
+      "quantity": 1,
+      "unit_price": 100000,
+      "total": 100000,
+      "unit_of_measurement": "UN"
+    }
+  ]
+}
+```
+
+**Nota:** Al crear un documento programado, solo se requieren los campos `product_name`, `quantity` y `unit_price`. El campo `total` se calcula automáticamente y el `id` se asigna al crear el registro.
 
 Todos los endpoints requieren el parámetro `master_entity_id` como query parameter y autenticación mediante API Key.

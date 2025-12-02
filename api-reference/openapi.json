@@ -737,17 +737,18 @@
               "example": {
                 "dte_type": "33",
                 "receiver_tax_id": "76111111-1",
-                "receiver_business_name": "Cliente ABC SPA",
                 "frequency": "monthly",
                 "day_of_month": 10,
                 "amount": 150000,
                 "currency": "CLP",
+                "status": "active",
                 "details": [
                   {
-                    "product_name": "Servicio mensual",
-                    "description": "Asistencia contable",
+                    "product_name": "Servicio mensual de consultoría",
+                    "description": "Asistencia contable mensual",
                     "quantity": 1,
-                    "unit_price": 150000
+                    "unit_price": 150000,
+                    "unit_of_measurement": "UN"
                   }
                 ]
               }
@@ -765,20 +766,41 @@
                 },
                 "example": {
                   "id": 987,
-                  "dte_type": "33",
+                  "sender": {
+                    "id": 123,
+                    "name": "Empresa Ejemplo SpA",
+                    "rut": "76543210-1"
+                  },
+                  "receiver": {
+                    "id": 456,
+                    "name": "Cliente ABC Ltda",
+                    "rut": "12345678-9"
+                  },
+                  "dte_type": {
+                    "id": 1,
+                    "code": "33",
+                    "description": "Factura Electrónica"
+                  },
                   "frequency": "monthly",
+                  "frequency_display": "Mensual",
                   "day_of_month": 10,
+                  "day_of_week": null,
+                  "next_execution": "2024-03-10T10:00:00Z",
                   "status": "active",
+                  "status_display": "Activo",
                   "amount": 150000,
                   "currency": "CLP",
-                  "next_execution": "2024-03-10T10:00:00Z",
+                  "completed_occurrences": 0,
+                  "max_occurrences": null,
                   "details": [
                     {
                       "id": 1,
-                      "product_name": "Servicio mensual",
+                      "product_name": "Servicio mensual de consultoría",
+                      "description": "Asistencia contable mensual",
                       "quantity": 1,
                       "unit_price": 150000,
-                      "total": 150000
+                      "total": 150000,
+                      "unit_of_measurement": "UN"
                     }
                   ],
                   "created_at": "2024-02-05T12:15:00Z",
@@ -1307,10 +1329,6 @@
             "format": "float",
             "description": "Precio unitario"
           },
-          "line_number": {
-            "type": "integer",
-            "description": "Número de línea"
-          },
           "item_description": {
             "type": "string",
             "description": "Descripción del ítem"
@@ -1778,6 +1796,7 @@
           },
           "currency": {
             "type": "string",
+            "enum": ["CLP", "UF", "USD", "EUR"],
             "description": "Moneda del documento",
             "example": "CLP"
           },
@@ -1815,27 +1834,17 @@
       },
       "ScheduledDocumentCreate": {
         "type": "object",
-        "required": ["dte_type", "frequency", "amount", "details"],
+        "required": ["dte_type", "frequency", "amount", "details", "receiver_tax_id"],
         "properties": {
           "dte_type": {
             "type": "string",
             "description": "Código del tipo de DTE (ej: '33' para Factura Electrónica)",
             "example": "33"
           },
-          "receiver": {
-            "type": "integer",
-            "description": "ID de la entidad receptora (opcional para algunos tipos de DTE)",
-            "example": 456
-          },
           "receiver_tax_id": {
             "type": "string",
-            "description": "RUT del receptor para crear cliente automáticamente",
+            "description": "RUT del receptor (formato: 12345678-9). El sistema buscará un cliente existente con este RUT. Si no existe, creará uno nuevo automáticamente. Campo requerido.",
             "example": "12345678-9"
-          },
-          "receiver_business_name": {
-            "type": "string",
-            "description": "Razón social del receptor",
-            "example": "Cliente ABC Ltda"
           },
           "frequency": {
             "type": "string",
