@@ -1,0 +1,143 @@
+{
+  "paths": {
+    "/documents": {
+      "get": {
+        "tags": [
+          "Documentos"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar documentos",
+        "description": "Obtiene la lista de documentos emitidos o recibidos por una entidad específica. Soporta búsqueda por folio, nombre del receptor y filtros avanzados.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad emisora o receptora cuyos documentos quieres consultar.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "document_type",
+            "in": "query",
+            "description": "`issued` (por defecto) o `received`. `issued` devuelve documentos donde la entidad es el **emisor**. `received` devuelve documentos donde la entidad es el **receptor** (cuando usas `received`, el parámetro `search` buscará en el nombre y RUT del emisor, y `issuer_tax_id` permite filtrar por RUT del emisor específico).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "issued",
+                "received"
+              ],
+              "default": "issued"
+            }
+          },
+          {
+            "name": "folio",
+            "in": "query",
+            "description": "Folio exacto del documento. Si se envía, se ignoran otros filtros y se devuelve el documento específico.",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Busca por nombre o RUT del receptor (cuando `document_type=issued`) o del emisor (cuando `document_type=received`).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dte_type__code__in",
+            "in": "query",
+            "description": "Lista de códigos DTE separados por coma (ej: `33,34`).",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [
+                "33",
+                "34",
+                "39",
+                "61"
+              ]
+            }
+          },
+          {
+            "name": "issuer_tax_id",
+            "in": "query",
+            "description": "RUT del emisor cuando `document_type=received`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Página actual, parte de la paginación estándar. Por defecto: 1. La respuesta incluye `count` (total), `next`, `previous` (URLs de navegación) y `results` (arreglo de documentos con información de emisor, receptor, montos, estado, PDF y referencias).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "description": "Tamaño de página (máx. 100). Por defecto: 20.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de documentos obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentListResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para acceder a esta entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

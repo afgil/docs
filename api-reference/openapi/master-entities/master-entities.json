@@ -1,0 +1,80 @@
+{
+  "paths": {
+    "/master-entities": {
+      "get": {
+        "summary": "Buscar entidad por RUT",
+        "description": "Busca una entidad maestra específica por su RUT. Requiere autenticación por API Key.",
+        "parameters": [
+          {
+            "name": "rut",
+            "in": "query",
+            "description": "RUT del cliente a consultar (formato: 76543210-1, sin puntos)",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{7,8}-[0-9K]$",
+              "example": "76543210-1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entidad encontrada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MasterEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetro 'rut' faltante o formato inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API Key inválida o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    }
+  }
+}

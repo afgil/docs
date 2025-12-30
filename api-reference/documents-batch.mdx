@@ -5,17 +5,15 @@ openapi: 'POST /documents/batch'
 
 Crea hasta 200 documentos tributarios electrónicos en una sola llamada. La respuesta con el PDF y los detalles completos se entrega a través del [webhook configurado](/user-guide/getting-started#paso-4%3A-configura-las-notificaciones-webhooks/).
 
-## Parámetros de Entrada
+## Headers
 
-### Headers
-
-#### Idempotency-Key (Opcional)
+### Idempotency-Key (Opcional)
 - **Tipo:** String
 - **Descripción:** Header opcional que previene la creación de lotes duplicados
 - **Restricciones:** Máximo 256 caracteres, expira después de 24 horas
 - **Ejemplo:** `"batch_2024_01_15_001"`
 
-#### X-Use-Defaults (Opcional)
+### X-Use-Defaults (Opcional)
 
 > **⚠️ IMPORTANTE: Se recomienda encarecidamente usar el header `X-Use-Defaults: true` en todas tus solicitudes de emisión masiva de documentos.** Este header simplifica significativamente la creación de documentos al hacer opcionales muchos campos y completar automáticamente los datos faltantes según tu configuración en Tu Pana.
 
@@ -24,7 +22,7 @@ Crea hasta 200 documentos tributarios electrónicos en una sola llamada. La resp
 - **Por defecto:** `"false"`
 - **Descripción:** Si se establece como `"true"`, el sistema usará valores por defecto para campos no proporcionados, reduciendo la complejidad y cantidad de datos que necesitas enviar
 
-##### Campos que se vuelven opcionales o se completan automáticamente:
+#### Campos que se vuelven opcionales o se completan automáticamente
 
 **A nivel del documento:**
 - `date_issued`: Si no se proporciona, se usa la fecha actual (en zona horaria de Chile)
@@ -52,21 +50,19 @@ Con `X-Use-Defaults: true`, solo necesitas proporcionar el `rut` del receptor. E
 - `district`: Comuna ✅ **Opcional** (no se valida si está vacío)
 - `city`: Ciudad ✅ **Opcional** (no se valida si está vacío)
 
-### Cuerpo de la Solicitud (Request Body)
+## Request Body
 
-#### documents (Obligatorio)
+### documents (Obligatorio)
 - **Tipo:** Array
 - **Descripción:** Lista de documentos a crear en el lote
 - **Restricciones:** Máximo 200 documentos por lote
-- **Estructura:** Cada elemento del array debe contener los siguientes campos según el tipo de documento
 
-#### Estructura de cada documento
+### Estructura de cada documento
 
-Cada documento en el array debe contener los siguientes campos base:
+#### Campos base (aplican a todos los tipos de documentos)
 
-##### dte_type (Obligatorio)
+**dte_type (Obligatorio)**
 - **Tipo:** Object
-- **Descripción:** Tipo de documento tributario electrónico
 - **Campos:**
   - `code` (String): Código del tipo de documento
     - `"33"`: Factura Electrónica
@@ -75,25 +71,20 @@ Cada documento en el array debe contener los siguientes campos base:
     - `"80"`: Boleta de Honorarios
     - `"90"`: Boleta de Honorarios de Terceros
 
-##### date_issued (Condicional)
+**date_issued (Condicional)**
 - **Tipo:** String (formato YYYY-MM-DD)
 - **Descripción:** Fecha de emisión del documento
 - **Obligatorio:** Sí, excepto si se usa `X-Use-Defaults: true` (usa fecha actual)
 
-##### folio (Opcional)
+**folio (Opcional)**
 - **Tipo:** Integer
 - **Descripción:** Número de folio del documento
 - **Comportamiento:** Si no se proporciona, se genera automáticamente
 
-## Campos Específicos por Tipo de Documento
+#### Facturas Electrónicas (DTE 33, 34)
 
-> **Nota:** Si usas el header `X-Use-Defaults: true`, algunos campos como `date_issued` y datos del emisor/receptor pueden ser opcionales. El sistema usará valores por defecto según la configuración.
-
-### Facturas Electrónicas (DTE 33, 34)
-
-#### document_issuer (Obligatorio)
+**document_issuer (Obligatorio)**
 - **Tipo:** Object
-- **Descripción:** Datos del emisor del documento
 - **Campos obligatorios:**
   - `rut` (String): RUT del emisor
   - `business_name` (String): Razón social - Opcional con `X-Use-Defaults: true`
@@ -105,9 +96,8 @@ Cada documento en el array debe contener los siguientes campos base:
   - `phone_number` (String): Teléfono - Opcional con `X-Use-Defaults: true`
   - `activity_code` (Integer): Código de actividad económica - Opcional con `X-Use-Defaults: true`
 
-#### document_receiver (Obligatorio)
+**document_receiver (Obligatorio)**
 - **Tipo:** Object
-- **Descripción:** Datos del receptor del documento
 - **Campos obligatorios:**
   - `rut` (String): RUT del receptor
   - `business_name` (String): Razón social - Opcional con `X-Use-Defaults: true`
@@ -116,7 +106,7 @@ Cada documento en el array debe contener los siguientes campos base:
   - `district` (String): Comuna - Opcional con `X-Use-Defaults: true`
   - `city` (String): Ciudad - Opcional con `X-Use-Defaults: true`
 
-#### details (Obligatorio)
+**details (Obligatorio)**
 - **Tipo:** Array
 - **Descripción:** Lista de productos/servicios del documento
 - **Campos de cada elemento:**
@@ -125,11 +115,11 @@ Cada documento en el array debe contener los siguientes campos base:
   - `unit_price` (Number): Precio unitario
   - `item_total` (Number): Total del ítem (debe ser igual a quantity × unit_price)
 
-### Notas de Crédito (DTE 61)
+#### Notas de Crédito (DTE 61)
 
-Incluye todos los campos de las Facturas Electrónicas más los siguientes campos adicionales:
+Incluye todos los campos de las Facturas Electrónicas más:
 
-#### references (Obligatorio)
+**references (Obligatorio)**
 - **Tipo:** Array
 - **Descripción:** Referencias al documento que se anula o modifica
 - **Campos de cada elemento:**
@@ -140,48 +130,41 @@ Incluye todos los campos de las Facturas Electrónicas más los siguientes campo
     - Para anulación total: `"ANULA DOCUMENTO DE LA REFERENCIA"`
     - Para corrección: Descripción del motivo de corrección
 
-### Boletas de Honorarios (DTE 80)
+#### Boletas de Honorarios (DTE 80)
 
-Incluye todos los campos de las Facturas Electrónicas con las siguientes particularidades:
+Incluye todos los campos de las Facturas Electrónicas con:
 
-#### header (Obligatorio)
+**header (Obligatorio)**
 - **Tipo:** Object
-- **Descripción:** Configuración específica del documento
 - **Campos obligatorios:**
   - `retention_type` (String): Tipo de retención
     - `"RETRECEPTOR"`: La retención la realiza el receptor (por defecto)
     - `"RETCONTRIBUYENTE"`: La retención la realiza el contribuyente emisor
 
-#### document_receiver (Opcional)
+**document_receiver (Opcional)**
 - **Tipo:** Object
 - **Descripción:** Datos del receptor del documento
 - **Nota:** Para boletas de honorarios, este campo es opcional. Si no se proporciona, se puede usar solo el RUT en el campo `receiver_rut`
 
-### Boletas de Honorarios de Terceros (DTE 90)
+#### Boletas de Honorarios de Terceros (DTE 90)
 
-Incluye todos los campos de las Boletas de Honorarios (DTE 80) con las siguientes características:
+Incluye todos los campos de las Boletas de Honorarios (DTE 80) con las mismas características.
 
-#### Diferencia principal
-- **Uso:** Se utiliza cuando una empresa emite boletas de honorarios en nombre de un tercero (ej: plataformas digitales)
-- **Estructura:** Misma que DTE 80, incluyendo el campo `header.retention_type` obligatorio
+**Uso:** Se utiliza cuando una empresa emite boletas de honorarios en nombre de un tercero (ej: plataformas digitales)
 
-#### header (Obligatorio)
+**header (Obligatorio)**
 - **Tipo:** Object
-- **Descripción:** Configuración específica del documento
 - **Campos obligatorios:**
   - `retention_type` (String): Tipo de retención
     - `"RETRECEPTOR"`: La retención la realiza el receptor
     - `"RETCONTRIBUYENTE"`: La retención la realiza el contribuyente emisor
 
-## Parámetros de Respuesta
+## Respuesta
 
 ### Respuesta Inmediata de la API
 
-La API devuelve una respuesta inmediata con el estado del lote:
-
 #### 201 - Documentos creados exitosamente
 - **Tipo:** Object
-- **Descripción:** Confirmación de que el lote fue procesado correctamente
 - **Campos:**
   - `batch_id` (String): Identificador único del lote
   - `status` (String): Estado del procesamiento (`"processing"`)
@@ -204,56 +187,52 @@ La API devuelve una respuesta inmediata con el estado del lote:
 
 Cuando un documento se emite exitosamente, Tu Pana envía un webhook con la siguiente estructura:
 
-#### Campos principales del webhook
-- **Tipo:** Object
-- **Descripción:** Notificación de documento emitido exitosamente
-
-##### event (Obligatorio)
+**event (Obligatorio)**
 - **Tipo:** String
 - **Valor:** `"document.issued"`
 - **Descripción:** Tipo de evento del webhook
 
-##### created_at (Obligatorio)
+**created_at (Obligatorio)**
 - **Tipo:** String (ISO 8601)
 - **Descripción:** Timestamp de cuando se generó el webhook
 
-##### data (Obligatorio)
+**data (Obligatorio)**
 - **Tipo:** Object
 - **Descripción:** Datos completos del documento emitido
 
 #### Campos del objeto data
 
-##### Información básica del documento
+**Información básica del documento:**
 - `id` (Integer): ID único del documento en Tu Pana
 - `folio` (String): Folio asignado por el SII
 - `date_issued` (String): Fecha de emisión (formato YYYY-MM-DD)
 - `amount_with_iva` (Number): Monto total con IVA incluido
 - `is_sandbox` (Boolean): Indica si es un documento de prueba
 
-##### dte_type (Object)
+**dte_type (Object):**
 - `code` (String): Código del tipo de documento
 - `description` (String): Descripción del tipo de documento
 
-##### sender (Object)
+**sender (Object):**
 - `id` (Integer): ID del emisor en Tu Pana
 - `name` (String): Nombre/razón social del emisor
 - `tax_id` (String): RUT del emisor (formato con puntos y guión)
 - `email` (String): Email del emisor
 
-##### receiver (Object)
+**receiver (Object):**
 - `id` (Integer): ID del receptor en Tu Pana
 - `name` (String): Nombre/razón social del receptor
 - `tax_id` (String): RUT del receptor (formato con puntos y guión)
 - `email` (String): Email del receptor
 
-##### header (Object)
+**header (Object):**
 - `purchase_transaction_type` (Integer): Tipo de transacción de compra
 - `sale_transaction_type` (Integer): Tipo de transacción de venta
 - `payment_method` (String): Método de pago
 - `due_date` (String): Fecha de vencimiento (formato YYYY-MM-DD)
 - `retention_type` (String): Tipo de retención (solo para boletas de honorarios)
 
-##### document_issuer (Object)
+**document_issuer (Object):**
 - `rut` (String): RUT del emisor
 - `business_name` (String): Razón social
 - `business_activity` (String): Giro o actividad económica
@@ -265,7 +244,7 @@ Cuando un documento se emite exitosamente, Tu Pana envía un webhook con la sigu
 - `district` (String): Comuna
 - `city` (String): Ciudad
 
-##### document_receiver (Object)
+**document_receiver (Object):**
 - `rut` (String): RUT del receptor
 - `business_name` (String): Razón social
 - `business_activity` (String): Giro o actividad económica
@@ -274,13 +253,13 @@ Cuando un documento se emite exitosamente, Tu Pana envía un webhook con la sigu
 - `district` (String): Comuna
 - `city` (String): Ciudad
 
-##### document_total (Object)
+**document_total (Object):**
 - `net_amount` (Number): Monto neto (sin IVA)
 - `iva_rate` (Number): Tasa de IVA aplicada
 - `iva_amount` (Number): Monto del IVA
 - `total_amount` (Number): Monto total
 
-##### details (Array)
+**details (Array):**
 Lista de productos/servicios del documento. Cada elemento contiene:
 - `item_name` (String): Nombre del producto/servicio
 - `item_description` (String): Descripción del producto/servicio
@@ -293,28 +272,28 @@ Lista de productos/servicios del documento. Cada elemento contiene:
 - `discount_percent` (Number): Porcentaje de descuento
 - `other_tax` (Number): Otros impuestos
 
-##### references (Array)
+**references (Array):**
 Referencias a otros documentos (solo para notas de crédito). Cada elemento contiene:
 - `reference_type.code` (String): Código del tipo de referencia
 - `reference_folio` (String): Folio del documento referenciado
 - `reference_date` (String): Fecha del documento referenciado
 - `reference_reason` (String): Razón de la referencia
 
-##### Archivos generados
+**Archivos generados:**
 - `pdf_file` (String): URL temporal para descargar el PDF del documento
 - `xml_file` (String): URL temporal para descargar el XML del documento
 
-##### json_param (Object)
+**json_param (Object):**
 - **Descripción:** Campos personalizados adicionales que se pueden incluir en el documento
 - **Estructura:** Objeto flexible que puede contener cualquier información adicional
 
-#### Consideraciones Especiales
+### Consideraciones Especiales
 
-##### Para boletas de honorarios (DTE 80, 90)
+**Para boletas de honorarios (DTE 80, 90):**
 - El campo `header.retention_type` indica el tipo de retención aplicada
 - Los campos de totales en `document_total` reflejan el cálculo con retención del 14.5%
 - Las URLs de archivos (`pdf_file`, `xml_file`) son temporales y expiran después de un tiempo determinado
 
-##### Seguridad y URLs temporales
+**Seguridad y URLs temporales:**
 - Las URLs de descarga de PDF y XML son temporales y requieren los parámetros de autenticación incluidos
 - Se recomienda descargar y almacenar los archivos inmediatamente después de recibir el webhook

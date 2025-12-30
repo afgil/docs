@@ -1,0 +1,984 @@
+{
+  "components": {
+    "schemas": {
+      "DocumentBatch": {
+        "type": "object",
+        "required": [
+          "documents"
+        ],
+        "properties": {
+          "documents": {
+            "type": "array",
+            "description": "Array de documentos a crear (máximo 200)",
+            "items": {
+              "$ref": "#/components/schemas/Document"
+            }
+          }
+        }
+      },
+      "Document": {
+        "type": "object",
+        "required": [
+          "dte_type",
+          "document_issuer",
+          "document_receiver",
+          "details"
+        ],
+        "properties": {
+          "date_issued": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha de emisión (YYYY-MM-DD). Si X-Use-Defaults es true y no se proporciona, se usa la fecha actual."
+          },
+          "folio": {
+            "type": "string",
+            "description": "Folio del documento. Si X-Use-Defaults es true y no se proporciona, se genera automáticamente."
+          },
+          "dte_type": {
+            "$ref": "#/components/schemas/DteType"
+          },
+          "document_issuer": {
+            "$ref": "#/components/schemas/DocumentIssuer"
+          },
+          "document_receiver": {
+            "$ref": "#/components/schemas/DocumentReceiver"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DetailItem"
+            }
+          },
+          "header": {
+            "$ref": "#/components/schemas/DocumentHeader"
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReferenceItem"
+            }
+          },
+          "json_param": {
+            "type": "object",
+            "description": "JSON arbitrario almacenado textualmente"
+          },
+          "export_data": {
+            "$ref": "#/components/schemas/ExportData"
+          }
+        }
+      },
+      "DteType": {
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Código del tipo de documento:\n- 33: Factura Electrónica\n- 34: Factura Exenta Electrónica\n- 39: Boleta Electrónica\n- 46: Factura de Compra Electrónica\n- 61: Nota de Crédito Electrónica\n- 80: Boleta de Honorarios Electrónica\n- 110: Factura de Exportación Electrónica",
+            "enum": [
+              "33",
+              "34",
+              "39",
+              "46",
+              "61",
+              "80",
+              "110"
+            ]
+          }
+        }
+      },
+      "DocumentHeader": {
+        "type": "object",
+        "properties": {
+          "purchase_transaction_type": {
+            "type": "integer",
+            "description": "Tipo de transacción de compra"
+          },
+          "sale_transaction_type": {
+            "type": "integer",
+            "description": "Tipo de transacción de venta"
+          },
+          "payment_method": {
+            "type": "string",
+            "description": "Método de pago"
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha de vencimiento"
+          },
+          "vat_withheld": {
+            "type": "boolean",
+            "description": "Indica si el IVA está retenido. Solo aplicable para facturas de compra (DTE 46) y notas de crédito que referencian facturas de compra.",
+            "example": false
+          },
+          "retention_type": {
+            "type": "string",
+            "description": "Tipo de retención obligatorio para boletas de honorarios (DTE 80). Define quién retiene el 14,5% legal.",
+            "enum": [
+              "RETRECEPTOR",
+              "RETCONTRIBUYENTE"
+            ],
+            "example": "RETRECEPTOR"
+          }
+        }
+      },
+      "DocumentIssuer": {
+        "type": "object",
+        "required": [
+          "rut"
+        ],
+        "properties": {
+          "rut": {
+            "type": "string",
+            "description": "RUT sin puntos y con guion, ej: 76543210-K. Si X-Use-Defaults es true, los demás campos se rellenarán automáticamente según la configuración.",
+            "pattern": "^[0-9]{7,8}-[0-9K]$"
+          },
+          "business_name": {
+            "type": "string",
+            "description": "Razón social"
+          },
+          "phone_number": {
+            "type": "string",
+            "description": "Número de teléfono"
+          },
+          "email": {
+            "type": "string",
+            "description": "Correo electrónico"
+          },
+          "business_activity": {
+            "type": "string",
+            "description": "Giro comercial"
+          },
+          "activity_code": {
+            "type": "integer",
+            "description": "Código de actividad económica"
+          },
+          "sii_branch_code": {
+            "type": "string",
+            "description": "Código de sucursal SII"
+          },
+          "address": {
+            "type": "string",
+            "description": "Dirección"
+          },
+          "district": {
+            "type": "string",
+            "description": "Comuna"
+          },
+          "city": {
+            "type": "string",
+            "description": "Ciudad"
+          }
+        }
+      },
+      "DocumentReceiver": {
+        "type": "object",
+        "required": [
+          "rut"
+        ],
+        "properties": {
+          "rut": {
+            "type": "string",
+            "description": "RUT sin puntos y con guion, ej: 76543210-K. Si X-Use-Defaults es true, los demás campos se rellenarán automáticamente según la configuración.",
+            "pattern": "^[0-9]{7,8}-[0-9K]$"
+          },
+          "business_name": {
+            "type": "string",
+            "description": "Razón social"
+          },
+          "contact": {
+            "type": "string",
+            "description": "Contacto"
+          },
+          "business_activity": {
+            "type": "string",
+            "description": "Giro comercial"
+          },
+          "address": {
+            "type": "string",
+            "description": "Dirección"
+          },
+          "district": {
+            "type": "string",
+            "description": "Comuna"
+          },
+          "city": {
+            "type": "string",
+            "description": "Ciudad"
+          }
+        }
+      },
+      "DetailItem": {
+        "type": "object",
+        "required": [
+          "item_name",
+          "quantity",
+          "unit_price"
+        ],
+        "properties": {
+          "item_name": {
+            "type": "string",
+            "description": "Nombre del ítem"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Cantidad"
+          },
+          "unit_price": {
+            "type": "number",
+            "format": "float",
+            "description": "Precio unitario"
+          },
+          "item_description": {
+            "type": "string",
+            "description": "Descripción del ítem"
+          },
+          "discount_percent": {
+            "type": "number",
+            "format": "float",
+            "description": "Porcentaje de descuento"
+          },
+          "item_total": {
+            "type": "number",
+            "format": "float",
+            "description": "Total del ítem"
+          },
+          "item_code": {
+            "type": "string",
+            "description": "Código del ítem"
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unidad de medida"
+          },
+          "other_tax": {
+            "type": "number",
+            "format": "float",
+            "description": "Otros impuestos"
+          },
+          "item_type_code": {
+            "type": "integer",
+            "description": "Código de tipo de ítem"
+          }
+        }
+      },
+      "ReferenceItem": {
+        "type": "object",
+        "properties": {
+          "reference_type": {
+            "type": "integer",
+            "description": "Tipo de referencia"
+          },
+          "reference_folio": {
+            "type": "integer",
+            "description": "Folio de referencia"
+          },
+          "reference_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha de referencia"
+          },
+          "reference_reason": {
+            "type": "string",
+            "description": "Razón de referencia. Para notas de crédito totales debe ser 'ANULA DOCUMENTO DE LA REFERENCIA'.",
+            "example": "ANULA DOCUMENTO DE LA REFERENCIA"
+          },
+          "dte_type_code": {
+            "type": "string",
+            "description": "Código de tipo de DTE referenciado"
+          }
+        }
+      },
+      "BatchResponse": {
+        "type": "object",
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identificador único del lote"
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "description": "Índice del documento en el array original"
+                },
+                "document_id": {
+                  "type": "integer",
+                  "description": "ID del documento creado"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "created",
+                    "invalid"
+                  ],
+                  "description": "Estado de la creación del documento"
+                },
+                "errors": {
+                  "type": "object",
+                  "description": "Errores de validación si el estado es 'invalid'"
+                }
+              }
+            }
+          }
+        }
+      },
+      "DocumentListResponse": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Número total de documentos"
+          },
+          "next": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL de la siguiente página"
+          },
+          "previous": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL de la página anterior"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentDetail"
+            }
+          }
+        }
+      },
+      "DocumentDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "ID único del documento"
+          },
+          "folio": {
+            "type": "string",
+            "description": "Número de folio del documento"
+          },
+          "date_issued": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha de emisión del documento"
+          },
+          "amount_with_iva": {
+            "type": "number",
+            "format": "float",
+            "description": "Monto total con IVA"
+          },
+          "dte_type": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Código del tipo de DTE"
+              },
+              "description": {
+                "type": "string",
+                "description": "Descripción del tipo de DTE"
+              }
+            }
+          },
+          "sender": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "integer",
+                "description": "ID de la entidad emisora"
+              },
+              "name": {
+                "type": "string",
+                "description": "Nombre de la entidad emisora"
+              },
+              "tax_id": {
+                "type": "string",
+                "description": "RUT de la entidad emisora"
+              }
+            }
+          },
+          "receiver": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "integer",
+                "description": "ID de la entidad receptora"
+              },
+              "name": {
+                "type": "string",
+                "description": "Nombre de la entidad receptora"
+              },
+              "tax_id": {
+                "type": "string",
+                "description": "RUT de la entidad receptora"
+              }
+            }
+          }
+        }
+      },
+      "Error": {
+        "required": [
+          "error",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Código de error"
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensaje de error"
+          }
+        }
+      },
+      "MasterEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "ID único de la entidad maestra",
+            "example": 371
+          },
+          "tax_id": {
+            "type": "string",
+            "description": "RUT de la entidad maestra",
+            "example": "76.798.398-0"
+          },
+          "name": {
+            "type": "string",
+            "description": "Razón social de la entidad",
+            "example": "SUPLO SPA"
+          },
+          "email": {
+            "type": "string",
+            "description": "Correo electrónico de contacto",
+            "nullable": true,
+            "example": null
+          },
+          "addresses": {
+            "type": "array",
+            "description": "Lista de direcciones de la entidad",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "description": "ID único de la dirección",
+                  "example": 6
+                },
+                "address": {
+                  "type": "string",
+                  "description": "Dirección completa",
+                  "example": "AV TAJAMAR 183 OF 401   OFIC"
+                },
+                "district": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "ID único de la comuna",
+                      "example": 7
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Nombre de la comuna",
+                      "example": "LAS CONDES"
+                    },
+                    "city": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "description": "ID único de la ciudad",
+                          "example": 3
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Nombre de la ciudad",
+                          "example": "SANTIAGO"
+                        }
+                      }
+                    }
+                  }
+                },
+                "sii_branch_code": {
+                  "type": "string",
+                  "description": "Código de sucursal SII",
+                  "nullable": true,
+                  "example": null
+                },
+                "phone": {
+                  "type": "string",
+                  "description": "Teléfono de la sucursal",
+                  "nullable": true,
+                  "example": null
+                }
+              }
+            }
+          },
+          "activities": {
+            "type": "array",
+            "description": "Lista de actividades económicas de la entidad",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "description": "ID único de la actividad",
+                  "example": 1
+                },
+                "code": {
+                  "type": "string",
+                  "description": "Código de actividad económica",
+                  "example": "620900"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Nombre de la actividad económica",
+                  "example": "OTRAS ACTIVIDADES DE TECNOLOGIA DE LA IN"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ScheduledDocumentListResponse": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Total de documentos programados",
+            "example": 25
+          },
+          "next": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL de la siguiente página",
+            "example": "https://api.tupana.ai/v1/scheduled-documents?master_entity_id=123&page=2"
+          },
+          "previous": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL de la página anterior",
+            "example": null
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledDocument"
+            }
+          }
+        }
+      },
+      "ScheduledDocument": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "ID único del documento programado",
+            "example": 789
+          },
+          "sender": {
+            "type": "object",
+            "description": "Información de la entidad emisora",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 123
+              },
+              "name": {
+                "type": "string",
+                "example": "Empresa Ejemplo SpA"
+              },
+              "rut": {
+                "type": "string",
+                "example": "76543210-1"
+              }
+            }
+          },
+          "receiver": {
+            "type": "object",
+            "nullable": true,
+            "description": "Información de la entidad receptora",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 456
+              },
+              "name": {
+                "type": "string",
+                "example": "Cliente ABC Ltda"
+              },
+              "rut": {
+                "type": "string",
+                "example": "12345678-9"
+              }
+            }
+          },
+          "dte_type": {
+            "type": "object",
+            "description": "Tipo de documento tributario",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 1
+              },
+              "code": {
+                "type": "string",
+                "example": "33"
+              },
+              "description": {
+                "type": "string",
+                "example": "Factura Electrónica"
+              }
+            }
+          },
+          "frequency": {
+            "type": "string",
+            "enum": ["daily", "weekly", "monthly", "quarterly"],
+            "description": "Frecuencia de ejecución",
+            "example": "monthly"
+          },
+          "frequency_display": {
+            "type": "string",
+            "description": "Frecuencia en formato legible",
+            "example": "Mensual"
+          },
+          "day_of_month": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Día del mes para ejecución (1-31)",
+            "example": 15
+          },
+          "day_of_week": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Día de la semana para ejecución (0=Lunes, 6=Domingo)",
+            "example": null
+          },
+          "next_execution": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha y hora de la próxima ejecución",
+            "example": "2024-02-15T10:00:00Z"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "inactive", "completed"],
+            "description": "Estado del documento programado",
+            "example": "active"
+          },
+          "status_display": {
+            "type": "string",
+            "description": "Estado en formato legible",
+            "example": "Activo"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Monto del documento",
+            "example": 100000
+          },
+          "currency": {
+            "type": "string",
+            "enum": ["CLP", "UF", "USD", "EUR"],
+            "description": "Moneda del documento",
+            "example": "CLP"
+          },
+          "completed_occurrences": {
+            "type": "integer",
+            "description": "Número de veces que se ha ejecutado",
+            "example": 5
+          },
+          "max_occurrences": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Número máximo de ejecuciones",
+            "example": null
+          },
+          "details": {
+            "type": "array",
+            "description": "Detalles/productos del documento",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledDocumentDetail"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha de creación",
+            "example": "2024-01-15T10:00:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha de última actualización",
+            "example": "2024-01-20T15:30:00Z"
+          }
+        }
+      },
+      "ScheduledDocumentCreate": {
+        "type": "object",
+        "required": ["dte_type", "frequency", "amount", "details", "receiver_tax_id"],
+        "properties": {
+          "dte_type": {
+            "type": "string",
+            "description": "Código del tipo de DTE (ej: '33' para Factura Electrónica)",
+            "example": "33"
+          },
+          "receiver_tax_id": {
+            "type": "string",
+            "description": "RUT del receptor (formato: 12345678-9). El sistema buscará un cliente existente con este RUT. Si no existe, creará uno nuevo automáticamente. Campo requerido.",
+            "example": "12345678-9"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": ["daily", "weekly", "monthly", "quarterly"],
+            "description": "Frecuencia de ejecución",
+            "example": "monthly"
+          },
+          "day_of_month": {
+            "type": "integer",
+            "description": "Día del mes para ejecución (1-31, requerido para frecuencia mensual/trimestral)",
+            "minimum": 1,
+            "maximum": 31,
+            "example": 15
+          },
+          "day_of_week": {
+            "type": "integer",
+            "description": "Día de la semana para ejecución (0=Lunes, 6=Domingo, requerido para frecuencia semanal)",
+            "minimum": 0,
+            "maximum": 6,
+            "example": 1
+          },
+          "amount": {
+            "type": "number",
+            "description": "Monto total del documento",
+            "minimum": 0,
+            "example": 100000
+          },
+          "currency": {
+            "type": "string",
+            "description": "Moneda del documento",
+            "enum": ["CLP", "UF", "USD", "EUR"],
+            "default": "CLP",
+            "example": "CLP"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "inactive"],
+            "description": "Estado inicial del documento programado",
+            "default": "active",
+            "example": "active"
+          },
+          "max_occurrences": {
+            "type": "integer",
+            "description": "Número máximo de ejecuciones (opcional, null = infinito)",
+            "minimum": 1,
+            "example": 12
+          },
+          "details": {
+            "type": "array",
+            "description": "Detalles/productos del documento",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/ScheduledDocumentDetailCreate"
+            }
+          }
+        }
+      },
+      "ScheduledDocumentUpdate": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["active", "inactive"],
+            "description": "Estado del documento programado",
+            "example": "inactive"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Monto total del documento",
+            "minimum": 0,
+            "example": 120000
+          },
+          "frequency": {
+            "type": "string",
+            "enum": ["daily", "weekly", "monthly", "quarterly"],
+            "description": "Frecuencia de ejecución",
+            "example": "weekly"
+          },
+          "day_of_month": {
+            "type": "integer",
+            "description": "Día del mes para ejecución (1-31)",
+            "minimum": 1,
+            "maximum": 31,
+            "example": 20
+          },
+          "day_of_week": {
+            "type": "integer",
+            "description": "Día de la semana para ejecución (0=Lunes, 6=Domingo)",
+            "minimum": 0,
+            "maximum": 6,
+            "example": 2
+          },
+          "max_occurrences": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Número máximo de ejecuciones",
+            "minimum": 1,
+            "example": 24
+          }
+        }
+      },
+      "ScheduledDocumentDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "ID único del detalle",
+            "example": 1
+          },
+          "product_name": {
+            "type": "string",
+            "description": "Nombre del producto o servicio",
+            "example": "Servicio mensual de consultoría"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción detallada",
+            "example": "Consultoría especializada en tecnología"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Cantidad",
+            "example": 1
+          },
+          "unit_price": {
+            "type": "number",
+            "description": "Precio unitario",
+            "example": 100000
+          },
+          "total": {
+            "type": "number",
+            "description": "Total de la línea",
+            "example": 100000
+          },
+          "unit_of_measurement": {
+            "type": "string",
+            "description": "Unidad de medida",
+            "example": "UN"
+          }
+        }
+      },
+      "ExportData": {
+        "type": "object",
+        "description": "Datos específicos para facturas de exportación (DTE 110) y notas de crédito de exportación (DTE 112). Solo requerido cuando se selecciona uno de estos tipos de documento.",
+        "properties": {
+          "tax_id_receptor": {
+            "type": "string",
+            "description": "Identificación tributaria del receptor en el país de destino"
+          },
+          "destination_country_code": {
+            "type": "string",
+            "description": "Código del país de destino (ISO 3166-1 alpha-2)",
+            "example": "US"
+          },
+          "currency_code": {
+            "type": "string",
+            "description": "Código de la moneda (ISO 4217)",
+            "example": "USD"
+          },
+          "exchange_rate": {
+            "type": "string",
+            "description": "Tipo de cambio aplicado",
+            "example": "800.50"
+          },
+          "departure_port_code": {
+            "type": "string",
+            "description": "Código del puerto de embarque"
+          },
+          "arrival_port_code": {
+            "type": "string",
+            "description": "Código del puerto de desembarque"
+          },
+          "departure_port_name": {
+            "type": "string",
+            "description": "Nombre del puerto de embarque"
+          },
+          "arrival_port_name": {
+            "type": "string",
+            "description": "Nombre del puerto de desembarque"
+          },
+          "total_packages": {
+            "type": "string",
+            "description": "Número total de bultos"
+          },
+          "sale_mode_code": {
+            "type": "string",
+            "description": "Código de modalidad de venta"
+          },
+          "export_type": {
+            "type": "string",
+            "description": "Tipo de exportación",
+            "default": "0"
+          }
+        }
+      },
+      "ScheduledDocumentDetailCreate": {
+        "type": "object",
+        "required": ["product_name", "quantity", "unit_price"],
+        "properties": {
+          "product_name": {
+            "type": "string",
+            "description": "Nombre del producto o servicio",
+            "example": "Servicio mensual de consultoría"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción detallada",
+            "example": "Consultoría especializada en tecnología"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Cantidad",
+            "minimum": 0.01,
+            "example": 1
+          },
+          "unit_price": {
+            "type": "number",
+            "description": "Precio unitario",
+            "minimum": 0,
+            "example": 100000
+          },
+          "unit_of_measurement": {
+            "type": "string",
+            "description": "Unidad de medida",
+            "default": "UN",
+            "example": "UN"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization",
+        "description": "API Key para autenticación. Debe proporcionarse en el formato: 'Api-Key YOUR-API-KEY'"
+      }
+    }
+  }
+}

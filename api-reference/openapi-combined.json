@@ -1,21 +1,5 @@
 {
   "openapi": "3.0.0",
-  "info": {
-    "title": "Tu Pana API",
-    "description": "API para integración con el sistema Tu Pana - Facturación Electrónica",
-    "version": "1.0.0"
-  },
-  "servers": [
-    {
-      "url": "https://api.tupana.ai/v1",
-      "description": "Servidor de producción"
-    }
-  ],
-  "security": [
-    {
-      "apiKeyAuth": []
-    }
-  ],
   "paths": {
     "/documents/batch": {
       "post": {
@@ -147,7 +131,10 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": ["issued", "received"],
+              "enum": [
+                "issued",
+                "received"
+              ],
               "default": "issued"
             }
           },
@@ -612,7 +599,11 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": ["active", "inactive", "completed"],
+              "enum": [
+                "active",
+                "inactive",
+                "completed"
+              ],
               "example": "active"
             }
           },
@@ -623,7 +614,12 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": ["daily", "weekly", "monthly", "quarterly"],
+              "enum": [
+                "daily",
+                "weekly",
+                "monthly",
+                "quarterly"
+              ],
               "example": "monthly"
             }
           },
@@ -897,16 +893,6 @@
               }
             }
           },
-          "404": {
-            "description": "Documento programado no encontrado",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
           "401": {
             "description": "No autorizado - API Key inválida",
             "content": {
@@ -919,6 +905,16 @@
           },
           "403": {
             "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documento programado no encontrado",
             "content": {
               "application/json": {
                 "schema": {
@@ -994,16 +990,6 @@
               }
             }
           },
-          "404": {
-            "description": "Documento programado no encontrado",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
           "401": {
             "description": "No autorizado - API Key inválida",
             "content": {
@@ -1016,6 +1002,16 @@
           },
           "403": {
             "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documento programado no encontrado",
             "content": {
               "application/json": {
                 "schema": {
@@ -1063,8 +1059,311 @@
           "204": {
             "description": "Documento programado eliminado exitosamente"
           },
+          "401": {
+            "description": "No autorizado - API Key inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           "404": {
             "description": "Documento programado no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scheduled-documents/{id}/preview": {
+      "get": {
+        "tags": [
+          "Documentos Programados"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Preview de documento programado guardado",
+        "description": "Genera un preview en PDF del próximo documento que se emitirá para un documento programado ya guardado.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del documento programado",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 789
+            }
+          },
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad maestra",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Preview generado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pdf_base64": {
+                      "type": "string",
+                      "description": "PDF del documento en formato base64",
+                      "example": "JVBERi0xLjQKMSAwIG9iago8PC9UeXBlIC9DYXRhbG9n..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API Key inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documento programado no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error generando el preview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Documentos Programados"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Preview de documento programado con datos personalizados",
+        "description": "Genera un preview en PDF de un documento programado usando datos personalizados del request body.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del documento programado base",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 789
+            }
+          },
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad maestra",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Datos personalizados para el preview",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduledDocumentUpdate"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "description": "Preview generado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pdf_base64": {
+                      "type": "string",
+                      "description": "PDF del documento en formato base64",
+                      "example": "JVBERi0xLjQKMSAwIG9iago8PC9UeXBlIC9DYXRhbG9n..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API Key inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documento programado no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error generando el preview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scheduled-documents/preview": {
+      "post": {
+        "tags": [
+          "Documentos Programados"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Preview de documento programado desde formulario",
+        "description": "Genera un preview en PDF de un documento programado usando datos enviados desde un formulario (sin guardar en base de datos).",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad maestra emisora",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Datos del documento programado para generar el preview",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduledDocumentCreate"
+              },
+              "example": {
+                "dte_type": "33",
+                "receiver_tax_id": "76111111-1",
+                "frequency": "monthly",
+                "day_of_month": 10,
+                "amount": 150000,
+                "currency": "CLP",
+                "status": "active",
+                "details": [
+                  {
+                    "product_name": "Servicio mensual de consultoría",
+                    "description": "Asistencia contable mensual",
+                    "quantity": 1,
+                    "unit_price": 150000,
+                    "unit_of_measurement": "UN"
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Preview generado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pdf_base64": {
+                      "type": "string",
+                      "description": "PDF del documento en formato base64",
+                      "example": "JVBERi0xLjQKMSAwIG9iago8PC9UeXBlIC9DYXRhbG9n..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
             "content": {
               "application/json": {
                 "schema": {
@@ -1085,6 +1384,16 @@
           },
           "403": {
             "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error generando el preview",
             "content": {
               "application/json": {
                 "schema": {
@@ -1751,7 +2060,12 @@
           },
           "frequency": {
             "type": "string",
-            "enum": ["daily", "weekly", "monthly", "quarterly"],
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly",
+              "quarterly"
+            ],
             "description": "Frecuencia de ejecución",
             "example": "monthly"
           },
@@ -1780,7 +2094,11 @@
           },
           "status": {
             "type": "string",
-            "enum": ["active", "inactive", "completed"],
+            "enum": [
+              "active",
+              "inactive",
+              "completed"
+            ],
             "description": "Estado del documento programado",
             "example": "active"
           },
@@ -1796,7 +2114,12 @@
           },
           "currency": {
             "type": "string",
-            "enum": ["CLP", "UF", "USD", "EUR"],
+            "enum": [
+              "CLP",
+              "UF",
+              "USD",
+              "EUR"
+            ],
             "description": "Moneda del documento",
             "example": "CLP"
           },
@@ -1834,7 +2157,13 @@
       },
       "ScheduledDocumentCreate": {
         "type": "object",
-        "required": ["dte_type", "frequency", "amount", "details", "receiver_tax_id"],
+        "required": [
+          "dte_type",
+          "frequency",
+          "amount",
+          "details",
+          "receiver_tax_id"
+        ],
         "properties": {
           "dte_type": {
             "type": "string",
@@ -1848,7 +2177,12 @@
           },
           "frequency": {
             "type": "string",
-            "enum": ["daily", "weekly", "monthly", "quarterly"],
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly",
+              "quarterly"
+            ],
             "description": "Frecuencia de ejecución",
             "example": "monthly"
           },
@@ -1875,13 +2209,21 @@
           "currency": {
             "type": "string",
             "description": "Moneda del documento",
-            "enum": ["CLP", "UF", "USD", "EUR"],
+            "enum": [
+              "CLP",
+              "UF",
+              "USD",
+              "EUR"
+            ],
             "default": "CLP",
             "example": "CLP"
           },
           "status": {
             "type": "string",
-            "enum": ["active", "inactive"],
+            "enum": [
+              "active",
+              "inactive"
+            ],
             "description": "Estado inicial del documento programado",
             "default": "active",
             "example": "active"
@@ -1907,7 +2249,10 @@
         "properties": {
           "status": {
             "type": "string",
-            "enum": ["active", "inactive"],
+            "enum": [
+              "active",
+              "inactive"
+            ],
             "description": "Estado del documento programado",
             "example": "inactive"
           },
@@ -1919,7 +2264,12 @@
           },
           "frequency": {
             "type": "string",
-            "enum": ["daily", "weekly", "monthly", "quarterly"],
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly",
+              "quarterly"
+            ],
             "description": "Frecuencia de ejecución",
             "example": "weekly"
           },
@@ -2042,7 +2392,11 @@
       },
       "ScheduledDocumentDetailCreate": {
         "type": "object",
-        "required": ["product_name", "quantity", "unit_price"],
+        "required": [
+          "product_name",
+          "quantity",
+          "unit_price"
+        ],
         "properties": {
           "product_name": {
             "type": "string",
@@ -2083,5 +2437,21 @@
         "description": "API Key para autenticación. Debe proporcionarse en el formato: 'Api-Key YOUR-API-KEY'"
       }
     }
-  }
+  },
+  "info": {
+    "title": "Tu Pana API",
+    "description": "API para integración con el sistema Tu Pana - Facturación Electrónica",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.tupana.ai/v1",
+      "description": "Servidor de producción"
+    }
+  ],
+  "security": [
+    {
+      "apiKeyAuth": []
+    }
+  ]
 }

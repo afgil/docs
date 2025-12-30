@@ -1,0 +1,153 @@
+{
+  "paths": {
+    "/scheduled-documents": {
+      "post": {
+        "tags": [
+          "Documentos Programados"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Crear documento programado",
+        "description": "Crea un nuevo documento programado que se ejecutará automáticamente según la frecuencia especificada.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad maestra emisora",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Datos del documento programado a crear",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduledDocumentCreate"
+              },
+              "example": {
+                "dte_type": "33",
+                "receiver_tax_id": "76111111-1",
+                "frequency": "monthly",
+                "day_of_month": 10,
+                "amount": 150000,
+                "currency": "CLP",
+                "status": "active",
+                "details": [
+                  {
+                    "product_name": "Servicio mensual de consultoría",
+                    "description": "Asistencia contable mensual",
+                    "quantity": 1,
+                    "unit_price": 150000,
+                    "unit_of_measurement": "UN"
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Documento programado creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledDocument"
+                },
+                "example": {
+                  "id": 987,
+                  "sender": {
+                    "id": 123,
+                    "name": "Empresa Ejemplo SpA",
+                    "rut": "76543210-1"
+                  },
+                  "receiver": {
+                    "id": 456,
+                    "name": "Cliente ABC Ltda",
+                    "rut": "12345678-9"
+                  },
+                  "dte_type": {
+                    "id": 1,
+                    "code": "33",
+                    "description": "Factura Electrónica"
+                  },
+                  "frequency": "monthly",
+                  "frequency_display": "Mensual",
+                  "day_of_month": 10,
+                  "day_of_week": null,
+                  "next_execution": "2024-03-10T10:00:00Z",
+                  "status": "active",
+                  "status_display": "Activo",
+                  "amount": 150000,
+                  "currency": "CLP",
+                  "completed_occurrences": 0,
+                  "max_occurrences": null,
+                  "details": [
+                    {
+                      "id": 1,
+                      "product_name": "Servicio mensual de consultoría",
+                      "description": "Asistencia contable mensual",
+                      "quantity": 1,
+                      "unit_price": 150000,
+                      "total": 150000,
+                      "unit_of_measurement": "UN"
+                    }
+                  ],
+                  "created_at": "2024-02-05T12:15:00Z",
+                  "updated_at": "2024-02-05T12:15:00Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API Key inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error de validación en el SII",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

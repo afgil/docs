@@ -60,7 +60,11 @@
             "group": "Documentos Programados",
             "pages": [
               "api-reference/scheduled-documents-list",
-              "api-reference/scheduled-documents-create"
+              "api-reference/scheduled-documents-create",
+              "api-reference/scheduled-documents-get",
+              "api-reference/scheduled-documents-update",
+              "api-reference/scheduled-documents-preview",
+              "api-reference/scheduled-documents-delete"
             ]
           }
         ]
@@ -70,9 +74,7 @@
       "anchors": []
     }
   },
-  "openapi": [
-    "api-reference/openapi.json"
-  ],
+  "openapi": "api-reference/openapi-complete.json",
   "topbarLinks": [
     {
       "name": "Soporte",

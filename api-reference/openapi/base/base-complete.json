@@ -1,0 +1,30 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Tu Pana API",
+    "description": "API para integración con el sistema Tu Pana - Facturación Electrónica",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.tupana.ai/v1",
+      "description": "Servidor de producción"
+    }
+  ],
+  "security": [
+    {
+      "apiKeyAuth": []
+    }
+  ],
+  "paths": {},
+  "components": {
+    "securitySchemes": {
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization",
+        "description": "API Key para autenticación. Debe proporcionarse en el formato: 'Api-Key YOUR-API-KEY'"
+      }
+    }
+  }
+}

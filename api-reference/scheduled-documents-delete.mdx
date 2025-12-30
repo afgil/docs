@@ -1,0 +1,12 @@
+---
+title: 'Eliminar documento programado'
+openapi: 'DELETE /scheduled-documents/{id}'
+---
+
+Elimina un documento programado existente de forma permanente. Esta acción no se puede deshacer.
+
+### Notas importantes
+
+- ⚠️ **Esta acción es permanente**: Una vez eliminado, el documento programado no podrá ser recuperado
+- Solo puedes eliminar documentos programados que pertenezcan a tu entidad
+- La eliminación no afecta los documentos ya emitidos que fueron generados por este documento programado

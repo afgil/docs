@@ -1,4 +1,20 @@
 ---
 title: 'Buscar Entidad por RUT'
 openapi: 'GET /master-entities'
---- 
+---
+
+Este endpoint permite obtener los detalles completos de una entidad maestra específica por su RUT. Es útil para consultar información relevante antes de crear documentos.
+
+## ¿Para qué sirve?
+
+Este endpoint te permite:
+
+1. **Obtener información completa de una entidad**: Obtén todos los detalles de una entidad maestra, incluyendo sus direcciones y actividades económicas registradas.
+
+2. **Consultar direcciones y actividades**: La respuesta incluye todas las direcciones asociadas a la entidad y todas sus actividades económicas, permitiéndote seleccionar una dirección o actividad específica para usar al crear documentos.
+
+3. **Determinar el tipo de documento a emitir**: La información de actividades es fundamental para decidir qué tipo de documento debes emitir:
+   - **Si la entidad tiene actividad económica**: Debes emitir una **Factura Electrónica** (DTE 33) o **Factura Exenta** (DTE 34)
+   - **Si la entidad NO tiene actividad económica**: Debes emitir una **Boleta** (DTE 39)
+
+Esta información es esencial para validar que estás emitiendo el tipo correcto de documento tributario según las características de la entidad receptora.

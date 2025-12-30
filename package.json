@@ -1,4 +1,13 @@
 {
+  "scripts": {
+    "combine-openapi": "python3 scripts/combine_openapi.py",
+    "watch-openapi": "node scripts/watch-openapi.js",
+    "predev": "npm run combine-openapi",
+    "dev": "mintlify dev",
+    "prebuild": "npm run combine-openapi",
+    "build": "mintlify build",
+    "precommit": "npm run combine-openapi"
+  },
   "dependencies": {
     "mintlify": "^4.2.15",
     "sharp": "^0.34.3"
