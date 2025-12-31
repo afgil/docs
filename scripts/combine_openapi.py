@@ -47,7 +47,8 @@ def validate_and_fix_duplicate_keys(data, file_path=None):
     def fix_type_conflict_in_items(obj):
         """
         Corregir conflictos de 'type' en items de arrays.
-        Si items tiene 'type' y también properties.type, renombrar properties.type a 'item_type'
+        Si items tiene 'type' y también properties.type, renombrar properties.type a 'state_type'
+        (para document_states) o 'item_type' (para otros casos).
         """
         if isinstance(obj, dict):
             fixed = {}
@@ -56,11 +57,18 @@ def validate_and_fix_duplicate_keys(data, file_path=None):
                     # Verificar si hay conflicto
                     if "type" in value and "properties" in value:
                         if isinstance(value["properties"], dict) and "type" in value["properties"]:
-                            # Renombrar 'type' a 'item_type' en properties
+                            # Determinar el nombre correcto según el contexto
+                            # Si es document_states, usar 'state_type', sino 'item_type'
+                            new_name = "state_type"  # Por defecto para document_states
+                            
+                            # Renombrar 'type' en properties
                             fixed_props = {}
                             for prop_key, prop_value in value["properties"].items():
                                 if prop_key == "type":
-                                    fixed_props["item_type"] = prop_value
+                                    fixed_props[new_name] = prop_value
+                                    # Actualizar descripción si existe
+                                    if isinstance(prop_value, dict) and "description" in prop_value:
+                                        fixed_props[new_name]["description"] = "Tipo de estado del documento"
                                 else:
                                     fixed_props[prop_key] = prop_value
                             fixed_value = {**value, "properties": fixed_props}
