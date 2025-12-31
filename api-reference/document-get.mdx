@@ -35,8 +35,10 @@ La respuesta incluye toda la información del documento más archivos PDF y XML:
 - `receiver_tax_id`: RUT de la entidad receptora
 
 #### Tipo de documento:
-- `dte_type_code`: Código numérico del tipo de DTE (ej: 33 para Factura Electrónica)
-- `dte_type_description`: Descripción del tipo de DTE
+- `dte_type`: Objeto con información del tipo de DTE
+  - `dte_type.code`: Código numérico del tipo de DTE (ej: 33 para Factura Electrónica)
+  - `dte_type.description`: Descripción del tipo de DTE
+- `dte_type_description`: Descripción del tipo de DTE (campo adicional para compatibilidad)
 
 #### Archivos:
 - `pdf`: URL presignada al PDF del documento (válida por tiempo limitado)
@@ -71,7 +73,10 @@ La respuesta incluye toda la información del documento más archivos PDF y XML:
   "receiver_id": 901,
   "receiver_name": "Cliente Importante Ltda",
   "receiver_tax_id": "12345678-9",
-  "dte_type_code": 33,
+  "dte_type": {
+    "code": "33",
+    "description": "Factura Electrónica"
+  },
   "dte_type_description": "Factura Electrónica",
   "pdf": "https://api.tupana.ai/api/documents/12345/pdf/?signature=...",
   "xml": "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><DTE version=\"1.0\">...</DTE>",

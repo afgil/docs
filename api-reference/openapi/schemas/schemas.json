@@ -480,10 +480,6 @@
                 "description": "RUT de la entidad receptora",
                 "nullable": true
               },
-              "dte_type_code": {
-                "type": "string",
-                "description": "Código numérico del tipo de DTE (ej: 33 para Factura Electrónica)"
-              },
               "dte_type_description": {
                 "type": "string",
                 "description": "Descripción del tipo de DTE"
