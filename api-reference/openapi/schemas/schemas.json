@@ -478,16 +478,16 @@
                 "items": {
                   "type": "object",
                   "properties": {
-                    "type": {
-                      "type": "string",
-                      "description": "Tipo de estado"
-                    },
                     "label": {
                       "type": "string",
                       "description": "Etiqueta del estado"
                     },
                     "description": {
                       "type": "string"
+                    },
+                    "state_type": {
+                      "type": "string",
+                      "description": "Tipo de estado del documento"
                     }
                   }
                 }
