@@ -1586,10 +1586,6 @@
       "ReferenceItem": {
         "type": "object",
         "properties": {
-          "dte_type_code": {
-            "type": "string",
-            "description": "Código del tipo de DTE de referencia"
-          },
           "reference_folio": {
             "type": "integer",
             "description": "Folio de referencia"
@@ -1603,6 +1599,10 @@
             "type": "string",
             "description": "Razón de referencia. Para notas de crédito totales debe ser 'ANULA DOCUMENTO DE LA REFERENCIA'.",
             "example": "ANULA DOCUMENTO DE LA REFERENCIA"
+          },
+          "referenced_dte_type_code": {
+            "type": "string",
+            "description": "Código del tipo de DTE del documento referenciado"
           }
         }
       },
