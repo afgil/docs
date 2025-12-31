@@ -6,7 +6,7 @@
                     "Documentos"
                 ],
                 "summary": "Obtener documento específico",
-                "description": "Obtiene toda la información completa de un documento tributario específico, incluyendo el PDF y XML cuando están disponibles. Este endpoint es útil para consultar detalles completos de un documento ya emitido o recibido.",
+                "description": "Obtiene toda la información completa de un documento tributario específico, incluyendo el PDF y XML cuando están disponibles. Este endpoint es útil para consultar detalles completos de un documento ya emitido o recibido.\n\n**Seguridad:** El usuario solo puede acceder al documento si es emisor (sender) o receptor (receiver) del documento. Si el usuario no tiene acceso, se retorna un error 403 Forbidden.",
                 "parameters": [
                     {
                         "name": "document_id",
@@ -72,11 +72,17 @@
                         }
                     },
                     "403": {
-                        "description": "Sin permisos para acceder a la entidad especificada",
+                        "description": "Sin permisos para acceder al documento. El usuario debe ser emisor (sender) o receptor (receiver) del documento.",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "No tienes acceso a este documento"
+                                        }
+                                    }
                                 }
                             }
                         }

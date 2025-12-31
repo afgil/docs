@@ -241,7 +241,7 @@
           "Documentos"
         ],
         "summary": "Obtener documento específico",
-        "description": "Obtiene toda la información completa de un documento tributario específico, incluyendo el PDF y XML cuando están disponibles. Este endpoint es útil para consultar detalles completos de un documento ya emitido o recibido.",
+        "description": "Obtiene toda la información completa de un documento tributario específico, incluyendo el PDF y XML cuando están disponibles. Este endpoint es útil para consultar detalles completos de un documento ya emitido o recibido.\n\n**Seguridad:** El usuario solo puede acceder al documento si es emisor (sender) o receptor (receiver) del documento. Si el usuario no tiene acceso, se retorna un error 403 Forbidden.",
         "parameters": [
           {
             "name": "document_id",
@@ -310,11 +310,17 @@
             }
           },
           "403": {
-            "description": "Sin permisos para acceder a la entidad especificada",
+            "description": "Sin permisos para acceder al documento. El usuario debe ser emisor (sender) o receptor (receiver) del documento.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "No tienes acceso a este documento"
+                    }
+                  }
                 }
               }
             }
@@ -1694,7 +1700,8 @@
           },
           "folio": {
             "type": "string",
-            "description": "Número de folio del documento"
+            "description": "Número de folio del documento",
+            "nullable": true
           },
           "date_issued": {
             "type": "string",
@@ -1706,53 +1713,19 @@
             "format": "float",
             "description": "Monto total con IVA"
           },
-          "dte_type": {
-            "type": "object",
-            "properties": {
-              "code": {
-                "type": "string",
-                "description": "Código del tipo de DTE"
-              },
-              "description": {
-                "type": "string"
-              }
-            }
+          "dte_type_code": {
+            "type": "integer",
+            "description": "Código numérico del tipo de DTE (ej: 33 para Factura Electrónica)"
           },
-          "sender": {
-            "type": "object",
-            "nullable": true,
-            "properties": {
-              "id": {
-                "type": "integer",
-                "description": "ID de la entidad emisora"
-              },
-              "name": {
-                "type": "string",
-                "description": "Nombre de la entidad emisora"
-              },
-              "tax_id": {
-                "type": "string",
-                "description": "RUT de la entidad emisora"
-              }
-            }
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha de creación del registro (ISO 8601)"
           },
-          "receiver": {
-            "type": "object",
-            "nullable": true,
-            "properties": {
-              "id": {
-                "type": "integer",
-                "description": "ID de la entidad receptora"
-              },
-              "name": {
-                "type": "string",
-                "description": "Nombre de la entidad receptora"
-              },
-              "tax_id": {
-                "type": "string",
-                "description": "RUT de la entidad receptora"
-              }
-            }
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha de última actualización (ISO 8601)"
           }
         }
       },
@@ -1789,8 +1762,8 @@
                 "example": "CLP"
               },
               "sender_id": {
-                "type": "integer",
-                "description": "ID de la entidad emisora"
+                "type": "string",
+                "description": "ID de la entidad emisora (como string)"
               },
               "sender_name": {
                 "type": "string",
@@ -1801,8 +1774,8 @@
                 "description": "RUT de la entidad emisora"
               },
               "receiver_id": {
-                "type": "integer",
-                "description": "ID de la entidad receptora (puede ser null para algunos tipos de documentos)",
+                "type": "string",
+                "description": "ID de la entidad receptora (como string, puede ser null para algunos tipos de documentos)",
                 "nullable": true
               },
               "receiver_name": {
@@ -1813,6 +1786,71 @@
               "receiver_tax_id": {
                 "type": "string",
                 "description": "RUT de la entidad receptora",
+                "nullable": true
+              },
+              "has_credit_note": {
+                "type": "boolean",
+                "description": "Indica si el documento tiene una nota de crédito asociada"
+              },
+              "is_paid": {
+                "type": "boolean",
+                "description": "Indica si el documento está marcado como pagado"
+              },
+              "json_param": {
+                "type": "object",
+                "description": "Parámetros JSON almacenados del documento",
+                "nullable": true
+              },
+              "traces": {
+                "type": "array",
+                "description": "Array de trazas de envío al SII",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "trace_update_log": {
+                "type": "object",
+                "description": "Log de actualización de trazas",
+                "nullable": true
+              },
+              "document_states": {
+                "type": "array",
+                "description": "Array de estados del documento (rechazado, con NC, acuse, pagado, mérito ejecutivo)",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "Tipo de estado"
+                    },
+                    "label": {
+                      "type": "string",
+                      "description": "Etiqueta del estado"
+                    },
+                    "description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "vat_withheld": {
+                "type": "boolean",
+                "description": "Indica si se retuvo IVA",
+                "nullable": true
+              },
+              "exchange_rate": {
+                "type": "string",
+                "description": "Tipo de cambio para facturas internacionales",
+                "nullable": true
+              },
+              "original_amount": {
+                "type": "string",
+                "description": "Monto original en moneda extranjera para facturas internacionales",
+                "nullable": true
+              },
+              "state": {
+                "type": "string",
+                "description": "Estado del documento (draft, issued, etc.)",
                 "nullable": true
               },
               "dte_type_description": {
@@ -1867,16 +1905,6 @@
                 "items": {
                   "$ref": "#/components/schemas/ReferenceItem"
                 }
-              },
-              "created_at": {
-                "type": "string",
-                "format": "date-time",
-                "description": "Fecha de creación del registro (ISO 8601)"
-              },
-              "updated_at": {
-                "type": "string",
-                "format": "date-time",
-                "description": "Fecha de última actualización (ISO 8601)"
               }
             }
           }
