@@ -16,6 +16,10 @@ def validate_and_fix_duplicate_keys(data, file_path=None):
     """
     Valida y corrige claves duplicadas en objetos JSON.
     Especialmente útil para detectar problemas que YAML no permite pero JSON sí.
+    Corrige automáticamente:
+    - Objetos 'description' con clave 'description' interna
+    - Conflictos de 'type' en items vs properties
+    - Cualquier otra clave duplicada en el mismo objeto
     """
 
     def fix_duplicate_description(obj):
@@ -40,8 +44,41 @@ def validate_and_fix_duplicate_keys(data, file_path=None):
             return [fix_duplicate_description(item) for item in obj]
         return obj
 
-    # Aplicar corrección
+    def fix_type_conflict_in_items(obj):
+        """
+        Corregir conflictos de 'type' en items de arrays.
+        Si items tiene 'type' y también properties.type, renombrar properties.type a 'item_type'
+        """
+        if isinstance(obj, dict):
+            fixed = {}
+            for key, value in obj.items():
+                if key == "items" and isinstance(value, dict):
+                    # Verificar si hay conflicto
+                    if "type" in value and "properties" in value:
+                        if isinstance(value["properties"], dict) and "type" in value["properties"]:
+                            # Renombrar 'type' a 'item_type' en properties
+                            fixed_props = {}
+                            for prop_key, prop_value in value["properties"].items():
+                                if prop_key == "type":
+                                    fixed_props["item_type"] = prop_value
+                                else:
+                                    fixed_props[prop_key] = prop_value
+                            fixed_value = {**value, "properties": fixed_props}
+                            fixed[key] = fix_type_conflict_in_items(fixed_value)
+                        else:
+                            fixed[key] = fix_type_conflict_in_items(value)
+                    else:
+                        fixed[key] = fix_type_conflict_in_items(value)
+                else:
+                    fixed[key] = fix_type_conflict_in_items(value)
+            return fixed
+        elif isinstance(obj, list):
+            return [fix_type_conflict_in_items(item) for item in obj]
+        return obj
+
+    # Aplicar correcciones
     fixed_data = fix_duplicate_description(data)
+    fixed_data = fix_type_conflict_in_items(fixed_data)
 
     # Validar que no haya duplicados en el mismo objeto
     def check_duplicates(obj, path="", duplicates=None):
@@ -75,7 +112,10 @@ def validate_and_fix_duplicate_keys(data, file_path=None):
 
 
 def validate_openapi_structure(data, file_path=None):
-    """Validar estructura OpenAPI y detectar problemas comunes"""
+    """
+    Validar estructura OpenAPI y detectar problemas comunes.
+    Retorna True si está válido, False si hay problemas.
+    """
     issues = []
 
     # Validar que no haya objetos "description" con clave "description" interna
@@ -93,7 +133,26 @@ def validate_openapi_structure(data, file_path=None):
             for i, item in enumerate(obj):
                 check_description_objects(item, f"{path}[{i}]")
 
+    # Validar conflictos de 'type' en items
+    def check_type_conflicts(obj, path=""):
+        if isinstance(obj, dict):
+            if "items" in obj and isinstance(obj["items"], dict):
+                items_obj = obj["items"]
+                if "type" in items_obj and "properties" in items_obj:
+                    if isinstance(items_obj["properties"], dict):
+                        if "type" in items_obj["properties"]:
+                            full_path = f"{path}.items" if path else "items"
+                            issues.append(
+                                f"Conflicto de 'type' en {full_path}: items tiene 'type' y properties también tiene 'type'"
+                            )
+            for key, value in obj.items():
+                check_type_conflicts(value, f"{path}.{key}" if path else key)
+        elif isinstance(obj, list):
+            for i, item in enumerate(obj):
+                check_type_conflicts(item, f"{path}[{i}]")
+
     check_description_objects(data)
+    check_type_conflicts(data)
 
     if issues:
         file_info = f" en {file_path}" if file_path else ""
@@ -108,9 +167,10 @@ def validate_openapi_structure(data, file_path=None):
 
 
 def validate_and_fix_schemas_before_combine():
-    """Validar y corregir schemas antes de combinar"""
-    import re
-
+    """
+    Validar y corregir schemas antes de combinar.
+    Corrige automáticamente problemas comunes en los archivos de origen.
+    """
     base_dir = Path("api-reference/openapi")
     schemas_file = base_dir / "schemas" / "schemas.json"
 
@@ -119,45 +179,33 @@ def validate_and_fix_schemas_before_combine():
 
     try:
         with open(schemas_file, "r", encoding="utf-8") as f:
-            content = f.read()
+            data = json.load(f)
 
-        # Buscar patrón problemático
-        pattern = r'"description":\s*\{\s*"type":\s*"string",\s*"description":\s*"([^"]+)"(\s*,\s*"example":\s*"([^"]+)")?\s*\}'
-        matches = list(re.finditer(pattern, content, re.MULTILINE | re.DOTALL))
+        # Aplicar todas las correcciones automáticas
+        original_data = json.dumps(data, indent=2, ensure_ascii=False)
+        fixed_data = validate_and_fix_duplicate_keys(data, str(schemas_file))
 
-        if matches:
-            print(
-                f"🔧 Corrigiendo {len(matches)} casos problemáticos en schemas.json..."
-            )
-
-            def fix_match(match):
-                example_value = match.group(3)
-                if example_value:
-                    return f'"description": {{\n                "type": "string",\n                "example": "{example_value}"\n              }}'
-                else:
-                    return f'"description": {{\n                "type": "string"\n              }}'
-
-            fixed_content = re.sub(
-                pattern, fix_match, content, flags=re.MULTILINE | re.DOTALL
-            )
-
-            # Validar JSON
-            try:
-                json.loads(fixed_content)
-                # Guardar
-                with open(schemas_file, "w", encoding="utf-8") as f:
-                    json.dump(
-                        json.loads(fixed_content), f, indent=2, ensure_ascii=False
-                    )
-                print(f"✅ schemas.json corregido")
-                return True
-            except json.JSONDecodeError as e:
-                print(f"❌ Error al corregir: {e}")
-                return False
+        # Verificar si hubo cambios
+        fixed_json = json.dumps(fixed_data, indent=2, ensure_ascii=False)
+        if original_data != fixed_json:
+            print(f"🔧 Corrigiendo problemas en {schemas_file.name}...")
+            
+            # Guardar archivo corregido
+            with open(schemas_file, "w", encoding="utf-8") as f:
+                json.dump(fixed_data, f, indent=2, ensure_ascii=False)
+            
+            print(f"✅ {schemas_file.name} corregido automáticamente")
+            return True
         else:
             return True
+
+    except json.JSONDecodeError as e:
+        print(f"❌ Error de JSON en {schemas_file}: {e}")
+        return False
     except Exception as e:
         print(f"⚠️  Error validando schemas: {e}")
+        import traceback
+        traceback.print_exc()
         return True  # Continuar aunque haya error
 
 
@@ -215,7 +263,18 @@ def combine_openapi_files():
                 data = json.load(f)
 
             # Validar y corregir antes de combinar
+            original_data_str = json.dumps(data, indent=2, ensure_ascii=False)
             data = validate_and_fix_duplicate_keys(data, str(file_path))
+            fixed_data_str = json.dumps(data, indent=2, ensure_ascii=False)
+            
+            # Si hubo correcciones, guardar el archivo corregido
+            if original_data_str != fixed_data_str:
+                print(f"🔧 Corrigiendo problemas en {file_path.name}...")
+                with open(file_path, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2, ensure_ascii=False)
+                print(f"✅ {file_path.name} corregido automáticamente")
+            
+            # Validar estructura (solo reporta, no bloquea)
             if not validate_openapi_structure(data, str(file_path)):
                 print(
                     f"⚠️  Advertencia: Problemas detectados en {file_path}, pero continuando..."
