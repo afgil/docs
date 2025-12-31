@@ -281,9 +281,9 @@
             "description": "Razón de referencia. Para notas de crédito totales debe ser 'ANULA DOCUMENTO DE LA REFERENCIA'.",
             "example": "ANULA DOCUMENTO DE LA REFERENCIA"
           },
-          "dte_type_code": {
+          "referenced_dte_type_code": {
             "type": "string",
-            "description": "Código del tipo de DTE de referencia"
+            "description": "Código del tipo de DTE del documento referenciado"
           }
         }
       },
