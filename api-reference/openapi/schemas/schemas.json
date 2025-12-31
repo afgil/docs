@@ -267,9 +267,9 @@
       "ReferenceItem": {
         "type": "object",
         "properties": {
-          "reference_type": {
+          "dte_type_code": {
             "type": "integer",
-            "description": "Tipo de referencia"
+            "description": "Código del tipo de DTE de referencia"
           },
           "reference_folio": {
             "type": "integer",

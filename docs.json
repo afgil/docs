@@ -53,7 +53,8 @@
             "group": "Documentos",
             "pages": [
               "api-reference/documents-list",
-              "api-reference/documents-batch"
+              "api-reference/documents-batch",
+              "api-reference/document-get"
             ]
           },
           {

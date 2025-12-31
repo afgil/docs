@@ -65,11 +65,6 @@ Con `X-Use-Defaults: true`, solo necesitas proporcionar el `rut` del receptor. E
 - **Tipo:** Object
 - **Campos:**
   - `code` (String): Código del tipo de documento
-    - `"33"`: Factura Electrónica
-    - `"34"`: Factura Exenta
-    - `"61"`: Nota de Crédito
-    - `"80"`: Boleta de Honorarios
-    - `"90"`: Boleta de Honorarios de Terceros
 
 **date_issued (Condicional)**
 - **Tipo:** String (formato YYYY-MM-DD)
@@ -81,7 +76,14 @@ Con `X-Use-Defaults: true`, solo necesitas proporcionar el `rut` del receptor. E
 - **Descripción:** Número de folio del documento
 - **Comportamiento:** Si no se proporciona, se genera automáticamente
 
-#### Facturas Electrónicas (DTE 33, 34)
+---
+
+## Tipos de Documentos Soportados
+
+<details>
+<summary><strong>📄 Factura Electrónica (DTE 33)</strong> - Documento tributario más común para ventas</summary>
+
+**Campos específicos:**
 
 **document_issuer (Obligatorio)**
 - **Tipo:** Object
@@ -115,8 +117,169 @@ Con `X-Use-Defaults: true`, solo necesitas proporcionar el `rut` del receptor. E
   - `unit_price` (Number): Precio unitario
   - `item_total` (Number): Total del ítem (debe ser igual a quantity × unit_price)
 
-#### Notas de Crédito (DTE 61)
+</details>
 
+<details>
+<summary><strong>📄 Factura Exenta (DTE 34)</strong> - Para ventas exentas de IVA</summary>
+
+**Campos específicos:**
+Iguales a la Factura Electrónica (DTE 33), pero el documento no incluye IVA en los cálculos.
+
+**Casos de uso:**
+- Ventas a clientes exentos de IVA
+- Exportaciones (aunque se recomienda usar DTE específico de exportación)
+- Servicios específicos exentos por ley
+
+**document_issuer y document_receiver:** Mismos campos que Factura Electrónica
+**details:** Mismos campos que Factura Electrónica
+
+</details>
+
+<details>
+<summary><strong>🧾 Factura de Compra (DTE 46)</strong> - Para registro de compras realizadas</summary>
+
+**Campos específicos:**
+
+**document_issuer (Obligatorio)**
+- **Tipo:** Object
+- **Descripción:** Datos del proveedor/vendedor
+- **Campos obligatorios:**
+  - `rut` (String): RUT del proveedor
+  - `business_name` (String): Razón social del proveedor - Opcional con `X-Use-Defaults: true`
+  - `business_activity` (String): Giro del proveedor - Opcional con `X-Use-Defaults: true`
+  - `address` (String): Dirección del proveedor - Opcional con `X-Use-Defaults: true`
+  - `district` (String): Comuna del proveedor - Opcional con `X-Use-Defaults: true`
+  - `city` (String): Ciudad del proveedor - Opcional con `X-Use-Defaults: true`
+
+**document_receiver (Obligatorio)**
+- **Tipo:** Object
+- **Descripción:** Datos del comprador (tu empresa)
+- **Campos obligatorios:**
+  - `rut` (String): RUT de tu empresa
+  - `business_name` (String): Razón social - Opcional con `X-Use-Defaults: true`
+  - `business_activity` (String): Giro - Opcional con `X-Use-Defaults: true`
+  - `address` (String): Dirección - Opcional con `X-Use-Defaults: true`
+  - `district` (String): Comuna - Opcional con `X-Use-Defaults: true`
+  - `city` (String): Ciudad - Opcional con `X-Use-Defaults: true`
+
+**details (Obligatorio)**
+- **Tipo:** Array
+- **Descripción:** Lista de productos/servicios comprados
+- **Campos de cada elemento:**
+  - `item_name` (String): Nombre del producto/servicio comprado
+  - `quantity` (Number): Cantidad comprada
+  - `unit_price` (Number): Precio unitario pagado
+  - `item_total` (Number): Total del ítem
+
+**header (Obligatorio para ciertos casos)**
+- **Tipo:** Object
+- **Campos opcionales:**
+  - `purchase_transaction_type` (Integer): **Obligatorio para compras** - Clasifica el tipo de compra para efectos contables y tributarios
+    - `1`: **Compras del giro** - Productos/servicios directamente relacionados con tu actividad económica principal (ej: materias primas para fabricante)
+    - `2`: **Compras fuera del giro** - Productos/servicios no relacionados con tu giro (ej: útiles de oficina para una fábrica)
+    - `3`: **Activo fijo** - Bienes que se incorporan al patrimonio y se deprecian (ej: maquinaria, vehículos, muebles)
+  - `payment_method` (String): **Opcional** - Forma de pago acordada
+    - `"1"`: **Contado** - Pago inmediato al recibir la mercadería/servicio
+    - `"2"`: **Crédito** - Pago diferido (especificar plazo en `due_date`)
+    - `"3"`: **Sin costo** - Mercadería/servicio recibido gratuitamente (donación, regalo)
+  - `due_date` (String): **Condicional** - Fecha de vencimiento cuando `payment_method` es crédito
+    - Formato: `YYYY-MM-DD`
+    - Obligatorio cuando es compra a crédito
+
+</details>
+
+<details>
+<summary><strong>✈️ Factura de Exportación (DTE 110)</strong> - Para ventas al extranjero</summary>
+
+**Campos específicos:**
+
+**document_issuer (Obligatorio)**
+- **Tipo:** Object
+- **Campos obligatorios:**
+  - `rut` (String): RUT del exportador
+  - `business_name` (String): Razón social - Opcional con `X-Use-Defaults: true`
+  - `business_activity` (String): Giro - Opcional con `X-Use-Defaults: true`
+  - `address` (String): Dirección - Opcional con `X-Use-Defaults: true`
+  - `district` (String): Comuna - Opcional con `X-Use-Defaults: true`
+  - `city` (String): Ciudad - Opcional con `X-Use-Defaults: true`
+  - `email` (String): Email de contacto - Opcional con `X-Use-Defaults: true`
+  - `phone_number` (String): Teléfono - Opcional con `X-Use-Defaults: true`
+  - `activity_code` (Integer): Código de actividad económica - Opcional con `X-Use-Defaults: true`
+
+**document_receiver (Obligatorio)**
+- **Tipo:** Object
+- **Descripción:** Datos del importador extranjero
+- **Campos obligatorios:**
+  - `rut` (String): RUT extranjero (puede ser un identificador especial)
+  - `business_name` (String): Nombre del importador
+  - `business_activity` (String): Descripción de la actividad
+  - `address` (String): Dirección en el extranjero
+  - `city` (String): Ciudad del extranjero
+  - `country` (String): País de destino
+
+**export_data (Obligatorio)**
+- **Tipo:** Object
+- **Descripción:** Información detallada de la exportación requerida por aduanas y SII
+- **Campos obligatorios:**
+
+  - `transport_mode` (String): **Modalidad de transporte utilizada**
+    - `"1"`: **Marítimo** - Envío por barco (contenedor, carga suelta)
+    - `"2"`: **Aéreo** - Envío por avión (carga aérea, courier)
+    - `"3"`: **Terrestre** - Envío por tierra (camión, ferrocarril, terrestre internacional)
+    - `"4"`: **Multimodal** - Combinación de dos o más modos de transporte
+
+  - `destination_country` (String): **País de destino final**
+    - Código ISO de 2 letras (ej: `"US"`, `"BR"`, `"AR"`, `"MX"`)
+    - Debe coincidir exactamente con el país del receptor extranjero
+    - Afecta tratados comerciales y aranceles
+
+  - `destination_port` (String): **Puerto/aeropuerto/ciudad de destino**
+    - Nombre oficial del punto de entrada (ej: `"JFK"`, `"Santos"`, `"Buenos Aires"`, `"Veracruz"`)
+    - Para transporte terrestre: ciudad fronteriza de destino
+    - Debe ser reconocible por autoridades aduaneras
+
+  - `origin_port` (String): **Puerto/aeropuerto/ciudad de origen en Chile**
+    - Punto chileno de salida (ej: `"SCL"`, `"IQQ"`, `"ANF"`, `"VAP"`)
+    - Para transporte terrestre: ciudad fronteriza chilena
+    - Determina jurisdicción aduanera chilena
+
+  - `export_clause` (String): **Cláusula de exportación** (condiciones del envío)
+    - `"1"`: **A firme** - Compromiso incondicional de exportar (venta confirmada)
+    - `"2"`: **Bajo protesta** - Exportación sujeta a condiciones o aprobaciones
+    - `"3"`: **Sin cláusula** - Exportación sin especificar condiciones especiales
+
+- **Campos opcionales adicionales:**
+  - `transport_company` (String): Nombre de la empresa de transporte
+  - `tracking_number` (String): Número de seguimiento del envío
+  - `customs_declaration` (String): Número de declaración aduanera (si aplica)
+
+**details (Obligatorio)**
+- **Tipo:** Array
+- **Descripción:** Lista de productos exportados
+- **Campos de cada elemento:**
+  - `item_name` (String): Nombre del producto exportado
+  - `quantity` (Number): Cantidad exportada
+  - `unit_price` (Number): Precio unitario FOB (Free on Board)
+  - `item_total` (Number): Total FOB del ítem
+
+**header (Obligatorio)**
+- **Tipo:** Object
+- **Campos obligatorios:**
+  - `sale_transaction_type` (Integer): Tipo de transacción de venta
+    - `1`: Operación constituye venta
+    - `2`: Ventas por acto o contrato
+    - `3`: Boleto de pasaje emitido por agencias
+  - `currency` (String): Moneda de la transacción
+    - `"USD"`: Dólares americanos
+    - `"EUR"`: Euros
+    - `"CLP"`: Pesos chilenos
+
+</details>
+
+<details>
+<summary><strong>📝 Nota de Crédito (DTE 61)</strong> - Para anular o corregir documentos emitidos</summary>
+
+**Campos específicos:**
 Incluye todos los campos de las Facturas Electrónicas más:
 
 **references (Obligatorio)**
@@ -130,34 +293,100 @@ Incluye todos los campos de las Facturas Electrónicas más:
     - Para anulación total: `"ANULA DOCUMENTO DE LA REFERENCIA"`
     - Para corrección: Descripción del motivo de corrección
 
-#### Boletas de Honorarios (DTE 80)
+**Casos de uso:**
+- Anulación total de un documento
+- Corrección de errores en documentos emitidos
+- Descuentos o devoluciones
 
+</details>
+
+<details>
+<summary><strong>💼 Boleta de Honorarios (DTE 80)</strong> - Para pagos de servicios profesionales</summary>
+
+**Campos específicos:**
 Incluye todos los campos de las Facturas Electrónicas con:
 
 **header (Obligatorio)**
 - **Tipo:** Object
 - **Campos obligatorios:**
-  - `retention_type` (String): Tipo de retención
-    - `"RETRECEPTOR"`: La retención la realiza el receptor (por defecto)
-    - `"RETCONTRIBUYENTE"`: La retención la realiza el contribuyente emisor
+  - `retention_type` (String): **Tipo de retención del 14.5%**
+    - `"RETRECEPTOR"`: **Retención por el receptor** (99% de casos) - El pagador retiene y declara el impuesto
+    - `"RETCONTRIBUYENTE"`: **Retención por el emisor** (casos excepcionales) - El emisor retiene el impuesto
+  - `payment_method` (String): **Forma de pago** (opcional pero recomendado)
+    - `"1"`: Contado
+    - `"2"`: Crédito
+  - `due_date` (String): **Fecha de vencimiento** (opcional, formato YYYY-MM-DD)
 
-**document_receiver (Opcional)**
+**document_receiver (Condicional)**
 - **Tipo:** Object
-- **Descripción:** Datos del receptor del documento
-- **Nota:** Para boletas de honorarios, este campo es opcional. Si no se proporciona, se puede usar solo el RUT en el campo `receiver_rut`
+- **Descripción:** Datos del profesional que recibe los honorarios
+- **Obligatoriedad:** Condicional - se puede usar solo RUT, pero se recomienda información completa
+- **Campos:**
+  - `rut` (String): **Obligatorio** - RUT del profesional
+  - `business_name` (String): **Opcional** - Nombre completo del profesional
+  - `business_activity` (String): **Opcional** - Profesión o especialidad (ej: "Abogado", "Contador", "Médico")
+  - `address` (String): **Opcional** - Dirección del profesional
+  - `district` (String): **Opcional** - Comuna del profesional
+  - `city` (String): **Opcional** - Ciudad del profesional
+  - `email` (String): **Opcional** - Email de contacto
 
-#### Boletas de Honorarios de Terceros (DTE 90)
+**Cálculo automático de retención:**
+- **Tasa**: 14.5% sobre el monto bruto (antes de IVA)
+- **Base imponible**: Suma de todos los `item_total` en details
+- **Retención**: `base_imponible × 0.145`
+- **Pago neto**: `base_imponible - retención`
+- **Responsable**: Normalmente el pagador declara y paga la retención al SII
 
+**Características especiales:**
+- Aplica retención del 14.5% sobre el monto bruto
+- Se utiliza para pagos a profesionales independientes
+- No requiere todos los datos del receptor obligatoriamente
+
+</details>
+
+<details>
+<summary><strong>🏢 Boleta de Honorarios de Terceros (DTE 90)</strong> - Para plataformas digitales</summary>
+
+**Campos específicos:**
 Incluye todos los campos de las Boletas de Honorarios (DTE 80) con las mismas características.
 
-**Uso:** Se utiliza cuando una empresa emite boletas de honorarios en nombre de un tercero (ej: plataformas digitales)
+**Campos específicos adicionales:**
+
+**issuer_data (Obligatorio)**
+- **Tipo:** Object
+- **Descripción:** Información del contribuyente real (el tercero en nombre del cual se emite)
+- **Campos obligatorios:**
+  - `rut` (String): RUT del contribuyente real (no de la plataforma)
+  - `business_name` (String): Razón social del contribuyente real
+  - `activity_code` (Integer): Código de actividad económica del contribuyente real
 
 **header (Obligatorio)**
 - **Tipo:** Object
 - **Campos obligatorios:**
   - `retention_type` (String): Tipo de retención
-    - `"RETRECEPTOR"`: La retención la realiza el receptor
+    - `"RETRECEPTOR"`: La retención la realiza el receptor (más común)
     - `"RETCONTRIBUYENTE"`: La retención la realiza el contribuyente emisor
+  - `third_party_indicator` (String): **Obligatorio para DTE 90** - Indica emisión por tercero
+    - Valor fijo: `"THIRD_PARTY"`
+
+**Responsabilidades adicionales:**
+- **Plataforma**: Responsable técnico de la emisión y transmisión al SII
+- **Contribuyente real**: Responsable tributario de los honorarios pagados
+- **Pago**: Se realiza al contribuyente real, no a la plataforma
+- **Declaración**: La plataforma debe informar las emisiones realizadas
+
+**Casos de uso específicos:**
+- **Plataformas freelance**: Upwork, Fiverr, Workana
+- **Marketplaces de servicios**: Thumbtack, TaskRabbit
+- **Apps de delivery**: Rappi, Uber Eats (para repartidores)
+- **Plataformas educativas**: Udemy, Coursera (para instructores)
+
+**Caso de uso típico:**
+- Plataformas que pagan a proveedores externos
+- Marketplaces que emiten boletas por vendedores
+- Empresas que contratan servicios a través de intermediarios
+
+</details>
 
 ## Respuesta
 
@@ -274,7 +503,7 @@ Lista de productos/servicios del documento. Cada elemento contiene:
 
 **references (Array):**
 Referencias a otros documentos (solo para notas de crédito). Cada elemento contiene:
-- `reference_type.code` (String): Código del tipo de referencia
+- `dte_type_code` (String): Código del tipo de DTE de referencia
 - `reference_folio` (String): Folio del documento referenciado
 - `reference_date` (String): Fecha del documento referenciado
 - `reference_reason` (String): Razón de la referencia
@@ -287,13 +516,311 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
 - **Descripción:** Campos personalizados adicionales que se pueden incluir en el documento
 - **Estructura:** Objeto flexible que puede contener cualquier información adicional
 
-### Consideraciones Especiales
+## Ejemplos de Uso por Tipo de Documento
 
-**Para boletas de honorarios (DTE 80, 90):**
-- El campo `header.retention_type` indica el tipo de retención aplicada
-- Los campos de totales en `document_total` reflejan el cálculo con retención del 14.5%
-- Las URLs de archivos (`pdf_file`, `xml_file`) son temporales y expiran después de un tiempo determinado
+<details>
+<summary><strong>💡 Ejemplo: Factura Electrónica (DTE 33)</strong></summary>
 
-**Seguridad y URLs temporales:**
-- Las URLs de descarga de PDF y XML son temporales y requieren los parámetros de autenticación incluidos
-- Se recomienda descargar y almacenar los archivos inmediatamente después de recibir el webhook
+```json
+{
+  "documents": [
+    {
+      "dte_type": {
+        "code": "33"
+      },
+      "date_issued": "2024-01-15",
+      "document_issuer": {
+        "rut": "12345678-9",
+        "business_name": "Mi Empresa SpA"
+      },
+      "document_receiver": {
+        "rut": "98765432-1",
+        "business_name": "Cliente Importante Ltda"
+      },
+      "details": [
+        {
+          "item_name": "Servicio de Consultoría",
+          "quantity": 1,
+          "unit_price": 100000,
+          "item_total": 100000
+        }
+      ]
+    }
+  ]
+}
+```
+
+</details>
+
+<details>
+<summary><strong>💡 Ejemplo: Factura de Compra (DTE 46)</strong></summary>
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": {
+        "code": "46"
+      },
+      "date_issued": "2024-01-15",
+      "document_issuer": {
+        "rut": "98765432-1",
+        "business_name": "Proveedor SpA"
+      },
+      "document_receiver": {
+        "rut": "12345678-9",
+        "business_name": "Mi Empresa SpA"
+      },
+      "header": {
+        "purchase_transaction_type": 1,
+        "payment_method": "2"
+      },
+      "details": [
+        {
+          "item_name": "Equipo de Oficina",
+          "quantity": 2,
+          "unit_price": 50000,
+          "item_total": 100000
+        }
+      ]
+    }
+  ]
+}
+```
+
+</details>
+
+<details>
+<summary><strong>💡 Ejemplo: Factura de Exportación (DTE 110)</strong></summary>
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": {
+        "code": "110"
+      },
+      "date_issued": "2024-01-15",
+      "document_issuer": {
+        "rut": "12345678-9",
+        "business_name": "Exportadora SpA"
+      },
+      "document_receiver": {
+        "rut": "99999999-9",
+        "business_name": "Importador Internacional Inc",
+        "address": "123 Main Street",
+        "city": "New York",
+        "country": "USA"
+      },
+      "header": {
+        "sale_transaction_type": 1,
+        "currency": "USD"
+      },
+      "export_data": {
+        "transport_mode": "2",
+        "destination_country": "US",
+        "destination_port": "JFK",
+        "origin_port": "SCL",
+        "export_clause": "1"
+      },
+      "details": [
+        {
+          "item_name": "Producto Exportado",
+          "quantity": 100,
+          "unit_price": 50,
+          "item_total": 5000
+        }
+      ]
+    }
+  ]
+}
+```
+
+</details>
+
+<details>
+<summary><strong>💡 Ejemplo: Nota de Crédito (DTE 61)</strong></summary>
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": {
+        "code": "61"
+      },
+      "date_issued": "2024-01-16",
+      "document_issuer": {
+        "rut": "12345678-9",
+        "business_name": "Mi Empresa SpA"
+      },
+      "document_receiver": {
+        "rut": "98765432-1",
+        "business_name": "Cliente Importante Ltda"
+      },
+      "references": [
+        {
+          "dte_type_code": "33",
+          "reference_folio": 12345,
+          "reference_date": "2024-01-15",
+          "reference_reason": "Corrección de precio"
+        }
+      ],
+      "details": [
+        {
+          "item_name": "Ajuste por Corrección",
+          "quantity": 1,
+          "unit_price": -5000,
+          "item_total": -5000
+        }
+      ]
+    }
+  ]
+}
+```
+
+</details>
+
+<details>
+<summary><strong>⚠️ Consideraciones Especiales por Tipo de Documento</strong></summary>
+
+---
+
+## 🧾 **Factura de Compra (DTE 46)**
+
+### Campos específicos del header:
+- **`purchase_transaction_type`** (Integer, Obligatorio):
+  - `1`: Compras del giro - Productos/servicios relacionados con tu actividad principal
+  - `2`: Compras fuera del giro - Productos/servicios no relacionados con tu actividad principal
+  - `3`: Activo fijo - Bienes que se incorporan al patrimonio de la empresa (maquinaria, muebles, etc.)
+
+- **`payment_method`** (String, Opcional):
+  - `"1"`: Contado - Pago inmediato
+  - `"2"`: Crédito - Pago diferido
+  - `"3"`: Sin costo - Producto/servicio recibido gratuitamente
+
+### Validaciones importantes:
+- **Registro contable**: Este documento genera asiento automático en tu contabilidad
+- **IVA recuperable**: El IVA pagado puede ser recuperado según el tipo de compra
+- **Proveedor extranjero**: Si el proveedor es extranjero, usar RUT genérico `55555555-5`
+- **Fecha límite**: Las compras deben registrarse dentro del mes siguiente a la recepción
+
+### Casos de uso comunes:
+- Registro de compras a proveedores locales
+- Incorporación de activos fijos
+- Servicios profesionales recibidos
+- Compras de materias primas o insumos
+
+---
+
+## ✈️ **Factura de Exportación (DTE 110)**
+
+### Campos requeridos en export_data:
+
+- **`transport_mode`** (String, Obligatorio):
+  - `"1"`: Marítimo - Envío por barco
+  - `"2"`: Aéreo - Envío por avión
+  - `"3"`: Terrestre - Envío por tierra (camión, tren)
+  - `"4"`: Multimodal - Combinación de modos de transporte
+
+- **`destination_country`** (String, Obligatorio):
+  - Código ISO del país de destino (ej: `"US"`, `"BR"`, `"AR"`)
+  - Debe coincidir con el país del receptor
+
+- **`destination_port`** (String, Obligatorio):
+  - Nombre del puerto/aeropuerto/ciudad de destino
+  - Ejemplos: `"JFK"`, `"Santos"`, `"Buenos Aires"`
+
+- **`origin_port`** (String, Obligatorio):
+  - Nombre del puerto/aeropuerto/ciudad de origen en Chile
+  - Ejemplos: `"SCL"`, `"IQQ"`, `"ANF"`
+
+- **`export_clause`** (String, Obligatorio):
+  - `"1"`: A firme - Compromiso incondicional de exportar
+  - `"2"`: Bajo protesta - Exportación sujeta a condiciones
+  - `"3"`: Sin cláusula - Exportación sin especificar condiciones
+
+### Campos específicos del header:
+
+- **`sale_transaction_type`** (Integer, Obligatorio):
+  - `1`: Operación constituye venta - Venta normal
+  - `2`: Ventas por acto o contrato - Contratos especiales
+  - `3`: Boleto de pasaje - Para agencias de viajes
+
+- **`currency`** (String, Obligatorio):
+  - `"USD"`: Dólares americanos
+  - `"EUR"`: Euros
+  - `"CLP"`: Pesos chilenos
+  - `"UF"`: Unidades de Fomento
+
+### Información del receptor extranjero:
+- **RUT**: Puede usar identificadores especiales como `99999999-9` para extranjeros
+- **Dirección**: Dirección completa en el extranjero
+- **País**: País de destino (debe coincidir con `destination_country`)
+
+### Precios y cálculos:
+- **FOB (Free on Board)**: Los precios deben incluir costos hasta la entrega al transportista
+- **Moneda**: Debe coincidir con `header.currency`
+- **Sin IVA**: Las exportaciones están exentas de IVA chileno
+
+### Requisitos legales:
+- **Registro de exportación**: Debe estar registrado en el sistema aduanero
+- **Certificado de origen**: Puede requerirse según acuerdos comerciales
+- **Documentos aduaneros**: Factura comercial, certificado de origen, etc.
+
+---
+
+## 💼 **Boletas de Honorarios (DTE 80, 90)**
+
+### Campos específicos del header:
+
+- **`retention_type`** (String, Obligatorio):
+  - `"RETRECEPTOR"`: La retención la realiza el receptor (99% de los casos)
+  - `"RETCONTRIBUYENTE"`: La retención la realiza el contribuyente emisor (casos excepcionales)
+
+### Retención automática del 14.5%:
+- **Cálculo**: Se aplica sobre el monto bruto antes de IVA
+- **Responsable**: Normalmente el pagador retiene y declara el impuesto
+- **Pago al profesional**: Se paga el 85.5% restante (bruto menos retención)
+
+### Información del receptor (profesional):
+- **Campos opcionales**: A diferencia de facturas, no todos los datos son obligatorios
+- **RUT obligatorio**: Siempre se requiere el RUT del profesional
+- **Actividad económica**: Debe corresponder a servicios profesionales
+
+### Diferencias entre DTE 80 y 90:
+
+**DTE 80 - Boleta de Honorarios:**
+- Emisión directa por el pagador al profesional
+- Relación directa pagador-profesional
+
+**DTE 90 - Boleta de Honorarios de Terceros:**
+- Emisión por intermediario (plataformas, marketplaces)
+- El emisor actúa en nombre de otro contribuyente
+- Requiere autorización especial del SII
+
+### Validaciones específicas:
+- **Tope mensual**: Límite de emisión sin retención ampliada
+- **Tipo de servicio**: Debe corresponder a honorarios profesionales
+- **Declaración**: El retenedor debe declarar y pagar el impuesto retenido
+
+### Casos de uso:
+- Honorarios de abogados, contadores, médicos
+- Servicios de consultoría
+- Pagos a freelancers
+- Comisiones por servicios
+
+---
+
+## 🔒 **Seguridad y URLs temporales**
+
+### URLs de archivos temporales:
+- **PDF y XML**: URLs válidas por 1 hora aproximadamente
+- **Autenticación**: Incluyen tokens de acceso automático
+- **Recomendación**: Descargar inmediatamente al recibir el webhook
+
+### Medidas de seguridad:
+- **Encriptación**: Archivos transmitidos de forma segura
+- **Validación**: Solo el emisor puede acceder a sus documentos
+- **Auditoría**: Todas las descargas quedan registradas
+
+</details>

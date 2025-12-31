@@ -1,0 +1,59 @@
+name: Combine OpenAPI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'api-reference/openapi/**/*.json'
+      - 'scripts/combine_openapi.py'
+      - 'package.json'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'api-reference/openapi/**/*.json'
+      - 'scripts/combine_openapi.py'
+      - 'package.json'
+  workflow_dispatch:
+
+jobs:
+  combine-openapi:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+      
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      
+      - name: Combinar archivos OpenAPI
+        working-directory: .
+        run: |
+          python3 scripts/combine_openapi.py
+      
+      - name: Verificar cambios
+        id: verify
+        working-directory: .
+        run: |
+          if [ -n "$(git status --porcelain api-reference/openapi-complete.json)" ]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Commit y push cambios (si hay cambios)
+        if: steps.verify.outputs.changes == 'true' && github.event_name == 'push'
+        working-directory: .
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add api-reference/openapi-complete.json
+          git commit -m "chore: actualizar openapi-complete.json automáticamente" || exit 0
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

@@ -1222,6 +1222,111 @@
           }
         }
       }
+    },
+    "/master-entities/{master_entity_id}/documents/{document_id}": {
+      "get": {
+        "tags": [
+          "Documentos"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Obtener documento específico",
+        "description": "Obtiene toda la información completa de un documento tributario específico, incluyendo el PDF y XML cuando están disponibles.",
+        "x-code-samples": [
+          {
+            "lang": "bash",
+            "label": "cURL",
+            "source": "curl --request GET \\\n  --url https://api.tupana.ai/v1/master-entities/123/documents/456 \\\n  --header 'Authorization: <api-key>'"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "path",
+            "description": "ID de la entidad emisora o receptora del documento",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "description": "ID único del documento a consultar",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 456
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Documento obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API Key inválida o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para acceder a la entidad especificada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documento o entidad no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1308,7 +1413,7 @@
         "properties": {
           "code": {
             "type": "string",
-            "description": "Código del tipo de documento:\n- 33: Factura Electrónica\n- 34: Factura Exenta Electrónica\n- 39: Boleta Electrónica\n- 46: Factura de Compra Electrónica\n- 61: Nota de Crédito Electrónica\n- 80: Boleta de Honorarios Electrónica\n- 110: Factura de Exportación Electrónica",
+            "description": "Código del tipo de documento:\n- 33: Factura Electrónica\n- 34: Factura Exenta Electrónica\n- 39: Boleta Electrónica\n- 46: Factura de Compra Electrónica\n- 61: Nota de Crédito Electrónica\n- 80: Boleta de Honorarios Electrónica\n- 90: Boleta de Honorarios de Terceros\n- 110: Factura de Exportación Electrónica",
             "enum": [
               "33",
               "34",
@@ -1316,6 +1421,7 @@
               "46",
               "61",
               "80",
+              "90",
               "110"
             ]
           }
@@ -1500,9 +1606,9 @@
       "ReferenceItem": {
         "type": "object",
         "properties": {
-          "reference_type": {
+          "dte_type_code": {
             "type": "integer",
-            "description": "Tipo de referencia"
+            "description": "Código del tipo de DTE de referencia"
           },
           "reference_folio": {
             "type": "integer",
@@ -1656,6 +1762,81 @@
                 "description": "RUT de la entidad receptora"
               }
             }
+          },
+          "pdf": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL presignada al PDF del documento (válida por tiempo limitado), o base64 si se incluye pdf_file=true"
+          },
+          "xml": {
+            "type": "string",
+            "nullable": true,
+            "description": "Contenido completo del XML del documento tributario electrónico"
+          },
+          "xml_error": {
+            "type": "string",
+            "nullable": true,
+            "description": "Mensaje de error si no se pudo obtener el XML"
+          },
+          "has_trace": {
+            "type": "boolean",
+            "description": "Indica si el documento tiene trazas de envío al SII"
+          },
+          "latest_trace_info": {
+            "type": "object",
+            "nullable": true,
+            "description": "Información de la última traza disponible",
+            "properties": {
+              "status": {
+                "type": "string",
+                "description": "Estado de envío al SII"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Fecha y hora de la traza"
+              },
+              "description": {
+                "type": "string",
+                "description": "Descripción del estado"
+              }
+            }
+          },
+          "references": {
+            "type": "array",
+            "description": "Array de documentos referenciados",
+            "items": {
+              "type": "object",
+              "properties": {
+                "reference_type": {
+                  "type": "integer",
+                  "description": "Tipo de referencia"
+                },
+                "reference_folio": {
+                  "type": "integer",
+                  "description": "Folio del documento referenciado"
+                },
+                "reference_date": {
+                  "type": "string",
+                  "format": "date",
+                  "description": "Fecha del documento referenciado"
+                },
+                "reference_reason": {
+                  "type": "string",
+                  "description": "Motivo de la referencia"
+                }
+              }
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha de creación del registro"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha de última actualización"
           }
         }
       },

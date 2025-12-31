@@ -9,12 +9,12 @@ Este endpoint permite obtener una lista paginada de documentos programados de un
 
 | Parámetro | Tipo | Requerido | Descripción |
 |-----------|------|-----------|-------------|
-| `master_entity_id` | integer | Sí | ID de la entidad emisora cuyos documentos programados quieres consultar. |
-| `status` | string | No | Filtrar por estado del documento programado: `active` (activo y se ejecutará según su programación), `inactive` (pausado y no se ejecutará) o `completed` (ha completado todas sus ejecuciones programadas). |
-| `frequency` | string | No | Filtrar por frecuencia de ejecución: `daily` (diariamente), `weekly` (semanalmente), `monthly` (mensualmente) o `quarterly` (trimestralmente). |
-| `dte_type` | string | No | Filtrar por tipo de DTE (ej: `33` para Factura Electrónica). |
-| `page` | integer | No | Página actual, parte de la paginación estándar. Por defecto: 1. |
-| `page_size` | integer | No | Tamaño de página (máx. 100). Por defecto: 20. La respuesta incluye `count` (total), `next`, `previous` (URLs de navegación) y `results` (array de documentos programados). |
+| master_entity_id | integer | Sí | ID de la entidad emisora cuyos documentos programados quieres consultar. |
+| status | string | No | Filtrar por estado del documento programado: active (activo y se ejecutará según su programación), inactive (pausado y no se ejecutará) o completed (ha completado todas sus ejecuciones programadas). |
+| frequency | string | No | Filtrar por frecuencia de ejecución: daily (diariamente), weekly (semanalmente), monthly (mensualmente) o quarterly (trimestralmente). |
+| dte_type | string | No | Filtrar por tipo de DTE (ej: 33 para Factura Electrónica). |
+| page | integer | No | Página actual, parte de la paginación estándar. Por defecto: 1. |
+| page_size | integer | No | Tamaño de página (máx. 100). Por defecto: 20. La respuesta incluye count (total), next, previous (URLs de navegación) y results (array de documentos programados). |
 
 ### Respuesta
 
