@@ -56,19 +56,27 @@ def validate_and_fix_duplicate_keys(data, file_path=None):
                 if key == "items" and isinstance(value, dict):
                     # Verificar si hay conflicto
                     if "type" in value and "properties" in value:
-                        if isinstance(value["properties"], dict) and "type" in value["properties"]:
+                        if (
+                            isinstance(value["properties"], dict)
+                            and "type" in value["properties"]
+                        ):
                             # Determinar el nombre correcto según el contexto
                             # Si es document_states, usar 'state_type', sino 'item_type'
                             new_name = "state_type"  # Por defecto para document_states
-                            
+
                             # Renombrar 'type' en properties
                             fixed_props = {}
                             for prop_key, prop_value in value["properties"].items():
                                 if prop_key == "type":
                                     fixed_props[new_name] = prop_value
                                     # Actualizar descripción si existe
-                                    if isinstance(prop_value, dict) and "description" in prop_value:
-                                        fixed_props[new_name]["description"] = "Tipo de estado del documento"
+                                    if (
+                                        isinstance(prop_value, dict)
+                                        and "description" in prop_value
+                                    ):
+                                        fixed_props[new_name][
+                                            "description"
+                                        ] = "Tipo de estado del documento"
                                 else:
                                     fixed_props[prop_key] = prop_value
                             fixed_value = {**value, "properties": fixed_props}
@@ -197,11 +205,11 @@ def validate_and_fix_schemas_before_combine():
         fixed_json = json.dumps(fixed_data, indent=2, ensure_ascii=False)
         if original_data != fixed_json:
             print(f"🔧 Corrigiendo problemas en {schemas_file.name}...")
-            
+
             # Guardar archivo corregido
             with open(schemas_file, "w", encoding="utf-8") as f:
                 json.dump(fixed_data, f, indent=2, ensure_ascii=False)
-            
+
             print(f"✅ {schemas_file.name} corregido automáticamente")
             return True
         else:
@@ -213,6 +221,7 @@ def validate_and_fix_schemas_before_combine():
     except Exception as e:
         print(f"⚠️  Error validando schemas: {e}")
         import traceback
+
         traceback.print_exc()
         return True  # Continuar aunque haya error
 
@@ -274,14 +283,14 @@ def combine_openapi_files():
             original_data_str = json.dumps(data, indent=2, ensure_ascii=False)
             data = validate_and_fix_duplicate_keys(data, str(file_path))
             fixed_data_str = json.dumps(data, indent=2, ensure_ascii=False)
-            
+
             # Si hubo correcciones, guardar el archivo corregido
             if original_data_str != fixed_data_str:
                 print(f"🔧 Corrigiendo problemas en {file_path.name}...")
                 with open(file_path, "w", encoding="utf-8") as f:
                     json.dump(data, f, indent=2, ensure_ascii=False)
                 print(f"✅ {file_path.name} corregido automáticamente")
-            
+
             # Validar estructura (solo reporta, no bloquea)
             if not validate_openapi_structure(data, str(file_path)):
                 print(
