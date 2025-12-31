@@ -4,6 +4,7 @@
     "watch-openapi": "node scripts/watch-openapi.js",
     "predev": "npm run combine-openapi",
     "dev": "mintlify dev",
+    "dev:3001": "PORT=3001 mintlify dev --port 3001",
     "prebuild": "npm run combine-openapi",
     "build": "mintlify build",
     "precommit": "npm run combine-openapi"

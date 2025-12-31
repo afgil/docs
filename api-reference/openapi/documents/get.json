@@ -1,0 +1,90 @@
+{
+    "paths": {
+        "/master-entities/{master_entity_id}/documents/{document_id}": {
+            "get": {
+                "tags": [
+                    "Documentos"
+                ],
+                "summary": "Obtener documento específico",
+                "description": "Obtiene toda la información completa de un documento tributario específico, incluyendo el PDF y XML cuando están disponibles. Este endpoint es útil para consultar detalles completos de un documento ya emitido o recibido.",
+                "parameters": [
+                    {
+                        "name": "master_entity_id",
+                        "in": "path",
+                        "description": "ID de la entidad emisora o receptora del documento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "document_id",
+                        "in": "path",
+                        "description": "ID único del documento a consultar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Documento obtenido exitosamente con PDF y XML cuando están disponibles",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DocumentDetailWithFiles"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetros inválidos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "API Key faltante o inválida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permisos para acceder a la entidad especificada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Documento o entidad no encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        }
+    }
+}

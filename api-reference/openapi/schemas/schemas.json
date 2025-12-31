@@ -268,7 +268,7 @@
         "type": "object",
         "properties": {
           "dte_type_code": {
-            "type": "integer",
+            "type": "string",
             "description": "Código del tipo de DTE de referencia"
           },
           "reference_folio": {
@@ -284,10 +284,6 @@
             "type": "string",
             "description": "Razón de referencia. Para notas de crédito totales debe ser 'ANULA DOCUMENTO DE LA REFERENCIA'.",
             "example": "ANULA DOCUMENTO DE LA REFERENCIA"
-          },
-          "dte_type_code": {
-            "type": "string",
-            "description": "Código de tipo de DTE referenciado"
           }
         }
       },
@@ -383,8 +379,7 @@
                 "description": "Código del tipo de DTE"
               },
               "description": {
-                "type": "string",
-                "description": "Descripción del tipo de DTE"
+                "type": "string"
               }
             }
           },
@@ -425,6 +420,136 @@
             }
           }
         }
+      },
+      "DocumentDetailWithFiles": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/DocumentDetail"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "amount_iva": {
+                "type": "number",
+                "format": "float",
+                "description": "Monto del IVA",
+                "nullable": true
+              },
+              "amount_without_iva": {
+                "type": "number",
+                "format": "float",
+                "description": "Monto sin IVA",
+                "nullable": true
+              },
+              "currency": {
+                "type": "string",
+                "description": "Moneda del documento",
+                "enum": [
+                  "CLP",
+                  "UF",
+                  "USD",
+                  "EUR"
+                ],
+                "example": "CLP"
+              },
+              "sender_id": {
+                "type": "integer",
+                "description": "ID de la entidad emisora"
+              },
+              "sender_name": {
+                "type": "string",
+                "description": "Nombre de la entidad emisora"
+              },
+              "sender_tax_id": {
+                "type": "string",
+                "description": "RUT de la entidad emisora"
+              },
+              "receiver_id": {
+                "type": "integer",
+                "description": "ID de la entidad receptora (puede ser null para algunos tipos de documentos)",
+                "nullable": true
+              },
+              "receiver_name": {
+                "type": "string",
+                "description": "Nombre de la entidad receptora",
+                "nullable": true
+              },
+              "receiver_tax_id": {
+                "type": "string",
+                "description": "RUT de la entidad receptora",
+                "nullable": true
+              },
+              "dte_type_code": {
+                "type": "string",
+                "description": "Código numérico del tipo de DTE (ej: 33 para Factura Electrónica)"
+              },
+              "dte_type_description": {
+                "type": "string",
+                "description": "Descripción del tipo de DTE"
+              },
+              "pdf": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL presignada al PDF del documento (válida por tiempo limitado, generalmente 1 hora)",
+                "nullable": true
+              },
+              "xml": {
+                "type": "string",
+                "description": "Contenido completo del XML del documento tributario electrónico",
+                "nullable": true
+              },
+              "xml_error": {
+                "type": "string",
+                "description": "Mensaje de error si no se pudo obtener el XML (null si está disponible)",
+                "nullable": true
+              },
+              "has_trace": {
+                "type": "boolean",
+                "description": "true si el documento tiene trazas de envío al SII, false en caso contrario"
+              },
+              "latest_trace_info": {
+                "type": "object",
+                "description": "Información de la última traza disponible (estado de envío, fecha, etc.)",
+                "nullable": true,
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "description": "Estado de la traza",
+                    "example": "accepted"
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Fecha y hora de la traza",
+                    "example": "2024-01-15T10:35:00Z"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Documento aceptado por el SII"
+                  }
+                }
+              },
+              "references": {
+                "type": "array",
+                "description": "Array de documentos referenciados (para notas de crédito, etc.)",
+                "items": {
+                  "$ref": "#/components/schemas/ReferenceItem"
+                }
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Fecha de creación del registro (ISO 8601)"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Fecha de última actualización (ISO 8601)"
+              }
+            }
+          }
+        ]
       },
       "Error": {
         "required": [
@@ -648,7 +773,12 @@
           },
           "frequency": {
             "type": "string",
-            "enum": ["daily", "weekly", "monthly", "quarterly"],
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly",
+              "quarterly"
+            ],
             "description": "Frecuencia de ejecución",
             "example": "monthly"
           },
@@ -677,7 +807,11 @@
           },
           "status": {
             "type": "string",
-            "enum": ["active", "inactive", "completed"],
+            "enum": [
+              "active",
+              "inactive",
+              "completed"
+            ],
             "description": "Estado del documento programado",
             "example": "active"
           },
@@ -693,7 +827,12 @@
           },
           "currency": {
             "type": "string",
-            "enum": ["CLP", "UF", "USD", "EUR"],
+            "enum": [
+              "CLP",
+              "UF",
+              "USD",
+              "EUR"
+            ],
             "description": "Moneda del documento",
             "example": "CLP"
           },
@@ -731,7 +870,13 @@
       },
       "ScheduledDocumentCreate": {
         "type": "object",
-        "required": ["dte_type", "frequency", "amount", "details", "receiver_tax_id"],
+        "required": [
+          "dte_type",
+          "frequency",
+          "amount",
+          "details",
+          "receiver_tax_id"
+        ],
         "properties": {
           "dte_type": {
             "type": "string",
@@ -745,7 +890,12 @@
           },
           "frequency": {
             "type": "string",
-            "enum": ["daily", "weekly", "monthly", "quarterly"],
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly",
+              "quarterly"
+            ],
             "description": "Frecuencia de ejecución",
             "example": "monthly"
           },
@@ -772,13 +922,21 @@
           "currency": {
             "type": "string",
             "description": "Moneda del documento",
-            "enum": ["CLP", "UF", "USD", "EUR"],
+            "enum": [
+              "CLP",
+              "UF",
+              "USD",
+              "EUR"
+            ],
             "default": "CLP",
             "example": "CLP"
           },
           "status": {
             "type": "string",
-            "enum": ["active", "inactive"],
+            "enum": [
+              "active",
+              "inactive"
+            ],
             "description": "Estado inicial del documento programado",
             "default": "active",
             "example": "active"
@@ -804,7 +962,10 @@
         "properties": {
           "status": {
             "type": "string",
-            "enum": ["active", "inactive"],
+            "enum": [
+              "active",
+              "inactive"
+            ],
             "description": "Estado del documento programado",
             "example": "inactive"
           },
@@ -816,7 +977,12 @@
           },
           "frequency": {
             "type": "string",
-            "enum": ["daily", "weekly", "monthly", "quarterly"],
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly",
+              "quarterly"
+            ],
             "description": "Frecuencia de ejecución",
             "example": "weekly"
           },
@@ -858,7 +1024,6 @@
           },
           "description": {
             "type": "string",
-            "description": "Descripción detallada",
             "example": "Consultoría especializada en tecnología"
           },
           "quantity": {
@@ -939,7 +1104,11 @@
       },
       "ScheduledDocumentDetailCreate": {
         "type": "object",
-        "required": ["product_name", "quantity", "unit_price"],
+        "required": [
+          "product_name",
+          "quantity",
+          "unit_price"
+        ],
         "properties": {
           "product_name": {
             "type": "string",
@@ -948,7 +1117,6 @@
           },
           "description": {
             "type": "string",
-            "description": "Descripción detallada",
             "example": "Consultoría especializada en tecnología"
           },
           "quantity": {
