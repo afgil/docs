@@ -884,7 +884,7 @@
                 "status": "active",
                 "details": [
                   {
-                    "product_name": "Servicio mensual de consultoría",
+                    "item_name": "Servicio mensual de consultoría",
                     "description": "Asistencia contable mensual",
                     "quantity": 1,
                     "unit_price": 150000,
@@ -935,7 +935,7 @@
                   "details": [
                     {
                       "id": 1,
-                      "product_name": "Servicio mensual de consultoría",
+                      "item_name": "Servicio mensual de consultoría",
                       "description": "Asistencia contable mensual",
                       "quantity": 1,
                       "unit_price": 150000,
@@ -2376,7 +2376,7 @@
             "description": "ID único del detalle",
             "example": 1
           },
-          "product_name": {
+          "item_name": {
             "type": "string",
             "description": "Nombre del producto o servicio",
             "example": "Servicio mensual de consultoría"
@@ -2464,12 +2464,12 @@
       "ScheduledDocumentDetailCreate": {
         "type": "object",
         "required": [
-          "product_name",
+          "item_name",
           "quantity",
           "unit_price"
         ],
         "properties": {
-          "product_name": {
+          "item_name": {
             "type": "string",
             "description": "Nombre del producto o servicio",
             "example": "Servicio mensual de consultoría"

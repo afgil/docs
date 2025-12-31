@@ -60,7 +60,7 @@
             "description": "Lista de códigos DTE separados por coma (ej: `33,34`).",
             "required": false,
             "style": "form",
-            "explode": true,
+            "explode": false,
             "schema": {
               "type": "array",
               "items": {

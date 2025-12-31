@@ -2,6 +2,7 @@
   "paths": {
     "/scheduled-documents/{id}": {
       "patch": {
+        "operationId": "updateScheduledDocument",
         "tags": [
           "Documentos Programados"
         ],
@@ -40,6 +41,10 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ScheduledDocumentUpdate"
+              },
+              "example": {
+                "status": "inactive",
+                "amount": 120000
               }
             }
           },

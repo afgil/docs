@@ -2,6 +2,7 @@
   "paths": {
     "/documents/batch": {
       "post": {
+        "operationId": "createDocumentsBatch",
         "summary": "Envío de documentos en lote",
         "description": "Crea hasta 200 documentos en una sola llamada. La respuesta con el PDF y los detalles completos se entrega a través del webhook configurado.",
         "parameters": [
@@ -17,15 +18,11 @@
           {
             "name": "X-Use-Defaults",
             "in": "header",
-            "description": "Si se establece como 'true', el sistema usará valores por defecto para campos no proporcionados:\n- Fecha actual para date_issued\n- Datos del emisor según configuración de la plataforma o primera actividad/dirección disponible\n- Datos del receptor según configuración del cliente o primera actividad/dirección disponible\n- Payment method = '2' (crédito) en el header del documento",
+            "description": "Si se establece como true, el sistema usará valores por defecto para campos no proporcionados:\n- Fecha actual para date_issued\n- Datos del emisor según configuración de la plataforma o primera actividad/dirección disponible\n- Datos del receptor según configuración del cliente o primera actividad/dirección disponible\n- Payment method = '2' (crédito) en el header del documento",
             "required": false,
             "schema": {
-              "type": "string",
-              "enum": [
-                "true",
-                "false"
-              ],
-              "default": "false"
+              "type": "boolean",
+              "default": false
             }
           }
         ],
@@ -35,14 +32,40 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/DocumentBatch"
+              },
+              "example": {
+                "documents": [
+                  {
+                    "dte_type": {
+                      "code": "33"
+                    },
+                    "date_issued": "2024-01-15",
+                    "document_issuer": {
+                      "rut": "12345678-9",
+                      "business_name": "Mi Empresa SpA"
+                    },
+                    "document_receiver": {
+                      "rut": "98765432-1",
+                      "business_name": "Cliente Importante Ltda"
+                    },
+                    "details": [
+                      {
+                        "item_name": "Servicio de Consultoría",
+                        "quantity": 1,
+                        "unit_price": 100000,
+                        "item_total": 100000
+                      }
+                    ]
+                  }
+                ]
               }
             }
           },
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Documentos creados exitosamente",
+          "202": {
+            "description": "Solicitud de creación de documentos aceptada. Los resultados se enviarán por webhook.",
             "content": {
               "application/json": {
                 "schema": {

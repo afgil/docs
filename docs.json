@@ -45,27 +45,27 @@
           {
             "group": "Credenciales",
             "pages": [
-              "api-reference/credentials-list",
-              "api-reference/credentials-create"
+              "api-reference/credentials/list",
+              "api-reference/credentials/create"
             ]
           },
           {
             "group": "Documentos",
             "pages": [
-              "api-reference/documents-list",
-              "api-reference/documents-batch",
-              "api-reference/document-get"
+              "api-reference/documents/list",
+              "api-reference/documents/batch",
+              "api-reference/documents/get"
             ]
           },
           {
             "group": "Documentos Programados",
             "pages": [
-              "api-reference/scheduled-documents-list",
-              "api-reference/scheduled-documents-create",
-              "api-reference/scheduled-documents-get",
-              "api-reference/scheduled-documents-update",
-              "api-reference/scheduled-documents-preview",
-              "api-reference/scheduled-documents-delete"
+              "api-reference/scheduled-documents/list",
+              "api-reference/scheduled-documents/create",
+              "api-reference/scheduled-documents/get",
+              "api-reference/scheduled-documents/update",
+              "api-reference/scheduled-documents/preview",
+              "api-reference/scheduled-documents/delete"
             ]
           }
         ]
@@ -75,7 +75,7 @@
       "anchors": []
     }
   },
-  "openapi": "api-reference/openapi-complete.json",
+  "openapi": "api-reference/openapi-combined.json",
   "topbarLinks": [
     {
       "name": "Soporte",

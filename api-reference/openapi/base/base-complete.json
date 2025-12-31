@@ -22,7 +22,7 @@
       "apiKeyAuth": {
         "type": "apiKey",
         "in": "header",
-        "name": "Authorization",
+        "name": "Api-Key",
         "description": "API Key para autenticación. Debe proporcionarse en el formato: 'Api-Key YOUR-API-KEY'"
       }
     }

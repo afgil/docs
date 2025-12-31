@@ -1,0 +1,31 @@
+---
+title: 'Listar documentos programados'
+openapi: 'GET /scheduled-documents'
+---
+
+Este endpoint permite obtener una lista paginada de documentos programados de una entidad específica. Los documentos programados son plantillas que se ejecutan automáticamente según una frecuencia definida (diaria, semanal, mensual o trimestral).
+
+### Parámetros
+
+| Parámetro | Tipo | Requerido | Descripción |
+|-----------|------|-----------|-------------|
+| master_entity_id | integer | Sí | ID de la entidad emisora cuyos documentos programados quieres consultar. |
+| status | string | No | Filtrar por estado del documento programado: active (activo y se ejecutará según su programación), inactive (pausado y no se ejecutará) o completed (ha completado todas sus ejecuciones programadas). |
+| frequency | string | No | Filtrar por frecuencia de ejecución: daily (diariamente), weekly (semanalmente), monthly (mensualmente) o quarterly (trimestralmente). |
+| dte_type | string | No | Filtrar por tipo de DTE (ej: 33 para Factura Electrónica). |
+| page | integer | No | Página actual, parte de la paginación estándar. Por defecto: 1. |
+| page_size | integer | No | Tamaño de página (máx. 100). Por defecto: 20. La respuesta incluye count (total), next, previous (URLs de navegación) y results (array de documentos programados). |
+
+### Respuesta
+
+La respuesta `200 OK` incluye un objeto paginado con:
+- `count`: Total de documentos programados
+- `next`: URL para la siguiente página (si existe)
+- `previous`: URL para la página anterior (si existe)
+- `results`: Array de documentos programados con información de emisor, receptor, montos, estado, frecuencia, próxima ejecución y detalles
+
+Cada documento programado en el array `results` incluye: `id`, `sender` (información de la entidad emisora: id, name, rut), `receiver` (información de la entidad receptora: id, name, rut - puede ser null), `dte_type` (tipo de documento tributario: id, code, description), `frequency` (`daily`, `weekly`, `monthly`, `quarterly`), `frequency_display` (frecuencia en formato legible), `day_of_month` (día del mes para ejecución: 1-31, para frecuencias mensual/trimestral), `day_of_week` (día de la semana para ejecución: 0=Lunes, 6=Domingo, para frecuencia semanal), `next_execution` (fecha y hora de la próxima ejecución), `status` (`active`, `inactive`, `completed`), `status_display` (estado en formato legible), `amount` (monto total del documento), `currency` (moneda: `CLP`, `UF`, `USD`, `EUR`), `details` (array de detalles/productos del documento), `completed_occurrences` (número de veces que se ha ejecutado), `max_occurrences` (número máximo de ejecuciones, null = infinito), `created_at` (fecha de creación ISO 8601), `updated_at` (fecha de última actualización ISO 8601).
+
+El campo `details` es un array de objetos que representa los productos o servicios. Cada elemento contiene: `id` (ID único del detalle, solo en respuesta), `product_name` (nombre del producto o servicio, requerido), `description` (descripción detallada, opcional), `quantity` (cantidad, mínimo 0.01, requerido), `unit_price` (precio unitario, mínimo 0, requerido), `total` (total de la línea calculado automáticamente: quantity × unit_price, solo en respuesta), `unit_of_measurement` (unidad de medida, por defecto `UN`).
+
+Todos los endpoints requieren el parámetro `master_entity_id` como query parameter y autenticación mediante API Key.

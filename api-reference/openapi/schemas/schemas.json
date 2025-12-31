@@ -45,6 +45,7 @@
           },
           "details": {
             "type": "array",
+            "minItems": 1,
             "items": {
               "$ref": "#/components/schemas/DetailItem"
             }
@@ -60,6 +61,7 @@
           },
           "json_param": {
             "type": "object",
+            "additionalProperties": true,
             "description": "JSON arbitrario almacenado textualmente"
           },
           "export_data": {
@@ -101,7 +103,12 @@
           },
           "payment_method": {
             "type": "string",
-            "description": "Método de pago"
+            "description": "Método de pago",
+            "enum": [
+              "1",
+              "2",
+              "3"
+            ]
           },
           "due_date": {
             "type": "string",
@@ -266,6 +273,11 @@
       },
       "ReferenceItem": {
         "type": "object",
+        "required": [
+          "reference_folio",
+          "reference_date",
+          "referenced_dte_type_code"
+        ],
         "properties": {
           "reference_folio": {
             "type": "integer",
@@ -305,8 +317,9 @@
                   "description": "Índice del documento en el array original"
                 },
                 "document_id": {
-                  "type": "integer",
-                  "description": "ID del documento creado"
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "ID único del documento creado (UUID)"
                 },
                 "status": {
                   "type": "string",
@@ -373,8 +386,8 @@
             "description": "Monto total con IVA"
           },
           "dte_type_code": {
-            "type": "integer",
-            "description": "Código numérico del tipo de DTE (ej: 33 para Factura Electrónica)"
+            "type": "string",
+            "description": "Código del tipo de DTE (ej: \"33\" para Factura Electrónica)"
           },
           "created_at": {
             "type": "string",
@@ -421,8 +434,8 @@
                 "example": "CLP"
               },
               "sender_id": {
-                "type": "string",
-                "description": "ID de la entidad emisora (como string)"
+                "type": "integer",
+                "description": "ID de la entidad emisora"
               },
               "sender_name": {
                 "type": "string",
@@ -457,6 +470,7 @@
               },
               "json_param": {
                 "type": "object",
+                "additionalProperties": true,
                 "description": "Parámetros JSON almacenados del documento",
                 "nullable": true
               },
@@ -577,9 +591,17 @@
         "type": "object",
         "properties": {
           "error": {
-            "type": "integer",
-            "format": "int32",
-            "description": "Código de error"
+            "type": "string",
+            "description": "Código de error",
+            "example": "VALIDATION_ERROR",
+            "enum": [
+              "VALIDATION_ERROR",
+              "AUTHENTICATION_ERROR",
+              "AUTHORIZATION_ERROR",
+              "NOT_FOUND",
+              "SII_ERROR",
+              "INTERNAL_ERROR"
+            ]
           },
           "message": {
             "type": "string",
@@ -1035,7 +1057,7 @@
             "description": "ID único del detalle",
             "example": 1
           },
-          "product_name": {
+          "item_name": {
             "type": "string",
             "description": "Nombre del producto o servicio",
             "example": "Servicio mensual de consultoría"
@@ -1123,12 +1145,12 @@
       "ScheduledDocumentDetailCreate": {
         "type": "object",
         "required": [
-          "product_name",
+          "item_name",
           "quantity",
           "unit_price"
         ],
         "properties": {
-          "product_name": {
+          "item_name": {
             "type": "string",
             "description": "Nombre del producto o servicio",
             "example": "Servicio mensual de consultoría"
@@ -1162,7 +1184,7 @@
       "apiKeyAuth": {
         "type": "apiKey",
         "in": "header",
-        "name": "Authorization",
+        "name": "Api-Key",
         "description": "API Key para autenticación. Debe proporcionarse en el formato: 'Api-Key YOUR-API-KEY'"
       }
     }

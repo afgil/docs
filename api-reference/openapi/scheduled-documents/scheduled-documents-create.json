@@ -2,6 +2,7 @@
   "paths": {
     "/scheduled-documents": {
       "post": {
+        "operationId": "createScheduledDocument",
         "tags": [
           "Documentos Programados"
         ],
@@ -41,7 +42,7 @@
                 "status": "active",
                 "details": [
                   {
-                    "product_name": "Servicio mensual de consultoría",
+                    "item_name": "Servicio mensual de consultoría",
                     "description": "Asistencia contable mensual",
                     "quantity": 1,
                     "unit_price": 150000,
@@ -92,7 +93,7 @@
                   "details": [
                     {
                       "id": 1,
-                      "product_name": "Servicio mensual de consultoría",
+                      "item_name": "Servicio mensual de consultoría",
                       "description": "Asistencia contable mensual",
                       "quantity": 1,
                       "unit_price": 150000,
