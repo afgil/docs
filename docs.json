@@ -74,6 +74,12 @@
               "api-reference/scheduled-documents/preview",
               "api-reference/scheduled-documents/delete"
             ]
+          },
+          {
+            "group": "Cesiones",
+            "pages": [
+              "api-reference/cessions/batch"
+            ]
           }
         ]
       }

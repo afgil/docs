@@ -1,0 +1,345 @@
+{
+  "paths": {
+    "/cession/batch": {
+      "post": {
+        "operationId": "createCessionBatch",
+        "tags": [
+          "Cesiones"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Generar cesiones de facturas en lote",
+        "description": "Genera cesiones (AECs) de múltiples facturas en una sola llamada. Obtiene automáticamente los códigos EHDR del SII y envía los AECs al SII.",
+        "requestBody": {
+          "description": "Datos para generar las cesiones",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "master_entity_id",
+                  "document_ids",
+                  "assignee_rut",
+                  "assignee_dv",
+                  "assignee_business_name",
+                  "assignee_address",
+                  "assignee_email"
+                ],
+                "properties": {
+                  "master_entity_id": {
+                    "type": "integer",
+                    "description": "ID de la entidad maestra emisora de las facturas",
+                    "example": 123
+                  },
+                  "document_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "description": "Lista de IDs de los documentos (facturas) a ceder",
+                    "example": [858405, 858406]
+                  },
+                  "assignee_rut": {
+                    "type": "string",
+                    "description": "RUT del cesionario (sin puntos ni guión)",
+                    "example": "76798398"
+                  },
+                  "assignee_dv": {
+                    "type": "string",
+                    "description": "Dígito verificador del RUT del cesionario",
+                    "example": "0"
+                  },
+                  "assignee_business_name": {
+                    "type": "string",
+                    "description": "Razón social del cesionario",
+                    "example": "SUPLO SPA"
+                  },
+                  "assignee_address": {
+                    "type": "string",
+                    "description": "Dirección del cesionario",
+                    "example": "Av. Tajamar 183"
+                  },
+                  "assignee_email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email del cesionario",
+                    "example": "factoring@suplo.cl"
+                  },
+                  "assignor_email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email del cedente (opcional, se usa el email de la entidad si no se proporciona)",
+                    "example": "antonio@tupana.ai"
+                  }
+                }
+              },
+              "example": {
+                "master_entity_id": 123,
+                "document_ids": [858405, 858406],
+                "assignee_rut": "76798398",
+                "assignee_dv": "0",
+                "assignee_business_name": "SUPLO SPA",
+                "assignee_address": "Av. Tajamar 183",
+                "assignee_email": "factoring@suplo.cl",
+                "assignor_email": "antonio@tupana.ai"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Cesiones generadas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "2 assignment(s) generated successfully"
+                    },
+                    "cessions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "cession_id": {
+                            "type": "integer",
+                            "example": 133
+                          },
+                          "document_id": {
+                            "type": "integer",
+                            "example": 858405
+                          },
+                          "folio": {
+                            "type": "integer",
+                            "example": 12345
+                          },
+                          "file_name": {
+                            "type": "string",
+                            "example": "AEC_12345.xml"
+                          },
+                          "presigned_url": {
+                            "type": "string",
+                            "format": "uri",
+                            "example": "https://s3.amazonaws.com/..."
+                          }
+                        }
+                      }
+                    },
+                    "aec_results": {
+                      "type": "array",
+                      "description": "Resultados del envío de AECs al SII",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "folio": {
+                            "type": "integer"
+                          },
+                          "sii_identifier": {
+                            "type": "string"
+                          },
+                          "sii_file_name": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": ["sent_to_sii", "failed"]
+                          },
+                          "error": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "document_id": {
+                            "type": "integer"
+                          },
+                          "folio": {
+                            "type": "integer"
+                          },
+                          "error": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "total_processed": {
+                      "type": "integer",
+                      "example": 2
+                    },
+                    "total_errors": {
+                      "type": "integer",
+                      "example": 0
+                    },
+                    "aec_sent": {
+                      "type": "integer",
+                      "description": "Número de AECs enviados exitosamente al SII",
+                      "example": 2
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "message": "2 assignment(s) generated successfully",
+                  "cessions": [
+                    {
+                      "cession_id": 133,
+                      "document_id": 858405,
+                      "folio": 12345,
+                      "file_name": "AEC_12345.xml",
+                      "presigned_url": "https://s3.amazonaws.com/bucket/AEC_12345.xml?signature=..."
+                    },
+                    {
+                      "cession_id": 134,
+                      "document_id": 858406,
+                      "folio": 12346,
+                      "file_name": "AEC_12346.xml",
+                      "presigned_url": "https://s3.amazonaws.com/bucket/AEC_12346.xml?signature=..."
+                    }
+                  ],
+                  "aec_results": [
+                    {
+                      "folio": 12345,
+                      "sii_identifier": "AEC-2024-001234",
+                      "sii_file_name": "AEC_12345.xml",
+                      "status": "sent_to_sii"
+                    },
+                    {
+                      "folio": 12346,
+                      "sii_identifier": "AEC-2024-001235",
+                      "sii_file_name": "AEC_12346.xml",
+                      "status": "sent_to_sii"
+                    }
+                  ],
+                  "errors": null,
+                  "total_processed": 2,
+                  "total_errors": 0,
+                  "aec_sent": 2
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error en los datos proporcionados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "invalid_documents": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "missing_master_entity_id": {
+                    "value": {
+                      "error": "master_entity_id is required in the request body"
+                    }
+                  },
+                  "missing_fields": {
+                    "value": {
+                      "error": "Missing required fields: assignee_rut, assignee_dv, assignee_email"
+                    }
+                  },
+                  "invalid_documents": {
+                    "value": {
+                      "error": "Only electronic invoices (DTE 33) or exempt invoices (DTE 34) can be assigned",
+                      "invalid_documents": [
+                        {
+                          "id": 858407,
+                          "folio": 12347,
+                          "dte_code": "39"
+                        }
+                      ]
+                    }
+                  },
+                  "missing_credentials": {
+                    "value": {
+                      "error": "No se encontraron credenciales SII válidas para esta entidad. La cesión requiere una credencial SII personal."
+                    },
+                    "description": "Las cesiones se generan usando la contraseña del SII del representante legal, no con el certificado digital. Se requiere una credencial SII personal válida."
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No tienes acceso a esta entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "No tienes acceso a esta entidad"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documentos no encontrados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Some documents were not found or don't belong to this entity"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "missing_folios": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

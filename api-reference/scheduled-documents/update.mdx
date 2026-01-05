@@ -3,5 +3,18 @@ title: 'Actualizar documento programado'
 openapi: 'PATCH /scheduled-documents/{id}'
 ---
 
-Actualiza parcialmente un documento programado existente.
+## Qué hace
 
+- Actualiza parcialmente un documento programado existente
+- Permite modificar solo los campos que se desean cambiar (PATCH)
+- Actualiza la configuración de frecuencia, estado, montos o detalles
+- Recalcula automáticamente la próxima ejecución si se cambia la frecuencia
+- Mantiene la integridad del documento programado
+
+## Ejemplos de uso
+
+- Cambiar la frecuencia de ejecución de un documento programado
+- Pausar o reactivar un documento programado (cambiar estado)
+- Actualizar montos o productos/servicios del documento
+- Modificar el día de ejecución (día del mes o día de la semana)
+- Cambiar el número máximo de ejecuciones permitidas

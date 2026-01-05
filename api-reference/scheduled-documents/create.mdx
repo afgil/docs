@@ -3,30 +3,18 @@ title: 'Crear documento programado'
 openapi: 'POST /scheduled-documents'
 ---
 
-Crea un nuevo documento programado que se ejecutará automáticamente según la frecuencia especificada. Es ideal para automatizar facturas recurrentes a clientes específicos sin intervención manual.
+## Qué hace
 
-### Parámetros Requeridos
+- Crea un nuevo documento programado que se ejecutará automáticamente según la frecuencia especificada
+- Permite definir la frecuencia de ejecución (diaria, semanal, mensual, trimestral)
+- Configura automáticamente la próxima ejecución según la frecuencia
+- Busca o crea automáticamente el receptor si no existe
+- Establece el estado inicial del documento programado (activo o inactivo)
 
-- **master_entity_id** (integer): ID de la entidad maestra emisora
-- **dte_type** (string): Código del tipo de DTE (ej: '33' para Factura Electrónica)
-- **frequency** (string): Frecuencia de ejecución (`daily`, `weekly`, `monthly`, `quarterly`)
-- **amount** (number): Monto total del documento
-- **details** (array): Lista de productos/servicios del documento
+## Ejemplos de uso
 
-### Parámetros Requeridos Adicionales
-
-- **receiver_tax_id** (string): RUT del receptor (formato: 12345678-9). El sistema buscará un cliente existente con este RUT. Si no existe, creará uno nuevo automáticamente.
-
-### Parámetros Opcionales
-
-- **day_of_month** (integer): Día del mes para ejecución (1-31, requerido para frecuencia `monthly` o `quarterly`)
-- **day_of_week** (integer): Día de la semana para ejecución (0=Lunes, 6=Domingo, requerido para frecuencia `weekly`)
-- **currency** (string): Moneda del documento. Valores permitidos: `CLP`, `UF`, `USD`, `EUR`. Por defecto: `CLP`
-- **status** (string): Estado inicial del documento programado. Valores: `active`, `inactive`. Por defecto: `active`
-- **max_occurrences** (integer): Número máximo de ejecuciones. Si es `null` o no se proporciona, el documento se ejecutará indefinidamente
-- **receiver_address** (string): Dirección del receptor (opcional, usado principalmente para facturas de exportación)
-- **receiver_city** (string): Ciudad del receptor (opcional, usado principalmente para facturas de exportación)
-- **references** (array): Referencias a otros documentos (máximo 3 referencias)
-- **export_data** (object): Datos de exportación (requerido para DTE 110 y 1110)
-- **email_config** (object): Configuración de envío de emails automáticos
-
+- Crear facturas recurrentes mensuales a clientes específicos
+- Programar servicios de suscripción que se facturen automáticamente
+- Automatizar facturación de servicios periódicos (consulta, mantenimiento, etc.)
+- Configurar facturas trimestrales para reportes o servicios continuos
+- Establecer documentos programados que se ejecuten diariamente

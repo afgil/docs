@@ -3,18 +3,26 @@ title: 'Buscar Entidad por RUT'
 openapi: 'GET /master-entities'
 ---
 
-Este endpoint permite obtener los detalles completos de una entidad maestra específica por su RUT. Es útil para consultar información relevante antes de crear documentos.
+## Qué hace
 
-## ¿Para qué sirve?
+- Busca una entidad maestra específica por su RUT
+- Obtiene todos los detalles completos de la entidad, incluyendo direcciones y actividades económicas
+- Proporciona información esencial para determinar el tipo de documento a emitir
+- Permite consultar direcciones y actividades económicas registradas de la entidad
 
-Este endpoint te permite:
+## Ejemplos de uso
 
-1. **Obtener información completa de una entidad**: Obtén todos los detalles de una entidad maestra, incluyendo sus direcciones y actividades económicas registradas.
+- Buscar información de un cliente antes de crear un documento
+- Obtener el ID de una entidad para usar en otros endpoints (como crear credenciales)
+- Consultar las direcciones disponibles de una entidad
+- Verificar las actividades económicas para determinar el tipo de DTE a emitir
+- Validar que una entidad existe en el sistema antes de emitir documentos
 
-2. **Consultar direcciones y actividades**: La respuesta incluye todas las direcciones asociadas a la entidad y todas sus actividades económicas, permitiéndote seleccionar una dirección o actividad específica para usar al crear documentos.
+### Información importante sobre tipos de documento
 
-3. **Determinar el tipo de documento a emitir**: La información de actividades es fundamental para decidir qué tipo de documento debes emitir:
-   - **Si la entidad tiene actividad económica**: Debes emitir una **Factura Electrónica** (DTE 33) o **Factura Exenta** (DTE 34)
-   - **Si la entidad NO tiene actividad económica**: Debes emitir una **Boleta** (DTE 39)
+La información de actividades económicas es fundamental para decidir qué tipo de documento debes emitir:
+
+- **Si la entidad tiene actividad económica**: Debes emitir una **Factura Electrónica** (DTE 33) o **Factura Exenta** (DTE 34)
+- **Si la entidad NO tiene actividad económica**: Debes emitir una **Boleta** (DTE 39)
 
 Esta información es esencial para validar que estás emitiendo el tipo correcto de documento tributario según las características de la entidad receptora.

@@ -2,3 +2,18 @@
 title: 'Registrar estado de documento'
 openapi: 'POST /documents/{document_id}/states'
 ---
+
+## Qué hace
+
+- Crea un nuevo estado asociado al documento
+- Agrega el evento al historial del documento
+- No reemplaza ni elimina estados anteriores
+- Permite registrar eventos manuales o automáticos
+
+## Ejemplos de uso
+
+- Marcar un documento como pagado
+- Registrar un acuse de recibo
+- Registrar un rechazo
+- Asociar un evento proveniente del SII
+- Registrar mérito ejecutivo o eventos de cobranza
