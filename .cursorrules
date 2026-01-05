@@ -1,0 +1,277 @@
+# Reglas de Formato MDX para Documentación de API
+
+## Principio Fundamental
+
+**MDX es SOLO para reglas de negocio y explicaciones funcionales. OpenAPI maneja TODO lo técnico.**
+
+- **OpenAPI (JSON)**: Parámetros, schemas, ejemplos de código, request/response examples, validaciones técnicas
+- **MDX**: Reglas de negocio, casos de uso funcionales, explicaciones de "por qué" y "cuándo usar", flujos de trabajo
+
+## ❌ NO incluir en MDX (ya está en OpenAPI)
+
+1. **RequestExample y ResponseExample**
+   - OpenAPI ya genera estos automáticamente desde los schemas y examples
+   - NO usar bloques `<RequestExample>` o `<ResponseExample>`
+
+2. **Ejemplos de código (curl, Python, etc.)**
+   - OpenAPI ya tiene ejemplos en `requestBody.examples` y `responses.examples`
+   - NO incluir bloques de código con curl, Python, JavaScript, etc.
+
+3. **Parámetros técnicos detallados**
+   - OpenAPI ya documenta todos los parámetros con tipos, descripciones, validaciones
+   - NO duplicar listas de parámetros en MDX
+
+4. **Schemas y estructuras de datos**
+   - OpenAPI ya define todos los schemas completos
+   - NO describir estructuras de request/response en detalle
+
+5. **Códigos de error técnicos**
+   - OpenAPI ya documenta todos los códigos de respuesta con ejemplos
+   - NO listar códigos de error con ejemplos JSON
+
+## ✅ SÍ incluir en MDX (reglas de negocio)
+
+1. **Explicaciones funcionales**
+   - ¿Para qué se usa este endpoint en el contexto del negocio?
+   - ¿Cuándo debo usarlo vs otro endpoint?
+   - ¿Qué impacto tiene en el flujo de trabajo?
+
+2. **Reglas de negocio**
+   - Validaciones de negocio (no técnicas)
+   - Restricciones funcionales
+   - Comportamientos esperados desde perspectiva del usuario
+
+3. **Casos de uso reales**
+   - Escenarios de negocio donde se aplica
+   - Flujos de trabajo completos
+   - Integración con otros procesos
+
+4. **Consecuencias y efectos**
+   - ¿Qué pasa después de usar este endpoint?
+   - ¿Qué otros sistemas o procesos se afectan?
+   - ¿Qué estados del documento cambian?
+
+5. **Guías de decisión**
+   - ¿Cuándo usar este endpoint vs otro?
+   - ¿Qué evento debo registrar en qué situación?
+   - ¿Qué consideraciones de negocio debo tener?
+
+## Estructura General de Archivos MDX
+
+### Frontmatter (Obligatorio)
+
+```yaml
+---
+title: 'Título de la Página'
+openapi: 'GET /endpoint/path'
+---
+```
+
+**Reglas:**
+
+- `title`: Título descriptivo enfocado en el propósito de negocio
+- `openapi`: Endpoint principal (Mintlify lo usa para enlazar con OpenAPI)
+- Sin líneas vacías antes del frontmatter
+
+### Estructura de Contenido Recomendada
+
+1. **Introducción (1-2 párrafos)**
+   - Contexto de negocio del endpoint
+   - Propósito funcional general
+
+2. **Secciones por Método HTTP** (si aplica)
+   - Cada método con su propia sección `##`
+   - Enfocarse en el "qué" y "por qué" funcional, no en el "cómo" técnico
+
+3. **Subsecciones dentro de cada método:**
+   - `### ¿Para qué se usa?` - Propósito funcional en el negocio
+   - `### Qué hace` - Efectos y consecuencias funcionales (no técnicos)
+   - `### Ejemplos de uso` - Casos de uso de negocio (no código)
+
+4. **Reglas de Negocio**
+   - Restricciones funcionales
+   - Validaciones de negocio
+   - Comportamientos esperados
+
+5. **Flujos de Trabajo**
+   - Cómo se integra en procesos de negocio
+   - Pasos funcionales (no técnicos)
+
+6. **Consideraciones Importantes**
+   - Impactos en otros sistemas
+   - Efectos secundarios
+   - Limitaciones funcionales
+
+## Convenciones de Nombrado
+
+### Archivos MDX
+
+- Usar nombres descriptivos en kebab-case
+- Ejemplos: `states.mdx`, `get.mdx`, `create.mdx`
+
+### Títulos y Encabezados
+
+- Títulos: enfocados en propósito de negocio
+- Encabezados: usar formato pregunta para "¿Para qué se usa?"
+- Mantener consistencia en estilo
+
+## División de Responsabilidades
+
+### OpenAPI (JSON) - TODO lo técnico
+
+- ✅ Parámetros con tipos, descripciones, validaciones
+- ✅ Schemas completos de request/response
+- ✅ Ejemplos en `requestBody.examples` y `responses.examples`
+- ✅ Códigos de error con ejemplos JSON
+- ✅ Validaciones técnicas (required, enum, format, etc.)
+- ✅ RequestExample y ResponseExample (generados automáticamente)
+
+### MDX - SOLO reglas de negocio
+
+- ✅ Explicaciones funcionales y de negocio
+- ✅ Casos de uso prácticos (sin código)
+- ✅ Reglas de negocio y validaciones funcionales
+- ✅ Flujos de trabajo y procesos
+- ✅ Guías de decisión ("cuándo usar X vs Y")
+- ✅ Efectos y consecuencias funcionales
+- ❌ NO ejemplos de código
+- ❌ NO RequestExample/ResponseExample
+- ❌ NO parámetros técnicos detallados
+- ❌ NO schemas o estructuras de datos
+
+## Secciones Recomendadas para MDX
+
+### Estructura Mínima
+
+```mdx
+---
+title: 'Título Funcional'
+openapi: 'GET /endpoint'
+---
+
+[Introducción: contexto de negocio]
+
+## GET /endpoint
+
+### ¿Para qué se usa?
+[Propósito funcional]
+
+### Qué hace
+[Efectos funcionales, no técnicos]
+
+### Ejemplos de uso
+- [Caso de uso 1]
+- [Caso de uso 2]
+
+## Reglas de Negocio
+
+[Restricciones y validaciones funcionales]
+
+## Consideraciones Importantes
+
+[Impactos y efectos secundarios]
+```
+
+## Ejemplo Correcto de MDX
+
+```mdx
+---
+title: 'Estados de Documento'
+openapi: 'GET /documents/{document_id}/states'
+---
+
+Los estados de documento permiten rastrear el ciclo de vida completo de un documento tributario, desde su recepción hasta su pago o rechazo.
+
+## GET /documents/{document_id}/states
+
+### ¿Para qué se usa?
+
+Permite consultar el historial completo de eventos que han ocurrido sobre un documento. Es útil para:
+- Auditar el proceso de recepción y aprobación de facturas
+- Verificar si un documento ya fue procesado
+- Entender el estado actual del documento en el flujo de compras
+
+### Qué hace
+
+- Devuelve todos los estados registrados en orden cronológico
+- Muestra quién registró cada evento (usuario del sistema)
+- Permite verificar si hay acuses de recibo, rechazos, o aprobaciones
+- No modifica ningún dato, solo consulta
+
+### Ejemplos de uso
+
+- **Auditoría**: Revisar qué eventos ocurrieron sobre una factura específica
+- **Verificación**: Confirmar si una factura ya tiene acuse de recibo antes de procesar el pago
+- **Trazabilidad**: Entender el flujo completo de una factura desde recepción hasta pago
+
+## POST /documents/{document_id}/states
+
+### ¿Para qué se usa?
+
+Registra un nuevo evento en el historial del documento. Cada evento representa una acción importante en el ciclo de vida del documento.
+
+### Qué hace
+
+- Agrega un nuevo estado al historial (no reemplaza estados anteriores)
+- Registra el evento en el SII cuando corresponde
+- Actualiza automáticamente la traza del documento
+- Permite enviar notificaciones al proveedor si está configurado
+
+### Ejemplos de uso
+
+- **Acuse de Recibo (ERM)**: Cuando se reciben las mercaderías o servicios
+- **Rechazo (RCD/RFT/RFP)**: Cuando hay discrepancias en la factura
+- **Aceptación (ACD)**: Cuando se acepta el contenido del documento
+
+## Reglas de Negocio
+
+### Acceso al Documento
+- Solo el emisor o receptor del documento pueden consultar o modificar sus estados
+- Esto asegura que solo las partes involucradas tengan acceso
+
+### Eventos de Recepción
+- Los eventos ERM, ACD, RCD, RFT, RFP solo aplican a documentos recibidos
+- No se pueden registrar estos eventos en documentos emitidos por la misma entidad
+
+### Impacto en IVA
+- El acuse de recibo (ERM) rebaja el IVA del próximo mes
+- Es importante registrar el acuse en el momento correcto para no afectar el cálculo de impuestos
+
+### Mérito Ejecutivo
+- La aceptación de contenido (ACD) permite que el documento tenga mérito ejecutivo
+- Esto es importante para procesos de cobranza legal
+
+## Consideraciones Importantes
+
+### Actualización Automática de Trazas
+Después de registrar un estado, el sistema actualiza automáticamente la traza del documento desde el SII. Esto puede tomar unos segundos.
+
+### Notificaciones
+Si está configurado, el sistema puede enviar automáticamente un email al proveedor cuando se registra un acuse de recibo o rechazo.
+
+### Historial Completo
+Los estados se acumulan en el historial. No se pueden eliminar estados anteriores, solo agregar nuevos. Esto asegura trazabilidad completa.
+
+## Referencias
+
+- [Obtener Documento](/api-reference/documents/get) - Consultar detalles del documento
+- [Listar Documentos](/api-reference/documents/list) - Buscar documentos
+```
+
+## Buenas Prácticas
+
+1. **Enfocarse en el "por qué" y "cuándo"**, no en el "cómo"
+2. **Usar lenguaje de negocio**, no lenguaje técnico
+3. **Explicar consecuencias funcionales**, no detalles técnicos
+4. **Referenciar OpenAPI** para detalles técnicos cuando sea necesario
+5. **Mantener consistencia** en el estilo y formato
+
+## Checklist antes de crear/actualizar MDX
+
+- [ ] ¿Explica reglas de negocio o funcionales?
+- [ ] ¿Ayuda a entender "cuándo usar" este endpoint?
+- [ ] ¿Explica consecuencias funcionales?
+- [ ] ¿NO incluye ejemplos de código?
+- [ ] ¿NO incluye RequestExample/ResponseExample?
+- [ ] ¿NO duplica información técnica de OpenAPI?
+- [ ] ¿Se enfoca en el propósito de negocio?

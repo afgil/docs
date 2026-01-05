@@ -1,0 +1,404 @@
+{
+    "paths": {
+        "/documents/{document_id}/states": {
+            "get": {
+                "tags": [
+                    "Estados de Documentos"
+                ],
+                "summary": "Consultar historial de estados de un documento",
+                "description": "Se utiliza para consultar el historial de estados asociados a un documento tributario específico.\n\n**Qué hace:**\n- Devuelve todos los estados registrados para el documento\n- Permite entender qué eventos han ocurrido sobre ese documento\n- Muestra la secuencia cronológica de los estados\n- No modifica ninguna información\n\n**Ejemplos de uso:**\n- Revisar si un documento fue pagado\n- Ver si tuvo rechazos o acuses\n- Auditar cambios o eventos automáticos del SII\n- Mostrar el historial completo en el backoffice",
+                "parameters": [
+                    {
+                        "name": "document_id",
+                        "in": "path",
+                        "description": "ID único del documento (integer)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial de estados obtenido exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DocumentStatesResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permisos para acceder a este documento",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "example": {
+                                    "error": "No tienes acceso a este documento"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Documento no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Estados de Documentos"
+                ],
+                "summary": "Registrar nuevo estado en un documento",
+                "description": "Se utiliza para registrar un nuevo estado cuando ocurre un evento relevante sobre el documento.\n\n**Qué hace:**\n- Crea un nuevo estado asociado al documento\n- Agrega el evento al historial del documento\n- No reemplaza ni elimina estados anteriores\n- Permite registrar eventos manuales o automáticos\n\n**Ejemplos de uso:**\n- Marcar un documento como pagado\n- Registar un acuse de recibo\n- Registrar un rechazo\n- Asociar un evento proveniente del SII\n- Registrar mérito ejecutivo o eventos de cobranza",
+                "parameters": [
+                    {
+                        "name": "document_id",
+                        "in": "path",
+                        "description": "ID único del documento (integer)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DocumentStateRequest"
+                            },
+                            "examples": {
+                                "acuse_recibo": {
+                                    "summary": "Registrar acuse de recibo",
+                                    "value": {
+                                        "event_code": "ERM"
+                                    }
+                                },
+                                "rechazo": {
+                                    "summary": "Registrar rechazo",
+                                    "value": {
+                                        "event_code": "RCD",
+                                        "rejection_reason": "Error en el monto facturado"
+                                    }
+                                },
+                                "aceptacion_contenido": {
+                                    "summary": "Aceptar contenido del documento",
+                                    "value": {
+                                        "event_code": "ACD"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Estado registrado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DocumentStateResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Parámetros inválidos o error al registrar el evento",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "examples": {
+                                    "parametros_faltantes": {
+                                        "value": {
+                                            "error": "Se requiere el código del evento (event_code)"
+                                        }
+                                    },
+                                    "evento_invalido": {
+                                        "value": {
+                                            "error": "Código de evento inválido. Debe ser uno de: ERM, ACD, RCD, RFT, RFP"
+                                        }
+                                    },
+                                    "error_sii": {
+                                        "value": {
+                                            "success": false,
+                                            "error": "Error al registrar evento en el SII",
+                                            "error_code": "SII_ERROR_CODE"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permisos para acceder a este documento",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Documento no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "DocumentStateRequest": {
+                "type": "object",
+                "required": [
+                    "event_code"
+                ],
+                "properties": {
+                    "event_code": {
+                        "type": "string",
+                        "enum": [
+                            "ERM",
+                            "ACD",
+                            "RCD",
+                            "RFT",
+                            "RFP"
+                        ],
+                        "description": "Código del evento a registrar:\n- ERM: Acuse de Recibo de Mercaderías y Servicios\n- ACD: Acepta Contenido del Documento\n- RCD: Reclama Contenido del Documento\n- RFT: Reclamo por Falta Total\n- RFP: Reclamo por Falta Parcial",
+                        "example": "ERM"
+                    },
+                    "rejection_reason": {
+                        "type": "string",
+                        "description": "Razón del rechazo (opcional, solo para eventos de rechazo: RCD, RFT, RFP)",
+                        "example": "Error en el monto facturado"
+                    }
+                }
+            },
+            "DocumentStatesResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indica si la operación fue exitosa",
+                        "example": true
+                    },
+                    "document_id": {
+                        "type": "integer",
+                        "description": "ID del documento",
+                        "example": 12345
+                    },
+                    "folio": {
+                        "type": "string",
+                        "description": "Folio del documento",
+                        "example": "123"
+                    },
+                    "states": {
+                        "type": "array",
+                        "description": "Lista de estados registrados para el documento, ordenados cronológicamente (más reciente primero)",
+                        "items": {
+                            "$ref": "#/components/schemas/DocumentState"
+                        }
+                    },
+                    "document": {
+                        "$ref": "#/components/schemas/DocumentDetail"
+                    }
+                }
+            },
+            "DocumentState": {
+                "type": "object",
+                "properties": {
+                    "event_code": {
+                        "type": "string",
+                        "description": "Código del evento",
+                        "example": "ERM"
+                    },
+                    "event_description": {
+                        "type": "string",
+                        "description": "Descripción del evento",
+                        "example": "Acuse de Recibo"
+                    },
+                    "event_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Fecha y hora del evento (ISO 8601)",
+                        "example": "2024-01-16T10:30:00Z"
+                    },
+                    "responsable_rut": {
+                        "type": "integer",
+                        "description": "RUT del responsable del evento",
+                        "example": 12345678
+                    },
+                    "responsable_dv": {
+                        "type": "string",
+                        "description": "Dígito verificador del RUT del responsable",
+                        "example": "9"
+                    },
+                    "rejected_by_user": {
+                        "type": "string",
+                        "format": "email",
+                        "nullable": true,
+                        "description": "Email del usuario que registró el rechazo (solo para eventos de rechazo)",
+                        "example": "usuario@ejemplo.com"
+                    },
+                    "accepted_by_user": {
+                        "type": "string",
+                        "format": "email",
+                        "nullable": true,
+                        "description": "Email del usuario que registró la aprobación (solo para eventos de aprobación)",
+                        "example": "usuario@ejemplo.com"
+                    }
+                }
+            },
+            "DocumentStateResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indica si la operación fue exitosa",
+                        "example": true
+                    },
+                    "event_registered": {
+                        "type": "boolean",
+                        "description": "Indica si el evento fue registrado exitosamente",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Mensaje descriptivo del resultado",
+                        "example": "Acuse de Recibo registrado. Este acuse rebajará el IVA del próximo mes."
+                    },
+                    "event_data": {
+                        "type": "object",
+                        "description": "Datos adicionales del evento registrado (proporcionados por el SII)",
+                        "additionalProperties": true
+                    },
+                    "document": {
+                        "$ref": "#/components/schemas/DocumentDetail"
+                    },
+                    "email_preview_data": {
+                        "type": "object",
+                        "description": "Datos para preview de email (solo para aprobaciones, rechazos o acuses de recibo)",
+                        "properties": {
+                            "should_open_modal": {
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "document_id": {
+                                "type": "integer",
+                                "example": 12345
+                            },
+                            "action": {
+                                "type": "string",
+                                "enum": [
+                                    "accept",
+                                    "reject"
+                                ],
+                                "example": "accept"
+                            },
+                            "subject": {
+                                "type": "string",
+                                "example": "Acuse de Recibo - Factura 123"
+                            },
+                            "supplier_id": {
+                                "type": "integer",
+                                "example": 67890
+                            },
+                            "supplier_name": {
+                                "type": "string",
+                                "example": "Proveedor Ejemplo S.A."
+                            },
+                            "supplier_rut": {
+                                "type": "string",
+                                "example": "12345678-9"
+                            },
+                            "document_folio": {
+                                "type": "string",
+                                "example": "123"
+                            },
+                            "pdf_url": {
+                                "type": "string",
+                                "format": "uri",
+                                "nullable": true,
+                                "example": "https://api.tupana.ai/documents/12345/pdf"
+                            },
+                            "rejection_reason": {
+                                "type": "string",
+                                "nullable": true,
+                                "example": "Error en el monto facturado"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

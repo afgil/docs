@@ -264,6 +264,8 @@ def combine_openapi_files():
         base_dir / "scheduled-documents" / "scheduled-documents-update.json",
         base_dir / "scheduled-documents" / "scheduled-documents-delete.json",
         base_dir / "scheduled-documents" / "scheduled-documents-preview.json",
+        # Document states
+        base_dir / "document-states" / "document-states.json",
         # Schemas
         base_dir / "schemas" / "schemas.json",
     ]

@@ -58,6 +58,13 @@
             ]
           },
           {
+            "group": "Estados de Documentos",
+            "pages": [
+              "api-reference/document-states/list",
+              "api-reference/document-states/create"
+            ]
+          },
+          {
             "group": "Documentos Programados",
             "pages": [
               "api-reference/scheduled-documents/list",

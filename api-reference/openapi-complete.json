@@ -77,7 +77,7 @@
             "description": "Lista de códigos DTE separados por coma (ej: `33,34`).",
             "required": false,
             "style": "form",
-            "explode": true,
+            "explode": false,
             "schema": {
               "type": "array",
               "items": {
@@ -158,6 +158,7 @@
     },
     "/documents/batch": {
       "post": {
+        "operationId": "createDocumentsBatch",
         "summary": "Envío de documentos en lote",
         "description": "Crea hasta 200 documentos en una sola llamada. La respuesta con el PDF y los detalles completos se entrega a través del webhook configurado.",
         "parameters": [
@@ -173,15 +174,11 @@
           {
             "name": "X-Use-Defaults",
             "in": "header",
-            "description": "Si se establece como 'true', el sistema usará valores por defecto para campos no proporcionados:\n- Fecha actual para date_issued\n- Datos del emisor según configuración de la plataforma o primera actividad/dirección disponible\n- Datos del receptor según configuración del cliente o primera actividad/dirección disponible\n- Payment method = '2' (crédito) en el header del documento",
+            "description": "Si se establece como true, el sistema usará valores por defecto para campos no proporcionados:\n- Fecha actual para date_issued\n- Datos del emisor según configuración de la plataforma o primera actividad/dirección disponible\n- Datos del receptor según configuración del cliente o primera actividad/dirección disponible\n- Payment method = '2' (crédito) en el header del documento",
             "required": false,
             "schema": {
-              "type": "string",
-              "enum": [
-                "true",
-                "false"
-              ],
-              "default": "false"
+              "type": "boolean",
+              "default": false
             }
           }
         ],
@@ -191,14 +188,40 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/DocumentBatch"
+              },
+              "example": {
+                "documents": [
+                  {
+                    "dte_type": {
+                      "code": "33"
+                    },
+                    "date_issued": "2024-01-15",
+                    "document_issuer": {
+                      "rut": "12345678-9",
+                      "business_name": "Mi Empresa SpA"
+                    },
+                    "document_receiver": {
+                      "rut": "98765432-1",
+                      "business_name": "Cliente Importante Ltda"
+                    },
+                    "details": [
+                      {
+                        "item_name": "Servicio de Consultoría",
+                        "quantity": 1,
+                        "unit_price": 100000,
+                        "item_total": 100000
+                      }
+                    ]
+                  }
+                ]
               }
             }
           },
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Documentos creados exitosamente",
+          "202": {
+            "description": "Solicitud de creación de documentos aceptada. Los resultados se enviarán por webhook.",
             "content": {
               "application/json": {
                 "schema": {
@@ -457,6 +480,7 @@
         ]
       },
       "post": {
+        "operationId": "createCredential",
         "summary": "Crear credencial",
         "description": "Crea una nueva credencial validándola en el SII",
         "requestBody": {
@@ -499,6 +523,12 @@
                     "example": 70
                   }
                 }
+              },
+              "example": {
+                "user_rut": "12345678-9",
+                "password": "mi_password_segura",
+                "digital_certificate_password": "mi_password_certificado",
+                "master_entity_id": 123
               }
             }
           }
@@ -845,6 +875,7 @@
         }
       },
       "post": {
+        "operationId": "createScheduledDocument",
         "tags": [
           "Documentos Programados"
         ],
@@ -1070,6 +1101,7 @@
         }
       },
       "patch": {
+        "operationId": "updateScheduledDocument",
         "tags": [
           "Documentos Programados"
         ],
@@ -1108,6 +1140,10 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ScheduledDocumentUpdate"
+              },
+              "example": {
+                "status": "inactive",
+                "amount": 120000
               }
             }
           },
@@ -1330,6 +1366,221 @@
           }
         }
       }
+    },
+    "/documents/{document_id}/states": {
+      "get": {
+        "tags": [
+          "Estados de Documentos"
+        ],
+        "summary": "Consultar historial de estados de un documento",
+        "description": "Se utiliza para consultar el historial de estados asociados a un documento tributario específico.\n\n**Qué hace:**\n- Devuelve todos los estados registrados para el documento\n- Permite entender qué eventos han ocurrido sobre ese documento\n- Muestra la secuencia cronológica de los estados\n- No modifica ninguna información\n\n**Ejemplos de uso:**\n- Revisar si un documento fue pagado\n- Ver si tuvo rechazos o acuses\n- Auditar cambios o eventos automáticos del SII\n- Mostrar el historial completo en el backoffice",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "description": "ID único del documento (integer)",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historial de estados obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentStatesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para acceder a este documento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "No tienes acceso a este documento"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documento no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Estados de Documentos"
+        ],
+        "summary": "Registrar nuevo estado en un documento",
+        "description": "Se utiliza para registrar un nuevo estado cuando ocurre un evento relevante sobre el documento.\n\n**Qué hace:**\n- Crea un nuevo estado asociado al documento\n- Agrega el evento al historial del documento\n- No reemplaza ni elimina estados anteriores\n- Permite registrar eventos manuales o automáticos\n\n**Ejemplos de uso:**\n- Marcar un documento como pagado\n- Registar un acuse de recibo\n- Registrar un rechazo\n- Asociar un evento proveniente del SII\n- Registrar mérito ejecutivo o eventos de cobranza",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "description": "ID único del documento (integer)",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentStateRequest"
+              },
+              "examples": {
+                "acuse_recibo": {
+                  "summary": "Registrar acuse de recibo",
+                  "value": {
+                    "event_code": "ERM"
+                  }
+                },
+                "rechazo": {
+                  "summary": "Registrar rechazo",
+                  "value": {
+                    "event_code": "RCD",
+                    "rejection_reason": "Error en el monto facturado"
+                  }
+                },
+                "aceptacion_contenido": {
+                  "summary": "Aceptar contenido del documento",
+                  "value": {
+                    "event_code": "ACD"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Estado registrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentStateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos o error al registrar el evento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "parametros_faltantes": {
+                    "value": {
+                      "error": "Se requiere el código del evento (event_code)"
+                    }
+                  },
+                  "evento_invalido": {
+                    "value": {
+                      "error": "Código de evento inválido. Debe ser uno de: ERM, ACD, RCD, RFT, RFP"
+                    }
+                  },
+                  "error_sii": {
+                    "value": {
+                      "success": false,
+                      "error": "Error al registrar evento en el SII",
+                      "error_code": "SII_ERROR_CODE"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para acceder a este documento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documento no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -1337,11 +1588,192 @@
       "apiKeyAuth": {
         "type": "apiKey",
         "in": "header",
-        "name": "Authorization",
+        "name": "Api-Key",
         "description": "API Key para autenticación. Debe proporcionarse en el formato: 'Api-Key YOUR-API-KEY'"
       }
     },
     "schemas": {
+      "DocumentStateRequest": {
+        "type": "object",
+        "required": [
+          "event_code"
+        ],
+        "properties": {
+          "event_code": {
+            "type": "string",
+            "enum": [
+              "ERM",
+              "ACD",
+              "RCD",
+              "RFT",
+              "RFP"
+            ],
+            "description": "Código del evento a registrar:\n- ERM: Acuse de Recibo de Mercaderías y Servicios\n- ACD: Acepta Contenido del Documento\n- RCD: Reclama Contenido del Documento\n- RFT: Reclamo por Falta Total\n- RFP: Reclamo por Falta Parcial",
+            "example": "ERM"
+          },
+          "rejection_reason": {
+            "type": "string",
+            "description": "Razón del rechazo (opcional, solo para eventos de rechazo: RCD, RFT, RFP)",
+            "example": "Error en el monto facturado"
+          }
+        }
+      },
+      "DocumentStatesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indica si la operación fue exitosa",
+            "example": true
+          },
+          "document_id": {
+            "type": "integer",
+            "description": "ID del documento",
+            "example": 12345
+          },
+          "folio": {
+            "type": "string",
+            "description": "Folio del documento",
+            "example": "123"
+          },
+          "states": {
+            "type": "array",
+            "description": "Lista de estados registrados para el documento, ordenados cronológicamente (más reciente primero)",
+            "items": {
+              "$ref": "#/components/schemas/DocumentState"
+            }
+          },
+          "document": {
+            "$ref": "#/components/schemas/DocumentDetail"
+          }
+        }
+      },
+      "DocumentState": {
+        "type": "object",
+        "properties": {
+          "event_code": {
+            "type": "string",
+            "description": "Código del evento",
+            "example": "ERM"
+          },
+          "event_description": {
+            "type": "string",
+            "description": "Descripción del evento",
+            "example": "Acuse de Recibo"
+          },
+          "event_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha y hora del evento (ISO 8601)",
+            "example": "2024-01-16T10:30:00Z"
+          },
+          "responsable_rut": {
+            "type": "integer",
+            "description": "RUT del responsable del evento",
+            "example": 12345678
+          },
+          "responsable_dv": {
+            "type": "string",
+            "description": "Dígito verificador del RUT del responsable",
+            "example": "9"
+          },
+          "rejected_by_user": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "description": "Email del usuario que registró el rechazo (solo para eventos de rechazo)",
+            "example": "usuario@ejemplo.com"
+          },
+          "accepted_by_user": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "description": "Email del usuario que registró la aprobación (solo para eventos de aprobación)",
+            "example": "usuario@ejemplo.com"
+          }
+        }
+      },
+      "DocumentStateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indica si la operación fue exitosa",
+            "example": true
+          },
+          "event_registered": {
+            "type": "boolean",
+            "description": "Indica si el evento fue registrado exitosamente",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensaje descriptivo del resultado",
+            "example": "Acuse de Recibo registrado. Este acuse rebajará el IVA del próximo mes."
+          },
+          "event_data": {
+            "type": "object",
+            "description": "Datos adicionales del evento registrado (proporcionados por el SII)",
+            "additionalProperties": true
+          },
+          "document": {
+            "$ref": "#/components/schemas/DocumentDetail"
+          },
+          "email_preview_data": {
+            "type": "object",
+            "description": "Datos para preview de email (solo para aprobaciones, rechazos o acuses de recibo)",
+            "properties": {
+              "should_open_modal": {
+                "type": "boolean",
+                "example": true
+              },
+              "document_id": {
+                "type": "integer",
+                "example": 12345
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "accept",
+                  "reject"
+                ],
+                "example": "accept"
+              },
+              "subject": {
+                "type": "string",
+                "example": "Acuse de Recibo - Factura 123"
+              },
+              "supplier_id": {
+                "type": "integer",
+                "example": 67890
+              },
+              "supplier_name": {
+                "type": "string",
+                "example": "Proveedor Ejemplo S.A."
+              },
+              "supplier_rut": {
+                "type": "string",
+                "example": "12345678-9"
+              },
+              "document_folio": {
+                "type": "string",
+                "example": "123"
+              },
+              "pdf_url": {
+                "type": "string",
+                "format": "uri",
+                "nullable": true,
+                "example": "https://api.tupana.ai/documents/12345/pdf"
+              },
+              "rejection_reason": {
+                "type": "string",
+                "nullable": true,
+                "example": "Error en el monto facturado"
+              }
+            }
+          }
+        }
+      },
       "DocumentBatch": {
         "type": "object",
         "required": [
@@ -1386,6 +1818,7 @@
           },
           "details": {
             "type": "array",
+            "minItems": 1,
             "items": {
               "$ref": "#/components/schemas/DetailItem"
             }
@@ -1401,6 +1834,7 @@
           },
           "json_param": {
             "type": "object",
+            "additionalProperties": true,
             "description": "JSON arbitrario almacenado textualmente"
           },
           "export_data": {
@@ -1442,7 +1876,12 @@
           },
           "payment_method": {
             "type": "string",
-            "description": "Método de pago"
+            "description": "Método de pago",
+            "enum": [
+              "1",
+              "2",
+              "3"
+            ]
           },
           "due_date": {
             "type": "string",
@@ -1607,6 +2046,11 @@
       },
       "ReferenceItem": {
         "type": "object",
+        "required": [
+          "reference_folio",
+          "reference_date",
+          "referenced_dte_type_code"
+        ],
         "properties": {
           "reference_folio": {
             "type": "integer",
@@ -1646,8 +2090,9 @@
                   "description": "Índice del documento en el array original"
                 },
                 "document_id": {
-                  "type": "integer",
-                  "description": "ID del documento creado"
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "ID único del documento creado (UUID)"
                 },
                 "status": {
                   "type": "string",
@@ -1714,8 +2159,8 @@
             "description": "Monto total con IVA"
           },
           "dte_type_code": {
-            "type": "integer",
-            "description": "Código numérico del tipo de DTE (ej: 33 para Factura Electrónica)"
+            "type": "string",
+            "description": "Código del tipo de DTE (ej: \"33\" para Factura Electrónica)"
           },
           "created_at": {
             "type": "string",
@@ -1762,8 +2207,8 @@
                 "example": "CLP"
               },
               "sender_id": {
-                "type": "string",
-                "description": "ID de la entidad emisora (como string)"
+                "type": "integer",
+                "description": "ID de la entidad emisora"
               },
               "sender_name": {
                 "type": "string",
@@ -1798,6 +2243,7 @@
               },
               "json_param": {
                 "type": "object",
+                "additionalProperties": true,
                 "description": "Parámetros JSON almacenados del documento",
                 "nullable": true
               },
@@ -1918,9 +2364,17 @@
         "type": "object",
         "properties": {
           "error": {
-            "type": "integer",
-            "format": "int32",
-            "description": "Código de error"
+            "type": "string",
+            "description": "Código de error",
+            "example": "VALIDATION_ERROR",
+            "enum": [
+              "VALIDATION_ERROR",
+              "AUTHENTICATION_ERROR",
+              "AUTHORIZATION_ERROR",
+              "NOT_FOUND",
+              "SII_ERROR",
+              "INTERNAL_ERROR"
+            ]
           },
           "message": {
             "type": "string",
