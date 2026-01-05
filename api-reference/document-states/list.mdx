@@ -2,3 +2,17 @@
 title: 'Consultar estados de documento'
 openapi: 'GET /documents/{document_id}/states'
 ---
+
+## Qué hace
+
+- Devuelve todos los estados registrados para el documento
+- Permite entender qué eventos han ocurrido sobre ese documento
+- Muestra la secuencia cronológica de los estados
+- No modifica ninguna información
+
+## Ejemplos de uso
+
+- Revisar si un documento fue pagado
+- Ver si tuvo rechazos o acuses
+- Auditar cambios o eventos automáticos del SII
+- Mostrar el historial completo en el backoffice

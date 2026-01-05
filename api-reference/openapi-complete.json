@@ -1373,7 +1373,7 @@
           "Estados de Documentos"
         ],
         "summary": "Consultar historial de estados de un documento",
-        "description": "Se utiliza para consultar el historial de estados asociados a un documento tributario específico.\n\n**Qué hace:**\n- Devuelve todos los estados registrados para el documento\n- Permite entender qué eventos han ocurrido sobre ese documento\n- Muestra la secuencia cronológica de los estados\n- No modifica ninguna información\n\n**Ejemplos de uso:**\n- Revisar si un documento fue pagado\n- Ver si tuvo rechazos o acuses\n- Auditar cambios o eventos automáticos del SII\n- Mostrar el historial completo en el backoffice",
+        "description": "Consultar el historial de estados asociados a un documento tributario específico.",
         "parameters": [
           {
             "name": "document_id",
@@ -1451,7 +1451,7 @@
           "Estados de Documentos"
         ],
         "summary": "Registrar nuevo estado en un documento",
-        "description": "Se utiliza para registrar un nuevo estado cuando ocurre un evento relevante sobre el documento.\n\n**Qué hace:**\n- Crea un nuevo estado asociado al documento\n- Agrega el evento al historial del documento\n- No reemplaza ni elimina estados anteriores\n- Permite registrar eventos manuales o automáticos\n\n**Ejemplos de uso:**\n- Marcar un documento como pagado\n- Registar un acuse de recibo\n- Registrar un rechazo\n- Asociar un evento proveniente del SII\n- Registrar mérito ejecutivo o eventos de cobranza",
+        "description": "Registrar un nuevo estado cuando ocurre un evento relevante sobre el documento.",
         "parameters": [
           {
             "name": "document_id",
