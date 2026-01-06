@@ -1582,7 +1582,7 @@
         ]
       }
     },
-    "/cession/batch": {
+    "/cessions/batch": {
       "post": {
         "operationId": "createCessionBatch",
         "tags": [
@@ -2398,7 +2398,7 @@
         "required": [
           "reference_folio",
           "reference_date",
-          "referenced_dte_type_code"
+          "dte_type_code"
         ],
         "properties": {
           "reference_folio": {
@@ -2415,7 +2415,7 @@
             "description": "Razón de referencia. Para notas de crédito totales debe ser 'ANULA DOCUMENTO DE LA REFERENCIA'.",
             "example": "ANULA DOCUMENTO DE LA REFERENCIA"
           },
-          "referenced_dte_type_code": {
+          "dte_type_code": {
             "type": "string",
             "description": "Código del tipo de DTE del documento referenciado"
           }

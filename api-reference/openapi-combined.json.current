@@ -1645,7 +1645,7 @@
         "required": [
           "reference_folio",
           "reference_date",
-          "referenced_dte_type_code"
+          "dte_type_code"
         ],
         "properties": {
           "reference_folio": {
@@ -1662,7 +1662,7 @@
             "description": "Raz\u00f3n de referencia. Para notas de cr\u00e9dito totales debe ser 'ANULA DOCUMENTO DE LA REFERENCIA'.",
             "example": "ANULA DOCUMENTO DE LA REFERENCIA"
           },
-          "referenced_dte_type_code": {
+          "dte_type_code": {
             "type": "string",
             "description": "C\u00f3digo del tipo de DTE del documento referenciado"
           }
