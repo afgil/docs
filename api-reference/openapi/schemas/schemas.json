@@ -1184,8 +1184,8 @@
       "apiKeyAuth": {
         "type": "apiKey",
         "in": "header",
-        "name": "Api-Key",
-        "description": "API Key para autenticación. Debe proporcionarse en el formato: 'Api-Key YOUR-API-KEY'"
+        "name": "Authorization",
+        "description": "API Key para autenticación. Debe proporcionarse en el header Authorization con el formato: 'Api-Key YOUR-API-KEY' (incluye el prefijo 'Api-Key ' seguido de tu API key)"
       }
     }
   }
