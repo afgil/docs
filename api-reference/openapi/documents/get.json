@@ -6,37 +6,15 @@
                     "Documentos"
                 ],
                 "summary": "Obtener documento específico",
-                "description": "Obtiene toda la información completa de un documento tributario específico, incluyendo el PDF y XML cuando están disponibles. Este endpoint es útil para consultar detalles completos de un documento ya emitido o recibido.\n\n**Seguridad:** El usuario solo puede acceder al documento si es emisor (sender) o receptor (receiver) del documento. Si el usuario no tiene acceso, se retorna un error 403 Forbidden.",
+                "description": "Obtiene toda la información completa de un documento tributario específico, incluyendo el PDF y XML cuando están disponibles. El PDF siempre se incluye en la respuesta (campo `pdf_url`). Este endpoint es útil para consultar detalles completos de un documento ya emitido o recibido.\n\n**Seguridad:** El usuario solo puede acceder al documento si es emisor (sender) o receptor (receiver) del documento. Si el usuario no tiene acceso, se retorna un error 403 Forbidden.",
                 "parameters": [
                     {
                         "name": "document_id",
                         "in": "path",
-                        "description": "ID único del documento a consultar (UUID)",
+                        "description": "ID único del documento a consultar (entero)",
                         "required": true,
                         "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    },
-                    {
-                        "name": "include_pdf",
-                        "in": "query",
-                        "description": "Incluir URL del PDF en la respuesta",
-                        "required": false,
-                        "schema": {
-                            "type": "boolean",
-                            "default": false
-                        }
-                    },
-                    {
-                        "name": "format",
-                        "in": "query",
-                        "description": "Formato de respuesta: json o pdf",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "enum": ["json", "pdf"],
-                            "default": "json"
+                            "type": "integer"
                         }
                     }
                 ],
