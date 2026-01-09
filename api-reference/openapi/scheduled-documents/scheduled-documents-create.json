@@ -13,18 +13,6 @@
         ],
         "summary": "Crear documento programado",
         "description": "Crea un nuevo documento programado que se ejecutará automáticamente según la frecuencia especificada.",
-        "parameters": [
-          {
-            "name": "master_entity_id",
-            "in": "query",
-            "description": "ID de la entidad maestra emisora",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "example": 123
-            }
-          }
-        ],
         "requestBody": {
           "description": "Datos del documento programado a crear",
           "content": {
@@ -33,6 +21,7 @@
                 "$ref": "#/components/schemas/ScheduledDocumentCreate"
               },
               "example": {
+                "sender": 123,
                 "dte_type": "33",
                 "receiver_tax_id": "76111111-1",
                 "frequency": "monthly",

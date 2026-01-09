@@ -911,6 +911,7 @@
       "ScheduledDocumentCreate": {
         "type": "object",
         "required": [
+          "sender",
           "dte_type",
           "frequency",
           "amount",
@@ -918,6 +919,11 @@
           "receiver_tax_id"
         ],
         "properties": {
+          "sender": {
+            "type": "integer",
+            "description": "ID de la entidad maestra emisora (obligatorio)",
+            "example": 123
+          },
           "dte_type": {
             "type": "string",
             "description": "Código del tipo de DTE (ej: '33' para Factura Electrónica)",
