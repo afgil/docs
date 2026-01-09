@@ -346,7 +346,7 @@ def combine_openapi_files():
         )
 
     # Guardar archivo combinado
-    output_path = Path("api-reference/openapi-complete.json")
+    output_path = Path("api-reference/openapi-combined.json")
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(output_path, "w", encoding="utf-8") as f:
