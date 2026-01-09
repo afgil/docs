@@ -10,8 +10,7 @@ Crea un nuevo documento programado que se ejecutará automáticamente según la 
 - **sender** (integer): ID de la entidad maestra emisora (obligatorio, debe enviarse en el body del request)
 - **dte_type** (string): Código del tipo de DTE (ej: '33' para Factura Electrónica)
 - **frequency** (string): Frecuencia de ejecución (`daily`, `weekly`, `monthly`, `quarterly`)
-- **amount** (number): Monto total del documento
-- **details** (array): Lista de productos/servicios del documento
+- **details** (array): Lista de productos/servicios del documento (el monto total se calcula automáticamente desde los detalles)
 - **receiver_tax_id** (string): RUT del receptor (formato: 12345678-9). El sistema buscará un cliente existente con este RUT. Si no existe, creará uno nuevo automáticamente.
 
 ### Parámetros Opcionales
