@@ -26,7 +26,6 @@
                 "receiver_tax_id": "76111111-1",
                 "frequency": "monthly",
                 "day_of_month": 10,
-                "amount": 150000,
                 "currency": "CLP",
                 "status": "active",
                 "details": [

@@ -958,12 +958,6 @@
             "maximum": 6,
             "example": 1
           },
-          "amount": {
-            "type": "number",
-            "description": "Monto total del documento (opcional, se calcula automáticamente desde los detalles)",
-            "minimum": 0,
-            "example": 100000
-          },
           "currency": {
             "type": "string",
             "description": "Moneda del documento",
