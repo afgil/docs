@@ -1894,7 +1894,7 @@
         }
       }
     },
-    "/webhooks": {
+    "/api/v1/webhooks": {
       "get": {
         "tags": [
           "Webhooks"
