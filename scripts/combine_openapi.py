@@ -268,6 +268,8 @@ def combine_openapi_files():
         base_dir / "document-states" / "document-states.json",
         # Cessions
         base_dir / "cessions" / "batch.json",
+        # Webhooks
+        base_dir / "webhooks" / "webhooks.json",
         # Schemas
         base_dir / "schemas" / "schemas.json",
     ]

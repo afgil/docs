@@ -80,6 +80,12 @@
             "pages": [
               "api-reference/cessions/batch"
             ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": [
+              "api-reference/webhooks/webhooks"
+            ]
           }
         ]
       }
