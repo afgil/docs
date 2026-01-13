@@ -20,8 +20,9 @@ openapi: 'POST /api/webhooks'
 ## Requisitos
 
 ### Entidad maestra
-- Debes tener configurada una entidad maestra (`master_entity`) en Tu Pana
-- El webhook se asocia automáticamente a la entidad del usuario autenticado
+- Debes especificar el `master_entity_id` de la entidad para la cual quieres crear el webhook
+- El usuario debe tener acceso a la entidad especificada
+- El webhook se asocia con la entidad maestra indicada en el payload
 
 ### Eventos disponibles
 - `document.issued` - Documento emitido exitosamente
