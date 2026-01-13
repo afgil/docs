@@ -1901,7 +1901,7 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKeyAuth": []
           }
         ],
         "summary": "Listar webhooks",
@@ -1977,7 +1977,7 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKeyAuth": []
           }
         ],
         "summary": "Crear webhook",
