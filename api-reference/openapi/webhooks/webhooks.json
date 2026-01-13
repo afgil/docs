@@ -1,6 +1,6 @@
 {
     "paths": {
-        "/api/webhooks": {
+        "/webhooks": {
             "get": {
                 "tags": [
                     "Webhooks"
