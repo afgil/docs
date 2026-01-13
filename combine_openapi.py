@@ -22,6 +22,7 @@ def combine_openapi_files():
         "documents",
         "master-entities",
         "scheduled-documents",
+        "webhooks",
         "schemas"
     ]
 

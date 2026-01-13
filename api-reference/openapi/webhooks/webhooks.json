@@ -1,0 +1,413 @@
+{
+    "paths": {
+        "/api/v1/webhooks": {
+            "get": {
+                "tags": [
+                    "Webhooks"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Listar webhooks",
+                "description": "Obtiene la lista de webhooks configurados para la empresa del usuario autenticado.",
+                "responses": {
+                    "200": {
+                        "description": "Lista de webhooks obtenida exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Webhook"
+                                    }
+                                },
+                                "example": [
+                                    {
+                                        "id": 1,
+                                        "url": "https://mi-sistema.com/webhook",
+                                        "events": [
+                                            "document.issued",
+                                            "document.delivered"
+                                        ],
+                                        "events_display": [
+                                            "Emitido",
+                                            "Entregado"
+                                        ],
+                                        "secret": "mi-clave-secreta",
+                                        "is_active": true,
+                                        "last_status_code": 200,
+                                        "last_sent_at": "2025-01-13T10:30:00Z",
+                                        "success_rate": 95.5,
+                                        "last_delivery": {
+                                            "id": 123,
+                                            "event": "document.issued",
+                                            "is_success": true,
+                                            "status_code": 200,
+                                            "sent_at": "2025-01-13T10:30:00Z",
+                                            "document_id": 456
+                                        },
+                                        "created_at": "2025-01-01T09:00:00Z",
+                                        "updated_at": "2025-01-13T10:30:00Z"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Usuario no autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Usuario sin acceso a entidades",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Webhooks"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "summary": "Crear webhook",
+                "description": "Crea un nuevo webhook para la empresa del usuario autenticado.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/WebhookCreate"
+                            },
+                            "example": {
+                                "master_entity_id": 123,
+                                "url": "https://mi-sistema.com/webhook/callback",
+                                "events": [
+                                    "document.issued",
+                                    "document.delivered",
+                                    "document.rejected"
+                                ],
+                                "secret": "mi-clave-secreta-super-segura",
+                                "is_active": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Webhook creado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Webhook"
+                                },
+                                "example": {
+                                    "id": 1,
+                                    "url": "https://mi-sistema.com/webhook/callback",
+                                    "events": [
+                                        "document.issued",
+                                        "document.delivered",
+                                        "document.rejected"
+                                    ],
+                                    "events_display": [
+                                        "Emitido",
+                                        "Entregado",
+                                        "Rechazado SII"
+                                    ],
+                                    "secret": "mi-clave-secreta-super-segura",
+                                    "is_active": true,
+                                    "last_status_code": null,
+                                    "last_sent_at": null,
+                                    "success_rate": 0,
+                                    "last_delivery": null,
+                                    "created_at": "2025-01-13T11:00:00Z",
+                                    "updated_at": "2025-01-13T11:00:00Z"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Datos inválidos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Usuario no autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Usuario sin acceso a entidades",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "WebhookCreate": {
+                "type": "object",
+                "required": [
+                    "master_entity_id",
+                    "url",
+                    "events"
+                ],
+                "properties": {
+                    "master_entity_id": {
+                        "type": "integer",
+                        "description": "ID de la entidad maestra para la cual se crea el webhook",
+                        "example": 123
+                    },
+                    "url": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "URL del endpoint que recibirá las notificaciones"
+                    },
+                    "events": {
+                        "type": "array",
+                        "description": "Lista de eventos a notificar",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "document.issued",
+                                "document.delivered",
+                                "document.rejected",
+                                "document.paid",
+                                "document.cancelled"
+                            ]
+                        },
+                        "minItems": 1
+                    },
+                    "secret": {
+                        "type": "string",
+                        "description": "Clave secreta para verificar la autenticidad de las notificaciones",
+                        "maxLength": 255
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "description": "Si el webhook está activo",
+                        "default": true
+                    }
+                }
+            },
+            "Webhook": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "ID único del webhook"
+                    },
+                    "url": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "URL del endpoint que recibe las notificaciones"
+                    },
+                    "events": {
+                        "type": "array",
+                        "description": "Lista de eventos configurados",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "document.issued",
+                                "document.delivered",
+                                "document.rejected",
+                                "document.paid",
+                                "document.cancelled"
+                            ]
+                        }
+                    },
+                    "events_display": {
+                        "type": "array",
+                        "description": "Nombres legibles de los eventos",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "Emitido",
+                            "Entregado",
+                            "Rechazado SII"
+                        ]
+                    },
+                    "secret": {
+                        "type": "string",
+                        "description": "Clave secreta para verificar notificaciones",
+                        "nullable": true
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "description": "Si el webhook está activo"
+                    },
+                    "last_status_code": {
+                        "type": "integer",
+                        "description": "Último código HTTP de respuesta",
+                        "nullable": true
+                    },
+                    "last_sent_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Fecha de último envío",
+                        "nullable": true
+                    },
+                    "success_rate": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "Tasa de éxito de entregas (0-100)",
+                        "minimum": 0,
+                        "maximum": 100
+                    },
+                    "last_delivery": {
+                        "type": "object",
+                        "description": "Información de la última entrega",
+                        "nullable": true,
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "description": "ID de la entrega"
+                            },
+                            "event": {
+                                "type": "string",
+                                "description": "Evento de la entrega"
+                            },
+                            "is_success": {
+                                "type": "boolean",
+                                "description": "Si la entrega fue exitosa"
+                            },
+                            "status_code": {
+                                "type": "integer",
+                                "description": "Código HTTP de respuesta"
+                            },
+                            "sent_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "Fecha y hora del envío"
+                            },
+                            "document_id": {
+                                "type": "integer",
+                                "description": "ID del documento"
+                            }
+                        }
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Fecha de creación"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Fecha de última actualización"
+                    }
+                }
+            },
+            "WebhookEvent": {
+                "type": "object",
+                "description": "Notificación enviada a la URL configurada del webhook",
+                "properties": {
+                    "event": {
+                        "type": "string",
+                        "description": "Tipo de evento",
+                        "enum": [
+                            "document.issued",
+                            "document.delivered",
+                            "document.rejected",
+                            "document.paid",
+                            "document.cancelled"
+                        ]
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Fecha y hora del evento"
+                    },
+                    "delivery_id": {
+                        "type": "string",
+                        "description": "ID único de la entrega"
+                    },
+                    "data": {
+                        "type": "object",
+                        "description": "Datos del documento",
+                        "properties": {
+                            "document_id": {
+                                "type": "integer",
+                                "description": "ID del documento"
+                            },
+                            "folio": {
+                                "type": "string",
+                                "description": "Folio del documento"
+                            },
+                            "document_type": {
+                                "type": "string",
+                                "description": "Tipo de documento (código DTE)"
+                            },
+                            "amount": {
+                                "type": "number",
+                                "format": "decimal",
+                                "description": "Monto total del documento"
+                            },
+                            "sender_rut": {
+                                "type": "string",
+                                "description": "RUT del emisor",
+                                "example": "use default"
+                            },
+                            "receiver_rut": {
+                                "type": "string",
+                                "description": "RUT del receptor",
+                                "example": "use default"
+                            },
+                            "issue_date": {
+                                "type": "string",
+                                "format": "date",
+                                "description": "Fecha de emisión"
+                            },
+                            "xml_file": {
+                                "type": "string",
+                                "format": "uri",
+                                "description": "URL del archivo XML (presigned)",
+                                "nullable": true
+                            },
+                            "pdf_file": {
+                                "type": "string",
+                                "format": "uri",
+                                "description": "URL del archivo PDF (presigned)",
+                                "nullable": true
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

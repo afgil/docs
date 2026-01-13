@@ -1,6 +1,6 @@
 {
   "paths": {
-    "/cession/batch": {
+    "/cessions/batch": {
       "post": {
         "operationId": "createCessionBatch",
         "tags": [

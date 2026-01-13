@@ -88,7 +88,7 @@
       "anchors": []
     }
   },
-  "openapi": "api-reference/openapi-complete.json",
+  "openapi": "api-reference/openapi-combined.json",
   "topbarLinks": [
     {
       "name": "Soporte",

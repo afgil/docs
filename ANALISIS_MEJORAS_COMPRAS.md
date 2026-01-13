@@ -283,3 +283,5 @@ El módulo de compras tiene **4 vistas principales** que muestran documentos rec
 **Mejora más impactante:** **Indicadores Visuales de Urgencia** - mejora significativamente la experiencia en Pendientes SII, que es probablemente la vista más crítica del módulo.
 
 
+
+

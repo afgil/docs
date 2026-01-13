@@ -191,3 +191,5 @@ ls -lh api-reference/openapi-complete.json
 # Ejecutar documentación (combina automáticamente)
 npm run dev
 ```
+
+
