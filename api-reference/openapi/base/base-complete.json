@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://api.tupana.ai/v1",
+      "url": "https://api.tupana.ai",
       "description": "Servidor de producción"
     }
   ],

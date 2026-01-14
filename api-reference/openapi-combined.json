@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://api.tupana.ai/v1",
+      "url": "https://api.tupana.ai",
       "description": "Servidor de producción"
     }
   ],
@@ -17,7 +17,7 @@
     }
   ],
   "paths": {
-    "/documents": {
+    "/api/v1/documents": {
       "get": {
         "tags": [
           "Documentos"
@@ -156,7 +156,7 @@
         }
       }
     },
-    "/documents/batch": {
+    "/api/v1/documents/batch": {
       "post": {
         "operationId": "createDocumentsBatch",
         "summary": "Envío de documentos en lote",
@@ -258,7 +258,7 @@
         ]
       }
     },
-    "/documents/{document_id}": {
+    "/api/v1/documents/{document_id}": {
       "get": {
         "tags": [
           "Documentos"
@@ -341,7 +341,7 @@
         ]
       }
     },
-    "/credentials": {
+    "/api/v1/credentials": {
       "get": {
         "summary": "Listar credenciales",
         "description": "Obtiene todas las activas del usuario autenticado",
@@ -642,7 +642,7 @@
         ]
       }
     },
-    "/master-entities": {
+    "/api/v1/master-entities": {
       "get": {
         "summary": "Buscar entidad por RUT",
         "description": "Busca una entidad maestra específica por su RUT. Requiere autenticación por API Key.",
@@ -718,7 +718,7 @@
         ]
       }
     },
-    "/scheduled-documents": {
+    "/api/v1/scheduled-documents": {
       "get": {
         "tags": [
           "Documentos Programados"
@@ -986,7 +986,7 @@
         }
       }
     },
-    "/scheduled-documents/{id}": {
+    "/api/v1/scheduled-documents/{id}": {
       "get": {
         "tags": [
           "Documentos Programados"
@@ -1235,7 +1235,7 @@
         }
       }
     },
-    "/scheduled-documents/{id}/preview": {
+    "/api/v1/scheduled-documents/{id}/preview": {
       "get": {
         "tags": [
           "Documentos Programados"
@@ -1330,7 +1330,7 @@
         }
       }
     },
-    "/documents/{document_id}/states": {
+    "/api/v1/documents/{document_id}/states": {
       "get": {
         "tags": [
           "Estados de Documentos"
@@ -1545,7 +1545,7 @@
         ]
       }
     },
-    "/cessions/batch": {
+    "/api/v1/cessions/batch": {
       "post": {
         "operationId": "createCessionBatch",
         "tags": [
@@ -1894,7 +1894,7 @@
         }
       }
     },
-    "/webhooks": {
+    "/api/v1/webhooks": {
       "get": {
         "tags": [
           "Webhooks"
