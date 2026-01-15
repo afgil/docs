@@ -3,29 +3,41 @@ title: 'Crear webhook'
 openapi: 'POST /webhooks'
 ---
 
-## Qué hace
+Crea un nuevo webhook para recibir notificaciones automáticas cuando ocurren eventos relacionados con documentos. El webhook se asocia con una entidad específica del usuario autenticado.
 
-- Crea un nuevo webhook para la empresa del usuario autenticado
-- Configura la URL de callback para recibir notificaciones de eventos
-- Define qué eventos específicos activarán el webhook
-- Establece credenciales de autenticación para validar las notificaciones
+## ¿Para qué se usa?
 
-## Ejemplos de uso
-
+Crea un nuevo webhook para recibir notificaciones automáticas cuando ocurren eventos relacionados con documentos. Útil para:
 - Configurar notificaciones automáticas cuando se emiten documentos
 - Recibir alertas cuando documentos son aceptados o rechazados por el SII
 - Integrar con sistemas externos para procesamiento automático de documentos
 - Monitorear el estado de entrega de documentos importantes
 
-## Requisitos
+## Qué hace
+
+- Crea un nuevo webhook asociado a una entidad específica
+- Configura la URL de callback que recibirá las notificaciones
+- Define los eventos específicos que se notificarán (emitido, entregado, rechazado, pagado, cancelado)
+- Permite configurar una clave secreta para verificar la autenticidad de las notificaciones
+- Establece el estado inicial del webhook (activo o inactivo)
+
+## Ejemplos de uso
+
+- **Notificaciones de emisión:** Configurar un webhook para recibir notificaciones cada vez que se emite un documento
+- **Integración con ERP:** Conectar el sistema con un ERP externo para procesar documentos automáticamente
+- **Alertas de rechazo:** Recibir notificaciones inmediatas cuando el SII rechaza un documento
+
+## Consideraciones Importantes
 
 ### Entidad maestra
-- Debes especificar el `master_entity_id` de la entidad para la cual quieres crear el webhook
-- El usuario debe tener acceso a la entidad especificada
-- El webhook se asocia con la entidad maestra indicada en el payload
+Debes especificar el `master_entity_id` de la entidad para la cual quieres crear el webhook. El usuario debe tener acceso a la entidad especificada.
+
+### Validación de URL
+No puede existir un webhook con la misma URL para la misma entidad. Si intentas crear un webhook duplicado, recibirás un error de validación.
 
 ### Eventos disponibles
 - `document.issued` - Documento emitido exitosamente
 - `document.delivered` - Documento entregado al receptor
-- `document.accepted` - Documento aceptado por el SII
 - `document.rejected` - Documento rechazado por el SII
+- `document.paid` - Documento pagado
+- `document.cancelled` - Documento cancelado

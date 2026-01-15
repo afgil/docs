@@ -1,45 +1,34 @@
 ---
-title: 'Webhooks'
+title: 'Listar webhooks'
 openapi: 'GET /webhooks'
 ---
 
+Este endpoint permite obtener la lista de webhooks configurados para las entidades accesibles del usuario autenticado. Si se proporciona `master_entity_id`, filtra solo los webhooks de esa entidad específica.
+
+## ¿Para qué se usa?
+
+Permite obtener la lista de webhooks configurados para las entidades accesibles del usuario. Útil para:
+- Ver todos los webhooks configurados
+- Verificar la configuración de notificaciones
+- Revisar el estado y métricas de entrega de webhooks
+
 ## Qué hace
 
-- Gestiona webhooks para notificaciones de eventos de documentos
-- Permite crear y listar webhooks asociados a la empresa del usuario autenticado
-- Soporta configuración de eventos específicos y URLs de callback
-- Incluye métricas de entrega y estado de cada webhook
-- Soporta filtrado por entidad específica
-
-## Parámetros
-
-### master_entity_id (opcional)
-
-- **Tipo:** Integer (query parameter)
-- **Descripción:** ID de la entidad maestra para filtrar webhooks. Si no se proporciona, retorna webhooks de todas las entidades accesibles del usuario.
-- **Comportamiento:** 
-  - Sin `master_entity_id`: Retorna todos los webhooks de todas las entidades accesibles del usuario (tanto de producción como de sandbox según la API key utilizada)
-  - Con `master_entity_id`: Retorna solo los webhooks de la entidad especificada (validando que el usuario tenga acceso)
+- Retorna todos los webhooks de las entidades accesibles del usuario
+- Si se proporciona `master_entity_id`, filtra solo los webhooks de esa entidad específica
+- Incluye información de eventos configurados, URLs de callback, estado activo/inactivo y métricas de entrega
+- Solo retorna webhooks de entidades a las que el usuario tiene acceso
 
 ## Ejemplos de uso
 
-- **Listar todos los webhooks del usuario:**
-  ```
-  GET /api/v1/webhooks/
-  ```
+- **Listar todos los webhooks:** Consultar todos los webhooks configurados para todas las entidades accesibles
+- **Filtrar por entidad:** Obtener solo los webhooks de una entidad específica usando `master_entity_id`
+- **Monitorear estado:** Revisar el estado de entrega y tasas de éxito de los webhooks configurados
 
-- **Listar webhooks de una entidad específica:**
-  ```
-  GET /api/v1/webhooks/?master_entity_id=123
-  ```
+## Consideraciones Importantes
 
-- Configurar notificaciones automáticas cuando se emiten documentos
-- Recibir alertas cuando documentos son aceptados o rechazados por el SII
-- Integrar con sistemas externos para procesamiento automático de documentos
-- Monitorear el estado de entrega de documentos importantes
+### Acceso a Entidades
+Solo se pueden consultar webhooks de entidades a las que el usuario tiene acceso. Si el usuario no tiene entidades accesibles, se retorna una lista vacía.
 
-## Notas importantes
-
-- **API Keys:** El filtrado automático por sandbox/production se realiza según el tipo de API key utilizada (`is_sandbox`)
-- **Acceso:** Solo se retornan webhooks de entidades a las que el usuario tiene acceso
-- **Sin entidades:** Si el usuario no tiene entidades accesibles, se retorna una lista vacía
+### Métricas de Entrega
+Cada webhook incluye métricas de entrega como tasa de éxito, último código de estado HTTP, fecha del último envío e información de la última entrega. Esto permite monitorear la salud y confiabilidad de tus webhooks.
