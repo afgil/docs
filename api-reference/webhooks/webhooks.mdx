@@ -9,10 +9,37 @@ openapi: 'GET /webhooks'
 - Permite crear y listar webhooks asociados a la empresa del usuario autenticado
 - Soporta configuración de eventos específicos y URLs de callback
 - Incluye métricas de entrega y estado de cada webhook
+- Soporta filtrado por entidad específica
+
+## Parámetros
+
+### master_entity_id (opcional)
+
+- **Tipo:** Integer (query parameter)
+- **Descripción:** ID de la entidad maestra para filtrar webhooks. Si no se proporciona, retorna webhooks de todas las entidades accesibles del usuario.
+- **Comportamiento:** 
+  - Sin `master_entity_id`: Retorna todos los webhooks de todas las entidades accesibles del usuario (tanto de producción como de sandbox según la API key utilizada)
+  - Con `master_entity_id`: Retorna solo los webhooks de la entidad especificada (validando que el usuario tenga acceso)
 
 ## Ejemplos de uso
+
+- **Listar todos los webhooks del usuario:**
+  ```
+  GET /api/v1/webhooks/
+  ```
+
+- **Listar webhooks de una entidad específica:**
+  ```
+  GET /api/v1/webhooks/?master_entity_id=123
+  ```
 
 - Configurar notificaciones automáticas cuando se emiten documentos
 - Recibir alertas cuando documentos son aceptados o rechazados por el SII
 - Integrar con sistemas externos para procesamiento automático de documentos
 - Monitorear el estado de entrega de documentos importantes
+
+## Notas importantes
+
+- **API Keys:** El filtrado automático por sandbox/production se realiza según el tipo de API key utilizada (`is_sandbox`)
+- **Acceso:** Solo se retornan webhooks de entidades a las que el usuario tiene acceso
+- **Sin entidades:** Si el usuario no tiene entidades accesibles, se retorna una lista vacía

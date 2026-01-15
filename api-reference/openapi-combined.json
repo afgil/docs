@@ -1906,7 +1906,19 @@
           }
         ],
         "summary": "Listar webhooks",
-        "description": "Obtiene la lista de webhooks configurados para la empresa del usuario autenticado.",
+        "description": "Obtiene la lista de webhooks configurados para la empresa del usuario autenticado. Si se proporciona master_entity_id, filtra solo los webhooks de esa entidad.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad maestra para filtrar webhooks. Opcional. Si no se proporciona, retorna webhooks de todas las entidades accesibles del usuario.",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "example": 123
+          }
+        ],
         "responses": {
           "200": {
             "description": "Lista de webhooks obtenida exitosamente",
