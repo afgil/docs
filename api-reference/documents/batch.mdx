@@ -1,6 +1,6 @@
 ---
 title: 'Emisión masiva de documentos'
-openapi: 'POST /documents/batch'
+openapi: 'POST /api/v1/documents/batch'
 ---
 
 Crea hasta 200 documentos tributarios electrónicos en una sola llamada. La respuesta con el PDF y los detalles completos se entrega a través del [webhook configurado](/user-guide/getting-started#paso-4%3A-configura-las-notificaciones-webhooks/).
@@ -404,6 +404,11 @@ Incluye todos los campos de las Boletas de Honorarios (DTE 80) con las mismas ca
 - **Campos:**
   - `error` (String): Descripción del error
   - `code` (String): Código de error
+
+#### 400 - Credenciales no activas
+- **Descripción:** La empresa emisora no tiene credenciales SII activas configuradas
+- **Campos:**
+  - `error` (String): Mensaje descriptivo indicando que no hay credenciales activas para el RUT especificado
 
 #### 422 - Error de validación
 - **Descripción:** Cuerpo malformado o fallo de validación
