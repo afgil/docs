@@ -1,6 +1,6 @@
 {
     "paths": {
-        "/webhooks": {
+        "/v1/webhooks": {
             "get": {
                 "operationId": "listWebhooks",
                 "tags": [
