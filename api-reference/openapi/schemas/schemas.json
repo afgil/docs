@@ -732,7 +732,7 @@
             "type": "string",
             "nullable": true,
             "description": "URL de la siguiente página",
-            "example": "https://api.tupana.ai/v1/scheduled-documents?master_entity_id=123&page=2"
+            "example": "api/v1/scheduled-documents?master_entity_id=123&page=2"
           },
           "previous": {
             "type": "string",

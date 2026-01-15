@@ -2,6 +2,7 @@
     "paths": {
         "/webhooks": {
             "get": {
+                "operationId": "listWebhooks",
                 "tags": [
                     "Webhooks"
                 ],
@@ -78,6 +79,7 @@
                 }
             },
             "post": {
+                "operationId": "createWebhook",
                 "tags": [
                     "Webhooks"
                 ],
