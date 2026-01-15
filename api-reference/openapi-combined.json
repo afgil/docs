@@ -2252,7 +2252,7 @@
                 "type": "string",
                 "format": "uri",
                 "nullable": true,
-                "example": "api/v1/documents/12345/pdf"
+                "example": "https://api.tupana.ai/documents/12345/pdf"
               },
               "rejection_reason": {
                 "type": "string",
@@ -3224,7 +3224,7 @@
             "type": "string",
             "nullable": true,
             "description": "URL de la siguiente página",
-            "example": "api/v1/scheduled-documents?master_entity_id=123&page=2"
+            "example": "https://api.tupana.ai/v1/scheduled-documents?master_entity_id=123&page=2"
           },
           "previous": {
             "type": "string",
