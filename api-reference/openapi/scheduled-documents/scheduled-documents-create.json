@@ -1,6 +1,6 @@
 {
   "paths": {
-    "/api/v1/scheduled-documents": {
+    "/scheduled-documents": {
       "post": {
         "operationId": "createScheduledDocument",
         "tags": [

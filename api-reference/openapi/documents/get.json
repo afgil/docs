@@ -1,6 +1,6 @@
 {
     "paths": {
-        "/api/v1/documents/{document_id}": {
+        "/documents/{document_id}": {
             "get": {
                 "operationId": "getDocument",
                 "tags": [

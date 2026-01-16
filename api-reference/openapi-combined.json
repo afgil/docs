@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://api.tupana.ai",
+      "url": "https://api.tupana.ai/v1",
       "description": "Servidor de producción"
     }
   ],
@@ -17,7 +17,7 @@
     }
   ],
   "paths": {
-    "/api/v1/documents": {
+    "/documents": {
       "get": {
         "operationId": "listDocuments",
         "tags": [
@@ -29,7 +29,7 @@
           }
         ],
         "summary": "Listar documentos",
-        "description": "Obtiene las listas de documentos emitidos o recibidos por una entidad específica. Soporta búsqueda por folio, nombre del receptor y filtros avanzados.",
+        "description": "Obtiene las lista de documentos emitidos o recibidos por una entidad específica. Soporta búsqueda por folio, nombre del receptor y filtros avanzados.",
         "parameters": [
           {
             "name": "master_entity_id",
@@ -157,7 +157,7 @@
         }
       }
     },
-    "/api/v1/documents/batch": {
+    "/documents/batch": {
       "post": {
         "operationId": "createDocumentsBatch",
         "summary": "Envío de documentos en lote",
@@ -259,7 +259,7 @@
         ]
       }
     },
-    "/api/v1/documents/{document_id}": {
+    "/documents/{document_id}": {
       "get": {
         "operationId": "getDocument",
         "tags": [
@@ -343,7 +343,7 @@
         ]
       }
     },
-    "/api/v1/credentials": {
+    "/credentials": {
       "get": {
         "operationId": "listCredentials",
         "tags": [
@@ -648,7 +648,7 @@
         ]
       }
     },
-    "/api/v1/master-entities": {
+    "/master-entities": {
       "get": {
         "summary": "Buscar entidad por RUT",
         "description": "Busca una entidad maestra específica por su RUT. Requiere autenticación por API Key.",
@@ -724,7 +724,7 @@
         ]
       }
     },
-    "/api/v1/scheduled-documents": {
+    "/scheduled-documents": {
       "get": {
         "tags": [
           "Documentos Programados"
@@ -992,7 +992,7 @@
         }
       }
     },
-    "/api/v1/scheduled-documents/{id}": {
+    "/scheduled-documents/{id}": {
       "get": {
         "tags": [
           "Documentos Programados"
@@ -1241,7 +1241,7 @@
         }
       }
     },
-    "/api/v1/scheduled-documents/{id}/preview": {
+    "/scheduled-documents/{id}/preview": {
       "get": {
         "tags": [
           "Documentos Programados"
@@ -1336,7 +1336,7 @@
         }
       }
     },
-    "/api/v1/documents/{document_id}/states": {
+    "/documents/{document_id}/states": {
       "get": {
         "operationId": "listDocumentStates",
         "tags": [
@@ -1552,7 +1552,7 @@
         ]
       }
     },
-    "/api/v1/cessions/batch": {
+    "/cessions/batch": {
       "post": {
         "operationId": "createCessionBatch",
         "tags": [
@@ -1901,7 +1901,7 @@
         }
       }
     },
-    "/api/v1/webhooks": {
+    "/webhooks": {
       "get": {
         "operationId": "listWebhooks",
         "tags": [
