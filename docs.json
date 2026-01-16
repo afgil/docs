@@ -96,6 +96,11 @@
     }
   },
   "openapi": "api-reference/openapi-combined.json",
+  "api": {
+    "mdx": {
+      "server": "https://api.tupana.ai/v1"
+    }
+  },
   "topbarLinks": [
     {
       "name": "Soporte",
