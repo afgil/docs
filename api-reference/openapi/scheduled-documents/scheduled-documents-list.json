@@ -1,6 +1,6 @@
 {
   "paths": {
-    "/scheduled-documents": {
+    "/v1/scheduled-documents": {
       "get": {
         "tags": [
           "Documentos Programados"

@@ -1,6 +1,6 @@
 {
   "paths": {
-    "/scheduled-documents": {
+    "/v1/scheduled-documents": {
       "post": {
         "operationId": "createScheduledDocument",
         "tags": [

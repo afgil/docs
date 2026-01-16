@@ -1,6 +1,6 @@
 {
   "paths": {
-    "/scheduled-documents/{id}": {
+    "/v1/scheduled-documents/{id}": {
       "delete": {
         "tags": [
           "Documentos Programados"

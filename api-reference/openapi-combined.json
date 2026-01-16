@@ -17,7 +17,7 @@
     }
   ],
   "paths": {
-    "/api/v1/documents": {
+    "/v1/documents": {
       "get": {
         "tags": [
           "Documentos"
@@ -156,7 +156,7 @@
         }
       }
     },
-    "/api/v1/documents/batch": {
+    "/v1/documents/batch": {
       "post": {
         "operationId": "createDocumentsBatch",
         "summary": "Envío de documentos en lote",
@@ -258,7 +258,7 @@
         ]
       }
     },
-    "/api/v1/documents/{document_id}": {
+    "/v1/documents/{document_id}": {
       "get": {
         "tags": [
           "Documentos"
@@ -341,7 +341,7 @@
         ]
       }
     },
-    "/api/v1/credentials": {
+    "/v1/credentials": {
       "get": {
         "summary": "Listar credenciales",
         "description": "Obtiene todas las activas del usuario autenticado",
@@ -642,7 +642,7 @@
         ]
       }
     },
-    "/api/v1/master-entities": {
+    "/v1/master-entities": {
       "get": {
         "summary": "Buscar entidad por RUT",
         "description": "Busca una entidad maestra específica por su RUT. Requiere autenticación por API Key.",
@@ -718,7 +718,7 @@
         ]
       }
     },
-    "/api/v1/scheduled-documents": {
+    "/v1/scheduled-documents": {
       "get": {
         "tags": [
           "Documentos Programados"
@@ -986,7 +986,7 @@
         }
       }
     },
-    "/api/v1/scheduled-documents/{id}": {
+    "/v1/scheduled-documents/{id}": {
       "get": {
         "tags": [
           "Documentos Programados"
@@ -1235,7 +1235,7 @@
         }
       }
     },
-    "/api/v1/scheduled-documents/{id}/preview": {
+    "/v1/scheduled-documents/{id}/preview": {
       "get": {
         "tags": [
           "Documentos Programados"
@@ -1330,7 +1330,7 @@
         }
       }
     },
-    "/api/v1/documents/{document_id}/states": {
+    "/v1/documents/{document_id}/states": {
       "get": {
         "tags": [
           "Estados de Documentos"
@@ -1545,7 +1545,7 @@
         ]
       }
     },
-    "/api/v1/cessions/batch": {
+    "/v1/cessions/batch": {
       "post": {
         "operationId": "createCessionBatch",
         "tags": [
@@ -1894,7 +1894,7 @@
         }
       }
     },
-    "/api/v1/v1/webhooks": {
+    "/v1/webhooks": {
       "get": {
         "operationId": "listWebhooks",
         "tags": [

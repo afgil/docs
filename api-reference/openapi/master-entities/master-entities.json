@@ -1,6 +1,6 @@
 {
   "paths": {
-    "/master-entities": {
+    "/v1/master-entities": {
       "get": {
         "summary": "Buscar entidad por RUT",
         "description": "Busca una entidad maestra específica por su RUT. Requiere autenticación por API Key.",

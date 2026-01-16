@@ -1,6 +1,6 @@
 {
     "paths": {
-        "/documents/{document_id}/states": {
+        "/v1/documents/{document_id}/states": {
             "get": {
                 "tags": [
                     "Estados de Documentos"

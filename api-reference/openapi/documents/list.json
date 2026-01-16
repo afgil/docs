@@ -1,6 +1,6 @@
 {
   "paths": {
-    "/documents": {
+    "/v1/documents": {
       "get": {
         "tags": [
           "Documentos"
