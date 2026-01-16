@@ -54,7 +54,7 @@ def main():
     # Verificar archivos JSON
     print("📋 Verificando archivos OpenAPI...")
     files = [
-        'api-reference/openapi/base.json',
+        'api-reference/openapi/base/base-complete.json',
         'api-reference/openapi/documents.json',
         'api-reference/openapi/master-entities.json', 
         'api-reference/openapi/credentials.json',

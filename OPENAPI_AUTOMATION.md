@@ -8,7 +8,7 @@ Este documento explica cómo funciona el sistema automatizado para combinar arch
 docs/
 ├── api-reference/
 │   └── openapi/
-│       ├── base.json              # Info básica, servers, security
+│       ├── base-complete.json     # Info básica, servers, security, components
 │       ├── documents.json         # Endpoints /documents/*
 │       ├── master-entities.json   # Endpoint /master-entities
 │       ├── credentials.json       # Endpoints /credentials/*
