@@ -1,6 +1,6 @@
 ---
 title: 'Obtener documento específico'
-openapi: 'GET /documents/{document_id}'
+openapi: 'GET /v1/documents/{document_id}'
 ---
 
 Obtiene toda la información completa de un documento tributario específico, incluyendo el PDF y XML cuando están disponibles. **El PDF siempre se incluye en la respuesta** (campo `pdf_url`) sin necesidad de parámetros adicionales. Este endpoint es útil para consultar detalles completos de un documento ya emitido o recibido.
