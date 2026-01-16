@@ -349,6 +349,11 @@
         "tags": [
           "Credenciales"
         ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
         "summary": "Listar credenciales",
         "description": "Obtiene todas las activas del usuario autenticado",
         "responses": {
@@ -453,12 +458,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ]
+        }
       },
       "post": {
         "operationId": "createCredential",
