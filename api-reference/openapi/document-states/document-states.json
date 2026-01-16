@@ -388,7 +388,7 @@
                                 "type": "string",
                                 "format": "uri",
                                 "nullable": true,
-                                "example": "https://api.tupana.ai/documents/12345/pdf"
+                                "example": "https://api.tupana.ai/v1/documents/12345/pdf"
                             },
                             "rejection_reason": {
                                 "type": "string",
