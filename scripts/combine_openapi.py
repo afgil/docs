@@ -304,21 +304,22 @@ def combine_openapi_files():
                 )
 
             # Combinar paths (combinar métodos si el path ya existe)
-            # Agregar prefijo /v1 a todos los paths si no lo tienen
+            # Los paths se usan tal cual vienen (sin agregar /v1, ya está en el servidor base)
             if "paths" in data:
                 for path, methods in data["paths"].items():
-                    # Agregar prefijo /v1 si no lo tiene
-                    prefixed_path = path
-                    if not path.startswith("/v1/"):
-                        # Si ya tiene /v1 al inicio pero sin la barra, agregar la barra
-                        if path.startswith("/v1"):
-                            prefixed_path = path
-                        else:
-                            prefixed_path = f"/v1{path}"
+                    # Remover /v1/ del path si lo tiene (el servidor base ya lo tiene)
+                    clean_path = path
+                    if path.startswith("/v1/"):
+                        clean_path = "/" + path[4:]  # Remover "/v1/" y agregar "/" -> queda "/documents"
+                    elif path.startswith("/v1"):
+                        clean_path = "/" + path[3:]  # Remover "/v1" y agregar "/" -> queda "/documents"
+                    # Si no tiene /v1, usar el path tal cual (debe empezar con /)
+                    elif not path.startswith("/"):
+                        clean_path = "/" + path
                     
-                    if prefixed_path not in combined["paths"]:
-                        combined["paths"][prefixed_path] = {}
-                    combined["paths"][prefixed_path].update(methods)
+                    if clean_path not in combined["paths"]:
+                        combined["paths"][clean_path] = {}
+                    combined["paths"][clean_path].update(methods)
 
             # Combinar components
             if "components" in data:

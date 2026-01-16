@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://api.tupana.ai",
+      "url": "https://api.tupana.ai/v1",
       "description": "Servidor de producción"
     }
   ],
@@ -17,7 +17,7 @@
     }
   ],
   "paths": {
-    "/v1/documents": {
+    "/documents": {
       "get": {
         "tags": [
           "Documentos"
@@ -156,7 +156,7 @@
         }
       }
     },
-    "/v1/documents/batch": {
+    "/documents/batch": {
       "post": {
         "operationId": "createDocumentsBatch",
         "summary": "Envío de documentos en lote",
@@ -258,7 +258,7 @@
         ]
       }
     },
-    "/v1/documents/{document_id}": {
+    "/documents/{document_id}": {
       "get": {
         "tags": [
           "Documentos"
@@ -341,7 +341,7 @@
         ]
       }
     },
-    "/v1/credentials": {
+    "/credentials": {
       "get": {
         "summary": "Listar credenciales",
         "description": "Obtiene todas las activas del usuario autenticado",
@@ -642,7 +642,7 @@
         ]
       }
     },
-    "/v1/master-entities": {
+    "/master-entities": {
       "get": {
         "summary": "Buscar entidad por RUT",
         "description": "Busca una entidad maestra específica por su RUT. Requiere autenticación por API Key.",
@@ -718,7 +718,7 @@
         ]
       }
     },
-    "/v1/scheduled-documents": {
+    "/scheduled-documents": {
       "get": {
         "tags": [
           "Documentos Programados"
@@ -986,7 +986,7 @@
         }
       }
     },
-    "/v1/scheduled-documents/{id}": {
+    "/scheduled-documents/{id}": {
       "get": {
         "tags": [
           "Documentos Programados"
@@ -1235,7 +1235,7 @@
         }
       }
     },
-    "/v1/scheduled-documents/{id}/preview": {
+    "/scheduled-documents/{id}/preview": {
       "get": {
         "tags": [
           "Documentos Programados"
@@ -1330,7 +1330,7 @@
         }
       }
     },
-    "/v1/documents/{document_id}/states": {
+    "/documents/{document_id}/states": {
       "get": {
         "tags": [
           "Estados de Documentos"
@@ -1545,7 +1545,7 @@
         ]
       }
     },
-    "/v1/cessions/batch": {
+    "/cessions/batch": {
       "post": {
         "operationId": "createCessionBatch",
         "tags": [
@@ -1894,7 +1894,7 @@
         }
       }
     },
-    "/v1/webhooks": {
+    "/webhooks": {
       "get": {
         "operationId": "listWebhooks",
         "tags": [
