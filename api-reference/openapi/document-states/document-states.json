@@ -1,7 +1,8 @@
 {
     "paths": {
-        "/v1/documents/{document_id}/states": {
+        "/documents/{document_id}/states": {
             "get": {
+                "operationId": "listDocumentStates",
                 "tags": [
                     "Estados de Documentos"
                 ],

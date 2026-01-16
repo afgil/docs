@@ -1,6 +1,6 @@
 {
   "paths": {
-    "/v1/scheduled-documents/{id}": {
+    "/scheduled-documents/{id}": {
       "patch": {
         "operationId": "updateScheduledDocument",
         "tags": [

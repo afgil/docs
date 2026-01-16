@@ -1,7 +1,8 @@
 {
     "paths": {
-        "/v1/documents/{document_id}": {
+        "/documents/{document_id}": {
             "get": {
+                "operationId": "getDocument",
                 "tags": [
                     "Documentos"
                 ],

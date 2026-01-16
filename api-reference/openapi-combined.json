@@ -19,6 +19,7 @@
   "paths": {
     "/documents": {
       "get": {
+        "operationId": "listDocuments",
         "tags": [
           "Documentos"
         ],
@@ -260,6 +261,7 @@
     },
     "/documents/{document_id}": {
       "get": {
+        "operationId": "getDocument",
         "tags": [
           "Documentos"
         ],
@@ -1332,6 +1334,7 @@
     },
     "/documents/{document_id}/states": {
       "get": {
+        "operationId": "listDocumentStates",
         "tags": [
           "Estados de Documentos"
         ],
