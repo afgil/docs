@@ -12,7 +12,7 @@
           }
         ],
         "summary": "Listar documentos",
-        "description": "Obtiene la lista de documentos emitidos o recibidos por una entidad específica. Soporta búsqueda por folio, nombre del receptor y filtros avanzados.",
+        "description": "Obtiene las lista de documentos emitidos o recibidos por una entidad específica. Soporta búsqueda por folio, nombre del receptor y filtros avanzados.",
         "parameters": [
           {
             "name": "master_entity_id",
