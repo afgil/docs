@@ -1,6 +1,6 @@
 {
   "paths": {
-    "/documents/batch": {
+    "/api/v1/documents/batch": {
       "post": {
         "operationId": "createDocumentsBatch",
         "summary": "Envío de documentos en lote",

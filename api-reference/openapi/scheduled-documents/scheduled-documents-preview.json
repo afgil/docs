@@ -1,6 +1,6 @@
 {
   "paths": {
-    "/scheduled-documents/{id}/preview": {
+    "/api/v1/scheduled-documents/{id}/preview": {
       "get": {
         "tags": [
           "Documentos Programados"
