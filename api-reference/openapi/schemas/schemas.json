@@ -94,12 +94,14 @@
         "type": "object",
         "properties": {
           "purchase_transaction_type": {
-            "type": "integer",
-            "description": "Tipo de transacción de compra"
+            "type": "string",
+            "description": "Tipo de transacción de compra",
+            "nullable": true
           },
           "sale_transaction_type": {
-            "type": "integer",
-            "description": "Tipo de transacción de venta"
+            "type": "string",
+            "description": "Tipo de transacción de venta",
+            "nullable": true
           },
           "payment_method": {
             "type": "string",
@@ -108,17 +110,20 @@
               "1",
               "2",
               "3"
-            ]
+            ],
+            "nullable": true
           },
           "due_date": {
             "type": "string",
             "format": "date",
-            "description": "Fecha de vencimiento"
+            "description": "Fecha de vencimiento",
+            "nullable": true
           },
           "vat_withheld": {
             "type": "boolean",
             "description": "Indica si el IVA está retenido. Solo aplicable para facturas de compra (DTE 46) y notas de crédito que referencian facturas de compra.",
-            "example": false
+            "example": false,
+            "nullable": true
           },
           "retention_type": {
             "type": "string",
@@ -127,7 +132,23 @@
               "RETRECEPTOR",
               "RETCONTRIBUYENTE"
             ],
-            "example": "RETRECEPTOR"
+            "example": "RETRECEPTOR",
+            "nullable": true
+          },
+          "purchase_type": {
+            "type": "string",
+            "description": "Tipo de compra para facturas recibidas en el SII",
+            "enum": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7"
+            ],
+            "example": "1",
+            "nullable": true
           }
         }
       },
@@ -307,8 +328,25 @@
             "format": "uuid",
             "description": "Identificador único del lote"
           },
+          "status": {
+            "type": "string",
+            "description": "Estado del batch",
+            "enum": [
+              "created",
+              "processing",
+              "completed",
+              "failed"
+            ],
+            "example": "processing"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha y hora de creación del batch"
+          },
           "documents": {
             "type": "array",
+            "description": "Array de documentos procesados en el batch",
             "items": {
               "type": "object",
               "properties": {
@@ -316,22 +354,199 @@
                   "type": "integer",
                   "description": "Índice del documento en el array original"
                 },
-                "document_id": {
-                  "type": "string",
-                  "format": "uuid",
-                  "description": "ID único del documento creado (UUID)"
-                },
                 "status": {
                   "type": "string",
                   "enum": [
                     "created",
-                    "invalid"
+                    "processing",
+                    "success",
+                    "invalid",
+                    "temporary_error",
+                    "permanent_error",
+                    "incomplete"
                   ],
-                  "description": "Estado de la creación del documento"
+                  "description": "Estado de procesamiento del documento"
+                },
+                "document": {
+                  "type": "object",
+                  "nullable": true,
+                  "description": "Información completa del documento (solo presente si status permite tener documento)",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "ID único del documento creado"
+                    },
+                    "folio": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Número de folio del documento"
+                    },
+                    "date_issued": {
+                      "type": "string",
+                      "format": "date",
+                      "description": "Fecha de emisión del documento"
+                    },
+                    "amount_with_iva": {
+                      "type": "number",
+                      "format": "float",
+                      "description": "Monto total con IVA"
+                    },
+                    "receiver_id": {
+                      "type": "integer",
+                      "nullable": true,
+                      "description": "ID de la entidad receptora"
+                    },
+                    "is_draft": {
+                      "type": "boolean",
+                      "description": "Indica si el documento es un borrador"
+                    },
+                    "can_be_issued": {
+                      "type": "boolean",
+                      "description": "Indica si el documento puede ser emitido"
+                    },
+                    "dte_type": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "description": "Código del tipo de DTE"
+                        },
+                        "description": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "sender": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "tax_id": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "receiver": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "tax_id": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "items": {
+                      "type": "array",
+                      "description": "Array de productos/servicios del documento",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "item_name": {
+                            "type": "string"
+                          },
+                          "item_description": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "quantity": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "unit_price": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "item_total": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "unit": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "item_code": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "item_type_code": {
+                            "type": "integer",
+                            "nullable": true
+                          },
+                          "discount_percent": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "other_tax": {
+                            "type": "number",
+                            "nullable": true
+                          }
+                        }
+                      }
+                    },
+                    "document_total": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "net_amount": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "iva_rate": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "iva_amount": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "total_amount": {
+                          "type": "number",
+                          "nullable": true
+                        }
+                      }
+                    },
+                    "pdf_url": {
+                      "type": "string",
+                      "format": "uri",
+                      "nullable": true,
+                      "description": "URL presignada al PDF del documento (válida por 2 horas)"
+                    },
+                    "pdf_download_url": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "URL de descarga del PDF"
+                    },
+                    "retention_type": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Tipo de retención para boletas de honorarios (DTE 80, 90)",
+                      "enum": [
+                        "RETRECEPTOR",
+                        "RETCONTRIBUYENTE"
+                      ]
+                    },
+                    "export_data": {
+                      "type": "object",
+                      "nullable": true,
+                      "description": "Datos de exportación para facturas internacionales (DTE 110, 111, 112)"
+                    }
+                  }
                 },
                 "errors": {
                   "type": "object",
-                  "description": "Errores de validación si el estado es 'invalid'"
+                  "nullable": true,
+                  "description": "Errores de validación si el estado es 'invalid' o hay errores"
                 }
               }
             }
@@ -578,6 +793,29 @@
                 "items": {
                   "$ref": "#/components/schemas/ReferenceItem"
                 }
+              },
+              "details": {
+                "type": "array",
+                "description": "Array de productos/líneas del documento",
+                "items": {
+                  "$ref": "#/components/schemas/DetailItem"
+                },
+                "nullable": true
+              },
+              "header": {
+                "$ref": "#/components/schemas/DocumentHeader",
+                "description": "Información del encabezado del documento (transacción, pago, etc.)",
+                "nullable": true
+              },
+              "document_issuer": {
+                "$ref": "#/components/schemas/DocumentIssuer",
+                "description": "Información completa del emisor del documento",
+                "nullable": true
+              },
+              "document_receiver": {
+                "$ref": "#/components/schemas/DocumentReceiver",
+                "description": "Información completa del receptor del documento",
+                "nullable": true
               }
             }
           }

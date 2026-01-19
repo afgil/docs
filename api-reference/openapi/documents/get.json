@@ -7,7 +7,7 @@
                     "Documentos"
                 ],
                 "summary": "Obtener documento específico",
-                "description": "Obtiene toda la información completa de un documento tributario específico, incluyendo el PDF y XML cuando están disponibles. El PDF siempre se incluye en la respuesta (campo `pdf_url`). Este endpoint es útil para consultar detalles completos de un documento ya emitido o recibido.\n\n**Seguridad:** El usuario solo puede acceder al documento si es emisor (sender) o receptor (receiver) del documento. Si el usuario no tiene acceso, se retorna un error 403 Forbidden.",
+                "description": "Obtiene toda la información completa de un documento tributario específico, incluyendo:\n\n- **PDF y XML** cuando están disponibles (el PDF siempre se incluye en la respuesta, campo `pdf_url`)\n- **Detalles (productos/líneas)** del documento (campo `details`)\n- **Header completo** con información de transacción, pago y tipo de compra (campo `header`)\n- **Información del emisor** completa (campo `document_issuer`)\n- **Información del receptor** completa (campo `document_receiver`)\n- **Referencias** a otros documentos, como notas de crédito (campo `references`)\n\nEste endpoint es útil para consultar detalles completos de un documento ya emitido o recibido.\n\n**Seguridad:** El usuario solo puede acceder al documento si es emisor (sender) o receptor (receiver) del documento. Si el usuario no tiene acceso, se retorna un error 403 Forbidden.",
                 "parameters": [
                     {
                         "name": "document_id",
@@ -21,7 +21,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Documento obtenido exitosamente con PDF y XML cuando están disponibles",
+                        "description": "Documento obtenido exitosamente con toda la información completa: PDF, XML, detalles (productos), header, información del emisor y receptor, y referencias",
                         "content": {
                             "application/json": {
                                 "schema": {

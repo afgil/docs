@@ -5,11 +5,7 @@ openapi: 'GET /documents/{document_id}'
 
 ## Qué hace
 
-- Obtiene toda la información completa de un documento tributario específico
-- **Siempre incluye el PDF** en la respuesta (campo `pdf_url`) - no requiere parámetros adicionales
-- Incluye el XML cuando está disponible
-- Proporciona URLs temporales para descargar los archivos
-- Muestra todos los detalles del documento, emisor, receptor y productos/servicios
+Obtiene toda la información completa de un documento tributario específico, incluyendo PDF, XML, productos, información del emisor y receptor, header, y referencias. Este endpoint es útil para consultar detalles completos de un documento ya emitido o recibido.
 
 ## Ejemplos de uso
 
@@ -18,15 +14,3 @@ openapi: 'GET /documents/{document_id}'
 - Obtener el XML para procesos de integración
 - Verificar información de un documento recibido
 - Auditar documentos antes de procesarlos
-
-### Notas Importantes
-
-- **El PDF siempre se incluye** en la respuesta sin necesidad de parámetros adicionales
-- El campo `pdf_url` contiene la URL presignada del PDF cuando está disponible
-- El campo `pdf_source` indica el origen del PDF (`document_file`, `sandbox_generated`, `sii_scraped`, etc.)
-- El PDF se obtiene dinámicamente y puede tomar unos segundos en generarse si no está cacheado
-- Las URLs presignadas del PDF tienen una expiración limitada (generalmente 1 hora)
-- El XML solo está disponible para documentos que han sido enviados al SII
-- Para documentos muy antiguos, es posible que el XML no esté disponible en el sistema
-- El campo `xml_error` indica problemas específicos al obtener el XML
-- Si el PDF no está disponible, el campo `pdf_url` será `null` y puede incluir `pdf_error` con el motivo
