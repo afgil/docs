@@ -28,7 +28,8 @@
           {
             "group": "Referencia",
             "pages": [
-              "user-guide/documents"
+              "user-guide/documents",
+              "user-guide/webhooks"
             ]
           }
         ]

@@ -1,0 +1,738 @@
+---
+title: 'Webhooks'
+description: 'Guía completa para configurar y usar webhooks en Tu Pana'
+---
+
+# Webhooks
+
+Los webhooks de Tu Pana te permiten recibir notificaciones en tiempo real cuando ocurren eventos importantes en tu sistema de facturación. Esta guía te ayudará a configurar y usar webhooks de forma efectiva.
+
+## ¿Qué son los webhooks?
+
+Los webhooks son una forma de comunicación donde Tu Pana envía automáticamente una notificación HTTP POST a una URL que tú configures cuando ocurre un evento específico (por ejemplo, cuando se emite una factura).
+
+A diferencia de las APIs donde tú haces las consultas, con los webhooks **Tu Pana te notifica** cuando algo importante sucede, permitiéndote mantener tu sistema sincronizado en tiempo real.
+
+## Cómo crear un webhook
+
+### Desde la interfaz web
+
+1. Ve a **Configuración → Webhooks**
+2. Haz clic en **Nuevo Webhook**
+3. Completa los siguientes campos:
+   - **URL del Endpoint**: La URL de tu servidor que recibirá las notificaciones (debe ser HTTPS)
+   - **Eventos**: Selecciona los eventos que quieres recibir
+   - **Secret** (opcional): Una clave secreta para verificar la autenticidad de las notificaciones
+   - **Activo**: Marca esta opción para activar el webhook
+4. Haz clic en **Guardar**
+
+### Ejemplo de configuración
+
+```
+URL: https://mi-servidor.com/webhooks/tupana
+Eventos: document.issued, document.paid
+Secret: mi_clave_secreta_123
+Activo: ✓
+```
+
+## Seguridad
+
+### Firma de webhooks
+
+Para verificar que las notificaciones provienen realmente de Tu Pana, puedes configurar un **secret** al crear el webhook. Tu Pana firmará cada notificación usando HMAC SHA-256.
+
+#### Cómo verificar la firma
+
+**Node.js:**
+
+```javascript
+const crypto = require('crypto');
+
+function verifySignature(payload, signature, secret) {
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(JSON.stringify(payload))
+    .digest('hex');
+  
+  return crypto.timingSafeEqual(
+    Buffer.from(expected),
+    Buffer.from(signature)
+  );
+}
+
+// En tu endpoint
+const signature = req.headers['x-pana-signature'];
+const isValid = verifySignature(req.body, signature, process.env.WEBHOOK_SECRET);
+
+if (!isValid) {
+  return res.status(401).send('Invalid signature');
+}
+```
+
+**Python:**
+
+```python
+import hmac
+import hashlib
+import json
+
+def verify_signature(payload, signature, secret):
+    expected = hmac.new(
+        secret.encode(),
+        json.dumps(payload, sort_keys=True).encode(),
+        hashlib.sha256
+    ).hexdigest()
+    
+    return hmac.compare_digest(expected, signature)
+
+# En tu endpoint
+signature = request.headers.get('X-Pana-Signature')
+is_valid = verify_signature(request.json, signature, os.environ['WEBHOOK_SECRET'])
+
+if not is_valid:
+    return {'error': 'Invalid signature'}, 401
+```
+
+### Headers enviados
+
+Cada notificación incluye los siguientes headers:
+
+- `Content-Type: application/json`
+- `User-Agent: Pana-Webhook/1.0`
+- `X-Pana-Event-Id`: ID único del evento (UUID)
+- `X-Pana-Event-Type`: Tipo de evento (ej: `document.issued`)
+- `X-Pana-Timestamp`: Timestamp ISO 8601 del evento
+- `X-Pana-Delivery`: ID único del intento de entrega (UUID)
+- `X-Pana-Signature`: Firma HMAC SHA-256 (si configuraste un secret)
+
+## Eventos soportados
+
+### Eventos de documentos
+
+- **`document.issued`**: Se emitió un documento exitosamente
+- **`document.issue_failed`**: Falló la emisión de un documento
+- **`document.updated`**: Se actualizó un documento existente
+- **`document.delivered`**: Se entregó un documento (PDF/XML enviado al cliente)
+- **`document.rejected`**: El SII rechazó el documento
+- **`document.paid`**: El documento fue pagado (conciliación bancaria)
+- **`document.cancelled`**: El documento fue anulado o tiene nota de crédito
+
+### Eventos de documentos programados
+
+- **`scheduled_document.created`**: Se creó un documento programado
+- **`scheduled_document.updated`**: Se actualizó un documento programado
+- **`scheduled_document.run_started`**: Se inició la ejecución de un documento programado
+- **`scheduled_document.run_succeeded`**: La ejecución de un documento programado fue exitosa
+- **`scheduled_document.run_failed`**: La ejecución de un documento programado falló
+
+### Eventos operacionales
+
+- **`webhook.test`**: Evento de prueba para verificar que tu endpoint funciona correctamente
+
+## Payloads por Evento
+
+Cada evento tiene una estructura de payload específica. Navega a cada evento para ver su payload completo:
+
+### Navegación Rápida
+
+- [Eventos de Documentos](#eventos-de-documentos)
+  - [document.issued](#documentissued)
+  - [document.issue_failed](#documentissue_failed)
+  - [document.updated](#documentupdated)
+  - [document.delivered](#documentdelivered)
+  - [document.rejected](#documentrejected)
+  - [document.paid](#documentpaid)
+  - [document.cancelled](#documentcancelled)
+- [Eventos de Documentos Programados](#eventos-de-documentos-programados)
+  - [scheduled_document.created](#scheduled_documentcreated)
+  - [scheduled_document.updated](#scheduled_documentupdated)
+  - [scheduled_document.run_started](#scheduled_documentrun_started)
+  - [scheduled_document.run_succeeded](#scheduled_documentrun_succeeded)
+  - [scheduled_document.run_failed](#scheduled_documentrun_failed)
+- [Eventos Operacionales](#eventos-operacionales)
+  - [webhook.test](#webhooktest)
+
+### Eventos de Documentos
+
+#### document.issued
+
+Se dispara cuando un documento se emite exitosamente. Incluye el PDF y XML del documento.
+
+```json
+{
+  "event": "document.issued",
+  "created_at": "2026-01-19T15:30:45.123456Z",
+  "data": {
+    "id": 1234,
+    "folio": "12345",
+    "date_issued": "2026-01-19",
+    "amount_with_iva": 119000.0,
+    "is_sandbox": false,
+    "dte_type": {
+      "code": "33",
+      "description": "Factura Electrónica"
+    },
+    "sender": {
+      "id": 1,
+      "name": "Empresa Emisora S.A.",
+      "tax_id": "76.123.456-7",
+      "email": "contacto@empresa.cl"
+    },
+    "receiver": {
+      "id": 2,
+      "name": "Cliente Receptor S.A.",
+      "tax_id": "77.987.654-3",
+      "email": "contacto@cliente.cl"
+    },
+    "document_issuer": {
+      "rut": "76.123.456-7",
+      "business_name": "Empresa Emisora S.A.",
+      "business_activity": "Desarrollo de Software",
+      "phone_number": "+56912345678",
+      "email": "contacto@empresa.cl",
+      "activity_code": "620100",
+      "sii_branch_code": "0",
+      "address": "Av. Providencia 123",
+      "district": "Providencia",
+      "city": "Santiago"
+    },
+    "document_receiver": {
+      "rut": "77.987.654-3",
+      "business_name": "Cliente Receptor S.A.",
+      "business_activity": "Servicios",
+      "contact": "Juan Pérez",
+      "address": "Av. Las Condes 456",
+      "district": "Las Condes",
+      "city": "Santiago"
+    },
+    "document_total": {
+      "net_amount": 100000.0,
+      "iva_rate": 19.0,
+      "iva_amount": 19000.0,
+      "total_amount": 119000.0
+    },
+    "details": [
+      {
+        "line_number": 1,
+        "item_name": "Servicio de desarrollo",
+        "item_description": "Desarrollo de aplicación web",
+        "quantity": 1.0,
+        "unit_price": 100000.0,
+        "item_total": 100000.0,
+        "item_code": "SERV001",
+        "item_type_code": "1",
+        "unit": "UN",
+        "discount_percent": null,
+        "other_tax": null
+      }
+    ],
+    "references": [],
+    "json_param": null,
+    "pdf_file": "https://s3.amazonaws.com/bucket/documento.pdf",
+    "xml_file": "https://s3.amazonaws.com/bucket/documento.xml"
+  }
+}
+```
+
+**Campos específicos:**
+- `pdf_file`: URL del PDF del documento (solo en este evento)
+- `xml_file`: URL del XML del documento
+- `document_issuer`: Información completa del emisor
+- `document_receiver`: Información completa del receptor
+- `details`: Array con todas las líneas del documento
+
+#### document.issue_failed
+
+Se dispara cuando falla la emisión de un documento.
+
+```json
+{
+  "event": "document.issue_failed",
+  "created_at": "2026-01-19T15:30:45.123456Z",
+  "data": {
+    "id": 1234,
+    "folio": null,
+    "date_issued": "2026-01-19",
+    "amount_with_iva": 119000.0,
+    "is_sandbox": false,
+    "dte_type": {
+      "code": "33",
+      "description": "Factura Electrónica"
+    },
+    "sender": {
+      "id": 1,
+      "name": "Empresa Emisora S.A.",
+      "tax_id": "76.123.456-7",
+      "email": "contacto@empresa.cl"
+    },
+    "receiver": {
+      "id": 2,
+      "name": "Cliente Receptor S.A.",
+      "tax_id": "77.987.654-3",
+      "email": "contacto@cliente.cl"
+    },
+    "document_total": {
+      "net_amount": 100000.0,
+      "iva_rate": 19.0,
+      "iva_amount": 19000.0,
+      "total_amount": 119000.0
+    },
+    "details": [ /* array de detalles completo */ ],
+    "xml_file": null,
+    "pdf_file": null
+  }
+}
+```
+
+**Nota:** En este evento, `folio`, `pdf_file` y `xml_file` pueden ser `null` ya que el documento no se emitió exitosamente.
+
+#### document.updated
+
+Se dispara cuando se actualiza un documento existente.
+
+```json
+{
+  "event": "document.updated",
+  "created_at": "2026-01-19T15:30:45.123456Z",
+  "data": {
+    "id": 1234,
+    "folio": "12345",
+    "date_issued": "2026-01-19",
+    "amount_with_iva": 119000.0,
+    "is_sandbox": false,
+    "dte_type": {
+      "code": "33",
+      "description": "Factura Electrónica"
+    },
+    "sender": { /* objeto sender completo */ },
+    "receiver": { /* objeto receiver completo */ },
+    "document_total": { /* objeto document_total completo */ },
+    "details": [ /* array de detalles completo */ ],
+    "xml_file": "https://s3.amazonaws.com/bucket/documento.xml",
+    "pdf_file": null
+  }
+}
+```
+
+**Nota:** `pdf_file` puede ser `null` en este evento ya que solo se genera en la emisión inicial.
+
+#### document.delivered
+
+Se dispara cuando se entrega un documento (PDF/XML enviado al cliente).
+
+```json
+{
+  "event": "document.delivered",
+  "created_at": "2026-01-19T15:30:45.123456Z",
+  "data": {
+    "id": 1234,
+    "folio": "12345",
+    "date_issued": "2026-01-19",
+    "amount_with_iva": 119000.0,
+    "dte_type": { /* objeto dte_type completo */ },
+    "sender": { /* objeto sender completo */ },
+    "receiver": { /* objeto receiver completo */ },
+    "document_total": { /* objeto document_total completo */ },
+    "details": [ /* array de detalles completo */ ],
+    "xml_file": "https://s3.amazonaws.com/bucket/documento.xml",
+    "pdf_file": null
+  }
+}
+```
+
+#### document.rejected
+
+Se dispara cuando el SII rechaza un documento.
+
+```json
+{
+  "event": "document.rejected",
+  "created_at": "2026-01-19T15:30:45.123456Z",
+  "data": {
+    "id": 1234,
+    "folio": "12345",
+    "date_issued": "2026-01-19",
+    "amount_with_iva": 119000.0,
+    "dte_type": { /* objeto dte_type completo */ },
+    "sender": { /* objeto sender completo */ },
+    "receiver": { /* objeto receiver completo */ },
+    "document_total": { /* objeto document_total completo */ },
+    "details": [ /* array de detalles completo */ ],
+    "xml_file": "https://s3.amazonaws.com/bucket/documento.xml",
+    "pdf_file": null
+  }
+}
+```
+
+#### document.paid
+
+Se dispara cuando un documento es pagado (conciliación bancaria).
+
+```json
+{
+  "event": "document.paid",
+  "created_at": "2026-01-19T15:30:45.123456Z",
+  "data": {
+    "id": 1234,
+    "folio": "12345",
+    "date_issued": "2026-01-19",
+    "amount_with_iva": 119000.0,
+    "dte_type": { /* objeto dte_type completo */ },
+    "sender": { /* objeto sender completo */ },
+    "receiver": { /* objeto receiver completo */ },
+    "document_total": { /* objeto document_total completo */ },
+    "details": [ /* array de detalles completo */ ],
+    "xml_file": "https://s3.amazonaws.com/bucket/documento.xml",
+    "pdf_file": null
+  }
+}
+```
+
+#### document.cancelled
+
+Se dispara cuando un documento es anulado o tiene una nota de crédito asociada.
+
+```json
+{
+  "event": "document.cancelled",
+  "created_at": "2026-01-19T15:30:45.123456Z",
+  "data": {
+    "id": 1234,
+    "folio": "12345",
+    "date_issued": "2026-01-19",
+    "amount_with_iva": 119000.0,
+    "dte_type": { /* objeto dte_type completo */ },
+    "sender": { /* objeto sender completo */ },
+    "receiver": { /* objeto receiver completo */ },
+    "document_total": { /* objeto document_total completo */ },
+    "details": [ /* array de detalles completo */ ],
+    "references": [
+      {
+        "reference_type": {"code": "1"},
+        "reference_folio": "54321",
+        "reference_date": "2026-01-18",
+        "reference_reason": "Anulación"
+      }
+    ],
+    "xml_file": "https://s3.amazonaws.com/bucket/documento.xml",
+    "pdf_file": null
+  }
+}
+```
+
+**Nota:** El campo `references` puede contener información sobre la nota de crédito o anulación asociada.
+
+### Eventos de Documentos Programados
+
+#### scheduled_document.created
+
+Se dispara cuando se crea un documento programado.
+
+```json
+{
+  "event": "scheduled_document.created",
+  "created_at": "2026-01-19T15:30:45.123456Z",
+  "data": {
+    "id": 5678,
+    "frequency": "monthly",
+    "status": "active",
+    "sender": {
+      "id": 1,
+      "name": "Empresa Emisora S.A.",
+      "tax_id": "76.123.456-7"
+    },
+    "receiver": {
+      "id": 2,
+      "name": "Cliente Receptor S.A.",
+      "tax_id": "77.987.654-3"
+    },
+    "dte_type": {
+      "code": "33",
+      "description": "Factura Electrónica"
+    },
+    "next_execution": "2026-02-01T00:00:00Z"
+  }
+}
+```
+
+**Campos específicos:**
+- `frequency`: Frecuencia de ejecución (daily, weekly, monthly, etc.)
+- `status`: Estado del documento programado (active, paused, etc.)
+- `next_execution`: Fecha y hora de la próxima ejecución
+
+#### scheduled_document.updated
+
+Se dispara cuando se actualiza un documento programado.
+
+```json
+{
+  "event": "scheduled_document.updated",
+  "created_at": "2026-01-19T15:30:45.123456Z",
+  "data": {
+    "id": 5678,
+    "frequency": "monthly",
+    "status": "active",
+    "sender": { /* objeto sender completo */ },
+    "receiver": { /* objeto receiver completo */ },
+    "dte_type": { /* objeto dte_type completo */ },
+    "next_execution": "2026-02-01T00:00:00Z"
+  }
+}
+```
+
+#### scheduled_document.run_started
+
+Se dispara cuando se inicia la ejecución de un documento programado.
+
+```json
+{
+  "event": "scheduled_document.run_started",
+  "created_at": "2026-01-19T15:30:45.123456Z",
+  "data": {
+    "id": 5678,
+    "frequency": "monthly",
+    "status": "running",
+    "sender": { /* objeto sender completo */ },
+    "receiver": { /* objeto receiver completo */ },
+    "dte_type": { /* objeto dte_type completo */ },
+    "next_execution": "2026-02-01T00:00:00Z"
+  }
+}
+```
+
+#### scheduled_document.run_succeeded
+
+Se dispara cuando la ejecución de un documento programado es exitosa.
+
+```json
+{
+  "event": "scheduled_document.run_succeeded",
+  "created_at": "2026-01-19T15:30:45.123456Z",
+  "data": {
+    "id": 5678,
+    "frequency": "monthly",
+    "status": "active",
+    "sender": { /* objeto sender completo */ },
+    "receiver": { /* objeto receiver completo */ },
+    "dte_type": { /* objeto dte_type completo */ },
+    "next_execution": "2026-03-01T00:00:00Z"
+  }
+}
+```
+
+**Nota:** `next_execution` se actualiza con la próxima fecha de ejecución.
+
+#### scheduled_document.run_failed
+
+Se dispara cuando falla la ejecución de un documento programado.
+
+```json
+{
+  "event": "scheduled_document.run_failed",
+  "created_at": "2026-01-19T15:30:45.123456Z",
+  "data": {
+    "id": 5678,
+    "frequency": "monthly",
+    "status": "active",
+    "sender": { /* objeto sender completo */ },
+    "receiver": { /* objeto receiver completo */ },
+    "dte_type": { /* objeto dte_type completo */ },
+    "next_execution": "2026-02-01T00:00:00Z"
+  }
+}
+```
+
+### Eventos Operacionales
+
+#### webhook.test
+
+Evento de prueba para verificar que tu endpoint funciona correctamente.
+
+```json
+{
+  "event": "webhook.test",
+  "created_at": "2026-01-19T15:30:45.123456Z",
+  "data": {
+    "message": "Este es un evento de prueba de webhook",
+    "webhook_id": 123,
+    "timestamp": "2026-01-19T15:30:45.123456Z",
+    "test": true
+  }
+}
+```
+
+**Uso:** Este evento se puede disparar manualmente desde la interfaz para probar tu endpoint sin esperar un evento real.
+
+### Estructura común del payload
+
+Todos los payloads comparten esta estructura base:
+
+- **`event`**: Tipo de evento que disparó el webhook (string)
+- **`created_at`**: Timestamp ISO 8601 del evento (string)
+- **`data`**: Objeto con los datos específicos del evento (varía según el tipo)
+
+### Campos comunes en eventos de documentos
+
+- **`id`**: ID único del documento en Tu Pana (integer)
+- **`folio`**: Folio del documento (string o null)
+- **`date_issued`**: Fecha de emisión en formato ISO (string)
+- **`amount_with_iva`**: Monto total con IVA (float)
+- **`is_sandbox`**: Indica si es un documento de prueba (boolean)
+- **`dte_type`**: Tipo de documento tributario (objeto con `code` y `description`)
+- **`sender`**: Información del emisor (objeto con `id`, `name`, `tax_id`, `email`)
+- **`receiver`**: Información del receptor (objeto con `id`, `name`, `tax_id`, `email` o null)
+- **`document_total`**: Totales del documento (objeto con `net_amount`, `iva_rate`, `iva_amount`, `total_amount`)
+- **`details`**: Array con las líneas del documento
+- **`xml_file`**: URL del XML del documento (string o null)
+- **`pdf_file`**: URL del PDF del documento (string o null, solo en `document.issued`)
+
+## Reintentos
+
+Tu Pana reintenta automáticamente las entregas fallidas usando una estrategia exponencial:
+
+1. **Intento 1**: Inmediato
+2. **Intento 2**: 1 minuto después
+3. **Intento 3**: 5 minutos después
+4. **Intento 4**: 15 minutos después
+5. **Intento 5**: 1 hora después
+6. **Intento 6**: 6 horas después
+
+**Máximo de reintentos**: 5 por defecto (configurable por webhook)
+
+### Idempotencia
+
+Cada notificación tiene un `delivery_id` único (UUID). Si recibes el mismo `delivery_id` múltiples veces, es un reintento del mismo evento. Tu endpoint debe ser **idempotente** para evitar procesar el mismo evento varias veces.
+
+### Recomendaciones
+
+- Responde con código `2xx` (200-299) para indicar éxito
+- Responde rápidamente (idealmente < 2 segundos)
+- Si tu endpoint tarda más, responde `202 Accepted` y procesa asíncronamente
+- No proceses la misma notificación dos veces (usa `delivery_id` para deduplicar)
+
+## Errores comunes
+
+### Error 4xx (Client Error)
+
+Si tu endpoint responde con un código 4xx (400-499), Tu Pana asume que hay un problema con la configuración o el formato de la notificación. Estos errores se reintentan, pero si persisten, considera:
+
+- Verificar que la URL es correcta y accesible
+- Verificar que tu endpoint acepta POST requests
+- Verificar que tu endpoint acepta `Content-Type: application/json`
+- Revisar los logs de tu servidor para ver el error específico
+
+### Error 5xx (Server Error)
+
+Si tu endpoint responde con un código 5xx (500-599), Tu Pana asume que hay un problema temporal en tu servidor. Estos errores se reintentan automáticamente.
+
+### Timeout
+
+Si tu endpoint no responde en 120 segundos, Tu Pana considera la entrega como fallida y la reintenta.
+
+## Monitoreo y Debug
+
+### Dashboard de métricas
+
+En **Configuración → Webhooks**, puedes ver:
+
+- **Total de entregas**: Número total de notificaciones enviadas
+- **Tasa de éxito**: Porcentaje de entregas exitosas
+- **Fallos**: Número de entregas fallidas
+- **Reintentos**: Número de reintentos necesarios
+- **Tiempo promedio de respuesta**: Tiempo que tarda tu endpoint en responder
+- **Top 5 errores**: Los errores más comunes
+- **Top 5 endpoints con fallos**: URLs que más fallan
+
+### Historial de entregas
+
+Puedes ver el historial completo de cada intento de entrega, incluyendo:
+
+- Status code recibido
+- Tiempo de respuesta
+- Mensaje de error (si falló)
+- Payload completo enviado
+
+## Mejores prácticas
+
+1. **Usa HTTPS**: Tu endpoint debe usar HTTPS para seguridad
+2. **Configura un secret**: Siempre configura un secret y verifica la firma
+3. **Sé idempotente**: Usa `delivery_id` para evitar procesar el mismo evento dos veces
+4. **Responde rápido**: Responde en menos de 2 segundos o usa `202 Accepted`
+5. **Maneja errores**: Responde con códigos HTTP apropiados
+6. **Monitorea métricas**: Revisa regularmente el dashboard de métricas
+7. **Prueba primero**: Usa el evento `webhook.test` para verificar tu endpoint
+
+## Ejemplo completo
+
+### Endpoint de ejemplo (Node.js + Express)
+
+```javascript
+const express = require('express');
+const crypto = require('crypto');
+
+const app = express();
+app.use(express.json());
+
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
+
+function verifySignature(payload, signature, secret) {
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(JSON.stringify(payload))
+    .digest('hex');
+  
+  return crypto.timingSafeEqual(
+    Buffer.from(expected),
+    Buffer.from(signature)
+  );
+}
+
+app.post('/webhooks/tupana', (req, res) => {
+  // 1. Verificar firma
+  const signature = req.headers['x-pana-signature'];
+  if (!verifySignature(req.body, signature, WEBHOOK_SECRET)) {
+    return res.status(401).json({ error: 'Invalid signature' });
+  }
+
+  // 2. Obtener información del evento
+  const eventType = req.headers['x-pana-event-type'];
+  const eventId = req.headers['x-pana-event-id'];
+  const deliveryId = req.headers['x-pana-delivery'];
+
+  // 3. Verificar idempotencia (usar delivery_id)
+  if (alreadyProcessed(deliveryId)) {
+    return res.status(200).json({ message: 'Already processed' });
+  }
+
+  // 4. Procesar el evento
+  const { event, data } = req.body;
+
+  switch (event) {
+    case 'document.issued':
+      handleDocumentIssued(data);
+      break;
+    case 'document.paid':
+      handleDocumentPaid(data);
+      break;
+    // ... otros eventos
+  }
+
+  // 5. Marcar como procesado
+  markAsProcessed(deliveryId);
+
+  // 6. Responder exitosamente
+  res.status(200).json({ received: true });
+});
+
+app.listen(3000, () => {
+  console.log('Webhook endpoint listening on port 3000');
+});
+```
+
+## Soporte
+
+Si tienes problemas con tus webhooks:
+
+1. Revisa el **Dashboard de Métricas** en Configuración → Webhooks
+2. Revisa el **Historial de Entregas** para ver errores específicos
+3. Contacta a soporte con el `delivery_id` del intento fallido

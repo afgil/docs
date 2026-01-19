@@ -118,8 +118,8 @@
 
 | Funcionalidad | Estado | Gap Identificado | Corrección Mínima Necesaria |
 |--------------|--------|------------------|----------------------------|
-| Dirección por defecto | ⚠️ | No se muestra visualmente ni permite cambiar | 1. Leer `is_default` de direcciones del backend<br>2. Mostrar indicador visual de dirección por defecto<br>3. Auto-seleccionar dirección con `is_default: true` en lugar de la primera<br>4. Agregar opción para cambiar dirección por defecto (si el backend lo soporta) |
-| Actividad por defecto | ⚠️ | Similar a dirección por defecto | 1. Leer `is_default` de actividades del backend<br>2. Mostrar indicador visual<br>3. Auto-seleccionar actividad con `is_default: true`<br>4. Agregar opción para cambiar actividad por defecto |
+| Dirección por defecto | ⚠️ | No se muestra visualmente ni permite cambiar | 1. Leer `is_default` de direcciones del backend<br />2. Mostrar indicador visual de dirección por defecto<br />3. Auto-seleccionar dirección con `is_default: true` en lugar de la primera<br />4. Agregar opción para cambiar dirección por defecto (si el backend lo soporta) |
+| Actividad por defecto | ⚠️ | Similar a dirección por defecto | 1. Leer `is_default` de actividades del backend<br />2. Mostrar indicador visual<br />3. Auto-seleccionar actividad con `is_default: true`<br />4. Agregar opción para cambiar actividad por defecto |
 
 ### 2.3. Funcionalidades No Implementadas
 

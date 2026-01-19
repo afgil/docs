@@ -3,7 +3,7 @@
     "/master-entities": {
       "get": {
         "summary": "Buscar entidad por RUT",
-        "description": "Busca una entidad maestra específica por su RUT. Requiere autenticación por API Key.",
+        "description": "Busca una entidad maestra específica por su RUT. Requiere autenticación por API Key.\n\n**Permisos requeridos:** Este endpoint actualmente no requiere permisos específicos (`AllowAny`), pero requiere autenticación válida por API Key.\n\n**Respuesta:** Retorna información completa de la entidad incluyendo direcciones y actividades económicas. Si la entidad no existe en la base de datos, el sistema intentará buscarla y crearla automáticamente usando el scraper del SII.",
         "parameters": [
           {
             "name": "rut",
@@ -24,6 +24,48 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MasterEntity"
+                },
+                "example": {
+                  "id": 371,
+                  "tax_id": "76.798.398-0",
+                  "name": "SUPLO SPA",
+                  "email": "contacto@suplo.cl",
+                  "addresses": [
+                    {
+                      "id": 6,
+                      "address": "AV TAJAMAR 183 OF 401   OFIC",
+                      "district": {
+                        "id": 7,
+                        "name": "LAS CONDES",
+                        "city": {
+                          "id": 3,
+                          "name": "SANTIAGO"
+                        }
+                      },
+                      "sii_branch_code": null,
+                      "phone": null
+                    }
+                  ],
+                  "activities": [
+                    {
+                      "id": 1,
+                      "code": "620900",
+                      "name": "OTRAS ACTIVIDADES DE TECNOLOGIA DE LA IN"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "API Key inválida o sin autenticación. Aunque este endpoint no requiere permisos específicos, requiere una API Key válida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "API Key inválida o faltante"
                 }
               }
             }

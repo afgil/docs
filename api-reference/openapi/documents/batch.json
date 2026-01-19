@@ -4,7 +4,7 @@
       "post": {
         "operationId": "createDocumentsBatch",
         "summary": "Envío de documentos en lote",
-        "description": "Crea hasta 200 documentos en una sola llamada. La respuesta con el PDF y los detalles completos se entrega a través del webhook configurado.",
+        "description": "Crea hasta 200 documentos en una sola llamada. La respuesta incluye información completa de cada documento creado, incluyendo PDF cuando está disponible. Los resultados también se enviarán por webhook si está configurado.\n\n**Permisos requeridos:** La API Key debe tener el permiso `document:create` o permisos completos (`*`). Además, la entidad emisora debe tener credenciales SII válidas configuradas.",
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -70,6 +70,75 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BatchResponse"
+                },
+                "example": {
+                  "batch_id": "550e8400-e29b-41d4-a716-446655440000",
+                  "status": "processing",
+                  "created_at": "2024-01-15T10:30:00Z",
+                  "documents": [
+                    {
+                      "index": 0,
+                      "status": "created",
+                      "document": {
+                        "id": 12345,
+                        "folio": "1",
+                        "date_issued": "2024-01-15",
+                        "amount_with_iva": 119000.0,
+                        "receiver_id": 456,
+                        "is_draft": false,
+                        "can_be_issued": true,
+                        "dte_type": {
+                          "code": "33",
+                          "description": "Factura Electrónica"
+                        },
+                        "sender": {
+                          "id": 123,
+                          "name": "Mi Empresa SpA",
+                          "tax_id": "12345678-9"
+                        },
+                        "receiver": {
+                          "id": 456,
+                          "name": "Cliente Importante Ltda",
+                          "tax_id": "98765432-1"
+                        },
+                        "items": [
+                          {
+                            "item_name": "Servicio de Consultoría",
+                            "item_description": null,
+                            "quantity": 1.0,
+                            "unit_price": 100000.0,
+                            "item_total": 100000.0,
+                            "unit": "UN",
+                            "item_code": null,
+                            "item_type_code": null,
+                            "discount_percent": null,
+                            "other_tax": null
+                          }
+                        ],
+                        "document_total": {
+                          "net_amount": 100000.0,
+                          "iva_rate": 19.0,
+                          "iva_amount": 19000.0,
+                          "total_amount": 119000.0
+                        },
+                        "pdf_url": "https://s3.amazonaws.com/bucket/documento_12345.pdf?signature=...",
+                        "pdf_download_url": "/api/master-entities/123/documents/12345/file/"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para crear documentos. La API Key debe tener el permiso 'document:create' o permisos completos ('*'). Además, la entidad emisora debe tener credenciales SII válidas configuradas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Esta entidad no tiene credenciales SII válidas configuradas"
                 }
               }
             }
