@@ -1,0 +1,86 @@
+---
+title: "Desenrolar Usuario Autorizado"
+openapi: "DELETE /honorary/master-entities/{master_entity_id}/authorized-users/{rut}"
+---
+
+## Qué hace
+
+Remueve la autorización de un usuario para emitir boletas de honorarios desde una entidad emisora específica. Al desenrolar:
+
+1. Valida que el usuario esté actualmente enrolado para esa entidad
+2. Desasocia la entidad del usuario
+3. Desasocia la entidad de la credencial emisora
+4. El usuario ya no puede emitir boletas desde esa cuenta para esa entidad
+
+## Ejemplos de uso
+
+- Remover permisos de un contador que ya no trabaja con una empresa específica
+- Desautorizar un usuario temporalmente para una entidad
+- Limpiar autorizadores inactivos del sistema
+- Cambiar permisos de emisión de boletas para una entidad específica
+
+## Parámetros
+
+### Path Parameters
+
+| Parámetro | Tipo | Requerido | Descripción |
+|-----------|------|-----------|-------------|
+| `master_entity_id` | integer | Sí | ID de la entidad emisora de la cual se desenrola el autorizado |
+| `rut` | string | Sí | RUT del usuario autorizado a desenrolar |
+
+## Respuesta exitosa
+
+```json
+{
+  "success": true,
+  "message": "Usuario autorizador 12345678-9 desenrolado exitosamente",
+  "rut": "12345678-9"
+}
+```
+
+### Campos de respuesta
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `success` | boolean | Siempre `true` para respuestas exitosas |
+| `message` | string | Mensaje descriptivo del resultado |
+| `rut` | string | RUT del usuario desenrolado (normalizado) |
+
+## Estados de error
+
+| Código | Descripción |
+|--------|-------------|
+| `400` | RUT inválido o parámetros faltantes |
+| `403` | Usuario sin permisos para acceder a la entidad |
+| `404` | Entidad o usuario enrolado no encontrado |
+| `500` | Error interno del servidor |
+
+## Comportamiento especial
+
+### Validación de permisos
+- Solo el usuario que enroló originalmente puede desenrolar
+- Se verifica que el usuario tenga acceso a la entidad emisora
+- Se valida que el usuario esté actualmente enrolado
+
+### Desasociación completa
+- Se remueve la asociación usuario-entidad
+- Se remueve la asociación entidad-credencial
+- La entidad puede permanecer en el sistema pero sin permisos de emisión
+
+### Actualización del contexto
+- Después del desenrolamiento, el frontend debe actualizar el contexto
+- La entidad desaparecerá del selector de empresas para ese usuario
+- El estado de enrolamiento en la lista de autorizados cambiará a `false`
+
+## Notas importantes
+
+- Operación irreversible sin reenrolar manualmente
+- No elimina la entidad del sistema, solo remueve permisos
+- Requiere los mismos permisos que para enrolar
+- Actualiza automáticamente el estado en la lista de autorizados
+
+## Relación con otros endpoints
+
+- **GET /honorary/authorized-users**: Lista usuarios y su estado de enrolamiento
+- **PATCH /honorary/authorized-users/{rut}**: Operación inversa (enrolar)
+- **DELETE /honorary/authorized-users/{rut}**: Esta operación (desenrolar)

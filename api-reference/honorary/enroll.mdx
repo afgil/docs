@@ -1,0 +1,101 @@
+---
+title: "Enrolar Usuario Autorizado"
+openapi: "PATCH /honorary/master-entities/{master_entity_id}/authorized-users/{rut}"
+---
+
+## Qué hace
+
+Enrola un usuario autorizado del SII para que pueda emitir boletas de honorarios desde la cuenta del usuario para una entidad emisora específica. Al enrolar:
+
+1. Valida que el RUT esté en la lista de autorizados del SII para la entidad
+2. Extrae el nombre real del usuario desde el SII
+3. Crea una nueva entidad con la razón social completa
+4. Asocia la entidad al usuario y a la credencial de la entidad emisora
+
+## Ejemplos de uso
+
+- Permitir que un contador emita boletas de honorarios para una empresa específica
+- Agregar un nuevo autorizador al sistema después de verificar sus permisos en el SII
+- Configurar usuarios para emisión de boletas en una entidad emisora específica
+
+## Parámetros
+
+### Path Parameters
+
+| Parámetro | Tipo | Requerido | Descripción |
+|-----------|------|-----------|-------------|
+| `master_entity_id` | integer | Sí | ID de la entidad emisora para la cual se enrola el autorizado |
+| `rut` | string | Sí | RUT del usuario autorizado (con o sin formato) |
+
+## Respuesta exitosa
+
+### Usuario enrolado por primera vez
+```json
+{
+  "status": "enrolled",
+  "message": "Usuario autorizador enrolado exitosamente",
+  "rut": "12345678-9",
+  "master_entity": {
+    "id": 456,
+    "name": "MARIA JOSEFA GONZALEZ LOPEZ",
+    "tax_id": "12.345.678-9"
+  }
+}
+```
+
+### Usuario ya enrolado
+```json
+{
+  "status": "already_enrolled",
+  "message": "El usuario autorizador ya está enrolado",
+  "rut": "12345678-9",
+  "master_entity": {
+    "id": 456,
+    "name": "MARIA JOSEFA GONZALEZ LOPEZ",
+    "tax_id": "12.345.678-9"
+  }
+}
+```
+
+### Campos de respuesta
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `status` | string | Estado del enrolamiento: "enrolled" o "already_enrolled" |
+| `message` | string | Mensaje descriptivo del resultado |
+| `rut` | string | RUT del usuario enrolado (normalizado) |
+| `master_entity` | object | Información de la entidad creada/asociada |
+| `master_entity.id` | integer | ID de la entidad en el sistema |
+| `master_entity.name` | string | Nombre completo obtenido del SII |
+| `master_entity.tax_id` | string | RUT de la entidad con formato |
+
+## Estados de error
+
+| Código | Descripción |
+|--------|-------------|
+| `400` | RUT inválido, RUT no autorizado, o parámetros faltantes |
+| `403` | Usuario sin permisos para acceder a la entidad emisora |
+| `404` | Entidad emisora no encontrada o sin credenciales válidas |
+| `500` | Error interno del servidor o problemas con el SII |
+
+## Comportamiento especial
+
+### Validación automática
+- El RUT debe existir en la lista de autorizados del SII
+- Si el RUT no está autorizado, la operación falla
+
+### Creación de entidad automática
+- Si el usuario no tiene una entidad asociada, se crea automáticamente
+- El nombre de la entidad se obtiene del registro del SII
+- La entidad se asocia tanto al usuario como a la credencial
+
+### Actualización del contexto
+- Después del enrolamiento exitoso, el frontend debe actualizar el contexto de entidades
+- La nueva entidad aparecerá en el selector de empresas con su nombre real
+
+## Notas importantes
+
+- Requiere credenciales SII válidas para validar la autorización
+- El nombre se obtiene directamente del SII para garantizar exactitud
+- Una vez enrolado, el usuario puede emitir boletas desde esa cuenta
+- El enrolamiento es reversible mediante el endpoint DELETE

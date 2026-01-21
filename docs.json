@@ -83,6 +83,15 @@
             ]
           },
           {
+            "group": "Boletas de Honorarios",
+            "pages": [
+              "api-reference/honorary/introduction",
+              "api-reference/honorary/authorized-users",
+              "api-reference/honorary/enroll",
+              "api-reference/honorary/unenroll"
+            ]
+          },
+          {
             "group": "Webhooks",
             "pages": [
               "api-reference/webhooks/webhooks",

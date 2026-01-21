@@ -1,0 +1,66 @@
+---
+title: "Listar Usuarios Autorizados"
+openapi: "GET /honorary/master-entities/{master_entity_id}/authorized-users"
+---
+
+## Qué hace
+
+Obtiene la lista completa de usuarios autorizados para emitir boletas de honorarios desde el Servicio de Impuestos Internos (SII) para una entidad emisora específica. Esta lista incluye todos los usuarios que tienen permisos para autorizar boletas en la empresa.
+
+## Ejemplos de uso
+
+- Mostrar en la interfaz de administración qué usuarios pueden ser enrolados para una entidad específica
+- Verificar qué usuarios ya están autorizados por el SII para emitir boletas
+- Actualizar el estado de enrolamiento de cada usuario en el sistema
+
+## Parámetros
+
+### Path Parameters
+
+| Parámetro | Tipo | Requerido | Descripción |
+|-----------|------|-----------|-------------|
+| `master_entity_id` | integer | Sí | ID de la entidad maestra emisora para la cual se consultan los autorizados |
+
+## Respuesta exitosa
+
+```json
+{
+  "authorized_users": [
+    {
+      "rut": "12.345.678-9",
+      "nombre": "MARIA JOSEFA GONZALEZ LOPEZ",
+      "enrolled": false
+    },
+    {
+      "rut": "98.765.432-1",
+      "nombre": "JUAN CARLOS RODRIGUEZ SANCHEZ",
+      "enrolled": true
+    }
+  ]
+}
+```
+
+### Campos de respuesta
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `authorized_users` | array | Lista de usuarios autorizados |
+| `authorized_users[].rut` | string | RUT del usuario con formato de puntos y guión |
+| `authorized_users[].nombre` | string | Nombre completo del usuario autorizado |
+| `authorized_users[].enrolled` | boolean | Si el usuario ya está enrolado en el sistema |
+
+## Estados de error
+
+| Código | Descripción |
+|--------|-------------|
+| `400` | Parámetro `master_entity_id` faltante o inválido |
+| `403` | Usuario sin permisos para acceder a la entidad |
+| `404` | Entidad no encontrada o sin credenciales válidas |
+| `500` | Error interno del servidor o problemas con el SII |
+
+## Notas importantes
+
+- La lista se obtiene directamente del SII en tiempo real
+- Se requiere una credencial SII válida asociada a la entidad
+- El campo `enrolled` indica si el usuario ya fue enrolado en el sistema
+- Los nombres se obtienen tal como aparecen en el registro del SII

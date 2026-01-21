@@ -1,0 +1,422 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API de Boletas de Honorarios - Usuarios Autorizados",
+    "version": "1.0.0",
+    "description": "Endpoints para gestión de usuarios autorizados de boletas de honorarios"
+  },
+  "paths": {
+    "/api/honorary/master-entities/{master_entity_id}/authorized-users/": {
+      "get": {
+        "summary": "Listar usuarios autorizados",
+        "description": "Obtiene la lista de usuarios autorizados para emitir boletas de honorarios desde el SII",
+        "tags": ["Honorary"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "ID de la entidad maestra"
+            },
+            "description": "ID de la entidad para la cual se consultan los autorizados"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de usuarios autorizados obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "authorized_users": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "rut": {
+                            "type": "string",
+                            "description": "RUT del usuario con formato de puntos y guión",
+                            "example": "12.345.678-9"
+                          },
+                          "nombre": {
+                            "type": "string",
+                            "description": "Nombre completo del usuario autorizado",
+                            "example": "MARIA JOSEFA GONZALEZ LOPEZ"
+                          },
+                          "enrolled": {
+                            "type": "boolean",
+                            "description": "Si el usuario ya está enrolado en el sistema",
+                            "example": false
+                          }
+                        },
+                        "required": ["rut", "nombre", "enrolled"]
+                      }
+                    }
+                  },
+                  "required": ["authorized_users"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Se requiere el parámetro 'master_entity_id'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para acceder a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Usuario sin permisos para acceder a la entidad"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad no encontrada o sin credenciales",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "No se encontró una credencial válida para la entidad"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Error al obtener usuarios autorizadores"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/": {
+      "patch": {
+        "summary": "Enrolar usuario autorizado",
+        "description": "Enrola un usuario autorizado del SII para emitir boletas de honorarios",
+        "tags": ["Honorary"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "ID de la entidad emisora"
+            },
+            "description": "ID de la entidad emisora"
+          },
+          {
+            "name": "rut",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "RUT del usuario autorizado"
+            },
+            "description": "RUT del usuario a enrolar (con o sin formato)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario enrolado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["enrolled", "already_enrolled"],
+                      "description": "Estado del enrolamiento"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Mensaje descriptivo"
+                    },
+                    "rut": {
+                      "type": "string",
+                      "description": "RUT normalizado del usuario enrolado"
+                    },
+                    "master_entity": {
+                      "type": "object",
+                      "description": "Información de la entidad creada/asociada",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "description": "ID de la entidad"
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Nombre completo de la entidad"
+                        },
+                        "tax_id": {
+                          "type": "string",
+                          "description": "RUT de la entidad"
+                        }
+                      }
+                    }
+                  },
+                  "required": ["status", "message", "rut"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o usuario no autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "El RUT proporcionado no está en la lista de usuarios autorizadores"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para acceder a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Usuario sin permisos para acceder a la entidad"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "No se encontró una credencial válida para la entidad"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Error al enrolar usuario autorizador"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Desenrolar usuario autorizado",
+        "description": "Remueve la autorización de un usuario para emitir boletas de honorarios",
+        "tags": ["Honorary"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "ID de la entidad emisora"
+            },
+            "description": "ID de la entidad de la cual se desenrola el autorizado"
+          },
+          {
+            "name": "rut",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "RUT del usuario autorizado a desenrolar"
+            },
+            "description": "RUT del usuario a desenrolar"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario desenrolado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Siempre true para respuestas exitosas",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Mensaje descriptivo del resultado",
+                      "example": "Usuario autorizador 12345678-9 desenrolado exitosamente"
+                    },
+                    "rut": {
+                      "type": "string",
+                      "description": "RUT del usuario desenrolado",
+                      "example": "12345678-9"
+                    }
+                  },
+                  "required": ["success", "message", "rut"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Se requiere el parámetro 'master_entity_id'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para acceder a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Usuario sin permisos para acceder a la entidad"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad o usuario no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "No se encontró una entidad con el RUT asociada al usuario"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Error al desenrolar usuario autorizador"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Honorary",
+      "description": "Endpoints para gestión de boletas de honorarios"
+    }
+  ]
+}

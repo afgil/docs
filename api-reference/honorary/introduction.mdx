@@ -1,0 +1,54 @@
+---
+title: "Boletas de Honorarios"
+---
+
+# API de Boletas de Honorarios
+
+La API de Boletas de Honorarios permite gestionar usuarios autorizados para emitir boletas de honorarios según la normativa del Servicio de Impuestos Internos (SII) de Chile.
+
+## Funcionalidades principales
+
+### Gestión de usuarios autorizados
+- **Listar autorizados**: Consulta la lista completa de usuarios autorizados por el SII
+- **Enrolar usuarios**: Agrega usuarios autorizados al sistema con sus datos completos
+- **Desenrolar usuarios**: Remueve permisos de emisión de boletas
+
+## Conceptos clave
+
+### Usuario autorizado
+Persona natural autorizada por el SII para emitir boletas de honorarios en nombre de una empresa. La autorización se registra en el sistema del SII y debe ser validada antes de permitir la emisión.
+
+### Enrolamiento
+Proceso de asociar un usuario autorizado del SII con una cuenta en el sistema, permitiendo que emita boletas de honorarios desde esa cuenta.
+
+### Entidad emisora
+Empresa o entidad que emite las boletas de honorarios. Debe tener credenciales válidas del SII asociadas.
+
+## Flujo típico de uso
+
+1. **Configurar credenciales SII** para la entidad emisora
+2. **Listar usuarios autorizados** desde el SII
+3. **Enrolar usuarios** que necesiten emitir boletas
+4. **Emitir boletas** de honorarios usando las entidades enroladas
+5. **Desenrolar usuarios** cuando ya no necesiten permisos
+
+## Requisitos
+
+- **Credenciales SII válidas** asociadas a la entidad emisora
+- **Usuario autenticado** con permisos para gestionar la entidad
+- **Usuarios autorizados** registrados en el SII para la empresa
+
+## Endpoints disponibles
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/honorary/master-entities/{master_entity_id}/authorized-users/` | Lista usuarios autorizados por el SII para una entidad |
+| `PATCH` | `/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/` | Enrola un usuario autorizado para una entidad |
+| `DELETE` | `/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/` | Desenrola un usuario autorizado de una entidad |
+
+## Consideraciones de seguridad
+
+- Todos los endpoints requieren autenticación JWT
+- Se valida que el usuario tenga acceso a la entidad emisora
+- Los datos se obtienen directamente del SII para garantizar integridad
+- Las operaciones quedan registradas en los logs del sistema
