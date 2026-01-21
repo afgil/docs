@@ -38,6 +38,12 @@
         "tab": "API Facturación",
         "groups": [
           {
+            "group": "Introducción",
+            "pages": [
+              "api-reference/introduction"
+            ]
+          },
+          {
             "group": "Entidades",
             "pages": [
               "api-reference/endpoint/master-entity"
@@ -83,19 +89,29 @@
             ]
           },
           {
-            "group": "Boletas de Honorarios",
-            "pages": [
-              "api-reference/honorary/introduction",
-              "api-reference/honorary/authorized-users",
-              "api-reference/honorary/enroll",
-              "api-reference/honorary/unenroll"
-            ]
-          },
-          {
             "group": "Webhooks",
             "pages": [
               "api-reference/webhooks/webhooks",
               "api-reference/webhooks/create"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Boleta de Honorarios",
+        "groups": [
+          {
+            "group": "Introducción",
+            "pages": [
+              "api-reference/honorary/introduction"
+            ]
+          },
+          {
+            "group": "Usuarios Autorizados",
+            "pages": [
+              "api-reference/honorary/authorized-users",
+              "api-reference/honorary/enroll",
+              "api-reference/honorary/unenroll"
             ]
           }
         ]

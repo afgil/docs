@@ -1,9 +1,13 @@
 ---
-title: "Enrolar Usuario Autorizado"
+title: "Gestionar Usuario Autorizado"
 openapi: "PATCH /honorary/master-entities/{master_entity_id}/authorized-users/{rut}"
 ---
 
 ## Qué hace
+
+Gestiona usuarios autorizados del SII para emitir boletas de honorarios. Puede **enrolar** o **desenrolar** un usuario según el parámetro `action` en el body.
+
+### Enrolar (action="enroll" o sin action)
 
 Enrola un usuario autorizado del SII para que pueda emitir boletas de honorarios desde la cuenta del usuario para una entidad emisora específica. Al enrolar:
 
@@ -24,8 +28,14 @@ Enrola un usuario autorizado del SII para que pueda emitir boletas de honorarios
 
 | Parámetro | Tipo | Requerido | Descripción |
 |-----------|------|-----------|-------------|
-| `master_entity_id` | integer | Sí | ID de la entidad emisora para la cual se enrola el autorizado |
+| `master_entity_id` | integer | Sí | ID de la entidad emisora para la cual se gestiona el autorizado |
 | `rut` | string | Sí | RUT del usuario autorizado (con o sin formato) |
+
+### Body Parameters
+
+| Parámetro | Tipo | Requerido | Descripción |
+|-----------|------|-----------|-------------|
+| `action` | string | No | Acción a realizar: `"enroll"` (por defecto) o `"unenroll"` |
 
 ## Respuesta exitosa
 

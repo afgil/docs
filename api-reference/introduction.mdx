@@ -1,39 +1,90 @@
 ---
-title: 'Introduction'
-description: 'Welcome to Tu Pana API - Electronic invoicing made simple'
+title: 'Facturación'
+description: 'API de Facturación - Emisión masiva de documentos electrónicos'
 ---
 
-## Welcome to Tu Pana API! 👋
+# Introducción a la API de Facturación
 
-We're glad to have you here. With this API you can issue electronic invoices in bulk and automatically using the SII invoicing system, without complications, without migrations, and in minutes ⚡.
+La API de Facturación está integrada directamente al **facturador gratuito del SII** y permite emitir documentos de forma masiva usando Batch Documents. El sistema **emite por ti** y además **recibe automáticamente el PDF y XML final** de cada factura a través de webhooks. La integración se apoya en un flujo simple:
 
-Tu Pana is a friendly system designed for SMEs, accountants and backoffice teams who want to save time. You just need to upload the recipient data, generate your document, and issue it. We take care of the rest 😎.
+1. **obtener tu API Key**
+2. **partir en modo Sandbox** (recomendado)
+3. **enrolar empresas y crear credenciales**
+4. **crear batches para emitir documentos**
+5. **configurar webhooks por empresa para recibir los resultados**
+6. **(opcional) usar campos avanzados** como direcciones y actividades económicas personalizadas
+7. **monitorear todo desde la plataforma**
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## 1) API Key (por usuario)
 
-## Getting Started
+La API Key es por usuario y sirve para operar sobre todas las empresas enroladas bajo ese usuario.
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+Existe operación en **Sandbox** y en **Producción**.
 
-<Card
-  title="Tu Pana API Endpoints"
-  icon="file-invoice"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+Se recomienda comenzar en Sandbox para validar el flujo completo sin riesgos.
 
-## Authentication
+## 2) Enrolamiento y credenciales
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+Antes de emitir, cada empresa debe estar enrolada y contar con su credencial.
 
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
-```
+Puedes hacerlo de dos maneras:
+
+- **Desde la plataforma**, o
+- **Desde la API** (automatizado): Ver [Buscar Entidad por RUT](/api-reference/endpoint/master-entity) y [Crear Credencial](/api-reference/credentials/create)
+
+Este paso deja a la empresa lista para emitir documentos.
+
+## 3) Emisión: crear el Batch Document
+
+Una vez que la empresa está lista, basta con:
+
+- Crear un [Batch Document](/api-reference/documents/batch) con el detalle de las facturas a emitir.
+- Usar el flag `use_default` (o equivalente) para que el sistema utilice la configuración/credencial por defecto de esa empresa.
+
+Con eso, el batch queda procesándose y la emisión ocurre de forma automática.
+
+## 4) Webhooks: un webhook por empresa
+
+Para recibir el resultado de cada emisión, debes configurar un webhook por empresa.
+
+También puedes hacerlo:
+
+- **Desde la plataforma**, o
+- **Desde la API**: Ver [Crear Webhook](/api-reference/webhooks/create)
+
+El webhook es clave porque es el canal donde se envía el estado final y los archivos asociados.
+
+## 5) Recepción de resultados (XML y PDF)
+
+Una vez configurado el webhook, el sistema **recibe automáticamente del SII** el PDF y XML final de cada factura emitida. Vas a recibir las notificaciones del procesamiento del batch, incluyendo:
+
+- Estado / respuesta de emisión desde el SII
+- **XML final** generado por el SII
+- **PDF final** generado por el SII
+
+## 6) Opciones avanzadas (direcciones y actividades económicas personalizadas)
+
+Si necesitas direcciones o actividades económicas personalizadas, el flujo es:
+
+1. Pedir la entidad (master entity) usando [Buscar Entidad por RUT](/api-reference/endpoint/master-entity) para obtener los datos disponibles (direcciones/actividades).
+2. Incluir esos identificadores/campos en el [Batch Document](/api-reference/documents/batch) al crear el batch.
+
+Esto te permite controlar con precisión qué dirección/actividad se usa al emitir.
+
+## 7) Monitoreo y trazabilidad en la plataforma
+
+Además de operar por API, puedes revisar todo en la plataforma:
+
+- Vista detallada de empresas enroladas, credenciales, batches y estados.
+- **Modo Sandbox** en la plataforma para ver exclusivamente lo que entra por Sandbox.
+- **Modo Producción** para ver lo que está en operación real.
+
+Puedes activar/usar Sandbox o Producción según el entorno que estés integrando.
+
+## Endpoints relacionados
+
+- [Listar Credenciales](/api-reference/credentials/list) - Ver credenciales configuradas
+- [Listar Documentos](/api-reference/documents/list) - Consultar documentos emitidos
+- [Obtener Documento Específico](/api-reference/documents/get) - Ver detalles de un documento
+- [Consultar Estados de Documento](/api-reference/document-states/list) - Ver historial de estados
+- [Registrar Estado de Documento](/api-reference/document-states/create) - Registrar eventos manualmente

@@ -43,8 +43,7 @@ Empresa o entidad que emite las boletas de honorarios. Debe tener credenciales v
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
 | `GET` | `/honorary/master-entities/{master_entity_id}/authorized-users/` | Lista usuarios autorizados por el SII para una entidad |
-| `PATCH` | `/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/` | Enrola un usuario autorizado para una entidad |
-| `DELETE` | `/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/` | Desenrola un usuario autorizado de una entidad |
+| `PATCH` | `/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/` | Gestiona usuarios autorizados: enrolar (`action="enroll"`) o desenrolar (`action="unenroll"`) |
 
 ## Consideraciones de seguridad
 

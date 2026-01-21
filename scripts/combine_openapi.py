@@ -270,6 +270,8 @@ def combine_openapi_files():
         base_dir / "cessions" / "batch.json",
         # Webhooks
         base_dir / "webhooks" / "webhooks.json",
+        # Honorary
+        base_dir / "honorary" / "authorized-users.json",
         # Schemas
         base_dir / "schemas" / "schemas.json",
     ]

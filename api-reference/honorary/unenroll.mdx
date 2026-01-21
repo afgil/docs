@@ -1,11 +1,11 @@
 ---
 title: "Desenrolar Usuario Autorizado"
-openapi: "DELETE /honorary/master-entities/{master_entity_id}/authorized-users/{rut}"
+openapi: "PATCH /honorary/master-entities/{master_entity_id}/authorized-users/{rut}"
 ---
 
 ## Qué hace
 
-Remueve la autorización de un usuario para emitir boletas de honorarios desde una entidad emisora específica. Al desenrolar:
+Remueve la autorización de un usuario para emitir boletas de honorarios desde una entidad emisora específica. Este endpoint usa el mismo método **PATCH** que enrolar, pero con `action="unenroll"` en el body. Al desenrolar:
 
 1. Valida que el usuario esté actualmente enrolado para esa entidad
 2. Desasocia la entidad del usuario
@@ -27,6 +27,12 @@ Remueve la autorización de un usuario para emitir boletas de honorarios desde u
 |-----------|------|-----------|-------------|
 | `master_entity_id` | integer | Sí | ID de la entidad emisora de la cual se desenrola el autorizado |
 | `rut` | string | Sí | RUT del usuario autorizado a desenrolar |
+
+### Body Parameters
+
+| Parámetro | Tipo | Requerido | Descripción |
+|-----------|------|-----------|-------------|
+| `action` | string | Sí | Debe ser `"unenroll"` para desenrolar el usuario |
 
 ## Respuesta exitosa
 
@@ -81,6 +87,6 @@ Remueve la autorización de un usuario para emitir boletas de honorarios desde u
 
 ## Relación con otros endpoints
 
-- **GET /honorary/authorized-users**: Lista usuarios y su estado de enrolamiento
-- **PATCH /honorary/authorized-users/{rut}**: Operación inversa (enrolar)
-- **DELETE /honorary/authorized-users/{rut}**: Esta operación (desenrolar)
+- **GET /honorary/master-entities/{master_entity_id}/authorized-users/**: Lista usuarios y su estado de enrolamiento
+- **PATCH /honorary/master-entities/{master_entity_id}/authorized-users/{rut}/** con `action="enroll"`: Operación inversa (enrolar)
+- **PATCH /honorary/master-entities/{master_entity_id}/authorized-users/{rut}/** con `action="unenroll"`: Esta operación (desenrolar)
