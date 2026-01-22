@@ -1,11 +1,18 @@
 ---
 title: "Listar Usuarios Autorizados"
-openapi: "GET /honorary/master-entities/{master_entity_id}/authorized-users/"
+openapi: "GET /honorary/authorized-users/"
 ---
 
 ## Qué hace
 
 Obtiene la lista completa de usuarios autorizados para emitir boletas de honorarios desde el Servicio de Impuestos Internos (SII) para una entidad emisora específica. Esta lista incluye todos los usuarios que tienen permisos para autorizar boletas en la empresa.
+
+## Endpoints disponibles
+
+Este endpoint está disponible en dos formatos:
+
+- **`GET /v1/honorary/authorized-users/?master_entity_id={id}`** (recomendado): El `master_entity_id` se proporciona como query parameter
+- **`GET /v1/honorary/master-entities/{master_entity_id}/authorized-users/`**: El `master_entity_id` se proporciona en la ruta (mantiene compatibilidad)
 
 ## Ejemplos de uso
 

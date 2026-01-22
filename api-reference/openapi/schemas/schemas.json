@@ -1055,7 +1055,9 @@
               "daily",
               "weekly",
               "monthly",
-              "quarterly"
+              "quarterly",
+              "semiannual",
+              "yearly"
             ],
             "description": "Frecuencia de ejecución",
             "example": "monthly"
@@ -1068,13 +1070,13 @@
           "day_of_month": {
             "type": "integer",
             "nullable": true,
-            "description": "Día del mes para ejecución (1-31)",
+            "description": "Día del mes en que se ejecutará el documento (1-31). Requerido para frecuencias: monthly, quarterly, semiannual, yearly. Si el día no existe en un mes (ej: 31 en febrero), se usará el último día del mes.",
             "example": 15
           },
           "day_of_week": {
             "type": "integer",
             "nullable": true,
-            "description": "Día de la semana para ejecución (0=Lunes, 6=Domingo)",
+            "description": "Día de la semana para ejecución (1=Lunes, 7=Domingo)",
             "example": null
           },
           "next_execution": {
@@ -1124,6 +1126,42 @@
             "nullable": true,
             "description": "Número máximo de ejecuciones",
             "example": null
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Fecha de inicio de la programación (YYYY-MM-DD). Define desde cuándo comenzará a ejecutarse el documento programado. Si no se proporciona, se usa la fecha actual. La primera ejecución será calculada a partir de esta fecha según la frecuencia configurada.",
+            "example": "2024-02-01"
+          },
+          "emission_day_adjustment": {
+            "type": "string",
+            "enum": [
+              "none",
+              "next",
+              "previous"
+            ],
+            "description": "Ajuste de fecha de emisión a días hábiles: 'none' (sin ajuste), 'next' (próximo día hábil), 'previous' (anterior día hábil)",
+            "default": "none",
+            "example": "none"
+          },
+          "end_type": {
+            "type": "string",
+            "enum": [
+              "never",
+              "on_date",
+              "after_occurrences"
+            ],
+            "description": "Tipo de finalización de la programación: 'never' (nunca finaliza, se ejecuta indefinidamente), 'on_date' (finaliza en una fecha específica, requiere end_date), 'after_occurrences' (finaliza después de un número máximo de ejecuciones, requiere max_occurrences). Por defecto: 'never'.",
+            "default": "never",
+            "example": "never"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Fecha de finalización de la programación (YYYY-MM-DD). Solo aplica y es requerido si end_type es 'on_date'. El documento programado dejará de ejecutarse después de esta fecha.",
+            "example": "2024-12-31"
           },
           "details": {
             "type": "array",
@@ -1177,24 +1215,60 @@
               "daily",
               "weekly",
               "monthly",
-              "quarterly"
+              "quarterly",
+              "semiannual",
+              "yearly"
             ],
-            "description": "Frecuencia de ejecución",
+            "description": "Frecuencia de ejecución del documento programado. Valores: 'daily' (diario), 'weekly' (semanal), 'monthly' (mensual), 'quarterly' (trimestral), 'semiannual' (semestral), 'yearly' (anual).",
             "example": "monthly"
           },
           "day_of_month": {
             "type": "integer",
-            "description": "Día del mes para ejecución (1-31, requerido para frecuencia mensual/trimestral)",
+            "description": "Día del mes en que se ejecutará el documento (1-31). Requerido para frecuencias: monthly, quarterly, semiannual, yearly. Si el día no existe en un mes (ej: 31 en febrero), se usará el último día del mes.",
             "minimum": 1,
             "maximum": 31,
             "example": 15
           },
           "day_of_week": {
             "type": "integer",
-            "description": "Día de la semana para ejecución (0=Lunes, 6=Domingo, requerido para frecuencia semanal)",
-            "minimum": 0,
-            "maximum": 6,
+            "description": "Día de la semana en que se ejecutará el documento (1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado, 7=Domingo). Requerido para frecuencia semanal (weekly).",
+            "minimum": 1,
+            "maximum": 7,
             "example": 1
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha de inicio de la programación (YYYY-MM-DD). Define desde cuándo comenzará a ejecutarse el documento programado. Si no se proporciona, se usa la fecha actual. La primera ejecución será calculada a partir de esta fecha según la frecuencia configurada.",
+            "example": "2024-02-01"
+          },
+          "emission_day_adjustment": {
+            "type": "string",
+            "enum": [
+              "none",
+              "next",
+              "previous"
+            ],
+            "description": "Ajuste de fecha de emisión a días hábiles. Si la fecha calculada cae en fin de semana o feriado, se ajusta según esta opción: 'none' (sin ajuste, emite en la fecha calculada aunque sea fin de semana), 'next' (ajusta al próximo día hábil), 'previous' (ajusta al anterior día hábil). Por defecto: 'none'.",
+            "default": "none",
+            "example": "none"
+          },
+          "end_type": {
+            "type": "string",
+            "enum": [
+              "never",
+              "on_date",
+              "after_occurrences"
+            ],
+            "description": "Tipo de finalización de la programación: 'never' (nunca finaliza, se ejecuta indefinidamente), 'on_date' (finaliza en una fecha específica, requiere end_date), 'after_occurrences' (finaliza después de un número máximo de ejecuciones, requiere max_occurrences). Por defecto: 'never'.",
+            "default": "never",
+            "example": "never"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha de finalización de la programación (YYYY-MM-DD). Solo aplica y es requerido si end_type es 'on_date'. El documento programado dejará de ejecutarse después de esta fecha.",
+            "example": "2024-12-31"
           },
           "currency": {
             "type": "string",
@@ -1220,7 +1294,7 @@
           },
           "max_occurrences": {
             "type": "integer",
-            "description": "Número máximo de ejecuciones (opcional, null = infinito)",
+            "description": "Número máximo de ejecuciones (opcional, null = infinito). Solo aplica si end_type es 'after_occurrences'.",
             "minimum": 1,
             "example": 12
           },
@@ -1258,29 +1332,63 @@
               "daily",
               "weekly",
               "monthly",
-              "quarterly"
+              "quarterly",
+              "semiannual",
+              "yearly"
             ],
-            "description": "Frecuencia de ejecución",
+            "description": "Frecuencia de ejecución del documento programado. Valores: 'daily' (diario), 'weekly' (semanal), 'monthly' (mensual), 'quarterly' (trimestral), 'semiannual' (semestral), 'yearly' (anual).",
             "example": "weekly"
           },
           "day_of_month": {
             "type": "integer",
-            "description": "Día del mes para ejecución (1-31)",
+            "description": "Día del mes en que se ejecutará el documento (1-31). Requerido para frecuencias: monthly, quarterly, semiannual, yearly. Si el día no existe en un mes (ej: 31 en febrero), se usará el último día del mes.",
             "minimum": 1,
             "maximum": 31,
             "example": 20
           },
           "day_of_week": {
             "type": "integer",
-            "description": "Día de la semana para ejecución (0=Lunes, 6=Domingo)",
-            "minimum": 0,
-            "maximum": 6,
+            "description": "Día de la semana en que se ejecutará el documento (1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado, 7=Domingo). Requerido para frecuencia semanal (weekly).",
+            "minimum": 1,
+            "maximum": 7,
             "example": 2
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha de inicio de la programación (YYYY-MM-DD). Define desde cuándo comenzará a ejecutarse el documento programado. La primera ejecución será calculada a partir de esta fecha según la frecuencia configurada.",
+            "example": "2024-02-01"
+          },
+          "emission_day_adjustment": {
+            "type": "string",
+            "enum": [
+              "none",
+              "next",
+              "previous"
+            ],
+            "description": "Ajuste de fecha de emisión a días hábiles. Si la fecha calculada cae en fin de semana o feriado, se ajusta según esta opción: 'none' (sin ajuste, emite en la fecha calculada aunque sea fin de semana), 'next' (ajusta al próximo día hábil), 'previous' (ajusta al anterior día hábil).",
+            "example": "none"
+          },
+          "end_type": {
+            "type": "string",
+            "enum": [
+              "never",
+              "on_date",
+              "after_occurrences"
+            ],
+            "description": "Tipo de finalización de la programación: 'never' (nunca finaliza, se ejecuta indefinidamente), 'on_date' (finaliza en una fecha específica, requiere end_date), 'after_occurrences' (finaliza después de un número máximo de ejecuciones, requiere max_occurrences).",
+            "example": "never"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha de finalización de la programación (YYYY-MM-DD). Solo aplica y es requerido si end_type es 'on_date'. El documento programado dejará de ejecutarse después de esta fecha.",
+            "example": "2024-12-31"
           },
           "max_occurrences": {
             "type": "integer",
             "nullable": true,
-            "description": "Número máximo de ejecuciones",
+            "description": "Número máximo de ejecuciones. Solo aplica y es requerido si end_type es 'after_occurrences'. El documento programado dejará de ejecutarse después de alcanzar este número de ejecuciones.",
             "minimum": 1,
             "example": 24
           }
@@ -1322,6 +1430,18 @@
             "type": "string",
             "description": "Unidad de medida",
             "example": "UN"
+          },
+          "item_code": {
+            "type": "string",
+            "description": "Código del producto o servicio según el sistema del emisor. Este código aparece en el documento emitido y puede ser usado para identificación interna del producto.",
+            "nullable": true,
+            "example": "PROD-001"
+          },
+          "item_type_code": {
+            "type": "string",
+            "description": "Código de tipo de ítem según clasificación SII. Identifica la categoría del producto o servicio (ej: '1' para productos, '2' para servicios).",
+            "nullable": true,
+            "example": "1"
           }
         }
       },
@@ -1413,6 +1533,18 @@
             "description": "Unidad de medida",
             "default": "UN",
             "example": "UN"
+          },
+          "item_code": {
+            "type": "string",
+            "description": "Código del ítem",
+            "nullable": true,
+            "example": "PROD-001"
+          },
+          "item_type_code": {
+            "type": "string",
+            "description": "Código de tipo de ítem",
+            "nullable": true,
+            "example": "1"
           }
         }
       }

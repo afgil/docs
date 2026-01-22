@@ -27,10 +27,10 @@ Empresa o entidad que emite las boletas de honorarios. Debe tener credenciales v
 ## Flujo típico de uso
 
 1. **Configurar credenciales SII** para la entidad emisora
-2. **Listar usuarios autorizados** desde el SII
-3. **Enrolar usuarios** que necesiten emitir boletas
+2. **[Listar usuarios autorizados](/api-reference/honorary/authorized-users)** desde el SII para ver qué usuarios están disponibles
+3. **[Enrolar usuarios](/api-reference/honorary/enroll)** que necesiten emitir boletas
 4. **Emitir boletas** de honorarios usando las entidades enroladas
-5. **Desenrolar usuarios** cuando ya no necesiten permisos
+5. **[Desenrolar usuarios](/api-reference/honorary/unenroll)** cuando ya no necesiten permisos
 
 ## Requisitos
 
@@ -42,8 +42,9 @@ Empresa o entidad que emite las boletas de honorarios. Debe tener credenciales v
 
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| `GET` | `/honorary/master-entities/{master_entity_id}/authorized-users/` | Lista usuarios autorizados por el SII para una entidad |
-| `PATCH` | `/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/` | Gestiona usuarios autorizados: enrolar (`action="enroll"`) o desenrolar (`action="unenroll"`) |
+| `GET` | [Listar Usuarios Autorizados](/api-reference/honorary/authorized-users) | Lista usuarios autorizados por el SII para una entidad. Recomendado: `/v1/honorary/authorized-users/?master_entity_id={id}` (master_entity_id como query parameter). También disponible: `/v1/honorary/master-entities/{master_entity_id}/authorized-users/` (compatibilidad) |
+| `PATCH` | [Enrolar Usuario Autorizado](/api-reference/honorary/enroll) | Enrola un usuario autorizado. Recomendado: `/v1/honorary/authorized-users/` con master_entity_id y rut en body. También disponible: `/v1/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/` (compatibilidad) |
+| `PATCH` | [Desenrolar Usuario Autorizado](/api-reference/honorary/unenroll) | Desenrola un usuario autorizado. Recomendado: `/v1/honorary/authorized-users/` con `action="unenroll"` y master_entity_id y rut en body. También disponible: `/v1/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/` con `action="unenroll"` (compatibilidad) |
 
 ## Consideraciones de seguridad
 

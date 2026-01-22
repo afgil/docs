@@ -1,11 +1,18 @@
 ---
-title: "Gestionar Usuario Autorizado"
-openapi: "PATCH /honorary/master-entities/{master_entity_id}/authorized-users/{rut}/"
+title: "Enrolar Usuario Autorizado"
+openapi: "PATCH /honorary/authorized-users/"
 ---
+
+## Endpoints disponibles
+
+Este endpoint está disponible en dos formatos:
+
+- **`PATCH /v1/honorary/authorized-users/`** (recomendado): El `master_entity_id` y `rut` se proporcionan en el body o query parameters
+- **`PATCH /v1/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/`**: El `master_entity_id` y `rut` se proporcionan en la ruta (mantiene compatibilidad)
 
 ## Qué hace
 
-Gestiona usuarios autorizados del SII para emitir boletas de honorarios. Puede **enrolar** o **desenrolar** un usuario según el parámetro `action` en el body.
+Enrola un usuario autorizado del SII para emitir boletas de honorarios. El `master_entity_id` y `rut` pueden proporcionarse en el body, query parameters, o en la ruta (según el endpoint usado). Para desenrolar un usuario, usa el endpoint de [Desenrolar Usuario Autorizado](/api-reference/honorary/unenroll).
 
 ### Enrolar (action="enroll" o sin action)
 
@@ -25,7 +32,7 @@ Enrola un usuario autorizado del SII para que pueda emitir boletas de honorarios
 ## Reglas de negocio
 
 ### Acción por defecto
-Si no se especifica el parámetro `action` en el body, el sistema asume que se quiere enrolar el usuario. Para desenrolar, se debe especificar explícitamente `action="unenroll"`.
+Este endpoint está diseñado para enrolar usuarios. Si no se especifica el parámetro `action` en el body, el sistema asume que se quiere enrolar el usuario. Para desenrolar un usuario, usa el endpoint de [Desenrolar Usuario Autorizado](/api-reference/honorary/unenroll).
 
 ### Validación automática
 El RUT debe existir en la lista de autorizados del SII. Si el RUT no está autorizado, la operación falla. Esto garantiza que solo se puedan enrolar usuarios que realmente tienen permisos en el SII.

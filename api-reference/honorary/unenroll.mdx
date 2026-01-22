@@ -42,6 +42,9 @@ Después del desenrolamiento, el frontend debe actualizar el contexto. La entida
 
 ## Relación con otros endpoints
 
-- **GET /honorary/master-entities/{master_entity_id}/authorized-users/**: Lista usuarios y su estado de enrolamiento
-- **PATCH /honorary/master-entities/{master_entity_id}/authorized-users/{rut}/** con `action="enroll"`: Operación inversa (enrolar)
-- **PATCH /honorary/master-entities/{master_entity_id}/authorized-users/{rut}/** con `action="unenroll"`: Esta operación (desenrolar)
+- **GET /v1/honorary/authorized-users/?master_entity_id={id}**: Lista usuarios y su estado de enrolamiento (recomendado)
+- **GET /v1/honorary/master-entities/{master_entity_id}/authorized-users/**: Lista usuarios y su estado de enrolamiento (compatibilidad)
+- **PATCH /v1/honorary/authorized-users/** con `action="enroll"`: Operación inversa (enrolar, recomendado, master_entity_id y rut en body)
+- **PATCH /v1/honorary/authorized-users/** con `action="unenroll"**: Esta operación (desenrolar, recomendado, master_entity_id y rut en body)
+- **PATCH /v1/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/** con `action="enroll"`: Operación inversa (enrolar, compatibilidad)
+- **PATCH /v1/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/** con `action="unenroll"`: Esta operación (desenrolar, compatibilidad)
