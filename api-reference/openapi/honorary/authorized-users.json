@@ -6,7 +6,7 @@
     "description": "Endpoints para gestión de usuarios autorizados de boletas de honorarios"
   },
   "paths": {
-    "/api/honorary/master-entities/{master_entity_id}/authorized-users/": {
+    "/honorary/master-entities/{master_entity_id}/authorized-users/": {
       "get": {
         "summary": "Listar usuarios autorizados",
         "description": "Obtiene la lista de usuarios autorizados para emitir boletas de honorarios desde el SII",
@@ -133,7 +133,7 @@
         }
       }
     },
-    "/api/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/": {
+    "/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/": {
       "patch": {
         "summary": "Gestionar usuario autorizado (enrolar o desenrolar)",
         "description": "Enrola o desenrola un usuario autorizado del SII para emitir boletas de honorarios. Usa el parámetro 'action' en el body para especificar la operación.",
