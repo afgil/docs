@@ -958,6 +958,39 @@
           }
         }
       },
+      "ScheduledDocumentReferenceItem": {
+        "type": "object",
+        "description": "Referencia a un documento (ej. para notas de crédito). Máximo 3 referencias por documento programado.",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "ID de la referencia (solo en respuesta)",
+            "example": 1
+          },
+          "dte_type_code": {
+            "type": "string",
+            "description": "Código del tipo de DTE del documento referenciado (ej: 33, 61)",
+            "example": "33"
+          },
+          "reference_folio": {
+            "type": "string",
+            "description": "Folio del documento referenciado",
+            "example": "123"
+          },
+          "reference_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha del documento referenciado (YYYY-MM-DD)",
+            "example": "2024-01-15"
+          },
+          "reference_reason": {
+            "type": "string",
+            "description": "Razón de la referencia. Para notas de crédito totales: 'ANULA DOCUMENTO DE LA REFERENCIA'.",
+            "nullable": true,
+            "example": "ANULA DOCUMENTO DE LA REFERENCIA"
+          }
+        }
+      },
       "ScheduledDocumentListResponse": {
         "type": "object",
         "properties": {
@@ -1116,6 +1149,14 @@
             "description": "Moneda del documento",
             "example": "CLP"
           },
+          "currency_day": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 1,
+            "maximum": 31,
+            "description": "Día del mes (1-31) para tomar el valor del tipo de cambio. Aplica cuando la moneda es UF o USD; si no se indica, se usa el día de emisión.",
+            "example": 10
+          },
           "completed_occurrences": {
             "type": "integer",
             "description": "Número de veces que se ha ejecutado",
@@ -1168,6 +1209,14 @@
             "description": "Detalles/productos del documento",
             "items": {
               "$ref": "#/components/schemas/ScheduledDocumentDetail"
+            }
+          },
+          "references": {
+            "type": "array",
+            "maxItems": 3,
+            "description": "Referencias a documentos (ej. factura anulada por nota de crédito). Máximo 3 referencias.",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledDocumentReferenceItem"
             }
           },
           "created_at": {
@@ -1282,6 +1331,22 @@
             "default": "CLP",
             "example": "CLP"
           },
+          "currency_day": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 1,
+            "maximum": 31,
+            "description": "Día del mes (1-31) para tomar el valor del tipo de cambio (UF o USD). Si no se indica, se usa el día de emisión.",
+            "example": 10
+          },
+          "references": {
+            "type": "array",
+            "maxItems": 3,
+            "description": "Referencias a documentos (ej. factura anulada por nota de crédito). Máximo 3 referencias.",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledDocumentReferenceItem"
+            }
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -1391,6 +1456,22 @@
             "description": "Número máximo de ejecuciones. Solo aplica y es requerido si end_type es 'after_occurrences'. El documento programado dejará de ejecutarse después de alcanzar este número de ejecuciones.",
             "minimum": 1,
             "example": 24
+          },
+          "currency_day": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 1,
+            "maximum": 31,
+            "description": "Día del mes (1-31) para tomar el valor del tipo de cambio (UF o USD). Si no se indica, se usa el día de emisión.",
+            "example": 10
+          },
+          "references": {
+            "type": "array",
+            "maxItems": 3,
+            "description": "Referencias a documentos (ej. factura anulada por nota de crédito). Máximo 3 referencias. Si se envía, reemplaza todas las referencias existentes.",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledDocumentReferenceItem"
+            }
           }
         }
       },

@@ -44,7 +44,16 @@
               },
               "example": {
                 "status": "inactive",
-                "amount": 120000
+                "amount": 120000,
+                "currency_day": 15,
+                "references": [
+                  {
+                    "dte_type_code": "33",
+                    "reference_folio": "100",
+                    "reference_date": "2024-01-15",
+                    "reference_reason": "ANULA DOCUMENTO DE LA REFERENCIA"
+                  }
+                ]
               }
             }
           },

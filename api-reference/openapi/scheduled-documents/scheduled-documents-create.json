@@ -27,7 +27,16 @@
                 "frequency": "monthly",
                 "day_of_month": 10,
                 "currency": "CLP",
+                "currency_day": 10,
                 "status": "active",
+                "references": [
+                  {
+                    "dte_type_code": "33",
+                    "reference_folio": "100",
+                    "reference_date": "2024-01-15",
+                    "reference_reason": "ANULA DOCUMENTO DE LA REFERENCIA"
+                  }
+                ],
                 "details": [
                   {
                     "item_name": "Servicio mensual de consultoría",
@@ -76,8 +85,18 @@
                   "status_display": "Activo",
                   "amount": 150000,
                   "currency": "CLP",
+                  "currency_day": 10,
                   "completed_occurrences": 0,
                   "max_occurrences": null,
+                  "references": [
+                    {
+                      "id": 1,
+                      "dte_type_code": "33",
+                      "reference_folio": "100",
+                      "reference_date": "2024-01-15",
+                      "reference_reason": "ANULA DOCUMENTO DE LA REFERENCIA"
+                    }
+                  ],
                   "details": [
                     {
                       "id": 1,
