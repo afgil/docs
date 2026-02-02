@@ -715,6 +715,8 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
 
 #### Boleta de Honorarios de Terceros (DTE 90)
 
+Ejemplo mínimo con **header `X-Use-Defaults: true`** (el backend calcula `item_total`, completa emisor/receptor si existen en Tu Pana, y usa fecha actual si se omite `date_issued`):
+
 ```json
 {
   "documents": [
@@ -722,27 +724,22 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
       "dte_type": {
         "code": "90"
       },
-      "date_issued": "2024-01-15",
       "document_issuer": {
         "rut": "76543210-3",
-        "business_name": "Restaurante El Buen Sabor SpA",
-        "activity_code": 561011
+        "business_name": "Restaurante El Buen Sabor SpA"
       },
       "document_receiver": {
         "rut": "12345678-9",
         "business_name": "Juan Pérez González"
       },
       "header": {
-        "retention_type": "RETRECEPTOR",
-        "payment_method": "2",
-        "due_date": "2024-01-30"
+        "retention_type": "RETRECEPTOR"
       },
       "details": [
         {
           "item_name": "Servicio de reparto de pedidos",
           "quantity": 1,
-          "unit_price": 15000,
-          "item_total": 15000
+          "unit_price": 15000
         }
       ]
     }
