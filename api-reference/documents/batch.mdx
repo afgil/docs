@@ -715,7 +715,7 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
 
 #### Boleta de Honorarios de Terceros (DTE 90)
 
-Ejemplo mínimo con **header `X-Use-Defaults: true`** (el backend calcula `item_total`, completa emisor/receptor si existen en Tu Pana, y usa fecha actual si se omite `date_issued`):
+Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y receptor el backend completa `business_name` y el resto si existen en Tu Pana; calcula `item_total`; usa fecha actual si se omite `date_issued`.
 
 ```json
 {
@@ -725,12 +725,10 @@ Ejemplo mínimo con **header `X-Use-Defaults: true`** (el backend calcula `item_
         "code": "90"
       },
       "document_issuer": {
-        "rut": "76543210-3",
-        "business_name": "Restaurante El Buen Sabor SpA"
+        "rut": "76543210-3"
       },
       "document_receiver": {
-        "rut": "12345678-9",
-        "business_name": "Juan Pérez González"
+        "rut": "12345678-9"
       },
       "header": {
         "retention_type": "RETRECEPTOR"
