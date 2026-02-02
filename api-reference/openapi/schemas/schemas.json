@@ -77,7 +77,7 @@
         "properties": {
           "code": {
             "type": "string",
-            "description": "Código del tipo de documento:\n- 33: Factura Electrónica\n- 34: Factura Exenta Electrónica\n- 39: Boleta Electrónica\n- 46: Factura de Compra Electrónica\n- 61: Nota de Crédito Electrónica\n- 80: Boleta de Honorarios Electrónica\n- 110: Factura de Exportación Electrónica",
+            "description": "Código del tipo de documento:\n- 33: Factura Electrónica\n- 34: Factura Exenta Electrónica\n- 39: Boleta Electrónica\n- 46: Factura de Compra Electrónica\n- 61: Nota de Crédito Electrónica\n- 80: Boleta de Honorarios Electrónica\n- 90: Boleta de Honorarios a Terceros Electrónica\n- 110: Factura de Exportación Electrónica",
             "enum": [
               "33",
               "34",
@@ -85,6 +85,7 @@
               "46",
               "61",
               "80",
+              "90",
               "110"
             ]
           }
@@ -127,7 +128,7 @@
           },
           "retention_type": {
             "type": "string",
-            "description": "Tipo de retención obligatorio para boletas de honorarios (DTE 80). Define quién retiene el 14,5% legal.",
+            "description": "Tipo de retención obligatorio para boletas de honorarios (DTE 80, 90). Define quién retiene el 14,5% legal.",
             "enum": [
               "RETRECEPTOR",
               "RETCONTRIBUYENTE"

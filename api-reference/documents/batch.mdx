@@ -346,44 +346,75 @@ Incluye todos los campos de las Facturas Electrónicas con:
 <details>
 <summary><strong>🏢 Boleta de Honorarios de Terceros (DTE 90)</strong> - Para plataformas digitales</summary>
 
-**Campos específicos:**
-Incluye todos los campos de las Boletas de Honorarios (DTE 80) con las mismas características.
+**Descripción:** Documento para que plataformas digitales emitan boletas de honorarios en nombre de terceros (contribuyentes reales). La estructura del request es **idéntica a DTE 80**; la diferencia está en el código `dte_type.code: "90"`.
 
-**Campos específicos adicionales:**
+**Código DTE:** `"90"` — Boleta de Honorarios a Terceros Electrónica (confirmado en normativa SII).
 
-**issuer_data (Obligatorio)**
+---
+
+### Requisito previo: agregar el contribuyente real (SII Company)
+
+**Antes de emitir DTE 90, debes registrar el contribuyente real en Tu Pana:**
+
+1. El `document_issuer.rut` debe corresponder a una **MasterEntity** ya existente en Tu Pana.
+2. Esa entidad debe tener **credenciales SII de tipo `sii_company`** configuradas y activas.
+3. La API usa el RUT de `document_issuer` para buscar la entidad emisora; si no existe o no tiene credenciales, la emisión falla.
+
+**¿Qué es sii_company?** Es el tipo de credencial SII para empresas que emiten boletas de honorarios de terceros (a diferencia de credenciales personales). El contribuyente real (restaurante, empresa cliente) debe tener esta credencial en Tu Pana.
+
+**Pasos para configurar:**
+- Crear o importar la MasterEntity del contribuyente real (RUT, razón social, etc.).
+- Configurar credenciales SII de tipo `sii_company` para esa entidad.
+- Opcionalmente enrolar usuarios autorizados para emisión por terceros (ver [API de Honorarios](/api-reference/honorary/introduction)).
+
+---
+
+### X-Use-Defaults para DTE 90
+
+**Sí se puede usar** `X-Use-Defaults: true`, pero con una limitación importante:
+
+- **document_issuer:** El sistema completa datos desde la MasterEntity que coincida con `document_issuer.rut`. Si el contribuyente real **no está registrado** en Tu Pana, X-Use-Defaults no podrá completar datos y deberás enviar todos los campos obligatorios.
+- **document_receiver:** Igual que DTE 80; si el RUT existe en Tu Pana, se completan datos.
+- **date_issued, header.payment_method:** Se aplican los mismos defaults que para otros tipos.
+
+**Recomendación:** Si emites DTE 90 de forma recurrente, registra los contribuyentes reales (restaurantes, clientes) como MasterEntity en Tu Pana para poder usar X-Use-Defaults con solo el RUT.
+
+---
+
+### Campos requeridos (mismos que DTE 80)
+
+**dte_type (Obligatorio)**
+- `code` (String): `"90"` — Boleta de Honorarios a Terceros Electrónica
+
+**document_issuer (Obligatorio)** — Contribuyente real (el tercero en cuyo nombre emite la plataforma)
 - **Tipo:** Object
-- **Descripción:** Información del contribuyente real (el tercero en nombre del cual se emite)
+- **Descripción:** Datos del contribuyente que paga los honorarios (restaurante, empresa cliente, etc.).
 - **Campos obligatorios:**
-  - `rut` (String): RUT del contribuyente real (no de la plataforma)
+  - `rut` (String): RUT del contribuyente real — **debe existir como MasterEntity con credenciales sii_company**
   - `business_name` (String): Razón social del contribuyente real
-  - `activity_code` (Integer): Código de actividad económica del contribuyente real
+  - `activity_code` (Integer): Código de actividad económica (ej: 620900)
+- **Con X-Use-Defaults:** Si el RUT existe en Tu Pana, los demás campos se completan automáticamente.
+
+**document_receiver (Obligatorio)** — Profesional que recibe los honorarios
+- **Tipo:** Object
+- **Campos obligatorios:** `rut` (String)
+- **Opcionales:** `business_name`, `business_activity`, `address`, `district`, `city`, `contact`
 
 **header (Obligatorio)**
-- **Tipo:** Object
-- **Campos obligatorios:**
-  - `retention_type` (String): Tipo de retención
-    - `"RETRECEPTOR"`: La retención la realiza el receptor (más común)
-    - `"RETCONTRIBUYENTE"`: La retención la realiza el contribuyente emisor
-  - `third_party_indicator` (String): **Obligatorio para DTE 90** - Indica emisión por tercero
-    - Valor fijo: `"THIRD_PARTY"`
+- `retention_type` (String): `"RETRECEPTOR"` o `"RETCONTRIBUYENTE"`
+- Opcionales: `payment_method`, `due_date`
 
-**Responsabilidades adicionales:**
-- **Plataforma**: Responsable técnico de la emisión y transmisión al SII
-- **Contribuyente real**: Responsable tributario de los honorarios pagados
-- **Pago**: Se realiza al contribuyente real, no a la plataforma
-- **Declaración**: La plataforma debe informar las emisiones realizadas
+**details (Obligatorio)**
+- Array con `item_name`, `quantity`, `unit_price`, `item_total`
 
-**Casos de uso específicos:**
-- **Plataformas freelance**: Upwork, Fiverr, Workana
-- **Marketplaces de servicios**: Thumbtack, TaskRabbit
-- **Apps de delivery**: Rappi, Uber Eats (para repartidores)
-- **Plataformas educativas**: Udemy, Coursera (para instructores)
+**Responsabilidades:**
+- **Contribuyente real** (document_issuer): Debe estar en Tu Pana con credenciales sii_company; es el responsable tributario.
+- **Retención:** 14.5% sobre monto bruto, igual que DTE 80.
 
-**Caso de uso típico:**
-- Plataformas que pagan a proveedores externos
-- Marketplaces que emiten boletas por vendedores
-- Empresas que contratan servicios a través de intermediarios
+**Casos de uso:**
+- Apps de delivery (Rappi, Uber Eats) — restaurante paga al repartidor
+- Plataformas freelance — empresa paga al freelancer
+- Marketplaces de servicios — cliente paga al proveedor
 
 </details>
 
@@ -682,6 +713,43 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
 }
 ```
 
+#### Boleta de Honorarios de Terceros (DTE 90)
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": {
+        "code": "90"
+      },
+      "date_issued": "2024-01-15",
+      "document_issuer": {
+        "rut": "76543210-3",
+        "business_name": "Restaurante El Buen Sabor SpA",
+        "activity_code": 561011
+      },
+      "document_receiver": {
+        "rut": "12345678-9",
+        "business_name": "Juan Pérez González"
+      },
+      "header": {
+        "retention_type": "RETRECEPTOR",
+        "payment_method": "2",
+        "due_date": "2024-01-30"
+      },
+      "details": [
+        {
+          "item_name": "Servicio de reparto de pedidos",
+          "quantity": 1,
+          "unit_price": 15000,
+          "item_total": 15000
+        }
+      ]
+    }
+  ]
+}
+```
+
 ## 🧾 **Factura de Compra (DTE 46)**
 
 ### Campos específicos del header:
@@ -787,11 +855,14 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
 **DTE 80 - Boleta de Honorarios:**
 - Emisión directa por el pagador al profesional
 - Relación directa pagador-profesional
+- **document_issuer**: Quien paga (empresa o persona que contrata)
 
 **DTE 90 - Boleta de Honorarios de Terceros:**
 - Emisión por intermediario (plataformas, marketplaces)
-- El emisor actúa en nombre de otro contribuyente
-- Requiere autorización especial del SII
+- **document_issuer**: Contribuyente real (quien paga — restaurante, empresa cliente)
+- **document_receiver**: Profesional que recibe (repartidor, freelancer, instructor)
+- Requiere enrolamiento de usuarios autorizados para emisión por terceros
+- Misma estructura de request que DTE 80; solo cambia `dte_type.code: "90"`
 
 ### Validaciones específicas:
 - **Tope mensual**: Límite de emisión sin retención ampliada
@@ -799,10 +870,8 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
 - **Declaración**: El retenedor debe declarar y pagar el impuesto retenido
 
 ### Casos de uso:
-- Honorarios de abogados, contadores, médicos
-- Servicios de consultoría
-- Pagos a freelancers
-- Comisiones por servicios
+- **DTE 80**: Honorarios de abogados, contadores, médicos; servicios de consultoría; pagos directos a freelancers
+- **DTE 90**: Apps de delivery (Rappi, Uber Eats); plataformas freelance; marketplaces de servicios; plataformas educativas
 
 
 ## 🔒 **Seguridad y URLs temporales**
