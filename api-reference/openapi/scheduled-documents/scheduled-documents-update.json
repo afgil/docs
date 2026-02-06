@@ -53,6 +53,14 @@
                     "reference_date": "2024-01-15",
                     "reference_reason": "ANULA DOCUMENTO DE LA REFERENCIA"
                   }
+                ],
+                "details": [
+                  {
+                    "item_name": "Servicio actualizado",
+                    "item_description": "Descripción del servicio",
+                    "quantity": 1,
+                    "unit_price": 120000
+                  }
                 ]
               }
             }

@@ -5,3 +5,35 @@ openapi: 'PATCH /scheduled-documents/{id}'
 
 Actualiza parcialmente un documento programado existente.
 
+## PATCH /scheduled-documents/{id}
+
+### ¿Para qué se usa?
+
+Permite modificar cualquier campo de un documento programado existente, incluyendo los detalles (productos/servicios). Es una actualización parcial: solo se modifican los campos que envíes en el payload.
+
+### Detalles (details)
+
+Puedes actualizar los detalles del documento enviando el array `details`. Si envías `details`, **reemplaza completamente** los detalles existentes (no se hace merge). La estructura es la misma que en la creación:
+
+- **item_name** (obligatorio): Nombre del producto o servicio
+- **item_description** (opcional): Descripción del producto o servicio
+- **quantity** (obligatorio): Cantidad
+- **unit_price** (obligatorio): Precio unitario
+
+Campos opcionales: `item_code`, `item_type_code`, `unit`, `discount_percent`, `other_tax`, `line_number`.
+
+### Ejemplo de payload con detalles
+
+```json
+{
+  "details": [
+    {
+      "item_name": "Servicio actualizado",
+      "item_description": "Descripción del servicio",
+      "quantity": 1,
+      "unit_price": 120000
+    }
+  ]
+}
+```
+

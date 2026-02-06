@@ -888,6 +888,14 @@
                     "reference_date": "2024-01-15",
                     "reference_reason": "ANULA DOCUMENTO DE LA REFERENCIA"
                   }
+                ],
+                "details": [
+                  {
+                    "item_name": "Servicio actualizado",
+                    "item_description": "Descripción del servicio",
+                    "quantity": 1,
+                    "unit_price": 120000
+                  }
                 ]
               }
             }
@@ -1133,10 +1141,9 @@
                 "details": [
                   {
                     "item_name": "Servicio mensual de consultoría",
-                    "description": "Asistencia contable mensual",
+                    "item_description": "Asistencia contable mensual",
                     "quantity": 1,
-                    "unit_price": 150000,
-                    "unit_of_measurement": "UN"
+                    "unit_price": 150000
                   }
                 ]
               }
@@ -1194,11 +1201,10 @@
                     {
                       "id": 1,
                       "item_name": "Servicio mensual de consultoría",
-                      "description": "Asistencia contable mensual",
+                      "item_description": "Asistencia contable mensual",
                       "quantity": 1,
                       "unit_price": 150000,
-                      "total": 150000,
-                      "unit_of_measurement": "UN"
+                      "item_total": 150000
                     }
                   ],
                   "created_at": "2024-02-05T12:15:00Z",
@@ -3369,6 +3375,13 @@
             "items": {
               "$ref": "#/components/schemas/ScheduledDocumentReferenceItem"
             }
+          },
+          "details": {
+            "type": "array",
+            "description": "Detalles/productos del documento. Si se envía, reemplaza todos los detalles existentes. Misma estructura que en creación.",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledDocumentDetailCreate"
+            }
           }
         }
       },
@@ -3385,8 +3398,9 @@
             "description": "Nombre del producto o servicio",
             "example": "Servicio mensual de consultoría"
           },
-          "description": {
+          "item_description": {
             "type": "string",
+            "description": "Descripción del producto o servicio",
             "example": "Consultoría especializada en tecnología"
           },
           "quantity": {
@@ -3399,9 +3413,9 @@
             "description": "Precio unitario",
             "example": 100000
           },
-          "total": {
+          "item_total": {
             "type": "number",
-            "description": "Total de la línea",
+            "description": "Total de la línea (calculado automáticamente)",
             "example": 100000
           },
           "unit_of_measurement": {
@@ -3490,8 +3504,9 @@
             "description": "Nombre del producto o servicio",
             "example": "Servicio mensual de consultoría"
           },
-          "description": {
+          "item_description": {
             "type": "string",
+            "description": "Descripción del producto o servicio (opcional)",
             "example": "Consultoría especializada en tecnología"
           },
           "quantity": {
@@ -3506,10 +3521,9 @@
             "minimum": 0,
             "example": 100000
           },
-          "unit_of_measurement": {
+          "unit": {
             "type": "string",
-            "description": "Unidad de medida",
-            "default": "UN",
+            "description": "Unidad de medida (opcional). Para UF/USD se asigna automáticamente.",
             "example": "UN"
           },
           "item_code": {

@@ -40,10 +40,9 @@
                 "details": [
                   {
                     "item_name": "Servicio mensual de consultoría",
-                    "description": "Asistencia contable mensual",
+                    "item_description": "Asistencia contable mensual",
                     "quantity": 1,
-                    "unit_price": 150000,
-                    "unit_of_measurement": "UN"
+                    "unit_price": 150000
                   }
                 ]
               }
@@ -101,11 +100,10 @@
                     {
                       "id": 1,
                       "item_name": "Servicio mensual de consultoría",
-                      "description": "Asistencia contable mensual",
+                      "item_description": "Asistencia contable mensual",
                       "quantity": 1,
                       "unit_price": 150000,
-                      "total": 150000,
-                      "unit_of_measurement": "UN"
+                      "item_total": 150000
                     }
                   ],
                   "created_at": "2024-02-05T12:15:00Z",

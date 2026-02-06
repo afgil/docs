@@ -1473,6 +1473,13 @@
             "items": {
               "$ref": "#/components/schemas/ScheduledDocumentReferenceItem"
             }
+          },
+          "details": {
+            "type": "array",
+            "description": "Detalles/productos del documento. Si se envía, reemplaza todos los detalles existentes. Misma estructura que en creación.",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledDocumentDetailCreate"
+            }
           }
         }
       },
@@ -1489,8 +1496,9 @@
             "description": "Nombre del producto o servicio",
             "example": "Servicio mensual de consultoría"
           },
-          "description": {
+          "item_description": {
             "type": "string",
+            "description": "Descripción del producto o servicio",
             "example": "Consultoría especializada en tecnología"
           },
           "quantity": {
@@ -1503,9 +1511,9 @@
             "description": "Precio unitario",
             "example": 100000
           },
-          "total": {
+          "item_total": {
             "type": "number",
-            "description": "Total de la línea",
+            "description": "Total de la línea (calculado automáticamente)",
             "example": 100000
           },
           "unit_of_measurement": {
@@ -1594,8 +1602,9 @@
             "description": "Nombre del producto o servicio",
             "example": "Servicio mensual de consultoría"
           },
-          "description": {
+          "item_description": {
             "type": "string",
+            "description": "Descripción del producto o servicio (opcional)",
             "example": "Consultoría especializada en tecnología"
           },
           "quantity": {
@@ -1610,10 +1619,9 @@
             "minimum": 0,
             "example": 100000
           },
-          "unit_of_measurement": {
+          "unit": {
             "type": "string",
-            "description": "Unidad de medida",
-            "default": "UN",
+            "description": "Unidad de medida (opcional). Para UF/USD se asigna automáticamente.",
             "example": "UN"
           },
           "item_code": {
