@@ -88,16 +88,6 @@
               }
             }
           },
-          "404": {
-            "description": "Documento programado no encontrado",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
           "401": {
             "description": "No autorizado - API Key inválida",
             "content": {
@@ -110,6 +100,16 @@
           },
           "403": {
             "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documento programado no encontrado",
             "content": {
               "application/json": {
                 "schema": {
