@@ -314,13 +314,17 @@ def combine_openapi_files():
                     # Remover /v1/ del path si lo tiene (el servidor base ya lo tiene)
                     clean_path = path
                     if path.startswith("/v1/"):
-                        clean_path = "/" + path[4:]  # Remover "/v1/" y agregar "/" -> queda "/documents"
+                        clean_path = (
+                            "/" + path[4:]
+                        )  # Remover "/v1/" y agregar "/" -> queda "/documents"
                     elif path.startswith("/v1"):
-                        clean_path = "/" + path[3:]  # Remover "/v1" y agregar "/" -> queda "/documents"
+                        clean_path = (
+                            "/" + path[3:]
+                        )  # Remover "/v1" y agregar "/" -> queda "/documents"
                     # Si no tiene /v1, usar el path tal cual (debe empezar con /)
                     elif not path.startswith("/"):
                         clean_path = "/" + path
-                    
+
                     if clean_path not in combined["paths"]:
                         combined["paths"][clean_path] = {}
                     combined["paths"][clean_path].update(methods)
