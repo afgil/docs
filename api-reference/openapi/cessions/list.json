@@ -1,0 +1,132 @@
+{
+  "paths": {
+    "/cessions": {
+      "get": {
+        "operationId": "listCessions",
+        "tags": ["Cesiones"],
+        "security": [{"apiKeyAuth": []}],
+        "summary": "Listar cesiones emitidas",
+        "description": "Obtiene todas las cesiones de facturas (AEC) emitidas por una entidad. Las cesiones son las transferencias de derechos de crédito de facturas a un cesionario (por ejemplo una empresa de factoring). Requiere el ID de la entidad emisora.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "required": true,
+            "description": "ID de la entidad maestra (emisora de las facturas cedidas). Obligatorio.",
+            "schema": {"type": "integer", "example": 123}
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "description": "Fecha desde (YYYY-MM-DD) para filtrar por fecha de creación de la cesión.",
+            "schema": {"type": "string", "format": "date"}
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "description": "Fecha hasta (YYYY-MM-DD) para filtrar por fecha de creación de la cesión.",
+            "schema": {"type": "string", "format": "date"}
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Estado en el SII: processing, rejected o success.",
+            "schema": {"type": "string", "enum": ["processing", "rejected", "success"]}
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "description": "Búsqueda en folio del documento, nombre o RUT del emisor, o razón social/RUT del cesionario.",
+            "schema": {"type": "string"}
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Número de página (paginación).",
+            "schema": {"type": "integer", "default": 1}
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "description": "Cantidad de resultados por página.",
+            "schema": {"type": "integer", "default": 25}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista paginada de cesiones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {"type": "integer", "description": "Total de resultados"},
+                    "total_pages": {"type": "integer"},
+                    "results": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/CessionListItem"}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "master_entity_id faltante o inválido",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"master_entity_id": {"type": "array", "items": {"type": "string"}}}}
+              }
+            }
+          },
+          "403": {
+            "description": "No tienes acceso a esta entidad",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"detail": {"type": "string"}}}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CessionListItem": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "description": "ID de la cesión"},
+          "document_id": {"type": "integer"},
+          "document_folio": {"type": "string"},
+          "document_date_issued": {"type": "string", "format": "date"},
+          "document_amount": {"type": "number"},
+          "supplier_id": {"type": "integer"},
+          "supplier_name": {"type": "string"},
+          "supplier_rut": {"type": "string"},
+          "receiver_id": {"type": "integer", "nullable": true},
+          "receiver_name": {"type": "string", "nullable": true},
+          "receiver_rut": {"type": "string", "nullable": true},
+          "assignee_rut": {"type": "string"},
+          "assignee_business_name": {"type": "string"},
+          "assignee_entity_id": {"type": "integer", "nullable": true},
+          "assignee_entity_name": {"type": "string", "nullable": true},
+          "assignee_entity_tax_id": {"type": "string", "nullable": true},
+          "assignment_amount": {"type": "number"},
+          "status": {"type": "string", "enum": ["processing", "rejected", "success"]},
+          "status_message": {"type": "string", "nullable": true},
+          "source": {"type": "string", "enum": ["internal", "external"], "description": "internal = creada en Tu Pana; external = registrada por fuera (SII)"},
+          "sii_date_sent": {"type": "string", "format": "date-time", "nullable": true},
+          "aec_url": {"type": "string", "format": "uri", "nullable": true},
+          "created_at": {"type": "string", "format": "date-time"}
+        }
+      }
+    }
+  }
+}

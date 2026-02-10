@@ -83,16 +83,29 @@
             ]
           },
           {
-            "group": "Cesiones",
-            "pages": [
-              "api-reference/cessions/batch"
-            ]
-          },
-          {
             "group": "Webhooks",
             "pages": [
               "api-reference/webhooks/webhooks",
               "api-reference/webhooks/create"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Cesiones",
+        "groups": [
+          {
+            "group": "Introducción",
+            "pages": [
+              "api-reference/cessions/introduction"
+            ]
+          },
+          {
+            "group": "Referencia",
+            "pages": [
+              "api-reference/cessions/list",
+              "api-reference/cessions/get",
+              "api-reference/cessions/batch"
             ]
           }
         ]

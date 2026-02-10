@@ -1,0 +1,97 @@
+{
+  "paths": {
+    "/cessions/{id}": {
+      "get": {
+        "operationId": "getCession",
+        "tags": ["Cesiones"],
+        "security": [{"apiKeyAuth": []}],
+        "summary": "Obtener una cesión",
+        "description": "Obtiene el detalle de una cesión por ID. Si se envía el parámetro pdf=document-cession, la respuesta es una redirección (302) a la URL presignada del certificado de cesión en S3 (PDF del SII). Por defecto devuelve el JSON con el detalle de la cesión.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la cesión",
+            "schema": {"type": "integer"}
+          },
+          {
+            "name": "pdf",
+            "in": "query",
+            "required": false,
+            "description": "Si se envía el valor document-cession, la API redirige a la URL presignada de S3 del certificado de cesión (PDF). Útil para descargar o mostrar el certificado.",
+            "schema": {"type": "string", "enum": ["document-cession"]}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle de la cesión (JSON). Incluye eventos de trazabilidad y errores si existen.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Objeto cesión con todos los campos del listado más events y errors",
+                  "properties": {
+                    "id": {"type": "integer"},
+                    "document_id": {"type": "integer"},
+                    "document_folio": {"type": "string"},
+                    "status": {"type": "string"},
+                    "source": {"type": "string"},
+                    "assignee_business_name": {"type": "string"},
+                    "assignment_amount": {"type": "number"},
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {"type": "integer"},
+                          "event_code": {"type": "string"},
+                          "event_description": {"type": "string"},
+                          "event_date": {"type": "string", "format": "date-time"}
+                        }
+                      }
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {"type": "object"}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Redirección a la URL presignada del certificado de cesión (PDF en S3). Solo cuando se envía pdf=document-cession.",
+            "headers": {
+              "Location": {"schema": {"type": "string", "format": "uri"}, "description": "URL presignada de S3 del PDF"}
+            }
+          },
+          "403": {
+            "description": "No tienes acceso a esta cesión",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"detail": {"type": "string"}}}
+              }
+            }
+          },
+          "404": {
+            "description": "Cesión no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"detail": {"type": "string"}}}
+              }
+            }
+          },
+          "502": {
+            "description": "Error al obtener el certificado (credencial SII o scraping)",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"error": {"type": "string"}}}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

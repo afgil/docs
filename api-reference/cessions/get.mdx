@@ -1,0 +1,20 @@
+---
+title: 'Obtener cesión y certificado'
+openapi: 'GET /cessions/{id}'
+---
+
+## ¿Para qué se usa?
+
+Sirve para **consultar el detalle de una cesión** por ID y, opcionalmente, **obtener el certificado de cesión (PDF)** del SII mediante una URL presignada en S3.
+
+## Qué hace
+
+- **Sin parámetros** (`GET /cessions/{id}`): devuelve el detalle completo en JSON (documento, cesionario, monto, estado, eventos de trazabilidad y errores si existen).
+- **Con `?pdf=document-cession`** (`GET /cessions/{id}?pdf=document-cession`): responde con una **redirección (302)** a la URL presignada del PDF del certificado de cesión almacenado en S3. El certificado es el que emite el SII para esa cesión.
+
+El certificado se obtiene o se genera (scraping) la primera vez que se solicita y se guarda en S3; las siguientes veces se sirve la URL presignada del archivo ya almacenado.
+
+## Ejemplos de uso
+
+- Ver en tu sistema el detalle y la trazabilidad de una cesión.
+- Ofrecer un botón “Descargar certificado” que abra o descargue el PDF usando la URL a la que redirige el endpoint con `pdf=document-cession`.

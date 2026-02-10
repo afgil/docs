@@ -1,22 +1,26 @@
 ---
-title: 'Generar cesiones de facturas en lote'
+title: 'Crear cesiones en lote'
 openapi: 'POST /cessions/batch'
 ---
 
+## ¿Para qué se usa?
+
+Permite **generar cesiones (AECs) de múltiples facturas en una sola llamada** y enviarlas al SII. Se usa cuando quieres ceder varias facturas a un mismo cesionario (por ejemplo una empresa de factoring) de forma automatizada.
+
 ## Qué hace
 
-- Genera cesiones (AECs) de múltiples facturas en una sola llamada
-- Obtiene automáticamente los códigos EHDR del SII para cada factura
-- Permite ceder facturas electrónicas (DTE 33) o exentas (DTE 34) a un cesionario
-- Envía automáticamente los AECs al SII después de generarlos
-- Genera URLs presignadas para descargar los archivos AEC
+- Genera los **archivos electrónicos de cesión (AEC)** para cada factura indicada.
+- Obtiene automáticamente los **códigos EHDR** del SII para cada factura.
+- Permite ceder **facturas electrónicas (DTE 33)** o **exentas (DTE 34)** a un cesionario.
+- **Envía los AECs al SII** después de generarlos.
+- Devuelve **URLs presignadas** para descargar los archivos AEC desde S3.
 
 ## Ejemplos de uso
 
-- Ceder múltiples facturas a una empresa de factoring
-- Transferir derechos de crédito de facturas a un cesionario
-- Automatizar el proceso de cesión de facturas a entidades financieras
-- Generar cesiones masivas para procesos de financiamiento
+- Ceder múltiples facturas a una empresa de factoring desde tu integración.
+- Transferir derechos de crédito de un lote de facturas a un cesionario.
+- Automatizar el proceso de cesión con entidades financieras.
+- Generar cesiones masivas para procesos de financiamiento.
 
 ## Requisitos importantes
 
@@ -24,10 +28,11 @@ openapi: 'POST /cessions/batch'
 
 **Las cesiones se generan usando la contraseña del SII del representante legal, NO con el certificado digital.**
 
-Para generar cesiones, la entidad debe tener configurada una credencial SII personal (no credencial de empresa) con:
+La entidad debe tener configurada una **credencial SII personal** (no credencial de empresa) con:
+
 - RUT del representante legal
 - Contraseña del SII del representante legal
 - La credencial debe estar en estado `VALID`
 
-> **Nota importante**: A diferencia de la emisión de documentos, las cesiones requieren la credencial SII personal del representante legal, no el certificado digital de la empresa.
+> **Nota**: A diferencia de la emisión de documentos, las cesiones requieren la credencial SII personal del representante legal, no el certificado digital de la empresa.
 

@@ -1,0 +1,21 @@
+---
+title: 'Listar cesiones'
+openapi: 'GET /cessions'
+---
+
+## ¿Para qué se usa?
+
+Permite **obtener todas las cesiones de facturas (AEC) emitidas por una entidad**. Cada ítem representa una cesión registrada (en Tu Pana o por fuera en el SII) e incluye datos del documento cedido, del cesionario y del estado en el SII.
+
+## Qué hace
+
+- Devuelve una lista **paginada** de cesiones donde la entidad indicada es la **emisora** de las facturas cedidas.
+- Puedes filtrar por **rango de fechas** (`date_from`, `date_to`), **estado** (`processing`, `rejected`, `success`) y **búsqueda** en folio, emisor o cesionario.
+- El campo **source** indica si la cesión fue creada en Tu Pana (`internal`) o registrada por fuera (`external`).
+- Incluye **assignee_entity_name** cuando el cesionario está dado de alta como entidad en Tu Pana.
+
+## Ejemplos de uso
+
+- Mostrar en un panel todas las cesiones de una empresa.
+- Filtrar cesiones por estado para ver pendientes o rechazadas.
+- Integrar con sistemas de factoring que necesitan listar las facturas cedidas.

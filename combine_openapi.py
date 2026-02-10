@@ -20,6 +20,7 @@ def combine_openapi_files():
     # Luego procesar los demás archivos
     subdirs = [
         "credentials",
+        "cessions",
         "documents",
         "master-entities",
         "scheduled-documents",

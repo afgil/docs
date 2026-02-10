@@ -267,6 +267,8 @@ def combine_openapi_files():
         # Document states
         base_dir / "document-states" / "document-states.json",
         # Cessions
+        base_dir / "cessions" / "list.json",
+        base_dir / "cessions" / "get.json",
         base_dir / "cessions" / "batch.json",
         # Webhooks
         base_dir / "webhooks" / "webhooks.json",
