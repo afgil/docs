@@ -113,8 +113,7 @@ Con `X-Use-Defaults: true`, solo necesitas proporcionar el `rut` del receptor. E
 - **Campos de cada elemento:**
   - `item_name` (String): Nombre del producto/servicio
   - `quantity` (Number): Cantidad (debe ser mayor a 0)
-  - `unit_price` (Number): Precio unitario
-  - `item_total` (Number): Total del ítem (debe ser igual a quantity × unit_price)
+  - `unit_price` (Number): Precio unitario sin IVA
 
 </details>
 
@@ -167,8 +166,7 @@ Iguales a la Factura Electrónica (DTE 33), pero el documento no incluye IVA en 
 - **Campos de cada elemento:**
   - `item_name` (String): Nombre del producto/servicio comprado
   - `quantity` (Number): Cantidad comprada
-  - `unit_price` (Number): Precio unitario pagado
-  - `item_total` (Number): Total del ítem
+  - `unit_price` (Number): Precio unitario sin IVA pagado
 
 **header (Obligatorio para ciertos casos)**
 - **Tipo:** Object
@@ -258,8 +256,7 @@ Iguales a la Factura Electrónica (DTE 33), pero el documento no incluye IVA en 
 - **Campos de cada elemento:**
   - `item_name` (String): Nombre del producto exportado
   - `quantity` (Number): Cantidad exportada
-  - `unit_price` (Number): Precio unitario FOB (Free on Board)
-  - `item_total` (Number): Total FOB del ítem
+  - `unit_price` (Number): Precio unitario sin IVA FOB (Free on Board)
 
 **header (Obligatorio)**
 - **Tipo:** Object
@@ -331,7 +328,7 @@ Incluye todos los campos de las Facturas Electrónicas con:
 
 **Cálculo automático de retención:**
 - **Tasa**: 14.5% sobre el monto bruto (antes de IVA)
-- **Base imponible**: Suma de todos los `item_total` en details
+- **Base imponible**: Suma de (quantity × unit_price) por cada ítem en details
 - **Retención**: `base_imponible × 0.145`
 - **Pago neto**: `base_imponible - retención`
 - **Responsable**: Normalmente el pagador declara y paga la retención al SII
@@ -405,7 +402,7 @@ Incluye todos los campos de las Facturas Electrónicas con:
 - Opcionales: `payment_method`, `due_date`
 
 **details (Obligatorio)**
-- Array con `item_name`, `quantity`, `unit_price`, `item_total`
+- Array con `item_name`, `quantity`, `unit_price`
 
 **Responsabilidades:**
 - **Contribuyente real** (document_issuer): Debe estar en Tu Pana con credenciales sii_company; es el responsable tributario.
@@ -528,8 +525,7 @@ Lista de productos/servicios del documento. Cada elemento contiene:
 - `item_name` (String): Nombre del producto/servicio
 - `item_description` (String): Descripción del producto/servicio
 - `quantity` (Number): Cantidad
-- `unit_price` (Number): Precio unitario
-- `item_total` (Number): Total del ítem
+- `unit_price` (Number): Precio unitario sin IVA
 - `item_code` (String): Código del producto/servicio
 - `item_type_code` (String): Código del tipo de ítem
 - `unit` (String): Unidad de medida
@@ -579,8 +575,7 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
         {
           "item_name": "Servicio de Consultoría",
           "quantity": 1,
-          "unit_price": 100000,
-          "item_total": 100000
+          "unit_price": 100000
         }
       ]
     }
@@ -616,8 +611,7 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
         {
           "item_name": "Equipo de Oficina",
           "quantity": 2,
-          "unit_price": 50000,
-          "item_total": 100000
+          "unit_price": 50000
         }
       ]
     }
@@ -663,8 +657,7 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
         {
           "item_name": "Producto Exportado",
           "quantity": 100,
-          "unit_price": 50,
-          "item_total": 5000
+          "unit_price": 50
         }
       ]
     }
@@ -703,9 +696,8 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
       "details": [
         {
           "item_name": "Ajuste por Corrección",
-          "quantity": 1,
-          "unit_price": -5000,
-          "item_total": -5000
+          "quantity": -1,
+          "unit_price": 5000
         }
       ]
     }
@@ -715,7 +707,7 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
 
 #### Boleta de Honorarios de Terceros (DTE 90)
 
-Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y receptor el backend completa `business_name` y el resto si existen en Tu Pana; calcula `item_total`; usa fecha actual si se omite `date_issued`.
+Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y receptor el backend completa `business_name` y el resto si existen en Tu Pana; usa fecha actual si se omite `date_issued`.
 
 ```json
 {

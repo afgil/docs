@@ -102,8 +102,7 @@
                       "item_name": "Servicio mensual de consultoría",
                       "item_description": "Asistencia contable mensual",
                       "quantity": 1,
-                      "unit_price": 150000,
-                      "item_total": 150000
+                      "unit_price": 150000
                     }
                   ],
                   "created_at": "2024-02-05T12:15:00Z",

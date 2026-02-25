@@ -258,7 +258,8 @@
           "unit_price": {
             "type": "number",
             "format": "float",
-            "description": "Precio unitario"
+            "minimum": 0,
+            "description": "Precio unitario sin IVA (no puede ser negativo)"
           },
           "item_description": {
             "type": "string",
@@ -268,11 +269,6 @@
             "type": "number",
             "format": "float",
             "description": "Porcentaje de descuento"
-          },
-          "item_total": {
-            "type": "number",
-            "format": "float",
-            "description": "Total del ítem"
           },
           "item_code": {
             "type": "string",
@@ -465,10 +461,6 @@
                             "nullable": true
                           },
                           "unit_price": {
-                            "type": "number",
-                            "nullable": true
-                          },
-                          "item_total": {
                             "type": "number",
                             "nullable": true
                           },
@@ -1508,12 +1500,8 @@
           },
           "unit_price": {
             "type": "number",
-            "description": "Precio unitario",
-            "example": 100000
-          },
-          "item_total": {
-            "type": "number",
-            "description": "Total de la línea (calculado automáticamente)",
+            "minimum": 0,
+            "description": "Precio unitario sin IVA (no puede ser negativo)",
             "example": 100000
           },
           "unit_of_measurement": {
@@ -1615,8 +1603,8 @@
           },
           "unit_price": {
             "type": "number",
-            "description": "Precio unitario",
             "minimum": 0,
+            "description": "Precio unitario sin IVA (no puede ser negativo)",
             "example": 100000
           },
           "unit": {

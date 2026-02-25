@@ -52,8 +52,7 @@
                       {
                         "item_name": "Servicio de Consultoría",
                         "quantity": 1,
-                        "unit_price": 100000,
-                        "item_total": 100000
+                        "unit_price": 100000
                       }
                     ]
                   }
@@ -107,7 +106,6 @@
                             "item_description": null,
                             "quantity": 1.0,
                             "unit_price": 100000.0,
-                            "item_total": 100000.0,
                             "unit": "UN",
                             "item_code": null,
                             "item_type_code": null,
