@@ -143,7 +143,7 @@ Cuando ocurre un evento, se envía una petición POST a la URL configurada con e
 ```
 Content-Type: application/json
 User-Agent: Pana-Webhooks/1.0
-X-Webhook-Signature: sha256=abc123... (si se configura secret)
+X-Pana-Signature: sha256=abc123... (si se configura secret)
 X-Webhook-Event: document.issued
 X-Webhook-Delivery: 12345
 ```
@@ -171,9 +171,9 @@ X-Webhook-Delivery: 12345
 
 ## Verificación de Seguridad
 
-Si se configura un `secret`, las notificaciones incluyen una firma HMAC-SHA256 en el header `X-Webhook-Signature`.
+Si se configura un `secret`, las notificaciones incluyen una firma HMAC-SHA256 en el header `X-Pana-Signature`.
 
-Para verificar la autenticidad:
+Para verificar la autenticidad, obtén la firma del header `X-Pana-Signature` del request (por ejemplo `request.headers.get('X-Pana-Signature')`) y compárala con el HMAC del body:
 
 ```python
 import hmac

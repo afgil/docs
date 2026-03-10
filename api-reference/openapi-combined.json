@@ -1563,7 +1563,7 @@
           "Estados de Documentos"
         ],
         "summary": "Registrar nuevo estado en un documento",
-        "description": "Registrar un nuevo estado cuando ocurre un evento relevante sobre el documento.",
+        "description": "Registrar un nuevo estado cuando ocurre un evento relevante sobre el documento. Admite eventos del SII (ERM, ACD, RCD, RFT, RFP) y eventos internos de cobranza: **PAID** (marcar factura emitida como pagada) y **UNPAID** (marcar como no pagada). Para PAID y UNPAID solo el emisor del documento puede usarlos; aplican a facturas emitidas (tipo 33, 34, 39, 41). PAID genera un asiento contable de cierre de cuentas por cobrar (CxC); UNPAID revierte ese asiento si existe.",
         "parameters": [
           {
             "name": "document_id",
@@ -1601,6 +1601,20 @@
                   "value": {
                     "event_code": "ACD"
                   }
+                },
+                "marcar_como_pagado": {
+                  "summary": "Marcar factura como pagada (PAID)",
+                  "description": "Solo emisor; factura emitida (33, 34, 39, 41). Genera asiento de cierre CxC.",
+                  "value": {
+                    "event_code": "PAID"
+                  }
+                },
+                "marcar_como_no_pagado": {
+                  "summary": "Marcar factura como no pagada (UNPAID)",
+                  "description": "Solo emisor; revierte el asiento de cierre CxC si existe.",
+                  "value": {
+                    "event_code": "UNPAID"
+                  }
                 }
               }
             }
@@ -1613,6 +1627,39 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DocumentStateResponse"
+                },
+                "examples": {
+                  "respuesta_paid": {
+                    "summary": "Respuesta al marcar como pagado (PAID)",
+                    "value": {
+                      "success": true,
+                      "event_registered": true,
+                      "message": "Documento marcado como pagado. Se generó el asiento contable de cierre de cuentas por cobrar.",
+                      "document": {
+                        "id": 12345,
+                        "folio": "42",
+                        "date_issued": "2025-01-15",
+                        "document_status": {
+                          "paid_status": "PAID"
+                        }
+                      }
+                    }
+                  },
+                  "respuesta_unpaid": {
+                    "summary": "Respuesta al marcar como no pagado (UNPAID)",
+                    "value": {
+                      "success": true,
+                      "event_registered": true,
+                      "message": "Documento marcado como no pagado. Se revirtió el asiento de cierre de cuentas por cobrar.",
+                      "document": {
+                        "id": 12345,
+                        "folio": "42",
+                        "document_status": {
+                          "paid_status": "NOT_PAID"
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -1632,7 +1679,7 @@
                   },
                   "evento_invalido": {
                     "value": {
-                      "error": "Código de evento inválido. Debe ser uno de: ERM, ACD, RCD, RFT, RFP"
+                      "error": "Código de evento inválido. Debe ser uno de: ERM, ACD, RCD, RFT, RFP, PAID, UNPAID"
                     }
                   },
                   "error_sii": {
@@ -3298,9 +3345,11 @@
               "ACD",
               "RCD",
               "RFT",
-              "RFP"
+              "RFP",
+              "PAID",
+              "UNPAID"
             ],
-            "description": "Código del evento a registrar:\n- ERM: Acuse de Recibo de Mercaderías y Servicios\n- ACD: Acepta Contenido del Documento\n- RCD: Reclama Contenido del Documento\n- RFT: Reclamo por Falta Total\n- RFP: Reclamo por Falta Parcial",
+            "description": "Código del evento a registrar:\n- ERM: Acuse de Recibo de Mercaderías y Servicios\n- ACD: Acepta Contenido del Documento\n- RCD: Reclama Contenido del Documento\n- RFT: Reclamo por Falta Total\n- RFP: Reclamo por Falta Parcial\n- PAID: Marcar factura emitida como pagada (genera asiento cierre CxC; solo emisor; tipos 33, 34, 39, 41)\n- UNPAID: Marcar factura emitida como no pagada (revierte asiento cierre CxC; solo emisor)",
             "example": "ERM"
           },
           "rejection_reason": {
