@@ -66,6 +66,9 @@
           },
           "export_data": {
             "$ref": "#/components/schemas/ExportData"
+          },
+          "transport_data": {
+            "$ref": "#/components/schemas/TransportData"
           }
         }
       },
@@ -77,12 +80,13 @@
         "properties": {
           "code": {
             "type": "string",
-            "description": "Código del tipo de documento:\n- 33: Factura Electrónica\n- 34: Factura Exenta Electrónica\n- 39: Boleta Electrónica\n- 46: Factura de Compra Electrónica\n- 61: Nota de Crédito Electrónica\n- 80: Boleta de Honorarios Electrónica\n- 90: Boleta de Honorarios a Terceros Electrónica\n- 110: Factura de Exportación Electrónica",
+            "description": "Código del tipo de documento:\n- 33: Factura Electrónica\n- 34: Factura Exenta Electrónica\n- 39: Boleta Electrónica\n- 46: Factura de Compra Electrónica\n- 52: Guía de Despacho Electrónica\n- 61: Nota de Crédito Electrónica\n- 80: Boleta de Honorarios Electrónica\n- 90: Boleta de Honorarios a Terceros Electrónica\n- 110: Factura de Exportación Electrónica",
             "enum": [
               "33",
               "34",
               "39",
               "46",
+              "52",
               "61",
               "80",
               "90",
@@ -1520,6 +1524,103 @@
             "description": "Código de tipo de ítem según clasificación SII. Identifica la categoría del producto o servicio (ej: '1' para productos, '2' para servicios).",
             "nullable": true,
             "example": "1"
+          }
+        }
+      },
+      "TransportData": {
+        "type": "object",
+        "description": "Transport details for electronic dispatch guides (DTE 52) and related flows. When `timber_enabled` is true, include CONAF timber origin fields as required by SII for wood products.",
+        "required": [
+          "transport_type"
+        ],
+        "properties": {
+          "transport_type": {
+            "type": "string",
+            "description": "Transfer type code per SII (1–9).",
+            "enum": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8",
+              "9"
+            ],
+            "example": "1"
+          },
+          "transport_rut": {
+            "type": "string",
+            "nullable": true,
+            "description": "Tax ID (RUT) of the transport company, format 12345678-9.",
+            "example": "76123456-7"
+          },
+          "transport_plate": {
+            "type": "string",
+            "nullable": true,
+            "description": "Vehicle license plate.",
+            "example": "ABCD12"
+          },
+          "driver_rut": {
+            "type": "string",
+            "nullable": true,
+            "description": "Driver tax ID (RUT).",
+            "example": "12345678-9"
+          },
+          "driver_name": {
+            "type": "string",
+            "nullable": true,
+            "description": "Driver full name.",
+            "example": "Juan Pérez"
+          },
+          "timber_enabled": {
+            "type": "boolean",
+            "description": "When true, the dispatch includes timber origin data for CONAF.",
+            "default": false,
+            "example": false
+          },
+          "comuna_rol": {
+            "type": "string",
+            "nullable": true,
+            "description": "SII commune code for the origin property roll (rol de origen).",
+            "example": "13101"
+          },
+          "manzana_rol": {
+            "type": "string",
+            "nullable": true,
+            "description": "Block (manzana) of the origin property roll.",
+            "example": "12"
+          },
+          "predio_rol": {
+            "type": "string",
+            "nullable": true,
+            "description": "Lot (predio) of the origin property roll.",
+            "example": "345"
+          },
+          "geo_ref_system": {
+            "type": "string",
+            "nullable": true,
+            "description": "Geographic reference system code (e.g. 1 = WGS84).",
+            "example": "1"
+          },
+          "latitude": {
+            "type": "string",
+            "nullable": true,
+            "description": "Timber origin latitude as string (typically two decimal places per SII).",
+            "example": "-33.45"
+          },
+          "longitude": {
+            "type": "string",
+            "nullable": true,
+            "description": "Timber origin longitude as string (typically two decimal places per SII).",
+            "example": "-70.65"
+          },
+          "conaf_plan_code": {
+            "type": "string",
+            "nullable": true,
+            "description": "CONAF forest management plan code.",
+            "example": "PM-2024-001"
           }
         }
       },
