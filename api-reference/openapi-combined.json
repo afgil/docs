@@ -75,7 +75,7 @@
           {
             "name": "dte_type__code__in",
             "in": "query",
-            "description": "Lista de códigos DTE separados por coma (ej: `33,34`).",
+            "description": "Lista de códigos DTE separados por coma (ej: 33,34). Opcional: si no se envía, se devuelven todos los tipos según document_type (emitidos o recibidos).",
             "required": false,
             "style": "form",
             "explode": false,
@@ -83,13 +83,7 @@
               "type": "array",
               "items": {
                 "type": "string"
-              },
-              "default": [
-                "33",
-                "34",
-                "39",
-                "61"
-              ]
+              }
             }
           },
           {

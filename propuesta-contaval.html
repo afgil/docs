@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Propuesta Comercial — Contaval x Tupana</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+  :root {
+    --green-50: #ecfdf5;
+    --green-100: #d1fae5;
+    --green-200: #a7f3d0;
+    --green-400: #34d399;
+    --green-500: #10b981;
+    --green-600: #059669;
+    --green-700: #047857;
+    --green-800: #065f46;
+    --gray-50: #fafafa;
+    --gray-100: #f4f4f5;
+    --gray-200: #e4e4e7;
+    --gray-300: #d4d4d8;
+    --gray-400: #a1a1aa;
+    --gray-500: #71717a;
+    --gray-600: #52525b;
+    --gray-700: #3f3f46;
+    --gray-800: #27272a;
+    --gray-900: #18181b;
+    --red-500: #ef4444;
+    --blue-500: #3b82f6;
+    --amber-500: #f59e0b;
+    --amber-100: #fef3c7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-900);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .slide {
+    width: 1280px;
+    min-height: 720px;
+    margin: 40px auto;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(15,23,42,0.10);
+    padding: 64px 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  .slide-dark {
+    background: var(--gray-900);
+    color: white;
+  }
+
+  .slide-green {
+    background: linear-gradient(135deg, var(--green-700), var(--green-600));
+    color: white;
+  }
+
+  .slide-red {
+    background: var(--gray-900);
+    color: white;
+  }
+
+  .slide-number {
+    position: absolute;
+    bottom: 24px;
+    right: 40px;
+    font-size: 13px;
+    color: var(--gray-400);
+    font-weight: 500;
+  }
+
+  .slide-dark .slide-number,
+  .slide-green .slide-number,
+  .slide-red .slide-number {
+    color: rgba(255,255,255,0.4);
+  }
+
+  .logo {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--green-600);
+  }
+
+  .slide-dark .logo,
+  .slide-green .logo,
+  .slide-red .logo {
+    color: white;
+  }
+
+  .logo-bar {
+    position: absolute;
+    top: 32px;
+    left: 80px;
+  }
+
+  h1 {
+    font-size: 48px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+    margin-bottom: 24px;
+  }
+
+  h3 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+
+  .subtitle {
+    font-size: 20px;
+    color: var(--gray-500);
+    font-weight: 400;
+    line-height: 1.5;
+    max-width: 700px;
+  }
+
+  .slide-dark .subtitle,
+  .slide-green .subtitle {
+    color: rgba(255,255,255,0.7);
+  }
+
+  .eyebrow {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--green-600);
+    margin-bottom: 12px;
+  }
+
+  .slide-dark .eyebrow { color: var(--green-400); }
+  .slide-green .eyebrow { color: var(--green-100); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+  }
+
+  th {
+    text-align: left;
+    padding: 12px 16px;
+    background: var(--gray-50);
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--gray-500);
+    border-bottom: 2px solid var(--gray-200);
+  }
+
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  .highlight-row {
+    background: var(--green-50);
+    font-weight: 700;
+  }
+
+  .highlight-row td {
+    border-bottom: 2px solid var(--green-200);
+    color: var(--green-800);
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-top: 32px;
+  }
+
+  .stat-card {
+    background: var(--gray-50);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .slide-dark .stat-card {
+    background: rgba(255,255,255,0.08);
+  }
+
+  .stat-value {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--green-600);
+  }
+
+  .slide-dark .stat-value { color: var(--green-400); }
+
+  .stat-label {
+    font-size: 14px;
+    color: var(--gray-500);
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  .slide-dark .stat-label { color: var(--gray-400); }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 24px;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    margin-top: 24px;
+  }
+
+  .card {
+    background: var(--gray-50);
+    border-radius: 12px;
+    padding: 28px;
+    border: 1px solid var(--gray-200);
+  }
+
+  .card-green {
+    background: var(--green-50);
+    border-color: var(--green-200);
+  }
+
+  .card h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+
+  .card p {
+    font-size: 15px;
+    color: var(--gray-600);
+    line-height: 1.6;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .badge-green { background: var(--green-100); color: var(--green-800); }
+  .badge-amber { background: var(--amber-100); color: #92400e; }
+  .badge-red { background: #fee2e2; color: #991b1b; }
+
+  .callout {
+    background: var(--green-50);
+    border-left: 4px solid var(--green-500);
+    border-radius: 0 12px 12px 0;
+    padding: 20px 24px;
+    margin-top: 24px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--green-800);
+  }
+
+  .callout-red {
+    background: #fef2f2;
+    border-left: 4px solid var(--red-500);
+    border-radius: 0 12px 12px 0;
+    padding: 20px 24px;
+    margin-top: 24px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #991b1b;
+  }
+
+  .callout-big {
+    text-align: center;
+    padding: 32px;
+    border-radius: 16px;
+    background: var(--green-50);
+    border: 2px solid var(--green-200);
+    margin-top: 32px;
+  }
+
+  .callout-big .stat-value {
+    font-size: 48px;
+  }
+
+  .vs-table {
+    margin-top: 24px;
+  }
+
+  .vs-table th:nth-child(2) { background: #fee2e2; color: #991b1b; }
+  .vs-table th:nth-child(3) { background: var(--green-100); color: var(--green-800); }
+
+  ul { list-style: none; padding: 0; }
+  ul li {
+    padding: 8px 0;
+    padding-left: 24px;
+    position: relative;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--gray-700);
+  }
+  ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 16px;
+    width: 8px;
+    height: 8px;
+    background: var(--green-500);
+    border-radius: 50%;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--gray-200);
+    margin: 24px 0;
+  }
+
+  .tag { font-size: 13px; color: var(--gray-500); }
+
+  .scenario-card {
+    border: 2px solid var(--gray-200);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+  }
+
+  .scenario-card.recommended {
+    border-color: var(--green-500);
+    box-shadow: 0 0 0 4px var(--green-100);
+  }
+
+  .scenario-card h3 { font-size: 20px; }
+  .scenario-card .price {
+    font-size: 40px;
+    font-weight: 800;
+    color: var(--green-600);
+    margin: 16px 0 8px;
+    letter-spacing: -0.03em;
+  }
+
+  .small { font-size: 13px; color: var(--gray-500); }
+
+  .confidential {
+    position: absolute;
+    top: 32px;
+    right: 80px;
+    font-size: 12px;
+    color: var(--gray-400);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .alert-box {
+    padding: 20px 24px;
+    border-radius: 12px;
+    border: 1px solid;
+  }
+
+  @media print {
+    body { background: white; }
+    .slide {
+      margin: 0;
+      border-radius: 0;
+      box-shadow: none;
+      page-break-after: always;
+      height: 720px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: PORTADA -->
+<div class="slide slide-dark">
+  <div class="confidential" style="color: rgba(255,255,255,0.3);">Confidencial</div>
+  <div style="margin-bottom: 48px;">
+    <div class="logo" style="font-size: 28px;">tupana</div>
+  </div>
+  <h1 style="font-size: 52px; color: white;">Tu Contabilidad</h1>
+  <p class="subtitle" style="font-size: 24px; margin-bottom: 48px;">
+    Propuesta comercial para<br>
+    <strong style="color: var(--green-400);">Contaval Estudio Tributario y Laboral</strong>
+  </p>
+  <div style="display: flex; gap: 32px; margin-top: auto;">
+    <span class="tag" style="color: var(--gray-400);">tupana.ai</span>
+    <span class="tag" style="color: var(--gray-400);">contacto@tupana.ai</span>
+    <span class="tag" style="color: var(--gray-400);">Abril 2026</span>
+  </div>
+  <div class="slide-number">1</div>
+</div>
+
+<!-- SLIDE 2: CONTAVAL EN NÚMEROS -->
+<div class="slide">
+  <div class="logo-bar"><div class="logo">tupana</div></div>
+  <div class="eyebrow">Insights de Contaval</div>
+  <h2>Conocemos tu negocio</h2>
+  <p class="subtitle" style="margin-bottom: 32px;">Analizamos la operación real de Contaval para diseñar una propuesta a la medida.</p>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-value">141</div>
+      <div class="stat-label">Clientes activos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">168</div>
+      <div class="stat-label">Clientes totales</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">~4.100</div>
+      <div class="stat-label">Docs procesados/mes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">3</div>
+      <div class="stat-label">Analistas en planilla</div>
+    </div>
+  </div>
+
+  <div class="stat-grid" style="margin-top: 16px;">
+    <div class="stat-card">
+      <div class="stat-value" style="font-size: 28px;">$8.3M</div>
+      <div class="stat-label">Facturación promedio/mes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="font-size: 28px;">$57.8M</div>
+      <div class="stat-label">Pico en Renta (Ene 2026)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="font-size: 28px;">$2.1M</div>
+      <div class="stat-label">Costo planilla/mes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="font-size: 28px;">152</div>
+      <div class="stat-label">Clientes con servicio contable</div>
+    </div>
+  </div>
+
+  <div class="slide-number">2</div>
+</div>
+
+<!-- SLIDE 3: PRODUCTOS DE CONTAVAL -->
+<div class="slide">
+  <div class="logo-bar"><div class="logo">tupana</div></div>
+  <div class="eyebrow">Insights de Contaval</div>
+  <h2>Tus productos y su penetración</h2>
+
+  <table style="margin-top: 16px;">
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Clientes</th>
+        <th>Ingreso anual</th>
+        <th>Precio promedio</th>
+        <th>Penetración</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Servicio Contable</strong></td>
+        <td>152</td>
+        <td>$40.243.763</td>
+        <td>$36.685/mes</td>
+        <td><span class="badge badge-green">100%</span></td>
+      </tr>
+      <tr>
+        <td><strong>Proceso de Renta</strong></td>
+        <td>136</td>
+        <td>$52.060.000</td>
+        <td>$169.026/año</td>
+        <td><span class="badge badge-green">90%</span></td>
+      </tr>
+      <tr>
+        <td><strong>Servicio Laboral</strong></td>
+        <td>47</td>
+        <td>$15.740.000</td>
+        <td>$12.152/mes</td>
+        <td><span class="badge badge-amber">31%</span></td>
+      </tr>
+      <tr>
+        <td><strong>Formalización</strong></td>
+        <td>8</td>
+        <td>$2.542.000</td>
+        <td>$237.000/vez</td>
+        <td><span class="badge badge-red">5%</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout" style="margin-top: 32px;">
+    <strong>Dato clave:</strong> El servicio contable es el motor del negocio. 152 clientes a $36.685/mes promedio.
+    Tupana puede hacer que este servicio sea más rentable automatizando el trabajo operativo que hay detrás.
+  </div>
+
+  <div class="slide-number">3</div>
+</div>
+
+<!-- SLIDE 4: SEGMENTACIÓN DE CLIENTES -->
+<div class="slide">
+  <div class="logo-bar"><div class="logo">tupana</div></div>
+  <div class="eyebrow">Insights de Contaval</div>
+  <h2>Segmentación real de tus clientes</h2>
+
+  <table style="margin-top: 16px;">
+    <thead>
+      <tr>
+        <th>Segmento</th>
+        <th>Clientes</th>
+        <th>% del total</th>
+        <th>Ventas anuales</th>
+        <th>Docs/cliente</th>
+        <th>Cobro prom. Contaval</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Grande (&gt;$100M)</strong></td>
+        <td>8</td>
+        <td>6%</td>
+        <td>$515M</td>
+        <td>~238</td>
+        <td>$120.000 - $200.000</td>
+      </tr>
+      <tr>
+        <td><strong>Mediano ($20M-$100M)</strong></td>
+        <td>17</td>
+        <td>12%</td>
+        <td>$681M</td>
+        <td>~230</td>
+        <td>$60.000 - $100.000</td>
+      </tr>
+      <tr>
+        <td><strong>Pequeño ($5M-$20M)</strong></td>
+        <td>31</td>
+        <td>22%</td>
+        <td>$342M</td>
+        <td>~82</td>
+        <td>$40.000 - $70.000</td>
+      </tr>
+      <tr>
+        <td><strong>Micro (&lt;$5M)</strong></td>
+        <td>84</td>
+        <td>60%</td>
+        <td>$118M</td>
+        <td>~23</td>
+        <td>$25.000 - $45.000</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="grid-2" style="margin-top: 24px;">
+    <div class="card">
+      <h3>El 60% de tus clientes son Micro</h3>
+      <p>84 clientes que pagan entre $25K-$45K. Generan ~$3M/mes de ingreso pero consumen mucho tiempo operativo por cliente. <strong>Son los más beneficiados con automatización.</strong></p>
+    </div>
+    <div class="card card-green">
+      <h3>Top 10 clientes = 80% del movimiento</h3>
+      <p>Enfierradura F-Araya, La Herencia, Transporte VGTA, Chirinos, Medina y otros concentran el volumen de documentos. <strong>Son candidatos a productos de mayor valor.</strong></p>
+    </div>
+  </div>
+
+  <div class="slide-number">4</div>
+</div>
+
+<!-- SLIDE 5: TOP CLIENTES -->
+<div class="slide">
+  <div class="logo-bar"><div class="logo">tupana</div></div>
+  <div class="eyebrow">Insights de Contaval</div>
+  <h2>Tus 10 clientes más grandes</h2>
+
+  <table style="margin-top: 16px; font-size: 14px;">
+    <thead>
+      <tr>
+        <th>Cliente</th>
+        <th>Ventas anuales</th>
+        <th>Compras anuales</th>
+        <th>Docs</th>
+        <th>Contaval cobra</th>
+        <th>Rubro</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Enfierradura F-Araya</td>
+        <td>$160M</td>
+        <td>$3M</td>
+        <td>41</td>
+        <td>$3.0M/año</td>
+        <td>Construcción</td>
+      </tr>
+      <tr>
+        <td>La Herencia SPA</td>
+        <td>$634K</td>
+        <td>$135M</td>
+        <td>253</td>
+        <td>$2.5M/año</td>
+        <td>Gastronomía</td>
+      </tr>
+      <tr>
+        <td>Transporte VGTA Las Mercedes</td>
+        <td>$98M</td>
+        <td>$68M</td>
+        <td>133</td>
+        <td>$1.3M/año</td>
+        <td>Transporte</td>
+      </tr>
+      <tr>
+        <td>Serv. Gastronómicos Astroza</td>
+        <td>$2M</td>
+        <td>$99M</td>
+        <td>390</td>
+        <td>$3.0M/año</td>
+        <td>Gastronomía</td>
+      </tr>
+      <tr>
+        <td>Chirinos (Grúa/Mecánica)</td>
+        <td>$81M</td>
+        <td>$78M</td>
+        <td>336</td>
+        <td>$2.4M/año</td>
+        <td>Mecánica</td>
+      </tr>
+      <tr>
+        <td>Serv. Generales Medina</td>
+        <td>$60M</td>
+        <td>$76M</td>
+        <td>170</td>
+        <td>$2.5M/año</td>
+        <td>Servicios</td>
+      </tr>
+      <tr>
+        <td>Distrib. Matamoros</td>
+        <td>$31M</td>
+        <td>$76M</td>
+        <td>78</td>
+        <td>$1.8M/año</td>
+        <td>Distribución</td>
+      </tr>
+      <tr>
+        <td>Ingeniería Judtson</td>
+        <td>$82M</td>
+        <td>$23M</td>
+        <td>399</td>
+        <td>$1.7M/año</td>
+        <td>Ingeniería</td>
+      </tr>
+      <tr>
+        <td>Enfierradura Mecanizada</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>$8.4M/año</td>
+        <td>Construcción</td>
+      </tr>
+      <tr>
+        <td>Aksiom Ingeniería</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>$6.4M/año</td>
+        <td>Ingeniería</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>Insight:</strong> Tus clientes grandes mueven $100M-$160M al año, pero les cobras $1.5M-$3M/año. Con tiempo liberado, puedes ofrecerles asesoría financiera y reportes ejecutivos de mayor valor.
+  </div>
+
+  <div class="slide-number">5</div>
+</div>
+
+<!-- SLIDE 6: EL PROBLEMA OPERATIVO -->
+<div class="slide slide-dark">
+  <div class="logo-bar"><div class="logo">tupana</div></div>
+  <div class="eyebrow">El problema</div>
+  <h2 style="color: white;">141 clientes. 3 analistas.<br>Todo manual.</h2>
+
+  <div class="grid-2" style="margin-top: 32px;">
+    <div class="stat-card">
+      <div style="font-size: 40px; margin-bottom: 8px;">141</div>
+      <div class="stat-label">F29 que hay que declarar cada mes</div>
+      <div style="font-size: 14px; color: var(--gray-500); margin-top: 8px;">45 min cada uno = <strong style="color: var(--red-500);">106 horas/mes</strong></div>
+    </div>
+    <div class="stat-card">
+      <div style="font-size: 40px; margin-bottom: 8px;">~2.000</div>
+      <div class="stat-label">Facturas de compra que clasificar y digitar</div>
+      <div style="font-size: 14px; color: var(--gray-500); margin-top: 8px;">3 min cada una = <strong style="color: var(--red-500);">100 horas/mes</strong></div>
+    </div>
+    <div class="stat-card">
+      <div style="font-size: 40px; margin-bottom: 8px;">141</div>
+      <div class="stat-label">Reportes que preparar y enviar</div>
+      <div style="font-size: 14px; color: var(--gray-500); margin-top: 8px;">10 min cada uno = <strong style="color: var(--red-500);">24 horas/mes</strong></div>
+    </div>
+    <div class="stat-card">
+      <div style="font-size: 40px; margin-bottom: 8px;">230 hrs</div>
+      <div class="stat-label">Total horas/mes en trabajo repetitivo</div>
+      <div style="font-size: 14px; color: var(--gray-500); margin-top: 8px;">= <strong style="color: var(--red-500);">1.4 personas full-time</strong></div>
+    </div>
+  </div>
+
+  <div style="margin-top: 40px; padding: 24px 32px; background: rgba(239,68,68,0.1); border-radius: 12px; border: 1px solid rgba(239,68,68,0.2);">
+    <p style="font-size: 20px; font-weight: 700; color: #fca5a5;">
+      Tus analistas pasan más de la mitad de su tiempo en tareas que una máquina hace mejor.
+    </p>
+    <p style="font-size: 15px; color: var(--gray-400); margin-top: 8px;">
+      Ese tiempo podría estar generando ingresos vendiendo servicios de mayor valor a tus clientes actuales.
+    </p>
+  </div>
+
+  <div class="slide-number">6</div>
+</div>
+
+<!-- SLIDE 7: RIESGO SII — CLASIFICACIÓN TRIBUTARIA -->
+<div class="slide">
+  <div class="logo-bar"><div class="logo">tupana</div></div>
+  <div class="eyebrow">El riesgo que nadie ve</div>
+  <h2>El SII está fiscalizando la clasificación de compras. Activamente.</h2>
+
+  <div class="grid-2" style="margin-top: 16px;">
+    <div>
+      <h3 style="font-size: 18px;">Lo que el SII exige clasificar</h3>
+      <p style="font-size: 15px; color: var(--gray-600); line-height: 1.7; margin-bottom: 16px;">
+        Cada factura de compra debe clasificarse tributariamente en el Registro de Compras. Si se clasifica mal, el F29 sale con errores.
+      </p>
+      <table style="font-size: 14px;">
+        <tbody>
+          <tr><td><strong>Del Giro</strong></td><td>IVA recuperable, se resta del IVA ventas</td></tr>
+          <tr><td><strong>Activo Fijo</strong></td><td>Línea separada en F29. Derecho a devolución art. 27 bis</td></tr>
+          <tr><td><strong>Supermercado</strong></td><td>Compras necesarias para producir la renta</td></tr>
+          <tr><td><strong>IVA Uso Común</strong></td><td>Proporcionalidad cuando hay ventas afectas y exentas</td></tr>
+          <tr><td><strong>IVA No Recuperable</strong></td><td>No descuenta IVA, pero es gasto deducible en Renta</td></tr>
+          <tr><td><strong>No Incluir</strong></td><td>Compras personales. Sin crédito fiscal ni gasto</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <h3 style="font-size: 18px;">Lo que pasa si se clasifica mal</h3>
+      <div class="alert-box" style="background: #fef2f2; border-color: #fecaca; margin-bottom: 12px;">
+        <p style="font-size: 14px; color: #991b1b; line-height: 1.6;">
+          <strong>Activo fijo como "del giro"</strong> → IVA en línea equivocada, pierdes derecho a devolución por art. 27 bis.
+        </p>
+      </div>
+      <div class="alert-box" style="background: #fef2f2; border-color: #fecaca; margin-bottom: 12px;">
+        <p style="font-size: 14px; color: #991b1b; line-height: 1.6;">
+          <strong>Compra personal como "del giro"</strong> → Crédito fiscal indebido. Multa hasta 500% del monto.
+        </p>
+      </div>
+      <div class="alert-box" style="background: #fef2f2; border-color: #fecaca; margin-bottom: 12px;">
+        <p style="font-size: 14px; color: #991b1b; line-height: 1.6;">
+          <strong>Del giro como "no incluir"</strong> → Pierdes crédito fiscal legítimo. Pagas más IVA del que debes.
+        </p>
+      </div>
+      <div class="alert-box" style="background: #fef2f2; border-color: #fecaca;">
+        <p style="font-size: 14px; color: #991b1b; line-height: 1.6;">
+          <strong>Sin separar "uso común"</strong> → Crédito fiscal mal calculado. Observación del SII.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-number">7</div>
+</div>
+
+<!-- SLIDE 8: SII ENDURECIENDO -->
+<div class="slide slide-dark">
+  <div class="logo-bar"><div class="logo">tupana</div></div>
+  <div class="eyebrow">Fiscalización SII 2025-2026</div>
+  <h2 style="color: white;">El SII endureció la fiscalización desde diciembre 2024</h2>
+
+  <div class="grid-2" style="margin-top: 32px;">
+    <div class="stat-card" style="text-align: left; padding: 28px;">
+      <p style="font-size: 14px; color: var(--green-400); font-weight: 700; margin-bottom: 8px;">RESOLUCIÓN SII — DIC 2024</p>
+      <p style="font-size: 16px; color: var(--gray-300); line-height: 1.6;">
+        Restringe el uso de facturas exclusivamente a compras del giro del comprador. Supermercados y restaurantes que incumplan: <strong style="color: white;">multa hasta 500% del monto</strong> y clausura hasta 20 días.
+      </p>
+    </div>
+    <div class="stat-card" style="text-align: left; padding: 28px;">
+      <p style="font-size: 14px; color: var(--green-400); font-weight: 700; margin-bottom: 8px;">FISCALIZACIÓN ACTIVA</p>
+      <p style="font-size: 16px; color: var(--gray-300); line-height: 1.6;">
+        El SII anunció auditorías por uso indebido del crédito fiscal usando la información del detalle de facturas electrónicas de compra. <strong style="color: white;">Están cruzando datos automáticamente.</strong>
+      </p>
+    </div>
+  </div>
+
+  <div style="margin-top: 32px; padding: 28px; background: rgba(239,68,68,0.1); border-radius: 12px; border: 1px solid rgba(239,68,68,0.3);">
+    <p style="font-size: 14px; color: var(--red-500); font-weight: 700; margin-bottom: 8px;">CASO REAL</p>
+    <p style="font-size: 18px; color: var(--gray-300); line-height: 1.6;">
+      El SII presentó querella contra una empresa de Calama por uso de 427 facturas falsas que aumentaron indebidamente el crédito fiscal de IVA. <strong style="color: white;">Perjuicio fiscal: $400 millones.</strong>
+    </p>
+  </div>
+
+  <div style="margin-top: 32px; padding: 24px 32px; background: rgba(16,185,129,0.12); border-radius: 12px; border: 1px solid rgba(16,185,129,0.3);">
+    <p style="font-size: 20px; font-weight: 700; color: var(--green-400);">
+      La pregunta para Contaval: ¿tus analistas revisan cada factura una por una, o dejan todo como "del giro" por default?
+    </p>
+    <p style="font-size: 15px; color: var(--gray-400); margin-top: 8px;">
+      Tupana clasifica automáticamente cada factura en la categoría tributaria correcta con IA, protegiendo a tus clientes de observaciones del SII.
+    </p>
+  </div>
+
+  <div class="slide-number">8</div>
+</div>
+
+<!-- SLIDE 9: LA SOLUCIÓN -->
+<div class="slide slide-green">
+  <div class="logo-bar"><div class="logo">tupana</div></div>
+  <div class="eyebrow">La solución</div>
+  <h2 style="color: white; font-size: 42px;">Tupana automatiza lo repetitivo.<br>Tu equipo hace lo que importa.</h2>
+
+  <div class="grid-3" style="margin-top: 40px;">
+    <div style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 32px; backdrop-filter: blur(8px);">
+      <div style="font-size: 32px; margin-bottom: 12px;">F29</div>
+      <h3 style="color: white; font-size: 20px;">F29 Automático + Clasificación IA</h3>
+      <p style="color: rgba(255,255,255,0.8); font-size: 15px; line-height: 1.6;">
+        Clasificación tributaria automática de cada factura (del giro, activo fijo, uso común, no incluir) + generación del F29 con las líneas correctas. Sin entrar al SII.
+      </p>
+    </div>
+    <div style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 32px; backdrop-filter: blur(8px);">
+      <div style="font-size: 32px; margin-bottom: 12px;">CP</div>
+      <h3 style="color: white; font-size: 20px;">Comprobantes Automáticos</h3>
+      <p style="color: rgba(255,255,255,0.8); font-size: 15px; line-height: 1.6;">
+        Creación automática de comprobantes contables desde las ~2.000 facturas de compra mensuales. Cero digitación manual.
+      </p>
+    </div>
+    <div style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 32px; backdrop-filter: blur(8px);">
+      <div style="font-size: 32px; margin-bottom: 12px;">RP</div>
+      <h3 style="color: white; font-size: 20px;">Reportes por Email</h3>
+      <p style="color: rgba(255,255,255,0.8); font-size: 15px; line-height: 1.6;">
+        Envío automático de reportes periódicos a tus 141 clientes. Desde tu correo o desde Tupana. White-label disponible.
+      </p>
+    </div>
+  </div>
+
+  <div class="slide-number">9</div>
+</div>
+
+<!-- SLIDE 10: 3 CAMINOS -->
+<div class="slide">
+  <div class="logo-bar"><div class="logo">tupana</div></div>
+  <div class="eyebrow">3 estrategias para crecer</div>
+  <h2>Elige tu camino</h2>
+  <p class="subtitle" style="margin-bottom: 32px;">Tupana te da 3 formas de capturar más valor. No son excluyentes.</p>
+
+  <div class="grid-3">
+    <div class="scenario-card">
+      <div class="badge badge-red" style="margin-bottom: 16px;">Eficiencia</div>
+      <h3>Reducir equipo</h3>
+      <div class="price" style="font-size: 32px;">+$729K/mes</div>
+      <p class="small">ahorro neto</p>
+      <div class="divider"></div>
+      <p style="font-size: 14px; color: var(--gray-600); text-align: left; line-height: 1.6;">
+        Tupana reemplaza el trabajo de 2 analistas. Te quedas con 1 para relación con clientes. Ahorras $1.4M en planilla y pagas $671K a Tupana.
+      </p>
+    </div>
+
+    <div class="scenario-card recommended">
+      <div class="badge badge-green" style="margin-bottom: 16px;">Recomendado</div>
+      <h3>Más clientes</h3>
+      <div class="price" style="font-size: 32px;">+$2.8M/mes</div>
+      <p class="small">utilidad adicional</p>
+      <div class="divider"></div>
+      <p style="font-size: 14px; color: var(--gray-600); text-align: left; line-height: 1.6;">
+        Mantienes tu equipo de 3. Tupana les libera 230 hrs/mes. <strong>Tupana te conecta con nuevos clientes</strong> a través de su red de PyMEs que necesitan contador. Tu equipo los atiende.
+      </p>
+    </div>
+
+    <div class="scenario-card">
+      <div class="badge badge-amber" style="margin-bottom: 16px;">Mayor valor</div>
+      <h3>Vender más a los actuales</h3>
+      <div class="price" style="font-size: 32px;">+$1.8M/mes</div>
+      <p class="small">ingreso incremental</p>
+      <div class="divider"></div>
+      <p style="font-size: 14px; color: var(--gray-600); text-align: left; line-height: 1.6;">
+        Mantienes tu equipo de 3. Con el tiempo liberado, tus analistas ofrecen asesoría financiera y reportes ejecutivos a tus top 25 clientes.
+      </p>
+    </div>
+  </div>
+
+  <div class="slide-number">10</div>
+</div>
+
+<!-- SLIDE 11: CAMINO A — REDUCIR EQUIPO -->
+<div class="slide">
+  <div class="logo-bar"><div class="logo">tupana</div></div>
+  <div class="eyebrow">Camino A: Eficiencia</div>
+  <h2>Reducir equipo, mantener ingresos</h2>
+
+  <table class="vs-table" style="margin-top: 16px;">
+    <thead>
+      <tr>
+        <th style="background: white;">Concepto</th>
+        <th>Hoy</th>
+        <th>Con Tupana</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Analistas</td>
+        <td>3 x $700.000 = <strong>$2.100.000</strong></td>
+        <td>1 x $700.000 = <strong>$700.000</strong></td>
+      </tr>
+      <tr>
+        <td>Software</td>
+        <td>$200.000</td>
+        <td>$200.000</td>
+      </tr>
+      <tr>
+        <td>Tupana</td>
+        <td>$0</td>
+        <td>$671.090</td>
+      </tr>
+      <tr>
+        <td>Otros gastos</td>
+        <td>$400.000</td>
+        <td>$400.000</td>
+      </tr>
+      <tr class="highlight-row">
+        <td>Costo total</td>
+        <td>$2.700.000</td>
+        <td>$1.971.090</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout-big">
+    <div class="stat-label">Ahorro neto mensual</div>
+    <div class="stat-value">$728.910/mes</div>
+    <div class="stat-label" style="margin-top: 8px;">$8.746.920/año directo a tu bolsillo</div>
+  </div>
+
+  <div class="slide-number">11</div>
+</div>
+
+<!-- SLIDE 12: CAMINO B — MÁS CLIENTES VÍA TUPANA -->
+<div class="slide">
+  <div class="logo-bar"><div class="logo">tupana</div></div>
+  <div class="eyebrow">Camino B: Crecimiento</div>
+  <h2>Mantener equipo, recibir clientes de Tupana</h2>
+
+  <div class="grid-2">
+    <div>
+      <h3>Hoy: 141 clientes con 3 analistas</h3>
+      <p style="font-size: 15px; color: var(--gray-600); line-height: 1.6; margin-bottom: 16px;">
+        Tus analistas dedican 230 hrs/mes a F29, digitación y reportes.
+        Si Tupana hace ese trabajo, esas 230 hrs se convierten en <strong>capacidad de atención</strong>.
+      </p>
+
+      <h3 style="margin-top: 24px;">Con Tupana: 190-210 clientes</h3>
+      <p style="font-size: 15px; color: var(--gray-600); line-height: 1.6;">
+        Tupana tiene una red creciente de PyMEs que necesitan contador. <strong>Te conectamos con clientes nuevos</strong> que ya están en la plataforma. Tu equipo solo los atiende — sin buscarlos.
+      </p>
+    </div>
+
+    <div>
+      <table>
+        <thead>
+          <tr>
+            <th>Métrica</th>
+            <th>Hoy</th>
+            <th>Con Tupana</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Clientes</td>
+            <td>141</td>
+            <td><strong>200</strong></td>
+          </tr>
+          <tr>
+            <td>Ingreso/mes</td>
+            <td>$8.3M</td>
+            <td><strong>$11.8M</strong></td>
+          </tr>
+          <tr>
+            <td>Planilla</td>
+            <td>$2.1M</td>
+            <td>$2.1M</td>
+          </tr>
+          <tr>
+            <td>Tupana (200 emp)</td>
+            <td>$0</td>
+            <td>$919K</td>
+          </tr>
+          <tr class="highlight-row">
+            <td>Utilidad</td>
+            <td>$5.6M</td>
+            <td><strong>$8.4M</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="callout-big">
+    <div class="stat-label">Incremento en utilidad mensual</div>
+    <div class="stat-value">+$2.8M/mes</div>
+    <div class="stat-label" style="margin-top: 8px;">Sin contratar a nadie. Mismo equipo. Tupana te trae los clientes.</div>
+  </div>
+
+  <div class="slide-number">12</div>
+</div>
+
+<!-- SLIDE 13: CAMINO C — MAYOR VALOR A ACTUALES -->
+<div class="slide">
+  <div class="logo-bar"><div class="logo">tupana</div></div>
+  <div class="eyebrow">Camino C: Mayor valor</div>
+  <h2>Mantener equipo, vender más a los actuales</h2>
+
+  <p class="subtitle" style="margin-bottom: 24px;">Con 230 hrs/mes liberadas, tu equipo puede ofrecer servicios de mayor margen a los clientes que ya tienes.</p>
+
+  <table style="font-size: 14px;">
+    <thead>
+      <tr>
+        <th>Oportunidad</th>
+        <th>Clientes objetivo</th>
+        <th>Precio estimado</th>
+        <th>Ingreso incremental/mes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Asesoría financiera</strong><br><span class="small">Análisis de flujo de caja, proyecciones, alertas</span></td>
+        <td>Top 25 clientes (grandes/medianos)</td>
+        <td>$80.000/mes</td>
+        <td><strong>$2.000.000</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Reportes ejecutivos</strong><br><span class="small">Dashboard mensual con KPIs para el dueño de la PyME</span></td>
+        <td>Top 25 clientes</td>
+        <td>$30.000/mes</td>
+        <td><strong>$750.000</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Diagnóstico contable-tributario</strong><br><span class="small">Revisión integral + recomendaciones de compliance</span></td>
+        <td>~20 clientes/año (nuevos o existentes)</td>
+        <td>$350.000/vez</td>
+        <td><strong>$583.000</strong> (prom/mes)</td>
+      </tr>
+      <tr>
+        <td><strong>Compliance SII proactivo</strong><br><span class="small">Monitoreo de clasificación tributaria + alertas</span></td>
+        <td>Todos (141 clientes)</td>
+        <td>$5.000/mes adicional</td>
+        <td><strong>$705.000</strong></td>
+      </tr>
+      <tr class="highlight-row">
+        <td colspan="3">Total incremental potencial</td>
+        <td><strong>$4.038.000/mes</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout" style="margin-top: 24px;">
+    <strong>La clave:</strong> Hoy tus analistas no tienen tiempo para ofrecer estos servicios porque están digitando F29 y clasificando facturas.
+    Tupana les libera 230 hrs/mes. Incluso capturando el 30% de la oportunidad = <strong>$1.2M adicionales/mes</strong>.
+  </div>
+
+  <div class="slide-number">13</div>
+</div>
+
+<!-- SLIDE 14: PRICING -->
+<div class="slide">
+  <div class="logo-bar"><div class="logo">tupana</div></div>
+  <div class="eyebrow">Pricing</div>
+  <h2>Precio por empresa con tramos degresivos</h2>
+
+  <div class="grid-2" style="margin-top: 16px;">
+    <div>
+      <h3>Bundle White-Label (reportes desde tu correo)</h3>
+      <table>
+        <thead>
+          <tr><th>Tramo</th><th>Precio/empresa/mes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1-10 empresas</td><td><strong>$9.990</strong></td></tr>
+          <tr><td>11-25 empresas</td><td><strong>$7.990</strong></td></tr>
+          <tr><td>26-50 empresas</td><td><strong>$5.990</strong></td></tr>
+          <tr><td>51-100 empresas</td><td><strong>$3.990</strong></td></tr>
+          <tr><td>101-150 empresas</td><td><strong>$2.490</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h3>Bundle Estándar (reportes desde Tupana)</h3>
+      <table>
+        <thead>
+          <tr><th>Tramo</th><th>Precio/empresa/mes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1-10 empresas</td><td><strong>$7.990</strong></td></tr>
+          <tr><td>11-25 empresas</td><td><strong>$5.990</strong></td></tr>
+          <tr><td>26-50 empresas</td><td><strong>$4.490</strong></td></tr>
+          <tr><td>51-100 empresas</td><td><strong>$2.990</strong></td></tr>
+          <tr><td>101-150 empresas</td><td><strong>$1.990</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3>Simulación para Contaval — 141 empresas, Bundle White-Label</h3>
+  <table style="font-size: 14px;">
+    <thead>
+      <tr><th>Tramo</th><th>Empresas</th><th>Precio</th><th>Subtotal</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1-10</td><td>10</td><td>$9.990</td><td>$99.900</td></tr>
+      <tr><td>11-25</td><td>15</td><td>$7.990</td><td>$119.850</td></tr>
+      <tr><td>26-50</td><td>25</td><td>$5.990</td><td>$149.750</td></tr>
+      <tr><td>51-100</td><td>50</td><td>$3.990</td><td>$199.500</td></tr>
+      <tr><td>101-141</td><td>41</td><td>$2.490</td><td>$102.090</td></tr>
+      <tr class="highlight-row"><td colspan="3">Total mensual</td><td><strong>$671.090</strong></td></tr>
+    </tbody>
+  </table>
+  <p class="small" style="margin-top: 8px;">Precio efectivo: $4.760/empresa. Incluye F29 + Clasificación IA + Comprobantes + Reportes + Soporte + Onboarding.</p>
+
+  <div class="slide-number">14</div>
+</div>
+
+<!-- SLIDE 15: MÓDULOS INDIVIDUALES -->
+<div class="slide">
+  <div class="logo-bar"><div class="logo">tupana</div></div>
+  <div class="eyebrow">Pricing</div>
+  <h2>También disponible por módulo</h2>
+
+  <table style="margin-top: 24px;">
+    <thead>
+      <tr>
+        <th>Módulo</th>
+        <th>1-10</th>
+        <th>11-25</th>
+        <th>26-50</th>
+        <th>51-100</th>
+        <th>101-150</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>F29 Automático + Clasificación IA</strong></td>
+        <td>$3.990</td>
+        <td>$2.990</td>
+        <td>$2.490</td>
+        <td>$1.990</td>
+        <td>$1.490</td>
+      </tr>
+      <tr>
+        <td><strong>Comprobantes Automáticos</strong></td>
+        <td>$4.990</td>
+        <td>$3.990</td>
+        <td>$2.990</td>
+        <td>$1.990</td>
+        <td>$1.490</td>
+      </tr>
+      <tr>
+        <td><strong>Reportes (correo Tupana)</strong></td>
+        <td>$1.990</td>
+        <td>$1.490</td>
+        <td>$990</td>
+        <td>$790</td>
+        <td>$490</td>
+      </tr>
+      <tr>
+        <td><strong>Reportes (tu correo / WL)</strong></td>
+        <td>$2.990</td>
+        <td>$2.490</td>
+        <td>$1.990</td>
+        <td>$1.490</td>
+        <td>$990</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="grid-2" style="margin-top: 32px;">
+    <div class="card">
+      <h3>Solo F29 + Clasificación IA (141 empresas)</h3>
+      <p style="font-size: 28px; font-weight: 800; color: var(--green-600); margin: 8px 0;">$289.890/mes</p>
+      <p>Ideal para empezar. Clasificación tributaria automática + F29 correcto. Protección ante fiscalización SII.</p>
+    </div>
+    <div class="card card-green">
+      <h3>Bundle WL (141 empresas)</h3>
+      <p style="font-size: 28px; font-weight: 800; color: var(--green-600); margin: 8px 0;">$671.090/mes</p>
+      <p>Todo incluido. F29 + Clasificación IA + Comprobantes + Reportes desde tu correo. El máximo ahorro.</p>
+    </div>
+  </div>
+
+  <p class="small" style="margin-top: 16px;">Todos los planes incluyen soporte, actualizaciones y onboarding sin costo. 15% descuento en pago anual.</p>
+
+  <div class="slide-number">15</div>
+</div>
+
+<!-- SLIDE 16: ROI CONSOLIDADO -->
+<div class="slide slide-dark">
+  <div class="logo-bar"><div class="logo">tupana</div></div>
+  <div class="eyebrow">Resumen</div>
+  <h2 style="color: white;">Tupana se paga solo. El resto es ganancia.</h2>
+
+  <div class="stat-grid" style="margin-top: 40px;">
+    <div class="stat-card">
+      <div class="stat-value" style="font-size: 28px;">$671K</div>
+      <div class="stat-label">Costo Tupana/mes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="font-size: 28px;">$729K</div>
+      <div class="stat-label">Ahorro mínimo/mes<br>(Camino A)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="font-size: 28px;">$2.8M</div>
+      <div class="stat-label">Utilidad extra/mes<br>(Camino B)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="font-size: 28px;">$1.2M</div>
+      <div class="stat-label">Upsell potencial/mes<br>(Camino C)</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 32px; padding: 24px 32px; background: rgba(255,255,255,0.06); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+    <p style="font-size: 16px; color: var(--gray-400); margin-bottom: 8px;">Y además:</p>
+    <p style="font-size: 20px; font-weight: 700; color: white; line-height: 1.5;">
+      Protección contra fiscalización del SII con clasificación tributaria automática por IA.
+      Cada factura clasificada correctamente: del giro, activo fijo, uso común, no incluir.
+      <span style="color: var(--green-400);">Cero riesgo de multas por crédito fiscal indebido.</span>
+    </p>
+  </div>
+
+  <div style="margin-top: 24px; padding: 32px; background: rgba(16,185,129,0.15); border-radius: 16px; border: 1px solid rgba(16,185,129,0.3); text-align: center;">
+    <p style="font-size: 16px; color: var(--green-400); font-weight: 600;">ROI en el peor caso (Camino A)</p>
+    <p style="font-size: 56px; font-weight: 800; color: white; letter-spacing: -0.04em; margin: 8px 0;">109%</p>
+    <p style="font-size: 16px; color: var(--gray-400);">Por cada $1 que inviertes en Tupana, recuperas $2.09</p>
+  </div>
+
+  <div class="slide-number">16</div>
+</div>
+
+<!-- SLIDE 17: IMPLEMENTACIÓN -->
+<div class="slide">
+  <div class="logo-bar"><div class="logo">tupana</div></div>
+  <div class="eyebrow">Implementación</div>
+  <h2>Estás operando en 5 días</h2>
+
+  <div style="display: flex; gap: 0; margin-top: 40px; position: relative;">
+    <div style="flex: 1; text-align: center; padding: 24px 16px;">
+      <div style="width: 48px; height: 48px; background: var(--green-600); color: white; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px;">1</div>
+      <h3 style="margin-top: 16px; font-size: 16px;">Día 1</h3>
+      <p style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">Firma y onboarding.<br>Configuración de cuenta.</p>
+    </div>
+    <div style="flex: 1; text-align: center; padding: 24px 16px;">
+      <div style="width: 48px; height: 48px; background: var(--green-600); color: white; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px;">2</div>
+      <h3 style="margin-top: 16px; font-size: 16px;">Día 2-3</h3>
+      <p style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">Carga de 141 empresas.<br>Conexión SII.</p>
+    </div>
+    <div style="flex: 1; text-align: center; padding: 24px 16px;">
+      <div style="width: 48px; height: 48px; background: var(--green-600); color: white; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px;">3</div>
+      <h3 style="margin-top: 16px; font-size: 16px;">Día 4</h3>
+      <p style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">Piloto con 10 empresas.<br>Validación conjunta.</p>
+    </div>
+    <div style="flex: 1; text-align: center; padding: 24px 16px;">
+      <div style="width: 48px; height: 48px; background: var(--green-600); color: white; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px;">4</div>
+      <h3 style="margin-top: 16px; font-size: 16px;">Día 5</h3>
+      <p style="font-size: 14px; color: var(--gray-600); margin-top: 8px;">Go-live con las 141.<br>Soporte dedicado.</p>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top: 40px;">
+    Onboarding incluido sin costo. Te acompañamos en cada paso.
+  </div>
+
+  <div class="slide-number">17</div>
+</div>
+
+<!-- SLIDE 18: CTA / CIERRE -->
+<div class="slide slide-dark" style="text-align: center; justify-content: center;">
+  <div class="logo-bar"><div class="logo">tupana</div></div>
+
+  <h1 style="color: white; font-size: 44px; margin-bottom: 24px;">
+    Deja de pagar por<br>trabajo manual
+  </h1>
+  <p style="font-size: 22px; color: var(--gray-400); max-width: 700px; margin: 0 auto 16px; line-height: 1.5;">
+    141 empresas. 230 horas liberadas.<br>
+    Clasificación tributaria automática. Cero riesgo SII.
+  </p>
+  <p style="font-size: 18px; color: var(--gray-500); max-width: 600px; margin: 0 auto 48px;">
+    Elige tu camino y empieza esta semana.
+  </p>
+
+  <div style="display: inline-block; padding: 16px 48px; background: var(--green-600); border-radius: 12px; font-size: 20px; font-weight: 700; color: white;">
+    Agenda tu demo &rarr; tupana.ai
+  </div>
+
+  <div style="margin-top: 48px; display: flex; justify-content: center; gap: 40px;">
+    <span style="color: var(--gray-500); font-size: 15px;">contacto@tupana.ai</span>
+    <span style="color: var(--gray-500); font-size: 15px;">tupana.ai</span>
+  </div>
+
+  <p style="color: var(--gray-600); font-size: 13px; margin-top: 32px;">
+    Pricing válido por 30 días. Cupos de onboarding limitados a 5 estudios por mes.
+  </p>
+
+  <div class="slide-number">18</div>
+</div>
+
+</body>
+</html>
