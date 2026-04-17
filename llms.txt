@@ -1,0 +1,76 @@
+# Tu Pana API
+
+Tu Pana is a Chilean fintech platform for electronic invoicing (Facturación Electrónica). It automates the issuance of electronic tax documents (DTEs) integrated with the Chilean Tax Authority (SII - Servicio de Impuestos Internos).
+
+## Authentication
+
+All requests require an API Key in the Authorization header:
+`Authorization: Api-Key YOUR_API_KEY`
+
+API Keys are generated in the Tu Pana dashboard under Settings > API Keys. Each key provides access to all companies enrolled under that user. Keys work in both Sandbox (testing) and Production environments.
+
+## Base URL
+
+```
+https://api.tupana.ai/v1
+```
+
+## Core Concepts
+
+**Master Entity:** A company registered in Tu Pana. Each has an ID, RUT (Chilean tax ID), name, addresses, economic activities, and SII credentials.
+
+**DTE (Documento Tributario Electrónico):** An electronic tax document. Supported types:
+- 33: Factura Electrónica (standard invoice, with IVA)
+- 34: Factura Exenta (tax-exempt invoice)
+- 46: Factura de Compra (purchase invoice)
+- 61: Nota de Crédito (credit note)
+- 80: Boleta de Honorarios (honorary receipt)
+- 90: Boleta de Honorarios a Terceros (third-party honorary receipt)
+- 110: Factura de Exportación (export invoice)
+
+**Folio:** Sequential document number assigned by SII after successful emission.
+
+**Sandbox vs Production:** New API Keys start in Sandbox mode for testing. Must be activated for production.
+
+## Key Endpoints
+
+- `GET /master-entities?rut={rut}` — Look up a company by RUT
+- `GET /credentials` — List SII credentials
+- `POST /credentials` — Create and validate SII credential
+- `GET /documents?master_entity_id={id}` — List documents (issued or received)
+- `GET /documents/{id}` — Get document details with PDF/XML URLs
+- `POST /documents/batch` — Create up to 200 documents (async, returns 202)
+- `GET /documents/{id}/states` — Get document status history
+- `POST /documents/{id}/states` — Register payment or SII event
+- `GET /scheduled-documents?master_entity_id={id}` — List recurring documents
+- `POST /scheduled-documents` — Create a recurring document template
+- `GET /cessions?master_entity_id={id}` — List invoice factoring transfers
+- `POST /cessions/batch` — Create cessions (AECs) for multiple invoices
+- `GET /webhooks?master_entity_id={id}` — List webhooks
+- `POST /webhooks` — Create a webhook for document.issued events
+
+## Document Creation
+
+Documents are created via `POST /documents/batch` with up to 200 documents per request. Processing is asynchronous — the API returns 202 immediately and delivers results via webhook.
+
+Use the `X-Use-Defaults: true` header to auto-populate optional fields (date, payment method, issuer data, folio) from your platform configuration.
+
+Use `Idempotency-Key` header to prevent duplicate submissions (expires after 24 hours).
+
+## Pagination
+
+All list endpoints return: `count`, `total_pages`, `next`, `previous`, `results`. Default page size is 20, maximum is 100. Use `page` and `page_size` query params.
+
+## Error Format
+
+```json
+{ "error": "Human-readable message", "code": "ERROR_CODE", "details": {} }
+```
+
+Common codes: 400 (invalid params), 401 (bad API key), 403 (no permission), 404 (not found), 422 (SII validation error), 502 (SII gateway error).
+
+## Full Documentation
+
+- API Reference: https://docs.tupana.ai/api-reference
+- Quickstart: https://docs.tupana.ai/quickstart
+- Full context: https://docs.tupana.ai/llms-full.txt

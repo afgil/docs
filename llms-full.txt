@@ -1,0 +1,479 @@
+# Tu Pana API — Full Reference for LLMs
+
+Tu Pana is a Chilean fintech platform for electronic invoicing (Facturación Electrónica). It automates the issuance of DTEs (Documentos Tributarios Electrónicos) integrated with the SII (Servicio de Impuestos Internos), Chile's tax authority.
+
+## Authentication
+
+All requests require an API Key:
+```
+Authorization: Api-Key YOUR_API_KEY
+```
+
+API Keys are generated in the Tu Pana dashboard under Settings > API Keys. A key provides access to all companies enrolled under that user account. Keys work in both Sandbox (testing) and Production environments.
+
+## Base URL
+
+```
+https://api.tupana.ai/v1
+```
+
+---
+
+## Core Concepts
+
+**Master Entity:** A company registered in Tu Pana. Has a unique ID, RUT (Chilean tax ID with format `12345678-9`), name, email, phone, addresses (each with district and city), economic activities (codes and descriptions), and associated SII credentials.
+
+**DTE (Documento Tributario Electrónico):** An electronic tax document issued through or registered in the SII. Each has a folio (sequential number assigned by SII), an issue date, issuer and receiver information, line items, and totals.
+
+**Folio:** Sequential document number assigned by SII upon successful emission. Auto-generated if you use `X-Use-Defaults: true`.
+
+**RUT:** Chilean tax ID. Format: `12345678-9` (no periods, with hyphen). Used for both companies and individuals.
+
+**Sandbox vs Production:** All new API Keys operate in Sandbox mode. Documents created in Sandbox are not submitted to SII. Keys must be explicitly activated for production.
+
+**IVA:** Chilean VAT at 19%. Automatically calculated for DTE 33, 46. Not applied to DTE 34 (exempt), 110 (exports), 80/90 (honorary).
+
+---
+
+## Supported Document Types
+
+| Code | Name | IVA | Notes |
+|------|------|-----|-------|
+| 33 | Factura Electrónica | 19% | Standard B2B invoice. Receiver must have economic activity. |
+| 34 | Factura Exenta | 0% | Tax-exempt invoice. Same fields as 33. |
+| 46 | Factura de Compra | 19% | Purchase invoice. Requires `purchase_transaction_type`. |
+| 61 | Nota de Crédito | — | Credit note. Must reference original document via `references`. |
+| 80 | Boleta de Honorarios | — | Honorary receipt. 14.5% withholding. For independent professionals. |
+| 90 | Boleta de Honorarios a Terceros | — | Third-party honorary receipt. For platforms paying on behalf of clients. |
+| 110 | Factura de Exportación | 0% | Export invoice. Requires `export_data` block. |
+
+---
+
+## Master Entities
+
+### GET /master-entities
+
+Look up a company by RUT.
+
+**Query params:**
+- `rut` (required): Company RUT without periods, with hyphen. Example: `76543210-1`
+
+**Response includes:** entity ID, name, email, addresses (with district and city), economic activities (code and description).
+
+Use this endpoint to retrieve the entity ID and address/activity data before creating documents.
+
+---
+
+## Credentials
+
+### GET /credentials
+
+List all active SII credentials for the authenticated user.
+
+**Response:** Array of credentials, each with status (`VALID`, `INVALID`, `EXPIRED`), credential type, and associated master entities.
+
+### POST /credentials
+
+Create and validate a new SII credential.
+
+**Body:**
+```json
+{
+  "user_rut": "12345678-9",
+  "password": "sii-password",
+  "digital_certificate_password": "cert-password",
+  "master_entity_id": 123,
+  "credential_type_id": 1
+}
+```
+
+**Response:** Credential details with validation status.
+
+---
+
+## Documents
+
+### GET /documents
+
+List documents (issued or received) for an entity.
+
+**Query params:**
+- `master_entity_id` (required): Entity ID
+- `document_type`: `"issued"` (default) or `"received"`
+- `folio`: Exact folio number
+- `search`: Search by name or RUT
+- `dte_type__code__in`: Comma-separated DTE codes, e.g. `"33,34"`
+- `issuer_tax_id`: Filter by issuer RUT (only for received documents)
+- `page`: Page number (default 1)
+- `page_size`: Results per page (max 100, default 20)
+
+**Response:** Paginated list. Each document includes sender, receiver, amounts, status, and PDF/XML URLs.
+
+### GET /documents/{document_id}
+
+Get full document details.
+
+**Response includes:**
+- PDF and XML file URLs (valid for ~1 hour, S3 presigned)
+- Complete issuer and receiver information
+- Line items with descriptions, quantities, unit prices
+- Totals: `net_amount`, `iva_rate`, `iva_amount`, `total_amount`
+- References to related documents (e.g. credit notes)
+
+The authenticated user must be either the issuer or receiver of the document.
+
+### POST /documents/batch
+
+Create up to 200 documents in a single request. Processing is asynchronous.
+
+**Response code:** 202 Accepted
+
+**Headers:**
+- `Idempotency-Key` (optional): Prevents duplicate submissions. Up to 256 characters, expires after 24 hours.
+- `X-Use-Defaults: true` (optional): Auto-populates optional fields:
+  - `date_issued` → today's date
+  - `header.payment_method` → "2" (credit)
+  - Issuer/receiver data → populated from master entity config
+  - `folio` → auto-generated by SII
+
+**Permissions required:** API Key must have `document:create` or `*` permission. Entity must have valid SII credentials.
+
+**Body structure:**
+```json
+[
+  {
+    "dte_type": { "code": "33" },
+    "date_issued": "2025-01-15",
+    "document_issuer": {
+      "tax_id": "76543210-1",
+      "business_name": "Mi Empresa SpA",
+      "business_activity": "Servicios de software",
+      "address": "Av. Providencia 123",
+      "district": "Providencia",
+      "city": "Santiago",
+      "email": "facturacion@miempresa.cl",
+      "phone": "+56912345678",
+      "activity_code": 620000
+    },
+    "document_receiver": {
+      "tax_id": "98765432-1",
+      "business_name": "Cliente SA",
+      "business_activity": "Comercio al por mayor",
+      "address": "Calle Ejemplo 456",
+      "district": "Las Condes",
+      "city": "Santiago"
+    },
+    "header": {
+      "payment_method": "2",
+      "due_date": "2025-02-15"
+    },
+    "details": [
+      {
+        "item_name": "Servicio de consultoría",
+        "quantity": 1,
+        "unit_price": 100000
+      }
+    ]
+  }
+]
+```
+
+#### DTE 34 (Factura Exenta)
+Same as DTE 33 but `dte_type.code` is `"34"`. No IVA applied.
+
+#### DTE 46 (Factura de Compra)
+Requires additional header fields:
+```json
+"header": {
+  "purchase_transaction_type": 1,
+  "payment_method": "2",
+  "due_date": "2025-02-15"
+}
+```
+`purchase_transaction_type`: 1 (purchases related to business), 2 (unrelated), 3 (fixed assets).
+
+#### DTE 61 (Nota de Crédito)
+Requires a `references` array pointing to the original document:
+```json
+"references": [
+  {
+    "dte_type_code": "33",
+    "reference_folio": "1234",
+    "reference_date": "2025-01-10",
+    "reference_reason": "ANULA DOCUMENTO DE LA REFERENCIA"
+  }
+]
+```
+
+#### DTE 80 (Boleta de Honorarios)
+Requires `header.retention_type`. Only receiver RUT is mandatory.
+```json
+"document_receiver": { "tax_id": "12345678-9" },
+"header": {
+  "retention_type": "RETRECEPTOR",
+  "payment_method": "1"
+}
+```
+`retention_type`: `"RETRECEPTOR"` (receiver retains, 99% of cases) or `"RETCONTRIBUYENTE"` (issuer retains). 14.5% withholding is automatically applied.
+
+#### DTE 90 (Boleta de Honorarios a Terceros)
+Same as DTE 80. `document_issuer` is the actual payer (must have `sii_company` credentials in Tu Pana). `document_receiver` is the professional receiving payment.
+
+#### DTE 110 (Factura de Exportación)
+No IVA. Requires `export_data` block and `country` on receiver.
+```json
+"document_receiver": {
+  "tax_id": "98765432-1",
+  "business_name": "Foreign Client Inc",
+  "country": "US"
+},
+"header": {
+  "sale_transaction_type": 1,
+  "currency": "USD"
+},
+"export_data": {
+  "transport_mode": "2",
+  "destination_country": "US",
+  "destination_port": "New York",
+  "origin_port": "Valparaíso",
+  "export_clause": "1"
+}
+```
+`transport_mode`: "1" (maritime), "2" (air), "3" (land), "4" (multimodal).
+`export_clause`: "1" (firm), "2" (under protest), "3" (no clause).
+
+---
+
+## Document States
+
+### GET /documents/{document_id}/states
+
+Get the full status history of a document with timestamps.
+
+### POST /documents/{document_id}/states
+
+Register a payment or SII event on a document.
+
+**SII event codes:**
+- `ERM`: Acuse de Recibo Manual (manual acknowledgment)
+- `ACD`: Aceptación de Contenido (content acceptance)
+- `RCD`: Rechazo (rejection) — optionally include `rejection_reason`
+- `RFT`: Reclamo por Falta de Traslado
+- `RFP`: Reclamo por Falta de Pago
+
+**Payment event codes** (issuer only, for DTE 33/34/39/41):
+- `PAID`: Mark as paid. Generates accounting entry (closes accounts receivable).
+- `UNPAID`: Reverse PAID status and accounting entry.
+
+---
+
+## Scheduled Documents (Recurring Invoices)
+
+### GET /scheduled-documents
+
+List recurring document templates for an entity.
+
+**Query params:**
+- `master_entity_id` (required)
+- `status`: `active`, `inactive`, `completed`
+- `frequency`: `daily`, `weekly`, `monthly`, `quarterly`
+- `dte_type`: DTE code
+
+### POST /scheduled-documents
+
+Create a recurring document template.
+
+**Body:**
+```json
+{
+  "sender": 123,
+  "dte_type": "33",
+  "receiver_tax_id": "98765432-1",
+  "frequency": "monthly",
+  "day_of_month": 1,
+  "currency": "CLP",
+  "status": "active",
+  "details": [
+    {
+      "item_name": "Servicio mensual",
+      "quantity": 1,
+      "unit_price": 500000
+    }
+  ]
+}
+```
+
+### GET /scheduled-documents/{id}
+### PATCH /scheduled-documents/{id}
+### DELETE /scheduled-documents/{id}
+
+### GET /scheduled-documents/{id}/preview?master_entity_id={id}
+
+Returns a base64-encoded PDF preview of the document as it would be emitted.
+
+---
+
+## Cessions (Invoice Factoring)
+
+### GET /cessions
+
+List invoice factoring transfers (AECs) for an entity.
+
+**Query params:**
+- `master_entity_id` (required)
+- `date_from`, `date_to`: Date range (YYYY-MM-DD)
+- `status`: `processing`, `rejected`, `success`
+- `search`: Folio, name, or RUT
+
+### GET /cessions/{id}
+
+Get full cession details including events/traceability and any errors.
+
+Add `?pdf=document-cession` to get a redirect to the AEC certificate PDF.
+
+### POST /cessions/batch
+
+Create cessions (AECs) for multiple invoices and submit to SII.
+
+**Body:**
+```json
+{
+  "master_entity_id": 123,
+  "document_ids": ["uuid1", "uuid2"],
+  "assignee_rut": "76543210",
+  "assignee_dv": "1",
+  "assignee_business_name": "Factoring SA",
+  "assignee_address": "Av. Apoquindo 123",
+  "assignee_email": "contacto@factoring.cl",
+  "assignor_email": "yo@miempresa.cl"
+}
+```
+
+Only DTE 33 and 34 can be ceded. Requires valid SII personal credentials (not certificate-based). The EHDR code is automatically fetched from SII by Tu Pana.
+
+---
+
+## Webhooks
+
+### GET /webhooks
+
+List configured webhooks. Optionally filter by `master_entity_id`.
+
+### POST /webhooks
+
+Create a webhook to receive document emission notifications.
+
+**Body:**
+```json
+{
+  "master_entity_id": 123,
+  "url": "https://myapp.com/webhook/pana",
+  "secret": "optional-secret-for-hmac"
+}
+```
+
+Currently supported event: `document.issued`.
+
+**Webhook request headers:**
+```
+Content-Type: application/json
+User-Agent: Pana-Webhook/1.0
+X-Pana-Event: document.issued
+X-Pana-Delivery: unique-delivery-id
+X-Pana-Signature: hmac-sha256=... (only if secret configured)
+```
+
+**Webhook payload:**
+```json
+{
+  "event": "document.issued",
+  "created_at": "2025-01-15T10:30:00Z",
+  "data": {
+    "id": "document-uuid",
+    "folio": "1234",
+    "date_issued": "2025-01-15",
+    "amount_with_iva": 119000,
+    "is_sandbox": false,
+    "dte_type": { "code": "33", "description": "Factura Electrónica" },
+    "sender": { "id": 123, "name": "Mi Empresa SpA", "tax_id": "76543210-1", "email": "..." },
+    "receiver": { "id": 456, "name": "Cliente SA", "tax_id": "98765432-1", "email": "..." },
+    "document_total": {
+      "net_amount": 100000,
+      "iva_rate": 19,
+      "iva_amount": 19000,
+      "total_amount": 119000
+    },
+    "details": [ { "item_name": "...", "quantity": 1, "unit_price": 100000 } ],
+    "pdf_file": "https://s3.amazonaws.com/... (valid ~1 hour)",
+    "xml_file": "https://s3.amazonaws.com/... (valid ~1 hour)"
+  }
+}
+```
+
+---
+
+## Honorary Receipts Management
+
+### GET /honorary/authorized-users/?master_entity_id={id}
+
+List users authorized by SII to issue honorary receipts for the entity.
+
+### PATCH /honorary/authorized-users/
+
+Enroll a user:
+```json
+{ "master_entity_id": 123, "rut": "12345678-9" }
+```
+
+Unenroll a user:
+```json
+{ "master_entity_id": 123, "rut": "12345678-9", "action": "unenroll" }
+```
+
+---
+
+## Pagination
+
+All list endpoints return:
+```json
+{
+  "count": 150,
+  "total_pages": 8,
+  "next": "https://api.tupana.ai/v1/documents?page=3",
+  "previous": "https://api.tupana.ai/v1/documents?page=1",
+  "results": [...]
+}
+```
+
+Use `page` (default 1) and `page_size` (default 20, max 100) query params.
+
+---
+
+## Error Responses
+
+```json
+{
+  "error": "Human-readable error message",
+  "code": "OPTIONAL_ERROR_CODE",
+  "details": {}
+}
+```
+
+| Status | Meaning |
+|--------|---------|
+| 400 | Invalid parameters or validation failure |
+| 401 | Missing or invalid API Key |
+| 403 | No permission for entity or operation |
+| 404 | Resource not found |
+| 413 | Payload too large (over 200 docs in batch) |
+| 422 | Malformed body or SII validation error |
+| 500 | Server error |
+| 502 | SII gateway or scraping error |
+
+---
+
+## Full Documentation
+
+- https://docs.tupana.ai
+- https://docs.tupana.ai/quickstart
+- https://docs.tupana.ai/api-reference
