@@ -1,0 +1,69 @@
+---
+title: 'API de Recaudación'
+description: 'Cobra a tus usuarios directamente desde tu plataforma. Tu Pana procesa el pago, deposita al destinatario y emite el DTE automáticamente.'
+---
+
+## ¿Para qué sirve?
+
+La API de Recaudación permite crear sesiones de pago para que tus usuarios paguen directamente, sin que tu plataforma intermedie los fondos.
+
+Con un solo endpoint, Tu Pana:
+
+- **Procesa el pago** vía tarjeta de débito, crédito o transferencia bancaria (Transbank).
+- **Deposita el monto neto** al destinatario directamente.
+- **Emite el DTE** (boleta o factura electrónica) al confirmar el pago.
+- **Te notifica vía webhook** con el resultado.
+
+## Flujo general
+
+1. **Tu plataforma crea una sesión de cobro** llamando a `POST /api/payment-requests/`. Tu Pana retorna una `payment_url`.
+2. **Redirige al usuario** a esa URL. El usuario paga en el checkout de Tu Pana (o directo a Transbank si usas `skip_portal: true`).
+3. **Tu Pana procesa el pago** con Transbank, actualiza el estado de la sesión y emite el DTE.
+4. **Tu Pana te notifica vía webhook** con un `POST` firmado a tu endpoint registrado.
+5. **Tu plataforma confirma** la cita, orden o servicio del lado tuyo.
+
+## Autenticación
+
+Todos los endpoints requieren tu API key en el header de autorización:
+
+```http
+Authorization: Api-Key {tu_api_key}
+```
+
+Puedes encontrar tu API key en **Configuración → Integraciones API** dentro de tu cuenta Tu Pana. Tienes dos API keys: una de producción y una de sandbox.
+
+## Ambiente de pruebas (Sandbox)
+
+El sandbox usa el ambiente de integración de Transbank. Podés probar el flujo completo — pagos, webhooks y emisión de documentos — sin mover dinero real ni emitir DTEs al SII.
+
+El mismo código funciona en producción y sandbox: solo cambia la API key que usás.
+
+| Componente   | Comportamiento en sandbox                                    |
+|--------------|--------------------------------------------------------------|
+| Pago         | Procesado en Transbank integración. Sin dinero real.         |
+| Webhooks     | Se envían normalmente a tu endpoint registrado.              |
+| DTE          | El documento se crea y es consultable, pero no va al SII.    |
+| Depósitos    | No se generan liquidaciones ni depósitos bancarios.          |
+
+### Tarjetas de prueba (Transbank integración)
+
+| Número de tarjeta       | Tipo    | Resultado  |
+|-------------------------|---------|------------|
+| `4051 8856 0044 6623`   | Débito  | Aprobado   |
+| `5186 0595 5959 0568`   | Crédito | Aprobado   |
+| `4197 0200 0000 0000`   | Crédito | Rechazado  |
+
+CVV: `123` · Vencimiento: cualquier fecha futura · RUT: `11.111.111-1` · Clave banco: `123`
+
+## Endpoints disponibles
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `POST` | `/api/payment-requests/` | Crear sesión de cobro |
+| `GET` | `/api/payment-requests/` | Listar cobros |
+| `GET` | `/api/payment-requests/summary/` | Resumen agregado por período |
+| `GET` | `/api/payment-requests/{id}/` | Consultar estado de un cobro |
+| `POST` | `/api/payment-requests/{id}/refund/` | Reembolsar un cobro |
+| `GET` | `/api/master-entities/{id}/banking-info/` | Consultar cuenta bancaria del destinatario |
+| `POST` | `/api/master-entities/{id}/banking-info/` | Registrar cuenta bancaria |
+| `PATCH` | `/api/master-entities/{id}/banking-info/{banking_info_id}/` | Actualizar cuenta bancaria |

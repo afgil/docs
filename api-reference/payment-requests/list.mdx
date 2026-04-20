@@ -1,0 +1,29 @@
+---
+title: 'Listar cobros'
+openapi: 'api-reference/openapi-payment-requests.json GET /api/payment-requests/'
+---
+
+## ¿Para qué se usa?
+
+Obtiene una lista paginada de sesiones de cobro creadas por tu integración, con soporte para filtros por destinatario, estado y rango de fechas.
+
+## Qué hace
+
+- Retorna todas las sesiones de cobro del cliente API autenticado.
+- Soporta filtros por `recipient_id`, `status` y rango de fechas (`from`/`to`).
+- Incluye montos bruto, comisión y neto para cada cobro pagado.
+- Pagina los resultados con `page` y `page_size`.
+
+## Ejemplos de uso
+
+- **Historial de cobros de un destinatario**: Filtrar por `recipient_id` para ver todos los cobros de un profesional o empresa.
+- **Cobros del mes**: Filtrar por `from` y `to` para exportar o procesar el período mensual.
+- **Cobros pendientes**: Filtrar por `status=pending` para hacer seguimiento de sesiones sin pagar.
+
+## Consideraciones importantes
+
+### Paginación
+La respuesta incluye `count` (total de resultados), `next` y `previous` (URLs de navegación) y `results` (los cobros de la página actual). El tamaño de página máximo es 100.
+
+### Para totales ya calculados
+Si necesitás los totales del período (suma bruta, comisiones, neto) sin paginar manualmente, usá [`GET /api/payment-requests/summary/`](/api-reference/payment-requests/summary).

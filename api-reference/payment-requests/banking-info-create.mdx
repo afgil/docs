@@ -1,0 +1,22 @@
+---
+title: 'Registrar cuenta bancaria'
+openapi: 'api-reference/openapi-payment-requests.json POST /api/master-entities/{master_entity_id}/banking-info/'
+---
+
+## ¿Para qué se usa?
+
+Registra la cuenta bancaria a la que Tu Pana depositará los fondos una vez confirmado el pago. Es un prerequisito para poder crear sesiones de cobro para ese destinatario.
+
+## Qué hace
+
+- Registra una cuenta bancaria para el destinatario identificado por `master_entity_id`.
+- La cuenta queda en estado `pending_verification` mientras Tu Pana la valida.
+- Una vez en `verified`, el destinatario está listo para recibir depósitos.
+
+## Consideraciones importantes
+
+### Verificación de la cuenta
+La verificación es automática pero puede tardar algunos minutos. Podés consultar el estado con `GET /api/master-entities/{id}/banking-info/`.
+
+### Un registro por destinatario
+Cada destinatario tiene una cuenta bancaria activa. Si querés cambiar los datos, usá `PATCH /api/master-entities/{id}/banking-info/{banking_info_id}/`.

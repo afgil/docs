@@ -1,0 +1,33 @@
+---
+title: 'Reembolsar un cobro'
+openapi: 'api-reference/openapi-payment-requests.json POST /api/payment-requests/{payment_request_id}/refund/'
+---
+
+## ¿Para qué se usa?
+
+Inicia el proceso de reembolso de una sesión de cobro ya pagada. El dinero se devuelve al medio de pago original del usuario.
+
+## Qué hace
+
+- Inicia el reembolso vía Transbank (reversión del cargo).
+- El reembolso queda en estado `pending` mientras se procesa.
+- Cuando se completa, Tu Pana envía el webhook `payment_request.refunded`.
+
+## Ejemplos de uso
+
+- **Cancelación de cita**: Un paciente cancela y la plataforma inicia el reembolso automáticamente.
+- **Error en el cobro**: Se cobró un monto incorrecto y se necesita devolver el dinero.
+
+## Consideraciones importantes
+
+### Solo sobre cobros pagados
+Solo se pueden reembolsar sesiones en estado `paid`. Si la sesión está en otro estado, recibirás un error.
+
+### Monto del reembolso
+El campo `amount` no puede superar el monto pagado originalmente. Los reembolsos parciales son soportados.
+
+### Seguimiento del reembolso
+Suscríbete al evento `payment_request.refunded` en tus [webhooks](/api-reference/webhooks/webhooks) para recibir notificación cuando el proceso se complete. El campo `estimated_days` de la respuesta indica el tiempo estimado.
+
+### DTE
+El reembolso no anula automáticamente el DTE emitido. Si necesitás emitir una nota de crédito, gestionala a través de la [API de Facturación](/api-reference/documents/batch).
