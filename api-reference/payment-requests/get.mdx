@@ -1,0 +1,31 @@
+---
+title: 'Consultar estado de un cobro'
+openapi: 'api-reference/openapi-payment-requests.json GET /api/payment-requests/{payment_request_id}/'
+---
+
+## ¿Para qué se usa?
+
+Obtiene el estado actual y los detalles completos de una sesión de cobro. Útil como fallback cuando el webhook todavía no llegó pero el usuario ya regresó a tu sitio por redirect.
+
+## Qué hace
+
+- Retorna el estado actual de la sesión (`pending`, `paid`, `failed`, `expired`, `refunded`).
+- Si el pago fue exitoso, incluye `issued_document_id` con el ID del DTE emitido.
+- Incluye el `metadata` que enviaste al crear la sesión.
+
+## Ejemplos de uso
+
+- **Verificar el estado al regresar del redirect**: El usuario vuelve a tu sitio y quieres confirmar si pagó antes de mostrarle la pantalla de confirmación.
+- **Polling de respaldo**: Si por alguna razón no recibiste el webhook, puedes consultar el estado directamente.
+
+## Consideraciones importantes
+
+### Webhooks son la fuente primaria
+El GET es un mecanismo de respaldo. El flujo recomendado es:
+
+1. Recibir el webhook `payment_request.paid` y actualizar tu sistema.
+2. Si no llegó el webhook en un tiempo razonable, consulta el GET.
+
+<Info>
+El campo `issued_document_id` apunta al DTE emitido y puede usarse para consultar el documento en la API de Facturación.
+</Info>

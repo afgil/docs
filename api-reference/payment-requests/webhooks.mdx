@@ -1,0 +1,135 @@
+---
+title: 'Webhooks de Recaudación'
+description: 'Eventos disponibles para la API de Cobros y cómo recibirlos'
+---
+
+## ¿Cómo funcionan los webhooks de cobros?
+
+Cuando cambia el estado de una sesión de cobro, Tu Pana envía un `POST` firmado a tu endpoint registrado. El sistema de webhooks es el mismo que usan el resto de las APIs — si ya tienes uno configurado, solo necesitas suscribirte a los nuevos eventos.
+
+Para registrar o gestionar tus endpoints de webhook, consulta la sección de [Webhooks](/api-reference/webhooks/webhooks).
+
+## Eventos disponibles
+
+| Evento | Cuándo se emite |
+|--------|-----------------|
+| `payment_request.paid` | El pago fue confirmado exitosamente. |
+| `payment_request.failed` | El pago fue rechazado por Transbank. |
+| `payment_request.expired` | La sesión venció sin pagarse. |
+| `payment_request.refunded` | El reembolso fue completado. |
+
+## Estructura del payload
+
+Todos los eventos de cobro siguen la estructura estándar de webhooks de Tu Pana:
+
+```json
+{
+  "event": "payment_request.paid",
+  "created_at": "2026-04-15T14:03:45Z",
+  "data": {
+    "payment_request_id": "pr_abc123",
+    "status": "paid",
+    "amount": 50000,
+    "currency": "CLP",
+    "payment_method": "card",
+    "paid_at": "2026-04-15T14:03:45Z",
+    "recipient_id": "me_xyz789",
+    "issued_document_id": "doc_111",
+    "metadata": {}
+  }
+}
+```
+
+### Campos de `data`
+
+| Campo | Descripción |
+|-------|-------------|
+| `payment_request_id` | ID de la sesión de cobro. |
+| `status` | Estado resultante (`paid`, `failed`, `expired`, `refunded`). |
+| `amount` | Monto del cobro en CLP. |
+| `currency` | Siempre `CLP`. |
+| `payment_method` | Medio de pago usado (`card`, `bank_transfer`). `null` si el pago no se completó. |
+| `paid_at` | Timestamp UTC del pago. `null` si el pago no se completó. |
+| `recipient_id` | ID del destinatario. |
+| `issued_document_id` | ID del DTE emitido. `null` si el pago no fue exitoso. |
+| `metadata` | Datos adicionales que enviaste al crear la sesión. |
+
+## Headers
+
+Cada notificación incluye los siguientes headers:
+
+```http
+Content-Type: application/json
+X-Pana-Event-Type: payment_request.paid
+X-Pana-Event-Id: <uuid>
+X-Pana-Timestamp: 2026-04-15T14:03:45Z
+X-Pana-Delivery: <delivery-uuid>
+X-Pana-Signature: <firma-hmac>
+```
+
+## Verificar la firma
+
+Verifica que el webhook proviene realmente de Tu Pana usando el `secret` que recibiste al registrar el endpoint.
+
+```python
+import hmac
+import hashlib
+import json
+
+def verify_signature(payload, signature, secret):
+    expected = hmac.new(
+        secret.encode(),
+        json.dumps(payload, sort_keys=True).encode(),
+        hashlib.sha256
+    ).hexdigest()
+
+    return hmac.compare_digest(expected, signature)
+
+# En tu endpoint:
+signature = request.headers.get('X-Pana-Signature')
+is_valid = verify_signature(request.json, signature, os.environ['TUPANA_WEBHOOK_SECRET'])
+
+if not is_valid:
+    return {'error': 'Invalid signature'}, 401
+```
+
+```javascript
+const crypto = require('crypto');
+
+function verifySignature(payload, signature, secret) {
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(JSON.stringify(payload))
+    .digest('hex');
+
+  return crypto.timingSafeEqual(
+    Buffer.from(expected),
+    Buffer.from(signature)
+  );
+}
+
+const signature = req.headers['x-pana-signature'];
+const isValid = verifySignature(req.body, signature, process.env.TUPANA_WEBHOOK_SECRET);
+
+if (!isValid) {
+  return res.status(401).json({ error: 'Invalid signature' });
+}
+```
+
+## Reintentos
+
+Tu endpoint debe responder con `2xx` en menos de **120 segundos**. Si no responde o devuelve error, Tu Pana reintenta con backoff:
+
+| Intento | Tiempo de espera |
+|---------|-----------------|
+| 2       | 1 minuto después |
+| 3       | 5 minutos después |
+| 4       | 15 minutos después |
+| 5       | 1 hora después |
+| 6       | 6 horas después |
+
+Cada entrega tiene un `X-Pana-Delivery` único. Si recibes el mismo ID dos veces, es un reintento del mismo evento — tu endpoint debe ser idempotente.
+
+<Tip>
+Usa el evento `webhook.test` disponible en el panel de Tu Pana para verificar que tu endpoint está recibiendo correctamente antes de ir a producción.
+</Tip>

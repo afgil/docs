@@ -111,6 +111,47 @@
         ]
       },
       {
+        "tab": "API Recaudación",
+        "groups": [
+          {
+            "group": "Introducción",
+            "pages": [
+              "api-reference/payment-requests/introduction"
+            ]
+          },
+          {
+            "group": "Cuenta Bancaria",
+            "pages": [
+              "api-reference/payment-requests/banking-info-get",
+              "api-reference/payment-requests/banking-info-create",
+              "api-reference/payment-requests/banking-info-update"
+            ]
+          },
+          {
+            "group": "Cobros",
+            "pages": [
+              "api-reference/payment-requests/create",
+              "api-reference/payment-requests/get",
+              "api-reference/payment-requests/list",
+              "api-reference/payment-requests/summary",
+              "api-reference/payment-requests/refund"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": [
+              "api-reference/payment-requests/webhooks"
+            ]
+          },
+          {
+            "group": "Referencia",
+            "pages": [
+              "api-reference/payment-requests/reference"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "API Boleta de Honorarios",
         "groups": [
           {
@@ -134,7 +175,7 @@
       "anchors": []
     }
   },
-  "openapi": "api-reference/openapi-combined.json",
+  "openapi": ["api-reference/openapi-combined.json", "api-reference/openapi-payment-requests.json"],
   "topbarLinks": [
     {
       "name": "Soporte",

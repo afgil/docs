@@ -1,0 +1,18 @@
+---
+title: 'Actualizar cuenta bancaria'
+openapi: 'api-reference/openapi-payment-requests.json PATCH /api/master-entities/{master_entity_id}/banking-info/{banking_info_id}/'
+---
+
+## ¿Para qué se usa?
+
+Actualiza uno o más campos de la cuenta bancaria registrada para un destinatario. Solo se modifican los campos que incluís en el request.
+
+## Qué hace
+
+- Actualiza parcialmente los datos de la cuenta bancaria.
+- La cuenta vuelve a estado `pending_verification` tras la actualización, y debe pasar por el proceso de verificación nuevamente.
+
+## Consideraciones importantes
+
+### Impacto en cobros activos
+Si el destinatario tiene sesiones de cobro en estado `pending` al momento de actualizar la cuenta, esas sesiones no se ven afectadas. Los nuevos depósitos se harán a la cuenta actualizada una vez que esté `verified`.

@@ -1,0 +1,64 @@
+---
+title: 'Referencia'
+description: 'Tipos de DTE, métodos de pago y códigos de error de la API de Recaudación'
+---
+
+## Tipos de DTE (`target_dte_type`)
+
+| Código | Documento emitido |
+|--------|-------------------|
+| `39` | Boleta afecta electrónica |
+| `41` | Boleta exenta electrónica |
+| `33` | Factura afecta electrónica |
+
+El destinatario debe estar habilitado en Tu Pana para emitir el tipo de documento especificado. Si no lo está, la creación de la sesión retornará error.
+
+## Métodos de pago
+
+| Método | `payment_method` en respuesta |
+|--------|-------------------------------|
+| Tarjeta de débito | `card` |
+| Tarjeta de crédito | `card` |
+| Transferencia bancaria | `bank_transfer` |
+
+Moneda soportada: **CLP** (peso chileno), sin decimales.
+
+## Códigos de banco (`bank_code`)
+
+| Código | Banco |
+|--------|-------|
+| `BANCO_BCI` | BCI |
+| `BANCO_SANTANDER` | Santander |
+| `BANCO_ESTADO` | Banco Estado |
+| `BANCO_CHILE` | Banco de Chile |
+| `BANCO_SCOTIABANK` | Scotiabank |
+| `BANCO_ITAU` | Itaú |
+| `BANCO_SECURITY` | Banco Security |
+| `BANCO_FALABELLA` | Banco Falabella |
+| `BANCO_RIPLEY` | Banco Ripley |
+| `BANCO_CONSORCIO` | Banco Consorcio |
+| `BANCO_BICE` | Banco BICE |
+| `BANCO_INTERNACIONAL` | Banco Internacional |
+| `TENPO` | Tenpo |
+| `MERCADO_PAGO` | Mercado Pago |
+
+## Códigos de error
+
+| HTTP | Código | Descripción |
+|------|--------|-------------|
+| `400` | `INVALID_AMOUNT` | Monto inválido. Debe ser un entero positivo en CLP. |
+| `400` | `RECIPIENT_NOT_VERIFIED` | La cuenta bancaria del destinatario no está verificada. |
+| `400` | `PAYMENT_REQUEST_EXPIRED` | La sesión venció antes de completar el pago. |
+| `404` | `PAYMENT_REQUEST_NOT_FOUND` | ID no encontrado o no pertenece a tu cuenta. |
+| `422` | `ALREADY_PAID` | La sesión ya fue pagada. |
+| `422` | `REFUND_EXCEEDS_AMOUNT` | El monto a reembolsar supera lo pagado. |
+
+## Estados de una sesión de cobro
+
+| Estado | Descripción |
+|--------|-------------|
+| `pending` | Sesión creada, el usuario aún no ha pagado. |
+| `paid` | Pago confirmado. El DTE fue emitido y el depósito está en proceso. |
+| `failed` | Pago rechazado por Transbank. |
+| `expired` | La sesión venció sin pagarse. |
+| `refunded` | El pago fue reembolsado. |

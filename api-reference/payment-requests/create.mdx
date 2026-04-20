@@ -1,0 +1,61 @@
+---
+title: 'Crear sesión de cobro'
+openapi: 'api-reference/openapi-payment-requests.json POST /api/payment-requests/'
+---
+
+## ¿Para qué se usa?
+
+Crea una sesión de pago y retorna la `payment_url` a la que debes redirigir al usuario para que complete el pago. Tu Pana se encarga de procesar el pago, emitir el DTE y notificarte vía webhook.
+
+## Qué hace
+
+- Crea una sesión de cobro en estado `pending`.
+- Retorna una URL de pago única con tiempo de expiración.
+- Al confirmarse el pago, Tu Pana emite automáticamente el DTE del tipo indicado en `target_dte_type`.
+
+## Ejemplos de uso
+
+- **Cobro de una sesión de salud mental**: Un paciente agenda una consulta y paga antes de la atención.
+- **Pago de servicio**: Un cliente de una plataforma de servicios paga por una prestación.
+- **Cobro recurrente manual**: Tu plataforma crea sesiones de cobro para cada período.
+
+## Consideraciones importantes
+
+### Idempotencia con `external_id`
+Si envías el mismo `external_id` en dos requests distintos, Tu Pana retorna la sesión original sin crear una nueva. Usa esto para evitar sesiones duplicadas si tu request se reintenta.
+
+### Checkout con o sin portal
+El parámetro `skip_portal` controla la experiencia de pago:
+
+| Valor | Comportamiento |
+|-------|----------------|
+| `false` (default) | El usuario ve una pantalla de Tu Pana con el detalle del cobro antes de pagar. |
+| `true` | El usuario es redirigido directo a Transbank. Útil cuando el contexto del cobro ya es claro en tu interfaz. |
+
+### Redirect post-pago
+Después del pago (exitoso, fallido o expirado), Tu Pana redirige al usuario a tu `redirect_url` con parámetros de estado:
+
+```
+# Pago exitoso
+https://tuapp.com/confirmation?payment_request_id=pr_abc123&status=paid
+
+# Pago fallido
+https://tuapp.com/confirmation?payment_request_id=pr_abc123&status=failed&error_code=CARD_DECLINED
+
+# Sesión vencida
+https://tuapp.com/confirmation?payment_request_id=pr_abc123&status=expired
+```
+
+<Warning>
+No uses los parámetros del redirect como fuente de verdad del estado del pago. Un usuario podría modificarlos en el browser. Siempre verifica el estado real vía el webhook recibido o consultando `GET /api/payment-requests/{id}/`.
+</Warning>
+
+### Tipos de DTE soportados
+
+| `target_dte_type` | Documento emitido             |
+|-------------------|-------------------------------|
+| `39`              | Boleta afecta electrónica     |
+| `41`              | Boleta exenta electrónica     |
+| `33`              | Factura afecta electrónica    |
+
+El destinatario debe estar habilitado para emitir ese tipo de documento en Tu Pana. Si no lo está, la sesión será rechazada al crearla.

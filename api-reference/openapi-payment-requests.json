@@ -1,0 +1,822 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Tu Pana API - Recaudación",
+    "description": "API de Cobros — Crea sesiones de pago, procesa cobros y emite DTE automáticamente.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.tupana.ai",
+      "description": "Servidor de producción"
+    }
+  ],
+  "security": [
+    {
+      "apiKeyAuth": []
+    }
+  ],
+  "paths": {
+    "/api/payment-requests/": {
+      "post": {
+        "operationId": "createPaymentRequest",
+        "tags": ["Cobros"],
+        "summary": "Crear sesión de cobro",
+        "description": "Crea una sesión de cobro y retorna la URL de pago a la que debes redirigir al usuario. Si se envía un `external_id` que ya existe, retorna la sesión original (idempotencia).",
+        "security": [{ "apiKeyAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentRequestCreate"
+              },
+              "example": {
+                "amount": 50000,
+                "currency": "CLP",
+                "recipient_id": "me_xyz789",
+                "redirect_url": "https://tuapp.com/confirmation",
+                "target_dte_type": 39,
+                "dte_recipient": {
+                  "rut": "11111111-1",
+                  "name": "Juan Soto",
+                  "email": "juan@ejemplo.com"
+                },
+                "items": [
+                  {
+                    "description": "Sesión de psicoterapia",
+                    "quantity": 1,
+                    "unit_price": 50000
+                  }
+                ],
+                "expires_in_minutes": 30,
+                "skip_portal": false,
+                "external_id": "booking_abc123",
+                "metadata": {
+                  "patient_name": "Juan Soto",
+                  "appointment_start_time": "2026-04-15T10:00:00-04:00"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sesión de cobro creada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentRequestCreated"
+                },
+                "example": {
+                  "payment_request_id": "pr_abc123",
+                  "status": "pending",
+                  "payment_url": "https://pay.tupana.com/pay/tok_xyz",
+                  "expires_at": "2026-04-06T12:30:00Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "error_code": "INVALID_AMOUNT",
+                  "detail": "El monto debe ser un entero positivo en CLP."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API key inválida o no proporcionada"
+          }
+        }
+      },
+      "get": {
+        "operationId": "listPaymentRequests",
+        "tags": ["Cobros"],
+        "summary": "Listar cobros",
+        "description": "Retorna una lista paginada de sesiones de cobro creadas por el cliente API autenticado. Soporta filtros por destinatario, estado y rango de fechas.",
+        "security": [{ "apiKeyAuth": [] }],
+        "parameters": [
+          {
+            "name": "recipient_id",
+            "in": "query",
+            "description": "Filtrar por ID del destinatario.",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filtrar por estado de la sesión.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["pending", "paid", "failed", "expired", "refunded"]
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Fecha de inicio del rango (YYYY-MM-DD, basada en `paid_at` o `created_at`).",
+            "required": false,
+            "schema": { "type": "string", "format": "date", "example": "2026-04-01" }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Fecha de fin del rango (YYYY-MM-DD, inclusiva).",
+            "required": false,
+            "schema": { "type": "string", "format": "date", "example": "2026-04-30" }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Número de página. Por defecto: 1.",
+            "required": false,
+            "schema": { "type": "integer", "default": 1 }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "description": "Resultados por página (máx. 100). Por defecto: 20.",
+            "required": false,
+            "schema": { "type": "integer", "default": 20, "maximum": 100 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de cobros obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaymentRequestListResponse" },
+                "example": {
+                  "count": 120,
+                  "next": "https://api.tupana.ai/api/payment-requests/?page=2",
+                  "previous": null,
+                  "results": [
+                    {
+                      "payment_request_id": "pr_abc123",
+                      "status": "paid",
+                      "gross_amount": 50000,
+                      "platform_fee": 1500,
+                      "net_amount": 48500,
+                      "currency": "CLP",
+                      "payment_method": "card",
+                      "paid_at": "2026-04-06T12:03:45Z",
+                      "recipient_id": "me_xyz789",
+                      "external_id": "booking_abc123",
+                      "metadata": {}
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": { "description": "API key inválida o no proporcionada" }
+        }
+      }
+    },
+    "/api/payment-requests/summary/": {
+      "get": {
+        "operationId": "getPaymentRequestsSummary",
+        "tags": ["Cobros"],
+        "summary": "Resumen agregado por período",
+        "description": "Retorna totales agregados (bruto, comisiones, neto, cantidad de transacciones) para un período dado. No requiere paginar y sumar del lado del cliente.",
+        "security": [{ "apiKeyAuth": [] }],
+        "parameters": [
+          {
+            "name": "recipient_id",
+            "in": "query",
+            "description": "Filtrar por ID del destinatario.",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Fecha de inicio del período (YYYY-MM-DD).",
+            "required": true,
+            "schema": { "type": "string", "format": "date", "example": "2026-04-01" }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Fecha de fin del período (YYYY-MM-DD, inclusiva).",
+            "required": true,
+            "schema": { "type": "string", "format": "date", "example": "2026-04-30" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resumen del período",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaymentRequestSummary" },
+                "example": {
+                  "period": { "from": "2026-04-01", "to": "2026-04-30" },
+                  "total_gross": 600000,
+                  "total_fees": 18000,
+                  "total_net": 582000,
+                  "transaction_count": 12,
+                  "currency": "CLP"
+                }
+              }
+            }
+          },
+          "401": { "description": "API key inválida o no proporcionada" }
+        }
+      }
+    },
+    "/api/payment-requests/{payment_request_id}/": {
+      "get": {
+        "operationId": "getPaymentRequest",
+        "tags": ["Cobros"],
+        "summary": "Consultar estado de un cobro",
+        "description": "Retorna el estado actual y los detalles de una sesión de cobro. Útil como fallback cuando el webhook aún no llegó pero el usuario ya regresó por redirect.",
+        "security": [{ "apiKeyAuth": [] }],
+        "parameters": [
+          {
+            "name": "payment_request_id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la sesión de cobro (ej: `pr_abc123`).",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Datos de la sesión de cobro",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaymentRequestDetail" },
+                "example": {
+                  "payment_request_id": "pr_abc123",
+                  "status": "paid",
+                  "amount": 50000,
+                  "currency": "CLP",
+                  "payment_method": "card",
+                  "paid_at": "2026-04-06T12:03:45Z",
+                  "recipient_id": "me_xyz789",
+                  "issued_document_id": "doc_111",
+                  "external_id": "booking_abc123",
+                  "metadata": {}
+                }
+              }
+            }
+          },
+          "401": { "description": "API key inválida o no proporcionada" },
+          "404": {
+            "description": "Sesión no encontrada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "error_code": "PAYMENT_REQUEST_NOT_FOUND",
+                  "detail": "ID no encontrado o no pertenece a tu cuenta."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/payment-requests/{payment_request_id}/refund/": {
+      "post": {
+        "operationId": "refundPaymentRequest",
+        "tags": ["Cobros"],
+        "summary": "Reembolsar un cobro",
+        "description": "Inicia el proceso de reembolso de una sesión pagada. El reembolso queda en estado `pending` mientras se procesa. Cuando se completa, Tu Pana envía el webhook `payment_request.refunded`.",
+        "security": [{ "apiKeyAuth": [] }],
+        "parameters": [
+          {
+            "name": "payment_request_id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la sesión de cobro a reembolsar.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RefundRequest" },
+              "example": {
+                "amount": 50000,
+                "reason": "appointment_cancelled"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Reembolso iniciado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RefundResponse" },
+                "example": {
+                  "refund_id": "ref_001",
+                  "status": "pending",
+                  "amount": 50000,
+                  "estimated_days": 3
+                }
+              }
+            }
+          },
+          "401": { "description": "API key inválida o no proporcionada" },
+          "422": {
+            "description": "No se puede reembolsar",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "already_paid": {
+                    "value": {
+                      "error_code": "ALREADY_PAID",
+                      "detail": "La sesión ya fue pagada."
+                    }
+                  },
+                  "exceeds_amount": {
+                    "value": {
+                      "error_code": "REFUND_EXCEEDS_AMOUNT",
+                      "detail": "El monto a reembolsar supera lo pagado."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/master-entities/{master_entity_id}/banking-info/": {
+      "get": {
+        "operationId": "getBankingInfo",
+        "tags": ["Cuenta bancaria"],
+        "summary": "Consultar cuenta bancaria",
+        "description": "Retorna la cuenta bancaria registrada para el destinatario. El estado `verified` indica que el destinatario puede recibir depósitos.",
+        "security": [{ "apiKeyAuth": [] }],
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "path",
+            "required": true,
+            "description": "ID del destinatario (MasterEntity).",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cuenta bancaria del destinatario",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BankingInfoResponse" },
+                "example": {
+                  "id": 456,
+                  "bank_code": "BANCO_BCI",
+                  "account_type": "corriente",
+                  "account_number": "1234567890",
+                  "holder_rut": "12345678-9",
+                  "holder_name": "María Pérez",
+                  "status": "verified",
+                  "updated_at": "2026-04-06T12:00:00Z"
+                }
+              }
+            }
+          },
+          "401": { "description": "API key inválida o no proporcionada" },
+          "404": { "description": "El destinatario no tiene cuenta bancaria registrada" }
+        }
+      },
+      "post": {
+        "operationId": "createBankingInfo",
+        "tags": ["Cuenta bancaria"],
+        "summary": "Registrar cuenta bancaria",
+        "description": "Registra una cuenta bancaria para el destinatario. La cuenta queda en estado `pending_verification` mientras Tu Pana la verifica. Una vez en `verified`, el destinatario puede recibir depósitos.",
+        "security": [{ "apiKeyAuth": [] }],
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "path",
+            "required": true,
+            "description": "ID del destinatario (MasterEntity).",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BankingInfoCreate" },
+              "example": {
+                "bank_code": "BANCO_BCI",
+                "account_type": "corriente",
+                "account_number": "1234567890",
+                "holder_rut": "12345678-9",
+                "holder_name": "María Pérez"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cuenta bancaria registrada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BankingInfoResponse" },
+                "example": {
+                  "id": 456,
+                  "bank_code": "BANCO_BCI",
+                  "account_type": "corriente",
+                  "account_number": "1234567890",
+                  "holder_rut": "12345678-9",
+                  "holder_name": "María Pérez",
+                  "status": "pending_verification",
+                  "updated_at": "2026-04-06T12:00:00Z"
+                }
+              }
+            }
+          },
+          "401": { "description": "API key inválida o no proporcionada" }
+        }
+      }
+    },
+    "/api/master-entities/{master_entity_id}/banking-info/{banking_info_id}/": {
+      "patch": {
+        "operationId": "updateBankingInfo",
+        "tags": ["Cuenta bancaria"],
+        "summary": "Actualizar cuenta bancaria",
+        "description": "Actualiza uno o más campos de la cuenta bancaria registrada. Solo se modifican los campos incluidos en el request.",
+        "security": [{ "apiKeyAuth": [] }],
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "path",
+            "required": true,
+            "description": "ID del destinatario (MasterEntity).",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "banking_info_id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la cuenta bancaria a actualizar.",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BankingInfoUpdate" },
+              "example": {
+                "account_number": "9876543210"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cuenta bancaria actualizada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BankingInfoResponse" }
+              }
+            }
+          },
+          "401": { "description": "API key inválida o no proporcionada" },
+          "404": { "description": "Cuenta bancaria no encontrada" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization",
+        "description": "API Key para autenticación. Formato: `Api-Key YOUR-API-KEY`"
+      }
+    },
+    "schemas": {
+      "PaymentRequestCreate": {
+        "type": "object",
+        "required": ["amount", "currency", "recipient_id", "redirect_url", "target_dte_type", "dte_recipient", "items"],
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "description": "Monto en CLP, sin decimales.",
+            "example": 50000
+          },
+          "currency": {
+            "type": "string",
+            "description": "Moneda. Siempre `CLP`.",
+            "enum": ["CLP"]
+          },
+          "recipient_id": {
+            "type": "string",
+            "description": "ID del destinatario en Tu Pana. Debe tener cuenta bancaria verificada.",
+            "example": "me_xyz789"
+          },
+          "redirect_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL a la que Tu Pana redirige al usuario después del pago.",
+            "example": "https://tuapp.com/confirmation"
+          },
+          "target_dte_type": {
+            "type": "integer",
+            "description": "Tipo de DTE a emitir al confirmarse el pago. `39` = boleta afecta, `41` = boleta exenta, `33` = factura afecta.",
+            "enum": [33, 39, 41],
+            "example": 39
+          },
+          "dte_recipient": {
+            "$ref": "#/components/schemas/DteRecipient"
+          },
+          "items": {
+            "type": "array",
+            "description": "Ítems del DTE. La suma de `quantity × unit_price` debe coincidir con `amount`.",
+            "items": { "$ref": "#/components/schemas/PaymentRequestItem" }
+          },
+          "expires_in_minutes": {
+            "type": "integer",
+            "description": "Minutos hasta que vence la sesión. Por defecto: `30`.",
+            "default": 30,
+            "example": 30
+          },
+          "skip_portal": {
+            "type": "boolean",
+            "description": "Si `true`, redirige directo a Transbank sin mostrar la pantalla de Tu Pana. Por defecto: `false`.",
+            "default": false
+          },
+          "external_id": {
+            "type": "string",
+            "description": "ID propio para idempotencia. Si ya existe una sesión con ese `external_id`, se retorna la sesión original.",
+            "example": "booking_abc123"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Datos adicionales de libre formato. Tu Pana los guarda y devuelve en webhooks y en el GET.",
+            "additionalProperties": true
+          }
+        }
+      },
+      "DteRecipient": {
+        "type": "object",
+        "required": ["rut", "name", "email"],
+        "properties": {
+          "rut": {
+            "type": "string",
+            "description": "RUT del receptor del DTE.",
+            "example": "11111111-1"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nombre o razón social del receptor.",
+            "example": "Juan Soto"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email al que se enviará el DTE.",
+            "example": "juan@ejemplo.com"
+          }
+        }
+      },
+      "PaymentRequestItem": {
+        "type": "object",
+        "required": ["description", "quantity", "unit_price"],
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Descripción del ítem.",
+            "example": "Sesión de psicoterapia"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Cantidad.",
+            "example": 1
+          },
+          "unit_price": {
+            "type": "integer",
+            "description": "Precio unitario en CLP.",
+            "example": 50000
+          }
+        }
+      },
+      "PaymentRequestCreated": {
+        "type": "object",
+        "properties": {
+          "payment_request_id": {
+            "type": "string",
+            "description": "ID único de la sesión de cobro.",
+            "example": "pr_abc123"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending"],
+            "example": "pending"
+          },
+          "payment_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL a la que debes redirigir al usuario para que complete el pago.",
+            "example": "https://pay.tupana.com/pay/tok_xyz"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha y hora en que vence la sesión (UTC).",
+            "example": "2026-04-06T12:30:00Z"
+          }
+        }
+      },
+      "PaymentRequestDetail": {
+        "type": "object",
+        "properties": {
+          "payment_request_id": { "type": "string", "example": "pr_abc123" },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "paid", "failed", "expired", "refunded"],
+            "example": "paid"
+          },
+          "amount": { "type": "integer", "example": 50000 },
+          "currency": { "type": "string", "example": "CLP" },
+          "payment_method": {
+            "type": "string",
+            "enum": ["card", "bank_transfer"],
+            "example": "card"
+          },
+          "paid_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2026-04-06T12:03:45Z"
+          },
+          "recipient_id": { "type": "string", "example": "me_xyz789" },
+          "issued_document_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID del DTE emitido al pagarse. `null` si el pago aún no fue confirmado.",
+            "example": "doc_111"
+          },
+          "external_id": {
+            "type": "string",
+            "nullable": true,
+            "example": "booking_abc123"
+          },
+          "metadata": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "PaymentRequestListItem": {
+        "type": "object",
+        "properties": {
+          "payment_request_id": { "type": "string", "example": "pr_abc123" },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "paid", "failed", "expired", "refunded"]
+          },
+          "gross_amount": { "type": "integer", "description": "Monto cobrado al pagador.", "example": 50000 },
+          "platform_fee": { "type": "integer", "description": "Comisión de Tu Pana.", "example": 1500 },
+          "net_amount": { "type": "integer", "description": "Monto neto depositado al destinatario.", "example": 48500 },
+          "currency": { "type": "string", "example": "CLP" },
+          "payment_method": { "type": "string", "nullable": true, "example": "card" },
+          "paid_at": { "type": "string", "format": "date-time", "nullable": true },
+          "recipient_id": { "type": "string", "example": "me_xyz789" },
+          "external_id": { "type": "string", "nullable": true },
+          "metadata": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "PaymentRequestListResponse": {
+        "type": "object",
+        "properties": {
+          "count": { "type": "integer", "description": "Total de resultados.", "example": 120 },
+          "next": { "type": "string", "nullable": true, "description": "URL de la página siguiente.", "example": "https://api.tupana.ai/api/payment-requests/?page=2" },
+          "previous": { "type": "string", "nullable": true, "description": "URL de la página anterior.", "example": null },
+          "results": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PaymentRequestListItem" }
+          }
+        }
+      },
+      "PaymentRequestSummary": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "object",
+            "properties": {
+              "from": { "type": "string", "format": "date", "example": "2026-04-01" },
+              "to": { "type": "string", "format": "date", "example": "2026-04-30" }
+            }
+          },
+          "total_gross": { "type": "integer", "description": "Suma de montos brutos cobrados.", "example": 600000 },
+          "total_fees": { "type": "integer", "description": "Suma de comisiones de Tu Pana.", "example": 18000 },
+          "total_net": { "type": "integer", "description": "Suma de montos netos depositados.", "example": 582000 },
+          "transaction_count": { "type": "integer", "description": "Número de cobros pagados en el período.", "example": 12 },
+          "currency": { "type": "string", "example": "CLP" }
+        }
+      },
+      "RefundRequest": {
+        "type": "object",
+        "required": ["amount"],
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "description": "Monto a reembolsar en CLP. No puede superar el monto pagado.",
+            "example": 50000
+          },
+          "reason": {
+            "type": "string",
+            "description": "Motivo del reembolso (libre formato, para registro interno).",
+            "example": "appointment_cancelled"
+          }
+        }
+      },
+      "RefundResponse": {
+        "type": "object",
+        "properties": {
+          "refund_id": { "type": "string", "example": "ref_001" },
+          "status": { "type": "string", "enum": ["pending"], "example": "pending" },
+          "amount": { "type": "integer", "example": 50000 },
+          "estimated_days": {
+            "type": "integer",
+            "description": "Días estimados para completar el reembolso.",
+            "example": 3
+          }
+        }
+      },
+      "BankingInfoCreate": {
+        "type": "object",
+        "required": ["bank_code", "account_type", "account_number", "holder_rut", "holder_name"],
+        "properties": {
+          "bank_code": {
+            "type": "string",
+            "description": "Código del banco. Ej: `BANCO_BCI`, `BANCO_SANTANDER`, `BANCO_ESTADO`.",
+            "example": "BANCO_BCI"
+          },
+          "account_type": {
+            "type": "string",
+            "enum": ["corriente", "ahorro", "vista"],
+            "description": "Tipo de cuenta bancaria.",
+            "example": "corriente"
+          },
+          "account_number": {
+            "type": "string",
+            "description": "Número de cuenta, sin guiones ni espacios.",
+            "example": "1234567890"
+          },
+          "holder_rut": {
+            "type": "string",
+            "description": "RUT del titular de la cuenta.",
+            "example": "12345678-9"
+          },
+          "holder_name": {
+            "type": "string",
+            "description": "Nombre del titular de la cuenta.",
+            "example": "María Pérez"
+          }
+        }
+      },
+      "BankingInfoUpdate": {
+        "type": "object",
+        "properties": {
+          "bank_code": { "type": "string", "example": "BANCO_SANTANDER" },
+          "account_type": { "type": "string", "enum": ["corriente", "ahorro", "vista"] },
+          "account_number": { "type": "string", "example": "9876543210" },
+          "holder_rut": { "type": "string", "example": "12345678-9" },
+          "holder_name": { "type": "string", "example": "María Pérez" }
+        }
+      },
+      "BankingInfoResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 456 },
+          "bank_code": { "type": "string", "example": "BANCO_BCI" },
+          "account_type": { "type": "string", "example": "corriente" },
+          "account_number": { "type": "string", "example": "1234567890" },
+          "holder_rut": { "type": "string", "example": "12345678-9" },
+          "holder_name": { "type": "string", "example": "María Pérez" },
+          "status": {
+            "type": "string",
+            "enum": ["pending_verification", "verified"],
+            "description": "`pending_verification`: Tu Pana está verificando la cuenta. `verified`: el destinatario puede recibir depósitos.",
+            "example": "verified"
+          },
+          "updated_at": { "type": "string", "format": "date-time", "example": "2026-04-06T12:00:00Z" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error_code": { "type": "string", "example": "INVALID_AMOUNT" },
+          "detail": { "type": "string", "example": "El monto debe ser un entero positivo en CLP." }
+        }
+      }
+    }
+  }
+}
