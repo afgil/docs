@@ -1,0 +1,30 @@
+---
+title: 'Emitir DTE manualmente'
+openapi: 'api-reference/openapi-payment-requests.json POST /api/payment-requests/{payment_request_id}/issue/'
+---
+
+## ¿Para qué se usa?
+
+Emite el DTE para una sesión de cobro ya pagada. Solo necesario cuando creaste la sesión con `auto_issue=false`.
+
+## Qué hace
+
+- Clona el documento interno de cobro al tipo de DTE indicado en `target_dte_type` (boleta o factura).
+- Retorna el ID del DTE emitido (`issued_document_id`).
+- Dispara el webhook `payment_request.document_issued`.
+
+## Ejemplos de uso
+
+- **Validación previa a emisión**: Tu sistema valida datos del cliente antes de emitir la factura.
+- **Emisión diferida**: El cobro se confirma inmediatamente pero la factura se emite al final del día.
+
+## Consideraciones importantes
+
+### Requiere `auto_issue=false`
+Este endpoint solo tiene sentido cuando creaste la sesión con `auto_issue=false`. Si usaste `auto_issue=true` (el default), el DTE ya fue emitido automáticamente y recibirás un error `ALREADY_ISSUED`.
+
+### Solo sobre cobros pagados
+La sesión debe estar en estado `paid`. Si el usuario aún no pagó, recibirás `NOT_PAID`.
+
+### Idempotencia
+Si llamas este endpoint dos veces sobre la misma sesión, la segunda llamada retorna `ALREADY_ISSUED`. El DTE no se emite dos veces.
