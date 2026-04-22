@@ -14,9 +14,8 @@ Para registrar o gestionar tus endpoints de webhook, consulta la sección de [We
 | Evento | Cuándo se emite |
 |--------|-----------------|
 | `payment_request.paid` | El pago fue confirmado exitosamente. |
-| `payment_request.failed` | El pago fue rechazado por Transbank. |
+| `payment_request.document_issued` | El DTE fue emitido (automáticamente o vía `/issue/`). |
 | `payment_request.expired` | La sesión venció sin pagarse. |
-| `payment_request.refunded` | El reembolso fue completado. |
 
 ## Estructura del payload
 
@@ -27,14 +26,13 @@ Todos los eventos de cobro siguen la estructura estándar de webhooks de Tu Pana
   "event": "payment_request.paid",
   "created_at": "2026-04-15T14:03:45Z",
   "data": {
-    "payment_request_id": "pr_abc123",
+    "payment_request_id": 1042,
     "status": "paid",
+    "external_id": "booking_abc123",
     "amount": 50000,
-    "currency": "CLP",
-    "payment_method": "card",
-    "paid_at": "2026-04-15T14:03:45Z",
-    "recipient_id": "me_xyz789",
-    "issued_document_id": "doc_111",
+    "target_dte_type": "39",
+    "payment_url": "https://www.tupana.ai/pagos/tok_xyz",
+    "issued_document_id": 9871,
     "metadata": {}
   }
 }
@@ -44,14 +42,13 @@ Todos los eventos de cobro siguen la estructura estándar de webhooks de Tu Pana
 
 | Campo | Descripción |
 |-------|-------------|
-| `payment_request_id` | ID de la sesión de cobro. |
-| `status` | Estado resultante (`paid`, `failed`, `expired`, `refunded`). |
+| `payment_request_id` | ID numérico de la sesión de cobro. |
+| `status` | Estado resultante (`paid`, `expired`). |
+| `external_id` | Tu ID propio para esta sesión. `null` si no enviaste uno. |
 | `amount` | Monto del cobro en CLP. |
-| `currency` | Siempre `CLP`. |
-| `payment_method` | Medio de pago usado (`card`, `bank_transfer`). `null` si el pago no se completó. |
-| `paid_at` | Timestamp UTC del pago. `null` si el pago no se completó. |
-| `recipient_id` | ID del destinatario. |
-| `issued_document_id` | ID del DTE emitido. `null` si el pago no fue exitoso. |
+| `target_dte_type` | Tipo de DTE configurado para la sesión. |
+| `payment_url` | URL de pago de la sesión. |
+| `issued_document_id` | ID del DTE emitido. `null` si el DTE aún no fue emitido. |
 | `metadata` | Datos adicionales que enviaste al crear la sesión. |
 
 ## Headers

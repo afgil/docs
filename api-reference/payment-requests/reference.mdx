@@ -46,19 +46,16 @@ Moneda soportada: **CLP** (peso chileno), sin decimales.
 
 | HTTP | Código | Descripción |
 |------|--------|-------------|
-| `400` | `INVALID_AMOUNT` | Monto inválido. Debe ser un entero positivo en CLP. |
-| `400` | `RECIPIENT_NOT_VERIFIED` | La cuenta bancaria del destinatario no está verificada. |
-| `400` | `PAYMENT_REQUEST_EXPIRED` | La sesión venció antes de completar el pago. |
-| `404` | `PAYMENT_REQUEST_NOT_FOUND` | ID no encontrado o no pertenece a tu cuenta. |
-| `422` | `ALREADY_PAID` | La sesión ya fue pagada. |
-| `422` | `REFUND_EXCEEDS_AMOUNT` | El monto a reembolsar supera lo pagado. |
+| `400` | `RECIPIENT_NOT_FOUND` | El `recipient_id` no existe. |
+| `400` | `RECIPIENT_MISSING_BANKING_INFO` | El destinatario no tiene cuenta bancaria registrada. |
+| `400` | `INVALID_TARGET_DTE_TYPE` | El `target_dte_type` no es uno de los valores permitidos (33, 39, 41). |
+| `400` | `ALREADY_ISSUED` | El DTE ya fue emitido para esta sesión (`POST /issue/`). |
+| `400` | `NOT_PAID` | La sesión no está pagada aún (`POST /issue/`). |
 
 ## Estados de una sesión de cobro
 
 | Estado | Descripción |
 |--------|-------------|
 | `pending` | Sesión creada, el usuario aún no ha pagado. |
-| `paid` | Pago confirmado. El DTE fue emitido y el depósito está en proceso. |
-| `failed` | Pago rechazado por Transbank. |
+| `paid` | Pago confirmado. El DTE fue emitido (si `auto_issue=true`) y el depósito está en proceso. |
 | `expired` | La sesión venció sin pagarse. |
-| `refunded` | El pago fue reembolsado. |

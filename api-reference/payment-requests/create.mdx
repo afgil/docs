@@ -11,7 +11,7 @@ Crea una sesión de pago y retorna la `payment_url` a la que debes redirigir al 
 
 - Crea una sesión de cobro en estado `pending`.
 - Retorna una URL de pago única con tiempo de expiración.
-- Al confirmarse el pago, Tu Pana emite automáticamente el DTE del tipo indicado en `target_dte_type`.
+- Al confirmarse el pago, Tu Pana emite automáticamente el DTE si `auto_issue=true` (comportamiento por defecto).
 
 ## Ejemplos de uso
 
@@ -33,7 +33,7 @@ El parámetro `skip_portal` controla la experiencia de pago:
 | `true` | El usuario es redirigido directo a Transbank. Útil cuando el contexto del cobro ya es claro en tu interfaz. |
 
 ### Redirect post-pago
-Después del pago (exitoso, fallido o expirado), Tu Pana redirige al usuario a tu `redirect_url` con parámetros de estado:
+Si enviaste `redirect_url`, Tu Pana redirige al usuario a esa URL después del pago con parámetros de estado:
 
 ```
 # Pago exitoso
@@ -49,6 +49,12 @@ https://tuapp.com/confirmation?payment_request_id=pr_abc123&status=expired
 <Warning>
 No uses los parámetros del redirect como fuente de verdad del estado del pago. Un usuario podría modificarlos en el browser. Siempre verifica el estado real vía el webhook recibido o consultando `GET /api/payment-requests/{id}/`.
 </Warning>
+
+### Emisión automática de DTE (`auto_issue`)
+
+Por defecto (`auto_issue=true`), Tu Pana emite el DTE automáticamente al confirmarse el pago. Si necesitas controlar el momento de la emisión, envía `auto_issue=false` y emite el DTE cuando lo necesites con [`POST /api/payment-requests/{id}/issue/`](/api-reference/payment-requests/issue).
+
+Esto es útil cuando quieres validar datos adicionales antes de emitir la boleta o factura.
 
 ### Tipos de DTE soportados
 

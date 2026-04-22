@@ -9,9 +9,8 @@ Obtiene el estado actual y los detalles completos de una sesión de cobro. Útil
 
 ## Qué hace
 
-- Retorna el estado actual de la sesión (`pending`, `paid`, `failed`, `expired`, `refunded`).
-- Si el pago fue exitoso, incluye `issued_document_id` con el ID del DTE emitido.
-- Incluye el `metadata` que enviaste al crear la sesión.
+- Retorna el estado actual de la sesión (`pending`, `paid`, `expired`).
+- Incluye todos los campos de la sesión: monto, tipo de DTE, `auto_issue`, `external_id` y `metadata`.
 
 ## Ejemplos de uso
 
