@@ -23,24 +23,26 @@ El destinatario debe estar habilitado en Tu Pana para emitir el tipo de document
 
 Moneda soportada: **CLP** (peso chileno), sin decimales.
 
-## Códigos de banco (`bank_code`)
+## Códigos de banco (`sbif_code`)
 
-| Código | Banco |
-|--------|-------|
-| `BANCO_BCI` | BCI |
-| `BANCO_SANTANDER` | Santander |
-| `BANCO_ESTADO` | Banco Estado |
-| `BANCO_CHILE` | Banco de Chile |
-| `BANCO_SCOTIABANK` | Scotiabank |
-| `BANCO_ITAU` | Itaú |
-| `BANCO_SECURITY` | Banco Security |
-| `BANCO_FALABELLA` | Banco Falabella |
-| `BANCO_RIPLEY` | Banco Ripley |
-| `BANCO_CONSORCIO` | Banco Consorcio |
-| `BANCO_BICE` | Banco BICE |
-| `BANCO_INTERNACIONAL` | Banco Internacional |
-| `TENPO` | Tenpo |
-| `MERCADO_PAGO` | Mercado Pago |
+Para registrar la cuenta bancaria del destinatario (`POST /api/master-entities/{id}/banking-info/`), enviá el código SBIF del banco.
+
+| `sbif_code` | Banco |
+|---|---|
+| `001` | Banco de Chile |
+| `009` | Banco Internacional |
+| `014` | Scotiabank Chile |
+| `016` | Banco de Crédito e Inversiones (BCI) |
+| `028` | Banco BICE |
+| `031` | HSBC Bank (Chile) |
+| `037` | Banco Santander-Chile |
+| `039` | Banco Itaú Chile |
+| `049` | Banco Security |
+| `051` | Banco Falabella |
+| `053` | Banco Ripley |
+| `055` | Banco Consorcio |
+| `059` | Banco BTG Pactual Chile |
+| `062` | Tanner Banco Digital |
 
 ## Códigos de error
 

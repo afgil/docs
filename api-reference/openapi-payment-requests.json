@@ -287,7 +287,7 @@
         "operationId": "getBankingInfo",
         "tags": ["Cuenta bancaria"],
         "summary": "Consultar cuenta bancaria",
-        "description": "Retorna la cuenta bancaria registrada para el destinatario. El estado `verified` indica que el destinatario puede recibir depósitos.",
+        "description": "Retorna la cuenta bancaria registrada para el destinatario.",
         "security": [{ "apiKeyAuth": [] }],
         "parameters": [
           {
@@ -306,12 +306,19 @@
                 "schema": { "$ref": "#/components/schemas/BankingInfoResponse" },
                 "example": {
                   "id": 456,
-                  "bank_code": "BANCO_BCI",
-                  "account_type": "corriente",
+                  "bank": 7,
+                  "bank_detail": {
+                    "id": 7,
+                    "name": "BANCO SANTANDER-CHILE",
+                    "sbif_code": "037",
+                    "additional_brands": "Banefe",
+                    "is_active": true
+                  },
+                  "account_type": "checking",
+                  "account_type_display": "Cuenta Corriente",
                   "account_number": "1234567890",
-                  "holder_rut": "12345678-9",
-                  "holder_name": "María Pérez",
-                  "status": "verified",
+                  "include_in_emails": true,
+                  "created_at": "2026-04-06T12:00:00Z",
                   "updated_at": "2026-04-06T12:00:00Z"
                 }
               }
@@ -325,7 +332,7 @@
         "operationId": "createBankingInfo",
         "tags": ["Cuenta bancaria"],
         "summary": "Registrar cuenta bancaria",
-        "description": "Registra una cuenta bancaria para el destinatario. La cuenta queda en estado `pending_verification` mientras Tu Pana la verifica. Una vez en `verified`, el destinatario puede recibir depósitos.",
+        "description": "Registra una cuenta bancaria para el destinatario. Es prerequisito para que el destinatario pueda recibir depósitos.",
         "security": [{ "apiKeyAuth": [] }],
         "parameters": [
           {
@@ -342,11 +349,10 @@
             "application/json": {
               "schema": { "$ref": "#/components/schemas/BankingInfoCreate" },
               "example": {
-                "bank_code": "BANCO_BCI",
-                "account_type": "corriente",
+                "sbif_code": "037",
+                "account_type": "checking",
                 "account_number": "1234567890",
-                "holder_rut": "12345678-9",
-                "holder_name": "María Pérez"
+                "include_in_emails": true
               }
             }
           }
@@ -359,12 +365,19 @@
                 "schema": { "$ref": "#/components/schemas/BankingInfoResponse" },
                 "example": {
                   "id": 456,
-                  "bank_code": "BANCO_BCI",
-                  "account_type": "corriente",
+                  "bank": 7,
+                  "bank_detail": {
+                    "id": 7,
+                    "name": "BANCO SANTANDER-CHILE",
+                    "sbif_code": "037",
+                    "additional_brands": "Banefe",
+                    "is_active": true
+                  },
+                  "account_type": "checking",
+                  "account_type_display": "Cuenta Corriente",
                   "account_number": "1234567890",
-                  "holder_rut": "12345678-9",
-                  "holder_name": "María Pérez",
-                  "status": "pending_verification",
+                  "include_in_emails": true,
+                  "created_at": "2026-04-06T12:00:00Z",
                   "updated_at": "2026-04-06T12:00:00Z"
                 }
               }
@@ -372,14 +385,12 @@
           },
           "401": { "description": "API key inválida o no proporcionada" }
         }
-      }
-    },
-    "/api/master-entities/{master_entity_id}/banking-info/{banking_info_id}/": {
-      "patch": {
+      },
+      "put": {
         "operationId": "updateBankingInfo",
         "tags": ["Cuenta bancaria"],
         "summary": "Actualizar cuenta bancaria",
-        "description": "Actualiza uno o más campos de la cuenta bancaria registrada. Solo se modifican los campos incluidos en el request.",
+        "description": "Actualiza uno o más campos de la cuenta bancaria registrada. Solo se modifican los campos incluidos en el request. Cada destinatario tiene una sola cuenta bancaria, por eso no hace falta enviar un id de cuenta.",
         "security": [{ "apiKeyAuth": [] }],
         "parameters": [
           {
@@ -388,13 +399,6 @@
             "required": true,
             "description": "ID del destinatario (MasterEntity).",
             "schema": { "type": "string" }
-          },
-          {
-            "name": "banking_info_id",
-            "in": "path",
-            "required": true,
-            "description": "ID de la cuenta bancaria a actualizar.",
-            "schema": { "type": "integer" }
           }
         ],
         "requestBody": {
@@ -614,61 +618,86 @@
       },
       "BankingInfoCreate": {
         "type": "object",
-        "required": ["bank_code", "account_type", "account_number", "holder_rut", "holder_name"],
+        "required": ["account_type", "account_number"],
+        "description": "Para identificar el banco, envía **uno** de los dos campos: `sbif_code` (recomendado para integraciones) o `bank` (ID en la base de datos de Tu Pana). El titular de la cuenta es el mismo destinatario (`master_entity`).",
         "properties": {
-          "bank_code": {
+          "sbif_code": {
             "type": "string",
-            "description": "Código del banco. Ej: `BANCO_BCI`, `BANCO_SANTANDER`, `BANCO_ESTADO`.",
-            "example": "BANCO_BCI"
+            "description": "Código SBIF del banco (3 dígitos). Identificador estable y recomendado para integraciones externas.",
+            "enum": ["001", "009", "014", "016", "028", "031", "037", "039", "049", "051", "053", "055", "059", "062"],
+            "example": "037"
+          },
+          "bank": {
+            "type": "integer",
+            "description": "ID en BD del banco. Obtenible vía `GET /api/banks/`. Si envías `sbif_code` no es necesario.",
+            "example": 7
           },
           "account_type": {
             "type": "string",
-            "enum": ["corriente", "ahorro", "vista"],
-            "description": "Tipo de cuenta bancaria.",
-            "example": "corriente"
+            "enum": ["checking", "savings", "current"],
+            "description": "Tipo de cuenta: `checking` (cuenta corriente), `savings` (cuenta de ahorros), `current` (cuenta vista).",
+            "example": "checking"
           },
           "account_number": {
             "type": "string",
             "description": "Número de cuenta, sin guiones ni espacios.",
             "example": "1234567890"
           },
-          "holder_rut": {
-            "type": "string",
-            "description": "RUT del titular de la cuenta.",
-            "example": "12345678-9"
-          },
-          "holder_name": {
-            "type": "string",
-            "description": "Nombre del titular de la cuenta.",
-            "example": "María Pérez"
+          "include_in_emails": {
+            "type": "boolean",
+            "description": "Si `true` (default), Tu Pana incluye los datos de la cuenta en los correos de cobranza al destinatario.",
+            "default": true
           }
         }
       },
       "BankingInfoUpdate": {
         "type": "object",
+        "description": "Todos los campos son opcionales: solo se actualizan los enviados.",
         "properties": {
-          "bank_code": { "type": "string", "example": "BANCO_SANTANDER" },
-          "account_type": { "type": "string", "enum": ["corriente", "ahorro", "vista"] },
+          "sbif_code": {
+            "type": "string",
+            "enum": ["001", "009", "014", "016", "028", "031", "037", "039", "049", "051", "053", "055", "059", "062"],
+            "example": "037"
+          },
+          "bank": { "type": "integer", "example": 7 },
+          "account_type": { "type": "string", "enum": ["checking", "savings", "current"] },
           "account_number": { "type": "string", "example": "9876543210" },
-          "holder_rut": { "type": "string", "example": "12345678-9" },
-          "holder_name": { "type": "string", "example": "María Pérez" }
+          "include_in_emails": { "type": "boolean" }
         }
       },
       "BankingInfoResponse": {
         "type": "object",
         "properties": {
           "id": { "type": "integer", "example": 456 },
-          "bank_code": { "type": "string", "example": "BANCO_BCI" },
-          "account_type": { "type": "string", "example": "corriente" },
-          "account_number": { "type": "string", "example": "1234567890" },
-          "holder_rut": { "type": "string", "example": "12345678-9" },
-          "holder_name": { "type": "string", "example": "María Pérez" },
-          "status": {
-            "type": "string",
-            "enum": ["pending_verification", "verified"],
-            "description": "`pending_verification`: Tu Pana está verificando la cuenta. `verified`: el destinatario puede recibir depósitos.",
-            "example": "verified"
+          "bank": {
+            "type": "integer",
+            "description": "ID en BD del banco.",
+            "example": 7
           },
+          "bank_detail": {
+            "type": "object",
+            "description": "Información expandida del banco.",
+            "properties": {
+              "id": { "type": "integer", "example": 7 },
+              "name": { "type": "string", "example": "BANCO SANTANDER-CHILE" },
+              "sbif_code": { "type": "string", "example": "037" },
+              "additional_brands": { "type": "string", "nullable": true, "example": "Banefe" },
+              "is_active": { "type": "boolean", "example": true }
+            }
+          },
+          "account_type": {
+            "type": "string",
+            "enum": ["checking", "savings", "current"],
+            "example": "checking"
+          },
+          "account_type_display": {
+            "type": "string",
+            "description": "Etiqueta legible en español del tipo de cuenta.",
+            "example": "Cuenta Corriente"
+          },
+          "account_number": { "type": "string", "example": "1234567890" },
+          "include_in_emails": { "type": "boolean", "example": true },
+          "created_at": { "type": "string", "format": "date-time", "example": "2026-04-06T12:00:00Z" },
           "updated_at": { "type": "string", "format": "date-time", "example": "2026-04-06T12:00:00Z" }
         }
       },

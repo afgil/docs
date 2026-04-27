@@ -5,21 +5,14 @@ openapi: 'api-reference/openapi-payment-requests.json GET /api/master-entities/{
 
 ## ¿Para qué se usa?
 
-Consulta la cuenta bancaria registrada para un destinatario. Útil para verificar el estado de verificación antes de crear cobros.
+Consulta la cuenta bancaria registrada para un destinatario. Útil para verificar antes de crear cobros que el destinatario ya tiene cuenta bancaria.
 
 ## Qué hace
 
-- Retorna la cuenta bancaria activa del destinatario.
-- El campo `status` indica si la cuenta está lista para recibir depósitos.
-
-## Estados de cuenta
-
-| Estado               | Descripción                                                       |
-|----------------------|-------------------------------------------------------------------|
-| `pending_verification` | Tu Pana está verificando la cuenta. El destinatario aún no puede recibir depósitos. |
-| `verified`           | La cuenta está verificada. El destinatario puede recibir depósitos. |
+- Retorna la cuenta bancaria activa del destinatario y los datos del banco asociado (`bank_detail`).
+- Devuelve `404` si el destinatario aún no registró cuenta bancaria.
 
 ## Consideraciones importantes
 
 ### Requisito previo para crear cobros
-Para crear una sesión de cobro, el destinatario debe tener una cuenta bancaria en estado `verified`. Si no la tiene, la creación del cobro retornará el error `RECIPIENT_NOT_VERIFIED`.
+Para crear una sesión de cobro, el destinatario debe tener una cuenta bancaria registrada. Si no la tiene, `POST /api/payment-requests/` retornará el error `RECIPIENT_MISSING_BANKING_INFO`.
