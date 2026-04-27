@@ -1,6 +1,6 @@
 ---
 title: 'Actualizar cuenta bancaria'
-openapi: 'api-reference/openapi-payment-requests.json PATCH /api/master-entities/{master_entity_id}/banking-info/{banking_info_id}/'
+openapi: 'api-reference/openapi-payment-requests.json PUT /api/master-entities/{master_entity_id}/banking-info/'
 ---
 
 ## ¿Para qué se usa?
@@ -9,10 +9,10 @@ Actualiza uno o más campos de la cuenta bancaria registrada para un destinatari
 
 ## Qué hace
 
-- Actualiza parcialmente los datos de la cuenta bancaria.
-- La cuenta vuelve a estado `pending_verification` tras la actualización, y debe pasar por el proceso de verificación nuevamente.
+- Actualiza parcialmente los datos de la cuenta bancaria. Como cada destinatario tiene una sola cuenta, no hace falta enviar un id de cuenta en la URL.
+- Para cambiar el banco podés enviar `sbif_code` (ej `"037"`) o `bank` (ID interno). Mirá la [tabla de códigos SBIF](/api-reference/payment-requests/banking-info-create#códigos-sbif-disponibles) en el endpoint de creación.
 
 ## Consideraciones importantes
 
 ### Impacto en cobros activos
-Si el destinatario tiene sesiones de cobro en estado `pending` al momento de actualizar la cuenta, esas sesiones no se ven afectadas. Los nuevos depósitos se harán a la cuenta actualizada una vez que esté `verified`.
+Las sesiones de cobro creadas antes de actualizar la cuenta no se ven afectadas. Los nuevos depósitos van a la cuenta actualizada.
