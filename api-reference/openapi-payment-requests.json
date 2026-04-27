@@ -623,7 +623,7 @@
         "properties": {
           "sbif_code": {
             "type": "string",
-            "description": "Código SBIF del banco (3 dígitos). Identificador estable y recomendado para integraciones externas.",
+            "description": "Código SBIF del banco (3 dígitos). Identificador estable y recomendado para integraciones externas.\n\n| Código | Banco |\n|---|---|\n| `001` | Banco de Chile |\n| `009` | Banco Internacional |\n| `014` | Scotiabank Chile |\n| `016` | Banco de Crédito e Inversiones (BCI) |\n| `028` | Banco BICE |\n| `031` | HSBC Bank (Chile) |\n| `037` | Banco Santander-Chile |\n| `039` | Banco Itaú Chile |\n| `049` | Banco Security |\n| `051` | Banco Falabella |\n| `053` | Banco Ripley |\n| `055` | Banco Consorcio |\n| `059` | Banco BTG Pactual Chile |\n| `062` | Tanner Banco Digital |",
             "enum": ["001", "009", "014", "016", "028", "031", "037", "039", "049", "051", "053", "055", "059", "062"],
             "example": "037"
           },
@@ -656,6 +656,7 @@
         "properties": {
           "sbif_code": {
             "type": "string",
+            "description": "Código SBIF del banco (3 dígitos).\n\n| Código | Banco |\n|---|---|\n| `001` | Banco de Chile |\n| `009` | Banco Internacional |\n| `014` | Scotiabank Chile |\n| `016` | Banco de Crédito e Inversiones (BCI) |\n| `028` | Banco BICE |\n| `031` | HSBC Bank (Chile) |\n| `037` | Banco Santander-Chile |\n| `039` | Banco Itaú Chile |\n| `049` | Banco Security |\n| `051` | Banco Falabella |\n| `053` | Banco Ripley |\n| `055` | Banco Consorcio |\n| `059` | Banco BTG Pactual Chile |\n| `062` | Tanner Banco Digital |",
             "enum": ["001", "009", "014", "016", "028", "031", "037", "039", "049", "051", "053", "055", "059", "062"],
             "example": "037"
           },
