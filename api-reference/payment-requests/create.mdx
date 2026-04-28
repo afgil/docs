@@ -1,6 +1,6 @@
 ---
 title: 'Crear sesión de cobro'
-openapi: 'api-reference/openapi-payment-requests.json POST /api/payment-requests/'
+openapi: 'api-reference/openapi-payment-requests.json POST /payment-requests/'
 ---
 
 ## ¿Para qué se usa?
@@ -47,12 +47,12 @@ https://tuapp.com/confirmation?payment_request_id=pr_abc123&status=expired
 ```
 
 <Warning>
-No uses los parámetros del redirect como fuente de verdad del estado del pago. Un usuario podría modificarlos en el browser. Siempre verifica el estado real vía el webhook recibido o consultando `GET /api/payment-requests/{id}/`.
+No uses los parámetros del redirect como fuente de verdad del estado del pago. Un usuario podría modificarlos en el browser. Siempre verifica el estado real vía el webhook recibido o consultando `GET /v1/payment-requests/{id}/`.
 </Warning>
 
 ### Emisión automática de DTE (`auto_issue`)
 
-Por defecto (`auto_issue=true`), Tu Pana emite el DTE automáticamente al confirmarse el pago. Si necesitas controlar el momento de la emisión, envía `auto_issue=false` y emite el DTE cuando lo necesites con [`POST /api/payment-requests/{id}/issue/`](/api-reference/payment-requests/issue).
+Por defecto (`auto_issue=true`), Tu Pana emite el DTE automáticamente al confirmarse el pago. Si necesitas controlar el momento de la emisión, envía `auto_issue=false` y emite el DTE cuando lo necesites con [`POST /v1/payment-requests/{id}/issue/`](/api-reference/payment-requests/issue).
 
 Esto es útil cuando quieres validar datos adicionales antes de emitir la boleta o factura.
 

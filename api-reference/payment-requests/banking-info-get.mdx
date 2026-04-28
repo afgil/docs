@@ -1,6 +1,6 @@
 ---
 title: 'Consultar cuenta bancaria'
-openapi: 'api-reference/openapi-payment-requests.json GET /api/master-entities/{master_entity_id}/banking-info/'
+openapi: 'api-reference/openapi-payment-requests.json GET /master-entities/{master_entity_id}/banking-info/'
 ---
 
 ## ¿Para qué se usa?
@@ -15,4 +15,4 @@ Consulta la cuenta bancaria registrada para un destinatario. Útil para verifica
 ## Consideraciones importantes
 
 ### Requisito previo para crear cobros
-Para crear una sesión de cobro, el destinatario debe tener una cuenta bancaria registrada. Si no la tiene, `POST /api/payment-requests/` retornará el error `RECIPIENT_MISSING_BANKING_INFO`.
+Para crear una sesión de cobro, el destinatario debe tener una cuenta bancaria registrada. Si no la tiene, `POST /v1/payment-requests/` retornará el error `RECIPIENT_MISSING_BANKING_INFO`.

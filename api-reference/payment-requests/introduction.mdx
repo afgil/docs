@@ -16,7 +16,7 @@ Con un solo endpoint, Tu Pana:
 
 ## Flujo general
 
-1. **Tu plataforma crea una sesión de cobro** llamando a `POST /api/payment-requests/`. Tu Pana retorna una `payment_url`.
+1. **Tu plataforma crea una sesión de cobro** llamando a `POST /v1/payment-requests/`. Tu Pana retorna una `payment_url`.
 2. **Redirige al usuario** a esa URL. El usuario paga en el checkout de Tu Pana (o directo a Transbank si usas `skip_portal: true`).
 3. **Tu Pana procesa el pago** con Transbank, actualiza el estado de la sesión y emite el DTE.
 4. **Tu Pana te notifica vía webhook** con un `POST` firmado a tu endpoint registrado.
@@ -59,11 +59,10 @@ CVV: `123` · Vencimiento: cualquier fecha futura · RUT: `11.111.111-1` · Clav
 
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| `POST` | `/api/payment-requests/` | Crear sesión de cobro |
-| `GET` | `/api/payment-requests/` | Listar cobros |
-| `GET` | `/api/payment-requests/summary/` | Resumen agregado por período |
-| `GET` | `/api/payment-requests/{id}/` | Consultar estado de un cobro |
-| `POST` | `/api/payment-requests/{id}/refund/` | Reembolsar un cobro |
-| `GET` | `/api/master-entities/{id}/banking-info/` | Consultar cuenta bancaria del destinatario |
-| `POST` | `/api/master-entities/{id}/banking-info/` | Registrar cuenta bancaria |
-| `PUT` | `/api/master-entities/{id}/banking-info/` | Actualizar cuenta bancaria |
+| `POST` | `/v1/payment-requests/` | Crear sesión de cobro |
+| `GET` | `/v1/payment-requests/` | Listar cobros |
+| `GET` | `/v1/payment-requests/{id}/` | Consultar estado de un cobro |
+| `POST` | `/v1/payment-requests/{id}/issue/` | Emitir DTE manualmente (cuando `auto_issue=false`) |
+| `GET` | `/v1/master-entities/{id}/banking-info/` | Consultar cuenta bancaria del destinatario |
+| `POST` | `/v1/master-entities/{id}/banking-info/` | Registrar cuenta bancaria |
+| `PUT` | `/v1/master-entities/{id}/banking-info/` | Actualizar cuenta bancaria |

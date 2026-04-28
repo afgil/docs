@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://api.tupana.ai",
+      "url": "https://api.tupana.ai/v1",
       "description": "Servidor de producción"
     }
   ],
@@ -17,7 +17,7 @@
     }
   ],
   "paths": {
-    "/api/payment-requests/": {
+    "/payment-requests/": {
       "post": {
         "operationId": "createPaymentRequest",
         "tags": ["Cobros"],
@@ -174,7 +174,7 @@
         }
       }
     },
-    "/api/payment-requests/{payment_request_id}/": {
+    "/payment-requests/{payment_request_id}/": {
       "get": {
         "operationId": "getPaymentRequest",
         "tags": ["Cobros"],
@@ -218,7 +218,7 @@
         }
       }
     },
-    "/api/payment-requests/{payment_request_id}/issue/": {
+    "/payment-requests/{payment_request_id}/issue/": {
       "post": {
         "operationId": "issuePaymentRequestDocument",
         "tags": ["Cobros"],
@@ -282,7 +282,7 @@
         }
       }
     },
-    "/api/master-entities/{master_entity_id}/banking-info/": {
+    "/master-entities/{master_entity_id}/banking-info/": {
       "get": {
         "operationId": "getBankingInfo",
         "tags": ["Cuenta bancaria"],
@@ -490,7 +490,7 @@
           },
           "auto_issue": {
             "type": "boolean",
-            "description": "Si `true` (default), Tu Pana emite el DTE automáticamente al confirmarse el pago. Si `false`, debes emitirlo manualmente con `POST /api/payment-requests/{id}/issue/`.",
+            "description": "Si `true` (default), Tu Pana emite el DTE automáticamente al confirmarse el pago. Si `false`, debes emitirlo manualmente con `POST /v1/payment-requests/{id}/issue/`.",
             "default": true
           },
           "external_id": {

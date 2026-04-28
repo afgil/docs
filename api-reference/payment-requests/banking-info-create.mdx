@@ -1,6 +1,6 @@
 ---
 title: 'Registrar cuenta bancaria'
-openapi: 'api-reference/openapi-payment-requests.json POST /api/master-entities/{master_entity_id}/banking-info/'
+openapi: 'api-reference/openapi-payment-requests.json POST /master-entities/{master_entity_id}/banking-info/'
 ---
 
 ## ¿Para qué se usa?
@@ -10,7 +10,7 @@ Registra la cuenta bancaria a la que Tu Pana depositará los fondos una vez conf
 ## Qué hace
 
 - Registra una cuenta bancaria para el destinatario identificado por `master_entity_id`.
-- Cada destinatario tiene **una sola** cuenta bancaria activa. Para cambiar los datos, usá `PUT /api/master-entities/{master_entity_id}/banking-info/`.
+- Cada destinatario tiene **una sola** cuenta bancaria activa. Para cambiar los datos, usá `PUT /v1/master-entities/{master_entity_id}/banking-info/`.
 - El titular de la cuenta es el propio destinatario (la `master_entity` con `master_entity_id`).
 
 ## Cómo identificar el banco
@@ -18,7 +18,7 @@ Registra la cuenta bancaria a la que Tu Pana depositará los fondos una vez conf
 El parámetro del banco se puede enviar de dos formas:
 
 - **`sbif_code`** (recomendado): código SBIF de tres dígitos (ej `"037"`). Es el identificador estable y estándar de la Superintendencia de Bancos chilena.
-- **`bank`**: ID interno del banco en Tu Pana. Útil si ya consumiste `GET /api/banks/`. El ID puede variar entre ambientes.
+- **`bank`**: ID interno del banco en Tu Pana. El ID puede variar entre ambientes, así que preferí `sbif_code`.
 
 Enviá uno de los dos. Si enviás ambos, deben referirse al mismo banco.
 
