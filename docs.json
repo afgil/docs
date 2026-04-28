@@ -133,9 +133,7 @@
               "api-reference/payment-requests/create",
               "api-reference/payment-requests/get",
               "api-reference/payment-requests/list",
-              "api-reference/payment-requests/issue",
-              "api-reference/payment-requests/summary",
-              "api-reference/payment-requests/refund"
+              "api-reference/payment-requests/issue"
             ]
           },
           {
