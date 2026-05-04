@@ -610,6 +610,46 @@
             "type": "string",
             "format": "date-time",
             "description": "Fecha de última actualización (ISO 8601)"
+          },
+          "has_trace": {
+            "type": "boolean",
+            "description": "true si el documento tiene al menos una traza registrada del SII."
+          },
+          "latest_trace_info": {
+            "$ref": "#/components/schemas/LatestTraceInfo"
+          }
+        }
+      },
+      "LatestTraceInfo": {
+        "type": "object",
+        "description": "Resumen liviano de la última traza del documento. Siempre se incluye en las respuestas de listado y detalle (es `null` cuando el documento no tiene trazas).",
+        "nullable": true,
+        "properties": {
+          "has_acknowledgments": {
+            "type": "boolean",
+            "description": "El documento tiene un acuse de recibo (eventos ACD o ERM)."
+          },
+          "has_claims": {
+            "type": "boolean",
+            "description": "El documento tiene al menos un reclamo (RCD, RFP o RFT)."
+          },
+          "is_more_than_eight_days": {
+            "type": "boolean",
+            "description": "Han pasado más de 8 días desde la recepción (relevante para mérito ejecutivo)."
+          },
+          "is_rejected": {
+            "type": "boolean",
+            "description": "Calculado: el documento fue rechazado (existe un evento RCD, RFP o RFT)."
+          },
+          "date_reception": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha y hora en que el SII registró la recepción del documento.",
+            "nullable": true
+          },
+          "events_count": {
+            "type": "integer",
+            "description": "Cantidad total de eventos en esta traza. Útil para decidir si vale la pena solicitar `?include_trace_events=true` en el listado."
           }
         }
       },
@@ -757,32 +797,6 @@
                 "type": "string",
                 "description": "Mensaje de error si no se pudo obtener el XML (null si está disponible)",
                 "nullable": true
-              },
-              "has_trace": {
-                "type": "boolean",
-                "description": "true si el documento tiene trazas de envío al SII, false en caso contrario"
-              },
-              "latest_trace_info": {
-                "type": "object",
-                "description": "Información de la última traza disponible (estado de envío, fecha, etc.)",
-                "nullable": true,
-                "properties": {
-                  "status": {
-                    "type": "string",
-                    "description": "Estado de la traza",
-                    "example": "accepted"
-                  },
-                  "timestamp": {
-                    "type": "string",
-                    "format": "date-time",
-                    "description": "Fecha y hora de la traza",
-                    "example": "2024-01-15T10:35:00Z"
-                  },
-                  "description": {
-                    "type": "string",
-                    "example": "Documento aceptado por el SII"
-                  }
-                }
               },
               "references": {
                 "type": "array",
