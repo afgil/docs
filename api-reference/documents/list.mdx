@@ -17,3 +17,15 @@ openapi: 'GET /documents'
 - Filtrar documentos por fecha de emisión
 - Consultar documentos por tipo (factura, boleta, etc.)
 - Obtener documentos recibidos o emitidos por separado
+
+## Eventos de la traza (opt-in)
+
+Por defecto la respuesta solo incluye `latest_trace_info` (un resumen liviano: `has_acknowledgments`, `has_claims`, `is_rejected`, `events_count`, etc.) para mantener el payload de la lista pequeño.
+
+Si necesitas la trazabilidad completa de cada documento — los eventos del SII como `ACD` (acuse de recibo), `RCD` / `RFP` / `RFT` (reclamos), `NCA` (nota de crédito asociada), etc. — agrega `include_trace_events=true` al query string:
+
+```bash
+GET /v1/documents?master_entity_id=123&include_trace_events=true
+```
+
+Con la flag activa, cada documento de la respuesta incluye un array `traces`, y cada traza un array `events` (ver el schema `Trace` y `TraceEvent` en la referencia). El endpoint de detalle (`GET /v1/documents/{document_id}`) ya retorna estos eventos de forma permanente, sin necesidad de la flag.
