@@ -62,7 +62,7 @@ CVV: `123` · Vencimiento: cualquier fecha futura · RUT: `11.111.111-1` · Clav
 | `POST` | `/v1/payment-requests/` | Crear sesión de cobro |
 | `GET` | `/v1/payment-requests/` | Listar cobros |
 | `GET` | `/v1/payment-requests/{id}/` | Consultar estado de un cobro |
-| `POST` | `/v1/payment-requests/{id}/issue/` | Emitir DTE manualmente (cuando `auto_issue=false`) |
+| `PATCH` | `/v1/payment-requests/{id}/` | Emitir DTE manualmente (cuando `auto_issue=false`) |
 | `GET` | `/v1/master-entities/{id}/banking-info/` | Consultar cuenta bancaria del destinatario |
 | `POST` | `/v1/master-entities/{id}/banking-info/` | Registrar cuenta bancaria |
 | `PUT` | `/v1/master-entities/{id}/banking-info/` | Actualizar cuenta bancaria |
