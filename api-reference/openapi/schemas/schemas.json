@@ -688,9 +688,9 @@
               },
               "traces": {
                 "type": "array",
-                "description": "Array de trazas de envío al SII",
+                "description": "Array de trazas del documento en el SII, cada una con su lista de `events`. En el endpoint de detalle siempre se incluye; en el endpoint de listado solo se incluye cuando se pasa `include_trace_events=true`.",
                 "items": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/Trace"
                 }
               },
               "trace_update_log": {
@@ -817,6 +817,107 @@
             }
           }
         ]
+      },
+      "Trace": {
+        "type": "object",
+        "description": "Traza del documento en el SII. Contiene los flags de acceso/estado y la lista de `events` con el detalle de cada hito (recepción, acuse, reclamo, etc.).",
+        "properties": {
+          "date_reception": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha y hora en que el SII registró la recepción del documento.",
+            "nullable": true
+          },
+          "has_receiver_access": {
+            "type": "boolean",
+            "description": "El receptor tiene acceso al documento en el portal del SII."
+          },
+          "has_issuer_access": {
+            "type": "boolean",
+            "description": "El emisor tiene acceso al documento en el portal del SII."
+          },
+          "has_holder_access": {
+            "type": "boolean",
+            "description": "El tenedor vigente tiene acceso al documento."
+          },
+          "is_paid_cash": {
+            "type": "boolean",
+            "description": "Documento marcado como pagado al contado en el SII."
+          },
+          "has_claims": {
+            "type": "boolean",
+            "description": "El documento tiene al menos un reclamo registrado (RCD, RFP o RFT)."
+          },
+          "is_more_than_eight_days": {
+            "type": "boolean",
+            "description": "Han pasado más de 8 días desde la recepción (relevante para mérito ejecutivo)."
+          },
+          "has_acknowledgments": {
+            "type": "boolean",
+            "description": "El documento tiene un acuse de recibo (ACD o ERM)."
+          },
+          "has_guide_reference": {
+            "type": "boolean",
+            "description": "El documento referencia una guía de despacho.",
+            "nullable": true
+          },
+          "is_rejected": {
+            "type": "boolean",
+            "description": "Calculado: el documento fue rechazado (existe un evento RCD, RFP o RFT)."
+          },
+          "days_until_executive_merit": {
+            "type": "integer",
+            "description": "Días que faltan para que el documento entre en mérito ejecutivo (negativo si ya pasó). `null` si no aplica (sin recepción, con acuse o rechazado).",
+            "nullable": true
+          },
+          "executive_merit_alert_level": {
+            "type": "string",
+            "description": "Nivel de alerta para mérito ejecutivo.",
+            "enum": [
+              "none",
+              "warning",
+              "critical"
+            ]
+          },
+          "events": {
+            "type": "array",
+            "description": "Eventos registrados en el SII para esta traza (ordenados por fecha descendente).",
+            "items": {
+              "$ref": "#/components/schemas/TraceEvent"
+            }
+          }
+        }
+      },
+      "TraceEvent": {
+        "type": "object",
+        "description": "Evento de trazabilidad del SII para un documento (ej: aceptación, reclamo, acuse).",
+        "properties": {
+          "event_code": {
+            "type": "string",
+            "description": "Código del evento del SII. Algunos comunes: `ACD` (acepta contenido), `ERM` (acuse de recibo), `RCD` (reclamo de contenido), `RFP` (reclamo forma de pago), `RFT` (reclamo forma de transporte), `NCA` (nota de crédito asociada).",
+            "example": "ACD"
+          },
+          "event_description": {
+            "type": "string",
+            "description": "Descripción del evento entregada por el SII.",
+            "example": "Acepta Contenido del Documento"
+          },
+          "event_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha y hora del evento en zona horaria de Chile."
+          },
+          "responsable_rut": {
+            "type": "integer",
+            "description": "RUT (sin DV) de quien registró el evento en el SII.",
+            "nullable": true
+          },
+          "responsable_dv": {
+            "type": "string",
+            "description": "Dígito verificador del RUT del responsable.",
+            "nullable": true
+          }
+        }
       },
       "Error": {
         "required": [

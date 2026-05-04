@@ -98,6 +98,16 @@
               "default": 20,
               "maximum": 100
             }
+          },
+          {
+            "name": "include_trace_events",
+            "in": "query",
+            "description": "Si es `true`, cada documento incluye el array completo `traces` con sus `events` (eventos de la traza del SII: ACD, ERM, RCD, etc.). Por defecto la lista solo trae el resumen liviano `latest_trace_info` para no inflar la respuesta. Úsalo solo cuando necesites trazabilidad detallada — el endpoint de detalle (`GET /documents/{document_id}`) ya retorna estos eventos siempre.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
           }
         ],
         "responses": {
