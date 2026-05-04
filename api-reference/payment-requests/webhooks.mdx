@@ -14,7 +14,7 @@ Para registrar o gestionar tus endpoints de webhook, consulta la sección de [We
 | Evento | Cuándo se emite |
 |--------|-----------------|
 | `payment_request.paid` | El pago fue confirmado exitosamente. |
-| `payment_request.document_issued` | El DTE fue emitido (automáticamente o vía `/issue/`). |
+| `payment_request.document_issued` | El DTE fue emitido (automáticamente o vía `PATCH /v1/payment-requests/{id}/` con `status=issued`). |
 | `payment_request.expired` | La sesión venció sin pagarse. |
 
 ## Estructura del payload

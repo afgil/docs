@@ -79,7 +79,8 @@
                   "target_dte_type": "39",
                   "auto_issue": true,
                   "external_id": "booking_abc123",
-                  "metadata": {}
+                  "metadata": {},
+                  "issued_document_id": null
                 }
               }
             }
@@ -141,7 +142,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": ["pending", "paid", "failed", "expired", "refunded"]
+              "enum": ["pending", "paid", "issued", "failed", "expired", "refunded"]
             }
           }
         ],
@@ -155,7 +156,7 @@
                   "results": [
                     {
                       "payment_request_id": 1042,
-                      "status": "paid",
+                      "status": "issued",
                       "payment_url": "https://www.tupana.ai/pagos/tok_xyz",
                       "expires_at": "2026-04-06T12:30:00Z",
                       "created_at": "2026-04-06T12:00:00Z",
@@ -163,7 +164,8 @@
                       "target_dte_type": "39",
                       "auto_issue": true,
                       "external_id": "booking_abc123",
-                      "metadata": {}
+                      "metadata": {},
+                      "issued_document_id": 9871
                     }
                   ]
                 }
@@ -206,7 +208,8 @@
                   "target_dte_type": "39",
                   "auto_issue": true,
                   "external_id": "booking_abc123",
-                  "metadata": {}
+                  "metadata": {},
+                  "issued_document_id": null
                 }
               }
             }
@@ -216,14 +219,12 @@
             "description": "Sesión no encontrada o no pertenece a tu API key"
           }
         }
-      }
-    },
-    "/payment-requests/{payment_request_id}/issue/": {
-      "post": {
-        "operationId": "issuePaymentRequestDocument",
+      },
+      "patch": {
+        "operationId": "updatePaymentRequest",
         "tags": ["Cobros"],
         "summary": "Emitir DTE manualmente",
-        "description": "Emite el DTE del tipo indicado en `target_dte_type` para una sesión de cobro ya pagada. Solo disponible cuando `auto_issue` fue `false` al crear la sesión, o cuando el DTE aún no fue emitido.",
+        "description": "Transiciona la sesión de cobro a `issued` emitiendo el DTE del tipo indicado en `target_dte_type`. Solo disponible cuando la sesión está en estado `paid` (típicamente por haberla creado con `auto_issue=false`).",
         "security": [{ "apiKeyAuth": [] }],
         "parameters": [
           {
@@ -234,22 +235,42 @@
             "schema": { "type": "integer" }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["issued"],
+                    "description": "Estado al que se quiere transicionar la sesión. Por ahora solo se acepta `issued`."
+                  }
+                }
+              },
+              "example": { "status": "issued" }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "DTE emitido exitosamente",
+            "description": "Sesión transicionada a `issued`",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "issued_document_id": {
-                      "type": "integer",
-                      "description": "ID del DTE emitido.",
-                      "example": 9871
-                    }
-                  }
-                },
+                "schema": { "$ref": "#/components/schemas/PaymentRequestResponse" },
                 "example": {
+                  "payment_request_id": 1042,
+                  "status": "issued",
+                  "payment_url": "https://www.tupana.ai/pagos/tok_xyz",
+                  "expires_at": "2026-04-06T12:30:00Z",
+                  "created_at": "2026-04-06T12:00:00Z",
+                  "amount": 50000,
+                  "target_dte_type": "39",
+                  "auto_issue": false,
+                  "external_id": "booking_abc123",
+                  "metadata": {},
                   "issued_document_id": 9871
                 }
               }
@@ -261,6 +282,12 @@
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ErrorResponse" },
                 "examples": {
+                  "invalid_status": {
+                    "value": {
+                      "error_code": "INVALID_STATUS",
+                      "message": "Only {\"status\": \"issued\"} is supported."
+                    }
+                  },
                   "already_issued": {
                     "value": {
                       "error_code": "ALREADY_ISSUED",
@@ -490,7 +517,7 @@
           },
           "auto_issue": {
             "type": "boolean",
-            "description": "Si `true` (default), Tu Pana emite el DTE automáticamente al confirmarse el pago. Si `false`, debes emitirlo manualmente con `POST /v1/payment-requests/{id}/issue/`.",
+            "description": "Si `true` (default), Tu Pana emite el DTE automáticamente al confirmarse el pago. Si `false`, debes emitirlo manualmente con `PATCH /v1/payment-requests/{id}/` enviando `{\"status\": \"issued\"}`.",
             "default": true
           },
           "external_id": {
@@ -558,7 +585,7 @@
           },
           "status": {
             "type": "string",
-            "enum": ["pending", "paid", "failed", "expired", "refunded"],
+            "enum": ["pending", "paid", "issued", "failed", "expired", "refunded"],
             "example": "pending"
           },
           "payment_url": {
@@ -604,6 +631,12 @@
             "type": "object",
             "additionalProperties": true,
             "description": "Datos adicionales que enviaste al crear la sesión."
+          },
+          "issued_document_id": {
+            "type": "integer",
+            "nullable": true,
+            "description": "ID del DTE emitido. `null` mientras la sesión no haya emitido el DTE.",
+            "example": 9871
           }
         }
       },

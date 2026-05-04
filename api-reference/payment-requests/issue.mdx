@@ -1,6 +1,6 @@
 ---
 title: 'Emitir DTE manualmente'
-openapi: 'api-reference/openapi-payment-requests.json POST /payment-requests/{payment_request_id}/issue/'
+openapi: 'api-reference/openapi-payment-requests.json PATCH /payment-requests/{payment_request_id}/'
 ---
 
 ## ¿Para qué se usa?
@@ -10,18 +10,27 @@ Emite el DTE para una sesión de cobro ya pagada. Solo necesario cuando creaste 
 ## Qué hace
 
 - Clona el documento interno de cobro al tipo de DTE indicado en `target_dte_type` (boleta o factura).
-- Retorna el ID del DTE emitido (`issued_document_id`).
+- Transiciona la sesión al estado `issued`.
+- Retorna el payload completo de la sesión incluyendo `issued_document_id`.
 - Dispara el webhook `payment_request.document_issued`.
+
+## Body
+
+Por ahora el único campo aceptado es `status` con valor `"issued"`. Cualquier otro valor o un body sin ese campo retorna `400 INVALID_STATUS`.
+
+```json
+{ "status": "issued" }
+```
 
 ## Ejemplos de uso
 
-- **Validación previa a emisión**: Tu sistema valida datos del cliente antes de emitir la factura.
-- **Emisión diferida**: El cobro se confirma inmediatamente pero la factura se emite al final del día.
+- **Validación previa a emisión**: tu sistema valida datos del cliente antes de emitir la factura.
+- **Emisión diferida**: el cobro se confirma inmediatamente pero la factura se emite al final del día.
 
 ## Consideraciones importantes
 
 ### Requiere `auto_issue=false`
-Este endpoint solo tiene sentido cuando creaste la sesión con `auto_issue=false`. Si usaste `auto_issue=true` (el default), el DTE ya fue emitido automáticamente y recibirás un error `ALREADY_ISSUED`.
+Este endpoint solo tiene sentido cuando creaste la sesión con `auto_issue=false`. Si usaste `auto_issue=true` (el default), el DTE ya fue emitido automáticamente y la sesión está en estado `issued`; recibirás `ALREADY_ISSUED`.
 
 ### Solo sobre cobros pagados
 La sesión debe estar en estado `paid`. Si el usuario aún no pagó, recibirás `NOT_PAID`.
