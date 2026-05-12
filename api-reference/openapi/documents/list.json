@@ -79,6 +79,50 @@
             }
           },
           {
+            "name": "issue_date_gte",
+            "in": "query",
+            "description": "Fecha de emisión mínima (inclusive) en formato `YYYY-MM-DD`. Filtra documentos cuya fecha de emisión (`date_issued`) sea igual o posterior a esta fecha. Ejemplo: `issue_date_gte=2026-01-01` devuelve documentos emitidos desde el 1 de enero de 2026 en adelante.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-01-01"
+          },
+          {
+            "name": "issue_date_lte",
+            "in": "query",
+            "description": "Fecha de emisión máxima (inclusive) en formato `YYYY-MM-DD`. Filtra documentos cuya fecha de emisión (`date_issued`) sea igual o anterior a esta fecha. Ejemplo: `issue_date_lte=2026-01-31` devuelve documentos emitidos hasta el 31 de enero de 2026. Combínalo con `issue_date_gte` para definir un rango de fechas.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-01-31"
+          },
+          {
+            "name": "reception_date_from",
+            "in": "query",
+            "description": "Fecha de recepción mínima (inclusive) en formato `YYYY-MM-DD`. Filtra documentos recibidos cuya fecha de recepción en el libro del SII sea igual o posterior a esta fecha. Solo aplica a documentos que están en el libro de compras del SII (`document_type=received`).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-01-01"
+          },
+          {
+            "name": "reception_date_to",
+            "in": "query",
+            "description": "Fecha de recepción máxima (inclusive) en formato `YYYY-MM-DD`. Filtra documentos recibidos cuya fecha de recepción en el libro del SII sea igual o anterior a esta fecha. Solo aplica a documentos que están en el libro de compras del SII (`document_type=received`). Combínalo con `reception_date_from` para definir un rango.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-01-31"
+          },
+          {
             "name": "page",
             "in": "query",
             "description": "Página actual, parte de la paginación estándar. Por defecto: 1. La respuesta incluye `count` (total), `next`, `previous` (URLs de navegación) y `results` (arreglo de documentos con información de emisor, receptor, montos, estado, PDF y referencias).",
