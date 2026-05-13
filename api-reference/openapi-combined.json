@@ -56,10 +56,17 @@
                     "description": "ID de la entidad maestra a la que pertenece la credencial",
                     "example": 123
                   },
+                  "credential_type": {
+                    "type": "string",
+                    "description": "Tipo de credencial (recomendado). Valores: sii, sii_company, certificate, bank_chile, bank_estado, bank_santander, bank_scotiabank",
+                    "example": "sii",
+                    "enum": ["sii", "sii_company", "certificate", "bank_chile", "bank_estado", "bank_santander", "bank_scotiabank"]
+                  },
                   "credential_type_id": {
                     "type": "integer",
-                    "description": "ID del tipo de credencial (opcional, por defecto SII)",
-                    "example": 70
+                    "description": "ID del tipo de credencial (legacy, usar credential_type en su lugar)",
+                    "example": 70,
+                    "deprecated": true
                   }
                 }
               },
