@@ -29,6 +29,7 @@
             "group": "Referencia",
             "pages": [
               "user-guide/documents",
+              "user-guide/credential-types",
               "user-guide/webhooks"
             ]
           }
