@@ -64,9 +64,8 @@
                   },
                   "credential_type_id": {
                     "type": "integer",
-                    "description": "ID del tipo de credencial (legacy, usar credential_type en su lugar)",
-                    "example": 70,
-                    "deprecated": true
+                    "description": "ID del tipo de credencial (opcional, por defecto SII)",
+                    "example": 70
                   }
                 }
               },
