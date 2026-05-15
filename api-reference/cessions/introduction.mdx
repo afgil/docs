@@ -11,14 +11,14 @@ Con esta API puedes:
 
 - **Listar** todas las cesiones emitidas por una entidad (con filtros por fecha, estado, búsqueda).
 - **Obtener el detalle** de una cesión concreta, incluidos eventos de trazabilidad en el SII.
-- **Descargar el certificado de cesión** (PDF) del SII mediante una URL presignada en S3.
+- **Obtener el certificado de cesión** (PDF) del SII — disponible como URL presignada (`certificate_pdf_url`) o inline via `?pdf=document-cession`.
 - **Crear cesiones en lote** (generar AECs y enviarlos al SII) desde el endpoint de batch.
 
 ## Flujo típico
 
 1. **Listar cesiones** con `GET /cessions?master_entity_id={id}` para ver todas las cesiones de la entidad.
 2. **Obtener una cesión** con `GET /cessions/{id}` para ver detalle y eventos.
-3. **Obtener el certificado** con `GET /cessions/{id}?pdf=document-cession`; la respuesta es una redirección a la URL presignada del PDF en S3.
+3. **Obtener el certificado** con `GET /cessions/{id}?pdf=document-cession`; la respuesta es el PDF inline. En llamadas posteriores al detalle, `certificate_pdf_url` contiene la URL directa.
 4. **Crear nuevas cesiones** con `POST /cessions/batch` enviando los IDs de documentos y datos del cesionario.
 
 ## Autenticación
@@ -31,5 +31,5 @@ Todos los endpoints requieren autenticación (API Key o JWT). La API Key debe te
 |--------|--------|----------|
 | Listar cesiones | GET | `/cessions?master_entity_id={id}` |
 | Detalle de cesión | GET | `/cessions/{id}` |
-| Certificado PDF (presignado) | GET | `/cessions/{id}?pdf=document-cession` |
+| Certificado PDF (inline) | GET | `/cessions/{id}?pdf=document-cession` |
 | Crear cesiones en lote | POST | `/cessions/batch` |

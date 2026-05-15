@@ -5,16 +5,26 @@ openapi: 'GET /cessions/{id}'
 
 ## ¿Para qué se usa?
 
-Sirve para **consultar el detalle de una cesión** por ID y, opcionalmente, **obtener el certificado de cesión (PDF)** del SII mediante una URL presignada en S3.
+Sirve para **consultar el detalle de una cesión** por ID y, opcionalmente, **obtener el certificado de cesión (PDF)** del SII.
 
 ## Qué hace
 
-- **Sin parámetros** (`GET /cessions/{id}`): devuelve el detalle completo en JSON (documento, cesionario, monto, estado, eventos de trazabilidad y errores si existen).
-- **Con `?pdf=document-cession`** (`GET /cessions/{id}?pdf=document-cession`): responde con una **redirección (302)** a la URL presignada del PDF del certificado de cesión almacenado en S3. El certificado es el que emite el SII para esa cesión.
+- **Sin parámetros** (`GET /cessions/{id}`): devuelve el detalle completo en JSON (documento, cesionario, monto, estado, eventos de trazabilidad, errores y `certificate_pdf_url`).
+- **Con `?pdf=document-cession`** (`GET /cessions/{id}?pdf=document-cession`): responde con el **PDF del certificado de cesión inline** (Content-Type: application/pdf). Si el certificado no existe aún en S3, lo scrapea del SII, lo guarda y lo retorna.
 
-El certificado se obtiene o se genera (scraping) la primera vez que se solicita y se guarda en S3; las siguientes veces se sirve la URL presignada del archivo ya almacenado.
+## Campo `certificate_pdf_url`
+
+La respuesta JSON incluye el campo `certificate_pdf_url`:
+- Si el certificado **ya fue descargado** previamente (vía `?pdf=document-cession`), contiene la URL presignada del PDF en S3/CDN.
+- Si **nunca se ha solicitado**, es `null`. Para obtenerlo, llama al endpoint con `?pdf=document-cession`.
+
+## Flujo recomendado
+
+1. Consultar `GET /cessions/{id}` y revisar `certificate_pdf_url`.
+2. Si es `null` y necesitas el certificado, llamar `GET /cessions/{id}?pdf=document-cession` para obtener el PDF (esto lo scrapea del SII y lo guarda).
+3. En llamadas posteriores, `certificate_pdf_url` ya estará disponible con la URL directa.
 
 ## Ejemplos de uso
 
 - Ver en tu sistema el detalle y la trazabilidad de una cesión.
-- Ofrecer un botón “Descargar certificado” que abra o descargue el PDF usando la URL a la que redirige el endpoint con `pdf=document-cession`.
+- Ofrecer un botón "Descargar certificado" que llame al endpoint con `?pdf=document-cession` si `certificate_pdf_url` es null, o que abra directamente `certificate_pdf_url` si ya existe.

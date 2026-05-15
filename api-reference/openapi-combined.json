@@ -340,7 +340,7 @@
           }
         ],
         "summary": "Obtener una cesión",
-        "description": "Obtiene el detalle de una cesión por ID. Si se envía el parámetro pdf=document-cession, la respuesta es una redirección (302) a la URL presignada del certificado de cesión en S3 (PDF del SII). Por defecto devuelve el JSON con el detalle de la cesión.",
+        "description": "Obtiene el detalle de una cesión por ID. La respuesta incluye certificate_pdf_url con la URL presignada del certificado si ya fue descargado. Si se envía el parámetro pdf=document-cession, la respuesta es el PDF del certificado de cesión inline (application/pdf). Si el certificado no existe aún, se scrapea del SII y se guarda en S3.",
         "parameters": [
           {
             "name": "id",
@@ -355,7 +355,7 @@
             "name": "pdf",
             "in": "query",
             "required": false,
-            "description": "Si se envía el valor document-cession, la API redirige a la URL presignada de S3 del certificado de cesión (PDF). Útil para descargar o mostrar el certificado.",
+            "description": "Si se envía el valor document-cession, la API devuelve el PDF del certificado de cesión inline (Content-Type: application/pdf). Si el certificado no existe, lo scrapea del SII y lo guarda en S3.",
             "schema": {
               "type": "string",
               "enum": [
@@ -420,21 +420,22 @@
                       "items": {
                         "type": "object"
                       }
+                    },
+                    "certificate_pdf_url": {
+                      "type": "string",
+                      "format": "uri",
+                      "nullable": true,
+                      "description": "URL presignada del certificado de cesión (PDF) en S3/CDN. Disponible si el certificado ya fue descargado previamente. null si aún no se ha solicitado. Para obtenerlo por primera vez, usar ?pdf=document-cession."
                     }
                   }
                 }
-              }
-            }
-          },
-          "302": {
-            "description": "Redirección a la URL presignada del certificado de cesión (PDF en S3). Solo cuando se envía pdf=document-cession.",
-            "headers": {
-              "Location": {
+              },
+              "application/pdf": {
                 "schema": {
                   "type": "string",
-                  "format": "uri"
-                },
-                "description": "URL presignada de S3 del PDF"
+                  "format": "binary",
+                  "description": "PDF del certificado de cesión (solo cuando se envía ?pdf=document-cession)"
+                }
               }
             }
           },
