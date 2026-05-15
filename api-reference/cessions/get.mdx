@@ -3,28 +3,21 @@ title: 'Obtener cesión y certificado'
 openapi: 'GET /cessions/{id}'
 ---
 
-## ¿Para qué se usa?
+## Para que se usa?
 
-Sirve para **consultar el detalle de una cesión** por ID y, opcionalmente, **obtener el certificado de cesión (PDF)** del SII.
+Sirve para **consultar el detalle de una cesion** por ID, incluyendo la URL del **certificado de cesion (PDF)** del SII si ya fue descargado.
 
-## Qué hace
+## Que hace
 
-- **Sin parámetros** (`GET /cessions/{id}`): devuelve el detalle completo en JSON (documento, cesionario, monto, estado, eventos de trazabilidad, errores y `certificate_pdf_url`).
-- **Con `?pdf=document-cession`** (`GET /cessions/{id}?pdf=document-cession`): responde con el **PDF del certificado de cesión inline** (Content-Type: application/pdf). Si el certificado no existe aún en S3, lo scrapea del SII, lo guarda y lo retorna.
+Devuelve el detalle completo en JSON: documento, cesionario, monto, estado, eventos de trazabilidad, errores y `certificate_pdf_url`.
 
 ## Campo `certificate_pdf_url`
 
 La respuesta JSON incluye el campo `certificate_pdf_url`:
-- Si el certificado **ya fue descargado** previamente (vía `?pdf=document-cession`), contiene la URL presignada del PDF en S3/CDN.
-- Si **nunca se ha solicitado**, es `null`. Para obtenerlo, llama al endpoint con `?pdf=document-cession`.
-
-## Flujo recomendado
-
-1. Consultar `GET /cessions/{id}` y revisar `certificate_pdf_url`.
-2. Si es `null` y necesitas el certificado, llamar `GET /cessions/{id}?pdf=document-cession` para obtener el PDF (esto lo scrapea del SII y lo guarda).
-3. En llamadas posteriores, `certificate_pdf_url` ya estará disponible con la URL directa.
+- Si el certificado **ya fue descargado**, contiene la URL presignada del PDF en S3/CDN.
+- Si **aun no se ha descargado**, es `null`.
 
 ## Ejemplos de uso
 
-- Ver en tu sistema el detalle y la trazabilidad de una cesión.
-- Ofrecer un botón "Descargar certificado" que llame al endpoint con `?pdf=document-cession` si `certificate_pdf_url` es null, o que abra directamente `certificate_pdf_url` si ya existe.
+- Ver en tu sistema el detalle y la trazabilidad de una cesion.
+- Ofrecer un boton "Descargar certificado" que abra directamente `certificate_pdf_url` si existe.
