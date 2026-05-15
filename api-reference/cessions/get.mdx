@@ -1,11 +1,11 @@
 ---
-title: 'Obtener cesión y certificado'
+title: 'Obtener cesion y certificado'
 openapi: 'GET /cessions/{id}'
 ---
 
 ## Para que se usa?
 
-Sirve para **consultar el detalle de una cesion** por ID, incluyendo la URL del **certificado de cesion (PDF)** del SII si ya fue descargado.
+Sirve para **consultar el detalle de una cesion** por ID, incluyendo la URL del **certificado de cesion (PDF)** del SII.
 
 ## Que hace
 
@@ -13,11 +13,9 @@ Devuelve el detalle completo en JSON: documento, cesionario, monto, estado, even
 
 ## Campo `certificate_pdf_url`
 
-La respuesta JSON incluye el campo `certificate_pdf_url`:
-- Si el certificado **ya fue descargado**, contiene la URL presignada del PDF en S3/CDN.
-- Si **aun no se ha descargado**, es `null`.
+La respuesta JSON incluye el campo `certificate_pdf_url` con la URL presignada del certificado de cesion (PDF) en S3/CDN. Tupana descarga automaticamente los certificados al scrapear las cesiones del SII.
 
 ## Ejemplos de uso
 
 - Ver en tu sistema el detalle y la trazabilidad de una cesion.
-- Ofrecer un boton "Descargar certificado" que abra directamente `certificate_pdf_url` si existe.
+- Ofrecer un boton "Descargar certificado" que abra directamente `certificate_pdf_url`.

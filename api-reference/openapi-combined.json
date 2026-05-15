@@ -413,7 +413,7 @@
                       "type": "string",
                       "format": "uri",
                       "nullable": true,
-                      "description": "URL presignada del certificado de cesión (PDF) en S3/CDN. Disponible si el certificado ya fue descargado previamente. null si aún no se ha descargado."
+                      "description": "URL presignada del certificado de cesión (PDF) en S3/CDN. Tupana descarga automáticamente los certificados al scrapear cesiones."
                     }
                   }
                 }
