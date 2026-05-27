@@ -179,6 +179,12 @@
                       "error_code": "DOCUMENT_NOT_PAYABLE",
                       "message": "Document 9871 has a non-payable DTE type 61."
                     }
+                  },
+                  "document_not_sandbox": {
+                    "value": {
+                      "error_code": "DOCUMENT_NOT_SANDBOX",
+                      "message": "Document 9871 is not a sandbox document (folio must start with 'SANDBOX' when using a sandbox API key)."
+                    }
                   }
                 }
               }
@@ -577,7 +583,7 @@
           },
           "document_ids": {
             "type": "array",
-            "description": "IDs de documentos existentes a cobrar (modo cobro directo). Todos deben pertenecer al `recipient_id`, compartir el mismo receptor (pagador), ser de tipo cobrable (33, 34, 39, 41, 80, 110) y no estar pagados. Si envías este campo, omite `amount`, `target_dte_type`, `dte_recipient` e `items`.",
+            "description": "IDs de documentos existentes a cobrar (modo cobro directo). Todos deben pertenecer al `recipient_id`, compartir el mismo receptor (pagador), ser de tipo cobrable (33, 34, 39, 41, 80, 110) y no estar pagados. Si envías este campo, omite `amount`, `target_dte_type`, `dte_recipient` e `items`.\n\nCuando uses una API key de sandbox, cada documento debe tener un folio que comience con `SANDBOX` (de lo contrario el endpoint retorna `DOCUMENT_NOT_SANDBOX`).",
             "items": { "type": "integer", "minimum": 1 },
             "minItems": 1,
             "example": [9871, 9872]
