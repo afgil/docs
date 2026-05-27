@@ -129,6 +129,12 @@
             ]
           },
           {
+            "group": "Medios de pago",
+            "pages": [
+              "api-reference/payment-requests/payment-methods-list"
+            ]
+          },
+          {
             "group": "Cobros",
             "pages": [
               "api-reference/payment-requests/create",

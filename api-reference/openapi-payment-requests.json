@@ -528,6 +528,57 @@
           "404": { "description": "Cuenta bancaria no encontrada" }
         }
       }
+    },
+    "/master-entities/{master_entity_id}/payment-methods/": {
+      "get": {
+        "operationId": "listPaymentMethods",
+        "tags": ["Medios de pago"],
+        "summary": "Listar tarjetas inscritas",
+        "description": "Retorna las tarjetas activas inscritas que el destinatario (master entity actuando como `client`) puede cobrar. Hoy solo se exponen tarjetas vía Transbank OneClick.",
+        "security": [{ "apiKeyAuth": [] }],
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "path",
+            "required": true,
+            "description": "ID del destinatario (MasterEntity) que cobra con estas tarjetas.",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de tarjetas inscritas (puede ser vacía)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaymentMethodListResponse" },
+                "example": {
+                  "results": [
+                    {
+                      "payment_method_id": 814,
+                      "type": "card",
+                      "is_default": true,
+                      "email": "juan@ejemplo.com",
+                      "card_last4": "6623",
+                      "card_type": "Visa",
+                      "card_expiration": "12/2030",
+                      "provider": "transbank_oneclick",
+                      "payer": {
+                        "id": 482,
+                        "tax_id": "11.111.111-1",
+                        "name": "Juan Soto"
+                      },
+                      "created_at": "2026-04-06T12:00:00Z"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": { "description": "API key inválida o no proporcionada" },
+          "403": { "description": "La API key no pertenece a un usuario con acceso a este destinatario" },
+          "404": { "description": "Destinatario no encontrado" }
+        }
+      }
     }
   },
   "components": {
@@ -832,6 +883,78 @@
         "properties": {
           "error_code": { "type": "string", "example": "RECIPIENT_NOT_FOUND" },
           "message": { "type": "string", "example": "Recipient with id 789 not found." }
+        }
+      },
+      "PaymentMethodPayer": {
+        "type": "object",
+        "description": "Pagador (dueño de la tarjeta).",
+        "properties": {
+          "id": { "type": "integer", "example": 482 },
+          "tax_id": { "type": "string", "example": "11.111.111-1" },
+          "name": { "type": "string", "example": "Juan Soto" }
+        }
+      },
+      "PaymentMethodResponse": {
+        "type": "object",
+        "properties": {
+          "payment_method_id": {
+            "type": "integer",
+            "description": "ID único del medio de pago.",
+            "example": 814
+          },
+          "type": {
+            "type": "string",
+            "enum": ["card", "bank_account", "other"],
+            "description": "Tipo del medio de pago. Hoy el endpoint solo retorna `card`.",
+            "example": "card"
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "Si es el medio de pago marcado como por defecto para ese pagador.",
+            "example": true
+          },
+          "email": {
+            "type": "string",
+            "description": "Email asociado a la inscripción (puede venir vacío).",
+            "example": "juan@ejemplo.com"
+          },
+          "card_last4": {
+            "type": "string",
+            "description": "Últimos 4 dígitos de la tarjeta (vacío si no es tarjeta).",
+            "example": "6623"
+          },
+          "card_type": {
+            "type": "string",
+            "description": "Marca de la tarjeta (Visa, Mastercard, etc).",
+            "example": "Visa"
+          },
+          "card_expiration": {
+            "type": "string",
+            "description": "Vencimiento de la tarjeta en formato `MM/YYYY`.",
+            "example": "12/2030"
+          },
+          "provider": {
+            "type": "string",
+            "enum": ["transbank_oneclick", ""],
+            "description": "Proveedor que opera la inscripción.",
+            "example": "transbank_oneclick"
+          },
+          "payer": { "$ref": "#/components/schemas/PaymentMethodPayer" },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha en que se inscribió el medio de pago.",
+            "example": "2026-04-06T12:00:00Z"
+          }
+        }
+      },
+      "PaymentMethodListResponse": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PaymentMethodResponse" }
+          }
         }
       }
     }
