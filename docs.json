@@ -135,6 +135,13 @@
             ]
           },
           {
+            "group": "Liquidaciones",
+            "pages": [
+              "api-reference/payment-requests/settlements-list",
+              "api-reference/payment-requests/settlements-get"
+            ]
+          },
+          {
             "group": "Cobros",
             "pages": [
               "api-reference/payment-requests/create",
