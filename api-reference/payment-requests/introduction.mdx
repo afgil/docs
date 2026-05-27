@@ -18,9 +18,24 @@ Con un solo endpoint, Tu Pana:
 
 1. **Tu plataforma crea una sesión de cobro** llamando a `POST /v1/payment-requests/`. Tu Pana retorna una `payment_url`.
 2. **Redirige al usuario** a esa URL. El usuario paga en el checkout de Tu Pana (o directo a Transbank si usas `skip_portal: true`).
-3. **Tu Pana procesa el pago** con Transbank, actualiza el estado de la sesión y emite el DTE.
+3. **Tu Pana procesa el pago** con Transbank, actualiza el estado de la sesión y emite el DTE (si corresponde).
 4. **Tu Pana te notifica vía webhook** con un `POST` firmado a tu endpoint registrado.
 5. **Tu plataforma confirma** la cita, orden o servicio del lado tuyo.
+
+## Dos modos: emisión vs. cobro directo
+
+El mismo endpoint `POST /v1/payment-requests/` soporta dos escenarios:
+
+| Modo | Cuándo usarlo | Campos del request |
+|------|---------------|---------------------|
+| **Emisión** (default) | Cobras un servicio nuevo y necesitas que se emita un DTE al pago. | `amount`, `target_dte_type`, `dte_recipient`, `items` |
+| **Cobro directo** | Tienes uno o más DTEs ya emitidos y quieres cobrarlos. | `document_ids` (lista de IDs de documentos) |
+
+Los dos modos son mutuamente excluyentes — si envías `document_ids`, omite `amount`, `target_dte_type`, `dte_recipient` e `items`. En modo cobro directo:
+
+- El monto del cobro es la suma de los `amount_with_iva` de los documentos.
+- Todos los documentos deben pertenecer al `recipient_id`, compartir el mismo pagador (`receiver`), ser de un tipo cobrable (33, 34, 39, 41, 80, 110) y no estar pagados.
+- No hay emisión de DTE al confirmarse el pago — los documentos ya existen.
 
 ## Autenticación
 
@@ -62,7 +77,7 @@ CVV: `123` · Vencimiento: cualquier fecha futura · RUT: `11.111.111-1` · Clav
 | `POST` | `/v1/payment-requests/` | Crear sesión de cobro |
 | `GET` | `/v1/payment-requests/` | Listar cobros |
 | `GET` | `/v1/payment-requests/{id}/` | Consultar estado de un cobro |
-| `PATCH` | `/v1/payment-requests/{id}/` | Emitir DTE manualmente (cuando `auto_issue=false`) |
+| `PATCH` | `/v1/payment-requests/{id}/` | Emitir DTE manualmente (cuando `auto_issue=false`; no aplica en modo cobro directo) |
 | `GET` | `/v1/master-entities/{id}/banking-info/` | Consultar cuenta bancaria del destinatario |
 | `POST` | `/v1/master-entities/{id}/banking-info/` | Registrar cuenta bancaria |
 | `PUT` | `/v1/master-entities/{id}/banking-info/` | Actualizar cuenta bancaria |

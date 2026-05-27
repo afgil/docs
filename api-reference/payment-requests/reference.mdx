@@ -53,9 +53,17 @@ Para registrar la cuenta bancaria del destinatario (`POST /v1/master-entities/{i
 | `400` | `RECIPIENT_NOT_FOUND` | El `recipient_id` no existe. |
 | `400` | `RECIPIENT_MISSING_BANKING_INFO` | El destinatario no tiene cuenta bancaria registrada. |
 | `400` | `INVALID_TARGET_DTE_TYPE` | El `target_dte_type` no es uno de los valores permitidos (33, 39, 41). |
+| `400` | `CANNOT_MIX_MODES` | Enviaste `document_ids` junto con `amount`, `target_dte_type`, `dte_recipient` o `items`. Los modos son mutuamente excluyentes. |
+| `400` | `EMPTY_DOCUMENT_IDS` | Enviaste `document_ids` como lista vacía. Debe contener al menos un documento. |
+| `400` | `DOCUMENT_NOT_FOUND` | Uno o más IDs de `document_ids` no existen. |
+| `400` | `DOCUMENT_NOT_OWNED_BY_RECIPIENT` | Un documento de `document_ids` no pertenece al `recipient_id` indicado. |
+| `400` | `MIXED_PAYERS` | Los documentos de `document_ids` tienen distintos receptores (pagadores). Cada sesión debe tener un solo pagador. |
+| `400` | `DOCUMENT_ALREADY_PAID` | Un documento de `document_ids` ya está pagado. |
+| `400` | `DOCUMENT_NOT_PAYABLE` | Un documento de `document_ids` no es de un tipo cobrable (33, 34, 39, 41, 80, 110). |
 | `400` | `INVALID_STATUS` | El body de `PATCH /v1/payment-requests/{id}/` no contiene `{"status": "issued"}`. |
 | `400` | `ALREADY_ISSUED` | El DTE ya fue emitido para esta sesión (`PATCH` con `status=issued`). |
 | `400` | `NOT_PAID` | La sesión no está pagada aún (`PATCH` con `status=issued`). |
+| `400` | `NOT_APPLICABLE` | Llamaste a `PATCH` con `status=issued` sobre una sesión en modo cobro directo (no hay DTE a emitir). |
 
 ## Estados de una sesión de cobro
 
