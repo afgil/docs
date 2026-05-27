@@ -5,13 +5,49 @@ openapi: 'api-reference/openapi-payment-requests.json POST /payment-requests/'
 
 ## ¿Para qué se usa?
 
-Crea una sesión de pago y retorna la `payment_url` a la que debes redirigir al usuario para que complete el pago. Tu Pana se encarga de procesar el pago, emitir el DTE y notificarte vía webhook.
+Crea una sesión de pago y retorna la `payment_url` a la que debes redirigir al usuario para que complete el pago. Tu Pana se encarga de procesar el pago, emitir el DTE (si corresponde) y notificarte vía webhook.
 
 ## Qué hace
 
 - Crea una sesión de cobro en estado `pending`.
 - Retorna una URL de pago única con tiempo de expiración.
-- Al confirmarse el pago, Tu Pana emite automáticamente el DTE si `auto_issue=true` (comportamiento por defecto).
+- Al confirmarse el pago:
+  - **Modo emisión** (default): Tu Pana emite automáticamente el DTE si `auto_issue=true`.
+  - **Modo cobro directo** (con `document_ids`): los documentos referenciados se marcan como pagados; no hay emisión de DTE.
+
+## Modos de uso
+
+| Modo | Cuándo usarlo | Campos requeridos |
+|------|---------------|-------------------|
+| **Emisión** | Cobrás un servicio nuevo y necesitás emitir un DTE al confirmarse el pago | `amount`, `target_dte_type`, `dte_recipient`, `items` |
+| **Cobro directo** | Querés cobrar uno o más DTEs ya emitidos | `document_ids` |
+
+Los modos son mutuamente excluyentes: si envías `document_ids`, no puedes incluir `amount`, `target_dte_type`, `dte_recipient` ni `items` (Tu Pana retorna `CANNOT_MIX_MODES`).
+
+### Ejemplo: modo cobro directo
+
+```json
+{
+  "recipient_id": 789,
+  "redirect_url": "https://tuapp.com/confirmation",
+  "document_ids": [9871, 9872],
+  "expires_in_minutes": 30,
+  "external_id": "collection_session_001",
+  "metadata": {
+    "campaign": "cobranza-abril"
+  }
+}
+```
+
+Reglas de validación en este modo:
+
+- Todos los `document_ids` deben pertenecer al `recipient_id` (su `sender` debe coincidir).
+- Todos deben compartir el mismo pagador (`receiver`) — un solo cobro = un solo pagador.
+- Solo se aceptan tipos de DTE cobrables: `33`, `34`, `39`, `41`, `80`, `110`.
+- Ninguno puede estar ya pagado.
+- El monto del cobro se calcula automáticamente como la suma de los `amount_with_iva` de los documentos.
+
+En modo cobro directo no hay emisión posterior, por lo que `PATCH /v1/payment-requests/{id}/` con `status=issued` retorna `NOT_APPLICABLE`.
 
 ## Ejemplos de uso
 

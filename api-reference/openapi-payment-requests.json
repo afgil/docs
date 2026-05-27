@@ -31,31 +31,49 @@
               "schema": {
                 "$ref": "#/components/schemas/PaymentRequestCreate"
               },
-              "example": {
-                "amount": 50000,
-                "currency": "CLP",
-                "recipient_id": 789,
-                "redirect_url": "https://tuapp.com/confirmation",
-                "target_dte_type": 39,
-                "dte_recipient": {
-                  "rut": "11111111-1",
-                  "name": "Juan Soto",
-                  "email": "juan@ejemplo.com"
-                },
-                "items": [
-                  {
-                    "description": "Sesión de psicoterapia",
-                    "quantity": 1,
-                    "unit_price": 50000
+              "examples": {
+                "emission_mode": {
+                  "summary": "Modo emisión (cobrar + emitir un DTE nuevo)",
+                  "value": {
+                    "amount": 50000,
+                    "currency": "CLP",
+                    "recipient_id": 789,
+                    "redirect_url": "https://tuapp.com/confirmation",
+                    "target_dte_type": 39,
+                    "dte_recipient": {
+                      "rut": "11111111-1",
+                      "name": "Juan Soto",
+                      "email": "juan@ejemplo.com"
+                    },
+                    "items": [
+                      {
+                        "description": "Sesión de psicoterapia",
+                        "quantity": 1,
+                        "unit_price": 50000
+                      }
+                    ],
+                    "expires_in_minutes": 30,
+                    "skip_portal": false,
+                    "auto_issue": true,
+                    "external_id": "booking_abc123",
+                    "metadata": {
+                      "patient_name": "Juan Soto",
+                      "appointment_start_time": "2026-04-15T10:00:00-04:00"
+                    }
                   }
-                ],
-                "expires_in_minutes": 30,
-                "skip_portal": false,
-                "auto_issue": true,
-                "external_id": "booking_abc123",
-                "metadata": {
-                  "patient_name": "Juan Soto",
-                  "appointment_start_time": "2026-04-15T10:00:00-04:00"
+                },
+                "direct_charge_mode": {
+                  "summary": "Modo cobro directo (cobrar documentos existentes)",
+                  "value": {
+                    "recipient_id": 789,
+                    "redirect_url": "https://tuapp.com/confirmation",
+                    "document_ids": [9871, 9872],
+                    "expires_in_minutes": 30,
+                    "external_id": "collection_session_001",
+                    "metadata": {
+                      "campaign": "cobranza-abril"
+                    }
+                  }
                 }
               }
             }
@@ -80,7 +98,8 @@
                   "auto_issue": true,
                   "external_id": "booking_abc123",
                   "metadata": {},
-                  "issued_document_id": null
+                  "issued_document_id": null,
+                  "document_ids": []
                 }
               }
             }
@@ -117,6 +136,48 @@
                     "value": {
                       "error_code": "INVALID_TARGET_DTE_TYPE",
                       "message": "target_dte_type must be one of [33, 39, 41]."
+                    }
+                  },
+                  "cannot_mix_modes": {
+                    "value": {
+                      "error_code": "CANNOT_MIX_MODES",
+                      "message": "document_ids cannot be combined with amount, items."
+                    }
+                  },
+                  "empty_document_ids": {
+                    "value": {
+                      "error_code": "EMPTY_DOCUMENT_IDS",
+                      "message": "document_ids must contain at least one document."
+                    }
+                  },
+                  "document_not_found": {
+                    "value": {
+                      "error_code": "DOCUMENT_NOT_FOUND",
+                      "message": "Documents not found: [9999]."
+                    }
+                  },
+                  "document_not_owned_by_recipient": {
+                    "value": {
+                      "error_code": "DOCUMENT_NOT_OWNED_BY_RECIPIENT",
+                      "message": "Document 9871 is not owned by recipient 789."
+                    }
+                  },
+                  "mixed_payers": {
+                    "value": {
+                      "error_code": "MIXED_PAYERS",
+                      "message": "All documents in a payment request must share the same receiver."
+                    }
+                  },
+                  "document_already_paid": {
+                    "value": {
+                      "error_code": "DOCUMENT_ALREADY_PAID",
+                      "message": "Document 9871 is already paid."
+                    }
+                  },
+                  "document_not_payable": {
+                    "value": {
+                      "error_code": "DOCUMENT_NOT_PAYABLE",
+                      "message": "Document 9871 has a non-payable DTE type 61."
                     }
                   }
                 }
@@ -165,7 +226,8 @@
                       "auto_issue": true,
                       "external_id": "booking_abc123",
                       "metadata": {},
-                      "issued_document_id": 9871
+                      "issued_document_id": 9871,
+                      "document_ids": []
                     }
                   ]
                 }
@@ -209,7 +271,8 @@
                   "auto_issue": true,
                   "external_id": "booking_abc123",
                   "metadata": {},
-                  "issued_document_id": null
+                  "issued_document_id": null,
+                  "document_ids": []
                 }
               }
             }
@@ -271,7 +334,8 @@
                   "auto_issue": false,
                   "external_id": "booking_abc123",
                   "metadata": {},
-                  "issued_document_id": 9871
+                  "issued_document_id": 9871,
+                  "document_ids": []
                 }
               }
             }
@@ -298,6 +362,12 @@
                     "value": {
                       "error_code": "NOT_PAID",
                       "message": "Payment request has not been paid yet."
+                    }
+                  },
+                  "not_applicable": {
+                    "value": {
+                      "error_code": "NOT_APPLICABLE",
+                      "message": "Payment request charges existing documents and has nothing to issue."
                     }
                   }
                 }
@@ -466,11 +536,12 @@
     "schemas": {
       "PaymentRequestCreate": {
         "type": "object",
-        "required": ["amount", "recipient_id", "target_dte_type", "dte_recipient", "items"],
+        "required": ["recipient_id"],
+        "description": "La sesión de cobro soporta dos modos:\n\n- **Modo emisión** (default): Tu Pana cobra y emite un DTE nuevo. Requiere `amount`, `target_dte_type`, `dte_recipient` y `items`.\n- **Modo cobro directo**: cobra documentos ya existentes. Requiere `document_ids` y rechaza `amount`, `target_dte_type`, `dte_recipient` e `items`.",
         "properties": {
           "amount": {
             "type": "integer",
-            "description": "Monto en CLP, sin decimales.",
+            "description": "Monto en CLP, sin decimales. Requerido en modo emisión. **No permitido si envías `document_ids`** — el monto se calcula sumando los `amount_with_iva` de los documentos.",
             "example": 50000
           },
           "currency": {
@@ -481,7 +552,7 @@
           },
           "recipient_id": {
             "type": "integer",
-            "description": "ID numérico del destinatario en Tu Pana. Debe tener cuenta bancaria registrada.",
+            "description": "ID numérico del destinatario en Tu Pana. Debe tener cuenta bancaria registrada. En modo cobro directo, todos los documentos referenciados deben pertenecer a este destinatario (es decir, su `sender` debe coincidir).",
             "example": 789
           },
           "redirect_url": {
@@ -492,7 +563,7 @@
           },
           "target_dte_type": {
             "type": "integer",
-            "description": "Tipo de DTE a emitir al confirmarse el pago. `39` = boleta afecta, `41` = boleta exenta, `33` = factura afecta.",
+            "description": "Tipo de DTE a emitir al confirmarse el pago. `39` = boleta afecta, `41` = boleta exenta, `33` = factura afecta. Requerido en modo emisión. **No permitido si envías `document_ids`**.",
             "enum": [33, 39, 41],
             "example": 39
           },
@@ -501,8 +572,15 @@
           },
           "items": {
             "type": "array",
-            "description": "Ítems del DTE. La suma de `quantity × unit_price` debe coincidir con `amount`.",
+            "description": "Ítems del DTE. La suma de `quantity × unit_price` debe coincidir con `amount`. Requerido en modo emisión. **No permitido si envías `document_ids`**.",
             "items": { "$ref": "#/components/schemas/PaymentRequestItem" }
+          },
+          "document_ids": {
+            "type": "array",
+            "description": "IDs de documentos existentes a cobrar (modo cobro directo). Todos deben pertenecer al `recipient_id`, compartir el mismo receptor (pagador), ser de tipo cobrable (33, 34, 39, 41, 80, 110) y no estar pagados. Si envías este campo, omite `amount`, `target_dte_type`, `dte_recipient` e `items`.",
+            "items": { "type": "integer", "minimum": 1 },
+            "minItems": 1,
+            "example": [9871, 9872]
           },
           "expires_in_minutes": {
             "type": "integer",
@@ -517,7 +595,7 @@
           },
           "auto_issue": {
             "type": "boolean",
-            "description": "Si `true` (default), Tu Pana emite el DTE automáticamente al confirmarse el pago. Si `false`, debes emitirlo manualmente con `PATCH /v1/payment-requests/{id}/` enviando `{\"status\": \"issued\"}`.",
+            "description": "Si `true` (default), Tu Pana emite el DTE automáticamente al confirmarse el pago. Si `false`, debes emitirlo manualmente con `PATCH /v1/payment-requests/{id}/` enviando `{\"status\": \"issued\"}`. Solo aplica en modo emisión; ignorado en modo cobro directo (no hay DTE que emitir).",
             "default": true
           },
           "external_id": {
@@ -613,12 +691,14 @@
           },
           "target_dte_type": {
             "type": "string",
-            "description": "Tipo de DTE que se emitirá al pagarse.",
+            "nullable": true,
+            "description": "Tipo de DTE que se emitirá al pagarse. `null` en modo cobro directo (no hay DTE a emitir).",
             "example": "39"
           },
           "auto_issue": {
             "type": "boolean",
-            "description": "Si el DTE se emite automáticamente al confirmarse el pago.",
+            "nullable": true,
+            "description": "Si el DTE se emite automáticamente al confirmarse el pago. `null` en modo cobro directo.",
             "example": true
           },
           "external_id": {
@@ -635,8 +715,14 @@
           "issued_document_id": {
             "type": "integer",
             "nullable": true,
-            "description": "ID del DTE emitido. `null` mientras la sesión no haya emitido el DTE.",
+            "description": "ID del DTE emitido. `null` mientras la sesión no haya emitido el DTE. Siempre `null` en modo cobro directo.",
             "example": 9871
+          },
+          "document_ids": {
+            "type": "array",
+            "items": { "type": "integer" },
+            "description": "IDs de los documentos que esta sesión cobra. Lista vacía en modo emisión (donde el DTE se emite al pagarse).",
+            "example": [9871, 9872]
           }
         }
       },
