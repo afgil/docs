@@ -1,0 +1,31 @@
+---
+title: 'Consultar liquidación'
+openapi: 'api-reference/openapi-payment-requests.json GET /master-entities/{master_entity_id}/settlements/{settlement_id}/'
+---
+
+## ¿Para qué se usa?
+
+Retorna el detalle completo de una liquidación: totales + desglose por cobro con tarjeta (`items`).
+
+## Qué hace
+
+- Devuelve los mismos campos que el endpoint de listado, más el desglose de la comisión (`commission_base_total` + `commission_iva_total`).
+- En `items` incluye un registro por cobro con tarjeta dentro de la liquidación. Para cada uno: pagador, lista de DTEs que ese cobro pagó (con su folio y monto), bruto, comisión y neto.
+
+## Estructura de un item
+
+Cada item representa **un cobro con tarjeta** (no un DTE). Si el cobro pagó varios DTEs, todos aparecen en `documents`. Si el item no pudo ser asociado a un cobro (caso muy raro, normalmente conciliaciones manuales), `payer.name` y `documents` vendrán vacíos pero los montos están igual.
+
+## Consideraciones importantes
+
+### `items` inline (no paginado)
+
+Los items vienen inline en la respuesta. Una liquidación típica tiene entre 1 y unas decenas de items.
+
+### Para obtener el PDF del DTE
+
+`documents[].document_id` corresponde al ID del DTE en la **API de Facturación**. Para obtener PDF/XML usa [Obtener Documento](/api-reference/documents/get).
+
+### Scope por API Key
+
+La API Key debe pertenecer a un usuario con acceso a la master entity indicada en la URL. Si no, el endpoint responde `403`. Si la liquidación existe pero pertenece a otra master entity, responde `404`.

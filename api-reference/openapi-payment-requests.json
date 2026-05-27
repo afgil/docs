@@ -579,6 +579,138 @@
           "404": { "description": "Destinatario no encontrado" }
         }
       }
+    },
+    "/master-entities/{master_entity_id}/settlements/": {
+      "get": {
+        "operationId": "listSettlements",
+        "tags": ["Liquidaciones"],
+        "summary": "Listar liquidaciones",
+        "description": "Retorna las liquidaciones (payouts) ejecutadas y pendientes para el destinatario. Cada liquidación agrupa los cobros con tarjeta de un período y el monto neto depositado al destinatario.",
+        "security": [{ "apiKeyAuth": [] }],
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "path",
+            "required": true,
+            "description": "ID del destinatario (MasterEntity).",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Número de página (1-indexed). Por defecto: 1.",
+            "schema": { "type": "integer", "minimum": 1 }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "description": "Tamaño de página. Por defecto: 25, máximo: 100.",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista paginada de liquidaciones",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SettlementListResponse" },
+                "example": {
+                  "count": 1,
+                  "next": null,
+                  "previous": null,
+                  "results": [
+                    {
+                      "settlement_id": 1042,
+                      "period_date": "2026-04-30",
+                      "status": "paid",
+                      "gross_total": "150000.00",
+                      "commission_total": "3570.00",
+                      "net_total": "146430.00",
+                      "paid_at": "2026-05-02T15:00:00+00:00"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": { "description": "API key inválida o no proporcionada" },
+          "403": { "description": "La API key no pertenece a un usuario con acceso a este destinatario" },
+          "404": { "description": "Destinatario no encontrado" }
+        }
+      }
+    },
+    "/master-entities/{master_entity_id}/settlements/{settlement_id}/": {
+      "get": {
+        "operationId": "getSettlement",
+        "tags": ["Liquidaciones"],
+        "summary": "Consultar detalle de una liquidación",
+        "description": "Retorna el detalle completo de una liquidación: totales y, en `items`, el desglose por cobro con tarjeta (pagador, DTEs pagados, comisión y neto).",
+        "security": [{ "apiKeyAuth": [] }],
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "path",
+            "required": true,
+            "description": "ID del destinatario (MasterEntity).",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "settlement_id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la liquidación.",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle de la liquidación con items inline",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SettlementDetailResponse" },
+                "example": {
+                  "settlement_id": 1042,
+                  "period_date": "2026-04-30",
+                  "status": "paid",
+                  "gross_total": "150000.00",
+                  "commission_base_total": "3000.00",
+                  "commission_iva_total": "570.00",
+                  "commission_total": "3570.00",
+                  "net_total": "146430.00",
+                  "paid_at": "2026-05-02T15:00:00+00:00",
+                  "items": [
+                    {
+                      "id": 9871,
+                      "date": "2026-04-29",
+                      "payer": { "name": "Juan Soto" },
+                      "documents": [
+                        {
+                          "dte_type": "33",
+                          "folio": "1234",
+                          "amount": "50000",
+                          "receiver_rut": "11.111.111-1",
+                          "receiver_name": "Juan Soto",
+                          "document_id": 5523
+                        }
+                      ],
+                      "gross_amount": "50000.00",
+                      "commission_base": "1000.00",
+                      "commission_iva": "190.00",
+                      "commission_total": "1190.00",
+                      "net_amount": "48810.00"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": { "description": "API key inválida o no proporcionada" },
+          "403": { "description": "La API key no pertenece a un usuario con acceso a este destinatario" },
+          "404": { "description": "Liquidación no encontrada o no pertenece al destinatario" }
+        }
+      }
     }
   },
   "components": {
@@ -954,6 +1086,147 @@
           "results": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/PaymentMethodResponse" }
+          }
+        }
+      },
+      "SettlementListRow": {
+        "type": "object",
+        "properties": {
+          "settlement_id": { "type": "integer", "example": 1042 },
+          "period_date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Fecha del payout (cuándo se deposita el neto al destinatario).",
+            "example": "2026-04-30"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "paid", "failed"],
+            "example": "paid"
+          },
+          "gross_total": {
+            "type": "string",
+            "description": "Monto bruto total cobrado (suma de los cobros incluidos).",
+            "example": "150000.00"
+          },
+          "commission_total": {
+            "type": "string",
+            "description": "Comisión total (base + IVA) descontada al destinatario.",
+            "example": "3570.00"
+          },
+          "net_total": {
+            "type": "string",
+            "description": "Monto neto depositado al destinatario (`gross_total - commission_total`).",
+            "example": "146430.00"
+          },
+          "paid_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Cuándo se confirmó el depósito al destinatario (`null` mientras no esté `paid`).",
+            "example": "2026-05-02T15:00:00+00:00"
+          }
+        }
+      },
+      "SettlementListResponse": {
+        "type": "object",
+        "properties": {
+          "count": { "type": "integer", "example": 1 },
+          "next": { "type": "string", "nullable": true, "example": null },
+          "previous": { "type": "string", "nullable": true, "example": null },
+          "results": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SettlementListRow" }
+          }
+        }
+      },
+      "SettlementItemDocument": {
+        "type": "object",
+        "description": "DTE pagado por el cobro de este item.",
+        "properties": {
+          "dte_type": { "type": "string", "example": "33" },
+          "folio": { "type": "string", "example": "1234" },
+          "amount": { "type": "string", "example": "50000" },
+          "receiver_rut": { "type": "string", "example": "11.111.111-1" },
+          "receiver_name": { "type": "string", "example": "Juan Soto" },
+          "document_id": {
+            "type": "integer",
+            "nullable": true,
+            "description": "ID del DTE en la API de Facturación.",
+            "example": 5523
+          }
+        }
+      },
+      "SettlementItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 9871 },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Fecha del cobro con tarjeta.",
+            "example": "2026-04-29"
+          },
+          "payer": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string", "example": "Juan Soto" }
+            }
+          },
+          "documents": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SettlementItemDocument" }
+          },
+          "gross_amount": { "type": "string", "example": "50000.00" },
+          "commission_base": { "type": "string", "example": "1000.00" },
+          "commission_iva": { "type": "string", "example": "190.00" },
+          "commission_total": { "type": "string", "example": "1190.00" },
+          "net_amount": { "type": "string", "example": "48810.00" }
+        }
+      },
+      "SettlementDetailResponse": {
+        "type": "object",
+        "properties": {
+          "settlement_id": { "type": "integer", "example": 1042 },
+          "period_date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "2026-04-30"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "paid", "failed"],
+            "example": "paid"
+          },
+          "gross_total": { "type": "string", "example": "150000.00" },
+          "commission_base_total": {
+            "type": "string",
+            "description": "Comisión sin IVA (2%% del bruto, redondeo hacia abajo sin decimales por item).",
+            "example": "3000.00"
+          },
+          "commission_iva_total": {
+            "type": "string",
+            "description": "IVA (19%%) sobre la comisión base.",
+            "example": "570.00"
+          },
+          "commission_total": {
+            "type": "string",
+            "description": "Comisión total (`commission_base_total + commission_iva_total`).",
+            "example": "3570.00"
+          },
+          "net_total": { "type": "string", "example": "146430.00" },
+          "paid_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2026-05-02T15:00:00+00:00"
+          },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SettlementItem" }
           }
         }
       }
