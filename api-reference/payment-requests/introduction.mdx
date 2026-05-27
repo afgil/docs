@@ -57,7 +57,8 @@ El mismo código funciona en producción y sandbox: solo cambia la API key que u
 |--------------|--------------------------------------------------------------|
 | Pago         | Procesado en Transbank integración. Sin dinero real.         |
 | Webhooks     | Se envían normalmente a tu endpoint registrado.              |
-| DTE          | El documento se crea y es consultable, pero no va al SII.    |
+| DTE          | El documento se crea y es consultable, pero no va al SII. El folio es `SANDBOX-{id}` para distinguirlo de documentos reales. |
+| `document_ids` | En modo cobro directo, solo se aceptan documentos cuyo folio empiece con `SANDBOX` — de lo contrario el endpoint retorna `DOCUMENT_NOT_SANDBOX`. |
 | Depósitos    | No se generan liquidaciones ni depósitos bancarios.          |
 
 ### Tarjetas de prueba (Transbank integración)

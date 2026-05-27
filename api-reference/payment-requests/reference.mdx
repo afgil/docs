@@ -60,6 +60,7 @@ Para registrar la cuenta bancaria del destinatario (`POST /v1/master-entities/{i
 | `400` | `MIXED_PAYERS` | Los documentos de `document_ids` tienen distintos receptores (pagadores). Cada sesión debe tener un solo pagador. |
 | `400` | `DOCUMENT_ALREADY_PAID` | Un documento de `document_ids` ya está pagado. |
 | `400` | `DOCUMENT_NOT_PAYABLE` | Un documento de `document_ids` no es de un tipo cobrable (33, 34, 39, 41, 80, 110). |
+| `400` | `DOCUMENT_NOT_SANDBOX` | Estás usando una API key de sandbox y un documento de `document_ids` no tiene folio que empiece con `SANDBOX`. |
 | `400` | `INVALID_STATUS` | El body de `PATCH /v1/payment-requests/{id}/` no contiene `{"status": "issued"}`. |
 | `400` | `ALREADY_ISSUED` | El DTE ya fue emitido para esta sesión (`PATCH` con `status=issued`). |
 | `400` | `NOT_PAID` | La sesión no está pagada aún (`PATCH` con `status=issued`). |

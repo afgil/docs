@@ -46,6 +46,7 @@ Reglas de validación en este modo:
 - Solo se aceptan tipos de DTE cobrables: `33`, `34`, `39`, `41`, `80`, `110`.
 - Ninguno puede estar ya pagado.
 - El monto del cobro se calcula automáticamente como la suma de los `amount_with_iva` de los documentos.
+- **Si usas una API key de sandbox**, el `folio` de cada documento debe empezar con `SANDBOX`. Esto evita que cobres documentos reales con una key de prueba — si la regla no se cumple, el endpoint retorna `DOCUMENT_NOT_SANDBOX`.
 
 En modo cobro directo no hay emisión posterior, por lo que `PATCH /v1/payment-requests/{id}/` con `status=issued` retorna `NOT_APPLICABLE`.
 
