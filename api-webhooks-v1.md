@@ -132,6 +132,7 @@ Crea un nuevo webhook para la empresa del usuario.
 | `document.delivered` | PDF/XML enviado al cliente |
 | `document.rejected` | Documento rechazado por el SII |
 | `document.paid` | Documento conciliado/pagado |
+| `document.unpaid` | Documento revertido de pagado a no pagado |
 | `document.cancelled` | Documento anulado o nota de crédito |
 
 ## Formato de Notificaciones

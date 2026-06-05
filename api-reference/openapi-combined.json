@@ -2489,6 +2489,7 @@
                 "document.delivered",
                 "document.rejected",
                 "document.paid",
+                "document.unpaid",
                 "document.cancelled"
               ]
             },
@@ -2528,6 +2529,7 @@
                 "document.delivered",
                 "document.rejected",
                 "document.paid",
+                "document.unpaid",
                 "document.cancelled"
               ]
             }
@@ -2627,6 +2629,7 @@
               "document.delivered",
               "document.rejected",
               "document.paid",
+              "document.unpaid",
               "document.cancelled"
             ]
           },

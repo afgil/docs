@@ -115,6 +115,7 @@ Cada notificación incluye los siguientes headers:
 - **`document.delivered`**: Se entregó un documento (PDF/XML enviado al cliente)
 - **`document.rejected`**: El SII rechazó el documento
 - **`document.paid`**: El documento fue pagado (conciliación bancaria)
+- **`document.unpaid`**: El documento volvió de pagado a no pagado (se revirtió el pago/conciliación)
 - **`document.cancelled`**: El documento fue anulado o tiene nota de crédito
 
 ### Eventos de documentos programados
@@ -142,6 +143,7 @@ Cada evento tiene una estructura de payload específica. Navega a cada evento pa
   - [document.delivered](#documentdelivered)
   - [document.rejected](#documentrejected)
   - [document.paid](#documentpaid)
+  - [document.unpaid](#documentunpaid)
   - [document.cancelled](#documentcancelled)
 - [Eventos de Documentos Programados](#eventos-de-documentos-programados)
   - [scheduled_document.created](#scheduled_documentcreated)
@@ -370,6 +372,33 @@ Se dispara cuando un documento es pagado (conciliación bancaria).
 ```json
 {
   "event": "document.paid",
+  "created_at": "2026-01-19T15:30:45.123456Z",
+  "data": {
+    "id": 1234,
+    "folio": "12345",
+    "date_issued": "2026-01-19",
+    "amount_with_iva": 119000.0,
+    "dte_type": { /* objeto dte_type completo */ },
+    "sender": { /* objeto sender completo */ },
+    "receiver": { /* objeto receiver completo */ },
+    "document_total": { /* objeto document_total completo */ },
+    "details": [ /* array de detalles completo */ ],
+    "xml_file": "https://s3.amazonaws.com/bucket/documento.xml",
+    "pdf_file": null
+  }
+}
+```
+
+#### document.unpaid
+
+Se dispara cuando un documento que estaba pagado vuelve a no pagado, es decir,
+cuando se revierte el pago o la conciliación (manualmente o porque una nota de
+crédito / recálculo de saldo dejó la factura con saldo pendiente). El payload es
+idéntico al de `document.paid`; solo cambia el campo `event`.
+
+```json
+{
+  "event": "document.unpaid",
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
     "id": 1234,
@@ -712,6 +741,9 @@ app.post('/webhooks/tupana', (req, res) => {
       break;
     case 'document.paid':
       handleDocumentPaid(data);
+      break;
+    case 'document.unpaid':
+      handleDocumentUnpaid(data);
       break;
     // ... otros eventos
   }
