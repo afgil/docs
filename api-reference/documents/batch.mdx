@@ -312,6 +312,11 @@ Incluye todos los campos de las Facturas Electrónicas con:
     - `"1"`: Contado
     - `"2"`: Crédito
   - `due_date` (String): **Fecha de vencimiento** (opcional, formato YYYY-MM-DD)
+  - `authorized_user_rut` (String): **Opcional** - Emisión por **usuario autorizado**. RUT del usuario autorizado por el SII (dueño de la credencial `sii_company`) que emite la boleta en representación del emisor (`document_issuer.rut`). Úsalo cuando el RUT del emisor es distinto del usuario que tiene la sesión SII, para seleccionar **determinísticamente** qué credencial usar. Solo aplica a boletas de honorarios (DTE 80 y 90); en otros tipos de documento la API responde `422`.
+
+<Note>
+**¿Cuándo usar `authorized_user_rut`?** El emisor de la boleta es siempre `document_issuer.rut`. Cuando una misma cuenta tiene acceso a **varias** credenciales `sii_company` (p. ej. un contador que emite para varios contribuyentes), enviar `header.authorized_user_rut` indica exactamente cuál usuario autorizado realiza la emisión. Sin este campo, la API elige una credencial `sii_company` accesible de forma no determinística. El campo no se persiste en el documento; queda registrado en los logs de la API.
+</Note>
 
 **document_receiver (Condicional)**
 - **Tipo:** Object
@@ -705,6 +710,39 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
 }
 ```
 
+#### Boleta de Honorarios por usuario autorizado (DTE 80)
+
+El emisor de la boleta es `document_issuer.rut`, pero la emite un **usuario autorizado** por el SII (dueño de una credencial `sii_company`). `header.authorized_user_rut` indica cuál credencial usar cuando hay varias accesibles.
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": {
+        "code": "80"
+      },
+      "document_issuer": {
+        "rut": "76543210-3"
+      },
+      "document_receiver": {
+        "rut": "12345678-9"
+      },
+      "header": {
+        "retention_type": "RETRECEPTOR",
+        "authorized_user_rut": "19615893-6"
+      },
+      "details": [
+        {
+          "item_name": "Asesoría profesional",
+          "quantity": 1,
+          "unit_price": 50000
+        }
+      ]
+    }
+  ]
+}
+```
+
 #### Boleta de Honorarios de Terceros (DTE 90)
 
 Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y receptor el backend completa `business_name` y el resto si existen en Tu Pana; usa fecha actual si se omite `date_issued`.
@@ -826,6 +864,7 @@ Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y 
 - **`retention_type`** (String, Obligatorio):
   - `"RETRECEPTOR"`: La retención la realiza el receptor (99% de los casos)
   - `"RETCONTRIBUYENTE"`: La retención la realiza el contribuyente emisor (casos excepcionales)
+- **`authorized_user_rut`** (String, Opcional): RUT del usuario autorizado por el SII (dueño de la credencial `sii_company`) que emite en representación del emisor. Selecciona determinísticamente la credencial cuando hay varias accesibles. Solo válido para DTE 80 y 90.
 
 ### Retención automática del 14.5%:
 - **Cálculo**: Se aplica sobre el monto bruto antes de IVA
