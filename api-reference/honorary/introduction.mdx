@@ -29,7 +29,7 @@ Empresa o entidad que emite las boletas de honorarios. Debe tener credenciales v
 1. **Configurar credenciales SII** para la entidad emisora
 2. **[Listar usuarios autorizados](/api-reference/honorary/authorized-users)** desde el SII para ver qué usuarios están disponibles
 3. **[Enrolar usuarios](/api-reference/honorary/enroll)** que necesiten emitir boletas
-4. **Emitir boletas** de honorarios usando las entidades enroladas
+4. **Emitir boletas** de honorarios usando las entidades enroladas. Al emitir vía [batch](/api-reference/documents/batch), envía `header.authorized_user_rut` para indicar qué usuario autorizado emite cuando la cuenta tiene acceso a varias credenciales `sii_company`
 5. **[Desenrolar usuarios](/api-reference/honorary/unenroll)** cuando ya no necesiten permisos
 
 ## Requisitos
