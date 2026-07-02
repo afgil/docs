@@ -1,0 +1,108 @@
+---
+title: 'Monedas de exportación'
+description: 'Códigos de moneda del SII aceptados en facturas de exportación (DTE 110, 111 y 112)'
+---
+
+Las facturas de exportación (DTE 110), notas de débito (111) y notas de crédito (112) declaran la moneda de la operación mediante el campo `currency_code` dentro de `export_data`.
+
+<Warning>
+  El `currency_code` **no es el código ISO 4217** (`USD`, `EUR`, `CLP`). Es el **código de moneda del SII** (tabla de Aduana), enviado como *string*. Por ejemplo, dólar estadounidense es `"13"`, no `"USD"`.
+</Warning>
+
+## Obtener la lista de monedas
+
+El listado completo (código y nombre) está disponible en un endpoint público, sin autenticación:
+
+```bash
+curl https://api.tupana.ai/api/documents/export-currencies/
+```
+
+```json Respuesta
+[
+  { "code": "13", "name": "DOLAR USA" },
+  { "code": "142", "name": "EURO" },
+  { "code": "200", "name": "PESO CL" }
+]
+```
+
+<Info>
+  Este endpoint es la **fuente de verdad**. La tabla de abajo es una copia de referencia; ante cualquier diferencia, prevalece la respuesta del endpoint.
+</Info>
+
+## Uso en `export_data`
+
+<ParamField body="currency_code" type="string" required>
+  Código de moneda del SII de la operación (ver tabla). Se envía como texto, por ejemplo `"13"`.
+</ParamField>
+
+<ParamField body="exchange_rate" type="number">
+  Tipo de cambio a peso chileno (CLP por unidad de moneda extranjera).
+</ParamField>
+
+<ParamField body="currency_day" type="string">
+  Fecha (`YYYY-MM-DD`) para tomar el tipo de cambio observado. Alternativa a `exchange_rate` cuando la moneda es dólar.
+</ParamField>
+
+```json export_data
+{
+  "export_data": {
+    "currency_code": "13",
+    "exchange_rate": 950.5
+  }
+}
+```
+
+<Note>
+  **Reglas del tipo de cambio:**
+  - Para **dólar estadounidense** (`currency_code: "13"`) debes enviar `exchange_rate` **o** `currency_day`.
+  - Para **cualquier otra moneda** distinta de peso chileno, `exchange_rate` es **obligatorio**.
+</Note>
+
+## Tabla de códigos
+
+| `currency_code` | Moneda |
+|---|---|
+| `134` | BOLIVAR |
+| `4` | BOLIVIANO |
+| `37` | CHELIN |
+| `51` | CORONA DIN |
+| `96` | CORONA NOR |
+| `113` | CORONA SC |
+| `5` | CRUZEIRO REAL |
+| `139` | DIRHAM |
+| `36` | DOLAR AUST |
+| `6` | DOLAR CAN |
+| `127` | DOLAR HK |
+| `97` | DOLAR NZ |
+| `136` | DOLAR SIN |
+| `138` | DOLAR TAI |
+| `13` | DOLAR USA |
+| `131` | DRACMA |
+| `133` | ESCUDO |
+| `142` | EURO |
+| `64` | FLORIN |
+| `40` | FRANCO BEL |
+| `58` | FRANCO FR |
+| `82` | FRANCO SZ |
+| `23` | GUARANI |
+| `102` | LIBRA EST |
+| `71` | LIRA |
+| `30` | MARCO ALEMAN |
+| `57` | MARCO FIN |
+| `24` | NUEVO SOL |
+| `900` | OTRAS NO ESPECIFICADAS. |
+| `53` | PESETA |
+| `1` | PESO ARGENTINA |
+| `200` | PESO CL |
+| `129` | PESO COL |
+| `132` | PESO MEX |
+| `26` | PESO URUG |
+| `128` | RAND |
+| `48` | RENMINBI |
+| `137` | RUPIA |
+| `130` | SUCRE |
+| `72` | YEN |
+
+<Card title="Emisión masiva de documentos" icon="file-invoice" href="/api-reference/documents/batch">
+  Consulta cómo emitir facturas de exportación en el endpoint de emisión masiva.
+</Card>
