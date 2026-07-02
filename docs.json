@@ -30,6 +30,7 @@
             "pages": [
               "user-guide/documents",
               "user-guide/credential-types",
+              "user-guide/export-currencies",
               "user-guide/webhooks"
             ]
           }
@@ -62,8 +63,7 @@
             "pages": [
               "api-reference/documents/list",
               "api-reference/documents/batch",
-              "api-reference/documents/get",
-              "api-reference/documents/export-currencies"
+              "api-reference/documents/get"
             ]
           },
           {
