@@ -121,7 +121,7 @@
           "assignment_amount": {"type": "number"},
           "status": {"type": "string", "enum": ["processing", "rejected", "success"]},
           "status_message": {"type": "string", "nullable": true},
-          "source": {"type": "string", "enum": ["internal", "external"], "description": "internal = creada en Tu Pana; external = registrada por fuera (SII)"},
+          "source": {"type": "string", "enum": ["internal", "external"], "description": "internal = creada en Tupana; external = registrada por fuera (SII)"},
           "sii_date_sent": {"type": "string", "format": "date-time", "nullable": true},
           "aec_url": {"type": "string", "format": "uri", "nullable": true},
           "created_at": {"type": "string", "format": "date-time"}

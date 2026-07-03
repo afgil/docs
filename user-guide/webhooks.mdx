@@ -1,17 +1,17 @@
 ---
 title: 'Webhooks'
-description: 'Guía completa para configurar y usar webhooks en Tu Pana'
+description: 'Guía completa para configurar y usar webhooks en Tupana'
 ---
 
 # Webhooks
 
-Los webhooks de Tu Pana te permiten recibir notificaciones en tiempo real cuando ocurren eventos importantes en tu sistema de facturación. Esta guía te ayudará a configurar y usar webhooks de forma efectiva.
+Los webhooks de Tupana te permiten recibir notificaciones en tiempo real cuando ocurren eventos importantes en tu sistema de facturación. Esta guía te ayudará a configurar y usar webhooks de forma efectiva.
 
 ## ¿Qué son los webhooks?
 
-Los webhooks son una forma de comunicación donde Tu Pana envía automáticamente una notificación HTTP POST a una URL que tú configures cuando ocurre un evento específico (por ejemplo, cuando se emite una factura).
+Los webhooks son una forma de comunicación donde Tupana envía automáticamente una notificación HTTP POST a una URL que tú configures cuando ocurre un evento específico (por ejemplo, cuando se emite una factura).
 
-A diferencia de las APIs donde tú haces las consultas, con los webhooks **Tu Pana te notifica** cuando algo importante sucede, permitiéndote mantener tu sistema sincronizado en tiempo real.
+A diferencia de las APIs donde tú haces las consultas, con los webhooks **Tupana te notifica** cuando algo importante sucede, permitiéndote mantener tu sistema sincronizado en tiempo real.
 
 ## Cómo crear un webhook
 
@@ -39,7 +39,7 @@ Activo: ✓
 
 ### Firma de webhooks
 
-Para verificar que las notificaciones provienen realmente de Tu Pana, puedes configurar un **secret** al crear el webhook. Tu Pana firmará cada notificación usando HMAC SHA-256.
+Para verificar que las notificaciones provienen realmente de Tupana, puedes configurar un **secret** al crear el webhook. Tupana firmará cada notificación usando HMAC SHA-256.
 
 #### Cómo verificar la firma
 
@@ -601,7 +601,7 @@ Todos los payloads comparten esta estructura base:
 
 ### Campos comunes en eventos de documentos
 
-- **`id`**: ID único del documento en Tu Pana (integer)
+- **`id`**: ID único del documento en Tupana (integer)
 - **`folio`**: Folio del documento (string o null)
 - **`date_issued`**: Fecha de emisión en formato ISO (string)
 - **`amount_with_iva`**: Monto total con IVA (float)
@@ -616,7 +616,7 @@ Todos los payloads comparten esta estructura base:
 
 ## Reintentos
 
-Tu Pana reintenta automáticamente las entregas fallidas usando una estrategia exponencial:
+Tupana reintenta automáticamente las entregas fallidas usando una estrategia exponencial:
 
 1. **Intento 1**: Inmediato
 2. **Intento 2**: 1 minuto después
@@ -642,7 +642,7 @@ Cada notificación tiene un `delivery_id` único (UUID). Si recibes el mismo `de
 
 ### Error 4xx (Client Error)
 
-Si tu endpoint responde con un código 4xx (400-499), Tu Pana asume que hay un problema con la configuración o el formato de la notificación. Estos errores se reintentan, pero si persisten, considera:
+Si tu endpoint responde con un código 4xx (400-499), Tupana asume que hay un problema con la configuración o el formato de la notificación. Estos errores se reintentan, pero si persisten, considera:
 
 - Verificar que la URL es correcta y accesible
 - Verificar que tu endpoint acepta POST requests
@@ -651,11 +651,11 @@ Si tu endpoint responde con un código 4xx (400-499), Tu Pana asume que hay un p
 
 ### Error 5xx (Server Error)
 
-Si tu endpoint responde con un código 5xx (500-599), Tu Pana asume que hay un problema temporal en tu servidor. Estos errores se reintentan automáticamente.
+Si tu endpoint responde con un código 5xx (500-599), Tupana asume que hay un problema temporal en tu servidor. Estos errores se reintentan automáticamente.
 
 ### Timeout
 
-Si tu endpoint no responde en 120 segundos, Tu Pana considera la entrega como fallida y la reintenta.
+Si tu endpoint no responde en 120 segundos, Tupana considera la entrega como fallida y la reintenta.
 
 ## Monitoreo y Debug
 

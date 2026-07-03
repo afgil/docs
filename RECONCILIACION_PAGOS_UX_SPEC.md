@@ -1,6 +1,6 @@
 # Especificación UX: Pantalla de Conciliación por Pagos (Payments Reconciliation)
 
-**Producto:** Tu Pana (Chile)  
+**Producto:** Tupana (Chile)  
 **Alcance:** Pantalla que vincula movimientos bancarios / documentos de pago con facturas por cobrar.  
 **Objetivo:** Conciliación lo más rápida posible con visibilidad total (nunca ocultar datos) y guía clara mediante sugerencias y filtros.
 

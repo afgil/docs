@@ -1,6 +1,6 @@
-# Tu Pana API — Full Reference for LLMs
+# Tupana API — Full Reference for LLMs
 
-Tu Pana is a Chilean fintech platform for electronic invoicing (Facturación Electrónica). It automates the issuance of DTEs (Documentos Tributarios Electrónicos) integrated with the SII (Servicio de Impuestos Internos), Chile's tax authority.
+Tupana is a Chilean fintech platform for electronic invoicing (Facturación Electrónica). It automates the issuance of DTEs (Documentos Tributarios Electrónicos) integrated with the SII (Servicio de Impuestos Internos), Chile's tax authority.
 
 ## Authentication
 
@@ -9,7 +9,7 @@ All requests require an API Key:
 Authorization: Api-Key YOUR_API_KEY
 ```
 
-API Keys are generated in the Tu Pana dashboard under Settings > API Keys. A key provides access to all companies enrolled under that user account. Keys work in both Sandbox (testing) and Production environments.
+API Keys are generated in the Tupana dashboard under Settings > API Keys. A key provides access to all companies enrolled under that user account. Keys work in both Sandbox (testing) and Production environments.
 
 ## Base URL
 
@@ -21,7 +21,7 @@ https://api.tupana.ai/v1
 
 ## Core Concepts
 
-**Master Entity:** A company registered in Tu Pana. Has a unique ID, RUT (Chilean tax ID with format `12345678-9`), name, email, phone, addresses (each with district and city), economic activities (codes and descriptions), and associated SII credentials.
+**Master Entity:** A company registered in Tupana. Has a unique ID, RUT (Chilean tax ID with format `12345678-9`), name, email, phone, addresses (each with district and city), economic activities (codes and descriptions), and associated SII credentials.
 
 **DTE (Documento Tributario Electrónico):** An electronic tax document issued through or registered in the SII. Each has a folio (sequential number assigned by SII), an issue date, issuer and receiver information, line items, and totals.
 
@@ -217,7 +217,7 @@ Requires `header.retention_type`. Only receiver RUT is mandatory.
 `retention_type`: `"RETRECEPTOR"` (receiver retains, 99% of cases) or `"RETCONTRIBUYENTE"` (issuer retains). 14.5% withholding is automatically applied.
 
 #### DTE 90 (Boleta de Honorarios a Terceros)
-Same as DTE 80. `document_issuer` is the actual payer (must have `sii_company` credentials in Tu Pana). `document_receiver` is the professional receiving payment.
+Same as DTE 80. `document_issuer` is the actual payer (must have `sii_company` credentials in Tupana). `document_receiver` is the professional receiving payment.
 
 #### DTE 110 (Factura de Exportación)
 No IVA. Requires `export_data` block and `country` on receiver.
@@ -349,7 +349,7 @@ Create cessions (AECs) for multiple invoices and submit to SII.
 }
 ```
 
-Only DTE 33 and 34 can be ceded. Requires valid SII personal credentials (not certificate-based). The EHDR code is automatically fetched from SII by Tu Pana.
+Only DTE 33 and 34 can be ceded. Requires valid SII personal credentials (not certificate-based). The EHDR code is automatically fetched from SII by Tupana.
 
 ---
 

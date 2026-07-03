@@ -1,7 +1,7 @@
 # Celery + SQS: Priorización con Workers Dedicados (Buenas Prácticas)
 
 **Fecha:** Febrero 2026  
-**Contexto:** Tu Pana backend, colas HIGH (Excel/batch), MEDIUM (resto), LOW (opcional).  
+**Contexto:** Tupana backend, colas HIGH (Excel/batch), MEDIUM (resto), LOW (opcional).  
 **Objetivo:** Tener 1 ECS task para HIGH y 1 ECS task para MEDIUM, ambos activos, con priorización real y coste ~$465/mes.
 
 ---
@@ -50,7 +50,7 @@ celery -A backend worker --queues="high,medium,low" --concurrency=2
 
 ---
 
-## 3. Arquitectura actual (Tu Pana)
+## 3. Arquitectura actual (Tupana)
 
 ### 3 colas en SQS
 
@@ -93,7 +93,7 @@ celery -A backend worker --queues="high,medium,low" --concurrency=2
 - **MEDIUM:** N workers según volumen; empezar con 1 worker concurrency=2 y escalar si se acumula.
 - **LOW:** Compartir con MEDIUM o tener worker dedicado solo si volumen de LOW es muy alto.
 
-**Tu caso (Tu Pana):**
+**Tu caso (Tupana):**
 - **HIGH:** Bajo volumen (Excel, batch: decenas/día), urgencia alta → **1 worker, concurrency=1 o 2**.
 - **MEDIUM:** Medio volumen (webhooks, sync: cientos/día) → **1 worker, concurrency=2**.
 - **LOW:** Muy bajo volumen → **compartir con worker MEDIUM** (mismo worker consume medium,low).
@@ -105,7 +105,7 @@ celery -A backend worker --queues="high,medium,low" --concurrency=2
 - **CPU-bound tasks** (Excel parsing, PDF generation): concurrency=1 o 2 (más no mejora; GIL de Python).
 - **I/O-bound tasks** (scraping, HTTP, DB queries): concurrency=4-8 (más threads esperan I/O en paralelo).
 
-**Recomendación Tu Pana:**
+**Recomendación Tupana:**
 - **worker-high (Excel, batch):** concurrency=1 (Excel es CPU-bound y pesado; 1 task a la vez es suficiente).
 - **worker-medium (webhooks, sync):** concurrency=2 (mix de I/O y CPU).
 
@@ -119,7 +119,7 @@ celery -A backend worker --queues="high,medium,low" --concurrency=2
 
 ---
 
-## 5. Solución para Tu Pana: 2 workers activos con coste ~$465/mes
+## 5. Solución para Tupana: 2 workers activos con coste ~$465/mes
 
 ### 5.1 Configuración propuesta (colas ECS separadas, ambos activos)
 

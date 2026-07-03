@@ -1,4 +1,4 @@
-# Análisis Completo de Optimización de Costos AWS - Tu Pana
+# Análisis Completo de Optimización de Costos AWS - Tupana
 
 **Fecha:** Febrero 2026  
 **Región:** us-east-1  
@@ -8,7 +8,7 @@
 
 ## Resumen Ejecutivo
 
-Este documento analiza la infraestructura AWS actual del proyecto Tu Pana (pana-backend) y propone **5 optimizaciones ordenadas de mayor a menor impacto económico**, basadas en la configuración Terraform y las mejores prácticas de AWS Cost Optimization.
+Este documento analiza la infraestructura AWS actual del proyecto Tupana (pana-backend) y propone **5 optimizaciones ordenadas de mayor a menor impacto económico**, basadas en la configuración Terraform y las mejores prácticas de AWS Cost Optimization.
 
 ---
 

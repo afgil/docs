@@ -1,13 +1,13 @@
 ---
 title: 'API de Recaudación'
-description: 'Cobra a tus usuarios directamente desde tu plataforma. Tu Pana procesa el pago, deposita al destinatario y emite el DTE automáticamente.'
+description: 'Cobra a tus usuarios directamente desde tu plataforma. Tupana procesa el pago, deposita al destinatario y emite el DTE automáticamente.'
 ---
 
 ## ¿Para qué sirve?
 
 La API de Recaudación permite crear sesiones de pago para que tus usuarios paguen directamente, sin que tu plataforma intermedie los fondos.
 
-Con un solo endpoint, Tu Pana:
+Con un solo endpoint, Tupana:
 
 - **Procesa el pago** vía tarjeta de débito, crédito o transferencia bancaria (Transbank).
 - **Deposita el monto neto** al destinatario directamente.
@@ -16,10 +16,10 @@ Con un solo endpoint, Tu Pana:
 
 ## Flujo general
 
-1. **Tu plataforma crea una sesión de cobro** llamando a `POST /v1/payment-requests/`. Tu Pana retorna una `payment_url`.
-2. **Redirige al usuario** a esa URL. El usuario paga en el checkout de Tu Pana (o directo a Transbank si usas `skip_portal: true`).
-3. **Tu Pana procesa el pago** con Transbank, actualiza el estado de la sesión y emite el DTE (si corresponde).
-4. **Tu Pana te notifica vía webhook** con un `POST` firmado a tu endpoint registrado.
+1. **Tu plataforma crea una sesión de cobro** llamando a `POST /v1/payment-requests/`. Tupana retorna una `payment_url`.
+2. **Redirige al usuario** a esa URL. El usuario paga en el checkout de Tupana (o directo a Transbank si usas `skip_portal: true`).
+3. **Tupana procesa el pago** con Transbank, actualiza el estado de la sesión y emite el DTE (si corresponde).
+4. **Tupana te notifica vía webhook** con un `POST` firmado a tu endpoint registrado.
 5. **Tu plataforma confirma** la cita, orden o servicio del lado tuyo.
 
 ## Dos modos: emisión vs. cobro directo
@@ -45,7 +45,7 @@ Todos los endpoints requieren tu API key en el header de autorización:
 Authorization: Api-Key {tu_api_key}
 ```
 
-Puedes encontrar tu API key en **Configuración → Integraciones API** dentro de tu cuenta Tu Pana. Tienes dos API keys: una de producción y una de sandbox.
+Puedes encontrar tu API key en **Configuración → Integraciones API** dentro de tu cuenta Tupana. Tienes dos API keys: una de producción y una de sandbox.
 
 ## Ambiente de pruebas (Sandbox)
 

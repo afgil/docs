@@ -113,7 +113,7 @@ Por eso `line_item.total` ya incluye el descuento aplicado, y `tax_lines` contie
 
 ---
 
-## Estado actual en Tu Pana
+## Estado actual en Tupana
 
 ### Transformer (`shopify_order_to_payment_payload`)
 

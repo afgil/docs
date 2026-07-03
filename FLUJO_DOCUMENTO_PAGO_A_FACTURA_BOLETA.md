@@ -2,7 +2,7 @@
 
 ## Resumen
 
-Este documento describe el flujo completo desde una orden externa (ej. Shopify) hasta la emisión de una factura o boleta en Tu Pana, pasando por el documento de pago (tipo 100) y el clonador.
+Este documento describe el flujo completo desde una orden externa (ej. Shopify) hasta la emisión de una factura o boleta en Tupana, pasando por el documento de pago (tipo 100) y el clonador.
 
 ---
 
