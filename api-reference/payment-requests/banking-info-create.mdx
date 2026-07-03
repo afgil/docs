@@ -5,7 +5,7 @@ openapi: 'api-reference/openapi-payment-requests.json POST /master-entities/{mas
 
 ## ¿Para qué se usa?
 
-Registra la cuenta bancaria a la que Tu Pana depositará los fondos una vez confirmado el pago. Es un prerequisito para poder crear sesiones de cobro para ese destinatario: si el destinatario no tiene cuenta bancaria registrada, la creación del cobro retornará el error `RECIPIENT_MISSING_BANKING_INFO`.
+Registra la cuenta bancaria a la que Tupana depositará los fondos una vez confirmado el pago. Es un prerequisito para poder crear sesiones de cobro para ese destinatario: si el destinatario no tiene cuenta bancaria registrada, la creación del cobro retornará el error `RECIPIENT_MISSING_BANKING_INFO`.
 
 ## Qué hace
 
@@ -18,7 +18,7 @@ Registra la cuenta bancaria a la que Tu Pana depositará los fondos una vez conf
 El parámetro del banco se puede enviar de dos formas:
 
 - **`sbif_code`** (recomendado): código SBIF de tres dígitos (ej `"037"`). Es el identificador estable y estándar de la Superintendencia de Bancos chilena.
-- **`bank`**: ID interno del banco en Tu Pana. El ID puede variar entre ambientes, así que preferí `sbif_code`.
+- **`bank`**: ID interno del banco en Tupana. El ID puede variar entre ambientes, así que preferí `sbif_code`.
 
 Enviá uno de los dos. Si enviás ambos, deben referirse al mismo banco.
 

@@ -15,7 +15,7 @@ Crea hasta 200 documentos tributarios electrónicos en una sola llamada. La resp
 
 ### X-Use-Defaults (Opcional)
 
-> **⚠️ IMPORTANTE: Se recomienda encarecidamente usar el header `X-Use-Defaults: true` en todas tus solicitudes de emisión masiva de documentos.** Este header simplifica significativamente la creación de documentos al hacer opcionales muchos campos y completar automáticamente los datos faltantes según tu configuración en Tu Pana.
+> **⚠️ IMPORTANTE: Se recomienda encarecidamente usar el header `X-Use-Defaults: true` en todas tus solicitudes de emisión masiva de documentos.** Este header simplifica significativamente la creación de documentos al hacer opcionales muchos campos y completar automáticamente los datos faltantes según tu configuración en Tupana.
 
 - **Tipo:** String
 - **Valores permitidos:** `"true"`, `"false"`
@@ -411,7 +411,7 @@ Incluye todos los campos de las Boletas de Honorarios (DTE 80) con las mismas ca
 
 ### Respuesta del Webhook
 
-Cuando un documento se emite exitosamente, Tu Pana envía un webhook con la siguiente estructura:
+Cuando un documento se emite exitosamente, Tupana envía un webhook con la siguiente estructura:
 
 **event (Obligatorio)**
 - **Tipo:** String
@@ -429,7 +429,7 @@ Cuando un documento se emite exitosamente, Tu Pana envía un webhook con la sigu
 #### Campos del objeto data
 
 **Información básica del documento:**
-- `id` (Integer): ID único del documento en Tu Pana
+- `id` (Integer): ID único del documento en Tupana
 - `folio` (String): Folio asignado por el SII
 - `date_issued` (String): Fecha de emisión (formato YYYY-MM-DD)
 - `amount_with_iva` (Number): Monto total con IVA incluido
@@ -440,13 +440,13 @@ Cuando un documento se emite exitosamente, Tu Pana envía un webhook con la sigu
 - `description` (String): Descripción del tipo de documento
 
 **sender (Object):**
-- `id` (Integer): ID del emisor en Tu Pana
+- `id` (Integer): ID del emisor en Tupana
 - `name` (String): Nombre/razón social del emisor
 - `tax_id` (String): RUT del emisor (formato con puntos y guión)
 - `email` (String): Email del emisor
 
 **receiver (Object):**
-- `id` (Integer): ID del receptor en Tu Pana
+- `id` (Integer): ID del receptor en Tupana
 - `name` (String): Nombre/razón social del receptor
 - `tax_id` (String): RUT del receptor (formato con puntos y guión)
 - `email` (String): Email del receptor

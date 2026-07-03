@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Tu Pana",
+  "name": "Tupana",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
@@ -11,7 +11,7 @@
     "light": "/images/tupana.png",
     "dark": "/images/tupana.png"
   },
-  "favicon": "/images/logo.jpeg",
+  "favicon": "/images/tupana.png",
   "navigation": {
     "tabs": [
       {

@@ -1,13 +1,13 @@
-# Tu Pana API
+# Tupana API
 
-Tu Pana is a Chilean fintech platform for electronic invoicing (Facturación Electrónica). It automates the issuance of electronic tax documents (DTEs) integrated with the Chilean Tax Authority (SII - Servicio de Impuestos Internos).
+Tupana is a Chilean fintech platform for electronic invoicing (Facturación Electrónica). It automates the issuance of electronic tax documents (DTEs) integrated with the Chilean Tax Authority (SII - Servicio de Impuestos Internos).
 
 ## Authentication
 
 All requests require an API Key in the Authorization header:
 `Authorization: Api-Key YOUR_API_KEY`
 
-API Keys are generated in the Tu Pana dashboard under Settings > API Keys. Each key provides access to all companies enrolled under that user. Keys work in both Sandbox (testing) and Production environments.
+API Keys are generated in the Tupana dashboard under Settings > API Keys. Each key provides access to all companies enrolled under that user. Keys work in both Sandbox (testing) and Production environments.
 
 ## Base URL
 
@@ -17,7 +17,7 @@ https://api.tupana.ai/v1
 
 ## Core Concepts
 
-**Master Entity:** A company registered in Tu Pana. Each has an ID, RUT (Chilean tax ID), name, addresses, economic activities, and SII credentials.
+**Master Entity:** A company registered in Tupana. Each has an ID, RUT (Chilean tax ID), name, addresses, economic activities, and SII credentials.
 
 **DTE (Documento Tributario Electrónico):** An electronic tax document. Supported types:
 - 33: Factura Electrónica (standard invoice, with IVA)

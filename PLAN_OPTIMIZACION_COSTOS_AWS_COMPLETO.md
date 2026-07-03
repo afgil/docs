@@ -1,4 +1,4 @@
-# Plan Completo de Optimización de Costos AWS - Tu Pana
+# Plan Completo de Optimización de Costos AWS - Tupana
 
 **Fecha:** Febrero 2026  
 **Fuente datos:** CloudWatch (últimos 7 días), AWS CLI, Datadog APM  

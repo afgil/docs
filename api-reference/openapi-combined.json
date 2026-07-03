@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Tu Pana API",
-    "description": "API para integración con el sistema Tu Pana - Facturación Electrónica",
+    "title": "Tupana API",
+    "description": "API para integración con el sistema Tupana - Facturación Electrónica",
     "version": "1.0.0"
   },
   "servers": [
@@ -2443,7 +2443,7 @@
               "internal",
               "external"
             ],
-            "description": "internal = creada en Tu Pana; external = registrada por fuera (SII)"
+            "description": "internal = creada en Tupana; external = registrada por fuera (SII)"
           },
           "sii_date_sent": {
             "type": "string",

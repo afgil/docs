@@ -1,6 +1,6 @@
-# Marketing de autoridad – Tu Pana: 20 ideas profundas para Instagram
+# Marketing de autoridad – Tupana: 20 ideas profundas para Instagram
 
-Documento con know-how real extraído del código y dominio de Tu Pana. Cada idea sirve para enseñar en Instagram y posicionar a Tu Pana como referente en facturación electrónica Chile y SII.
+Documento con know-how real extraído del código y dominio de Tupana. Cada idea sirve para enseñar en Instagram y posicionar a Tupana como referente en facturación electrónica Chile y SII.
 
 ---
 
@@ -90,7 +90,7 @@ El estado “real” del batch (completado/fallido) se calcula a partir de los e
 
 ## Cómo usar este documento en Instagram
 
-- **Carruseles:** 1 idea = 1 slide; slide final con CTA a Tu Pana o a perfil.
+- **Carruseles:** 1 idea = 1 slide; slide final con CTA a Tupana o a perfil.
 - **Reels:** Elegir 1 idea (por ejemplo ERM vs ACD, o “totales enteros”) y explicarla en 60–90 segundos.
 - **Stories:** Pregunta del tipo “¿Sabías que…?” + 1 idea en 1–2 frases + link a blog o landing.
 - **Texto largo:** Desarrollar 2–3 ideas en un post de 150–200 palabras con título tipo “3 errores que evitas si sabes cómo funciona el SII”.

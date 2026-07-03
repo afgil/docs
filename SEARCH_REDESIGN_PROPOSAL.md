@@ -1,4 +1,4 @@
-# 🔍 Propuesta de Rediseño: Buscador Inteligente Tu Pana
+# 🔍 Propuesta de Rediseño: Buscador Inteligente Tupana
 
 **Autor:** AI Search Analyst  
 **Fecha:** 2026-01-18  

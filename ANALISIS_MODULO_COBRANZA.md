@@ -528,7 +528,7 @@ El módulo cubre el flujo básico de cobranza:
 
 ### 7.2 Gaps vs Competencia
 
-| Competidor/Referencia | Lo que ofrecen | Tu Pana ofrece |
+| Competidor/Referencia | Lo que ofrecen | Tupana ofrece |
 |-----------------------|----------------|----------------|
 | **Factoring / Cesión** | Cesión de facturas, anticipo de cobro | Solo cesión básica (otro módulo), no integrada con cobranza |
 | **Herramientas de cobranza (Pagale, Cobranza.cl)** | Recordatorios automáticos, link de pago, scoring | Recordatorios manuales, sin link de pago |
@@ -539,7 +539,7 @@ El módulo cubre el flujo básico de cobranza:
 
 | Oportunidad | Descripción | Diferencial |
 |-------------|-------------|-------------|
-| **Cobranza integrada con facturación** | Ya tienen emisión SII, documentos, clientes. La cobranza está en el mismo flujo. | Competidores de cobranza son standalone; Tu Pana es todo-en-uno |
+| **Cobranza integrada con facturación** | Ya tienen emisión SII, documentos, clientes. La cobranza está en el mismo flujo. | Competidores de cobranza son standalone; Tupana es todo-en-uno |
 | **Automatización inteligente** | Recordatorios automáticos + condiciones configurables (ej. "si vence en 7 días y monto > X") | Reducción de trabajo manual, consistencia |
 | **Canal WhatsApp** | Ya tienen WhatsApp. Cobranza por WhatsApp tiene mayor tasa de respuesta que email | Diferenciador en Chile donde WhatsApp es masivo |
 | **Información bancaria en correos** | Ya existe. Competidores suelen pedir configurar manualmente | Menos fricción para el cliente |

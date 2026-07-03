@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Tu Pana API - Recaudación",
+    "title": "Tupana API - Recaudación",
     "description": "API de Cobros — Crea sesiones de pago, procesa cobros y emite DTE automáticamente.",
     "version": "1.0.0"
   },
@@ -726,7 +726,7 @@
       "PaymentRequestCreate": {
         "type": "object",
         "required": ["recipient_id"],
-        "description": "La sesión de cobro soporta dos modos:\n\n- **Modo emisión** (default): Tu Pana cobra y emite un DTE nuevo. Requiere `amount`, `target_dte_type`, `dte_recipient` y `items`.\n- **Modo cobro directo**: cobra documentos ya existentes. Requiere `document_ids` y rechaza `amount`, `target_dte_type`, `dte_recipient` e `items`.",
+        "description": "La sesión de cobro soporta dos modos:\n\n- **Modo emisión** (default): Tupana cobra y emite un DTE nuevo. Requiere `amount`, `target_dte_type`, `dte_recipient` y `items`.\n- **Modo cobro directo**: cobra documentos ya existentes. Requiere `document_ids` y rechaza `amount`, `target_dte_type`, `dte_recipient` e `items`.",
         "properties": {
           "amount": {
             "type": "integer",
@@ -741,13 +741,13 @@
           },
           "recipient_id": {
             "type": "integer",
-            "description": "ID numérico del destinatario en Tu Pana. Debe tener cuenta bancaria registrada. En modo cobro directo, todos los documentos referenciados deben pertenecer a este destinatario (es decir, su `sender` debe coincidir).",
+            "description": "ID numérico del destinatario en Tupana. Debe tener cuenta bancaria registrada. En modo cobro directo, todos los documentos referenciados deben pertenecer a este destinatario (es decir, su `sender` debe coincidir).",
             "example": 789
           },
           "redirect_url": {
             "type": "string",
             "format": "uri",
-            "description": "URL a la que Tu Pana redirige al usuario después del pago. Si se omite, el usuario permanece en el portal de pago.",
+            "description": "URL a la que Tupana redirige al usuario después del pago. Si se omite, el usuario permanece en el portal de pago.",
             "example": "https://tuapp.com/confirmation"
           },
           "target_dte_type": {
@@ -779,12 +779,12 @@
           },
           "skip_portal": {
             "type": "boolean",
-            "description": "Si `true`, redirige directo a Transbank sin mostrar la pantalla de Tu Pana. Por defecto: `false`.",
+            "description": "Si `true`, redirige directo a Transbank sin mostrar la pantalla de Tupana. Por defecto: `false`.",
             "default": false
           },
           "auto_issue": {
             "type": "boolean",
-            "description": "Si `true` (default), Tu Pana emite el DTE automáticamente al confirmarse el pago. Si `false`, debes emitirlo manualmente con `PATCH /v1/payment-requests/{id}/` enviando `{\"status\": \"issued\"}`. Solo aplica en modo emisión; ignorado en modo cobro directo (no hay DTE que emitir).",
+            "description": "Si `true` (default), Tupana emite el DTE automáticamente al confirmarse el pago. Si `false`, debes emitirlo manualmente con `PATCH /v1/payment-requests/{id}/` enviando `{\"status\": \"issued\"}`. Solo aplica en modo emisión; ignorado en modo cobro directo (no hay DTE que emitir).",
             "default": true
           },
           "external_id": {
@@ -794,7 +794,7 @@
           },
           "metadata": {
             "type": "object",
-            "description": "Datos adicionales de libre formato. Tu Pana los guarda y devuelve en webhooks y en el GET.",
+            "description": "Datos adicionales de libre formato. Tupana los guarda y devuelve en webhooks y en el GET.",
             "additionalProperties": true
           }
         }
@@ -927,7 +927,7 @@
       "BankingInfoCreate": {
         "type": "object",
         "required": ["account_type", "account_number"],
-        "description": "Para identificar el banco, envía **uno** de los dos campos: `sbif_code` (recomendado para integraciones) o `bank` (ID en la base de datos de Tu Pana). El titular de la cuenta es el mismo destinatario (`master_entity`).",
+        "description": "Para identificar el banco, envía **uno** de los dos campos: `sbif_code` (recomendado para integraciones) o `bank` (ID en la base de datos de Tupana). El titular de la cuenta es el mismo destinatario (`master_entity`).",
         "properties": {
           "sbif_code": {
             "type": "string",
@@ -953,7 +953,7 @@
           },
           "include_in_emails": {
             "type": "boolean",
-            "description": "Si `true` (default), Tu Pana incluye los datos de la cuenta en los correos de cobranza al destinatario.",
+            "description": "Si `true` (default), Tupana incluye los datos de la cuenta en los correos de cobranza al destinatario.",
             "default": true
           }
         }

@@ -15,7 +15,7 @@ Crea hasta 200 documentos tributarios electrónicos en una sola llamada. La resp
 
 ### X-Use-Defaults (Opcional)
 
-> **⚠️ IMPORTANTE: Se recomienda encarecidamente usar el header `X-Use-Defaults: true` en todas tus solicitudes de emisión masiva de documentos.** Este header simplifica significativamente la creación de documentos al hacer opcionales muchos campos y completar automáticamente los datos faltantes según tu configuración en Tu Pana.
+> **⚠️ IMPORTANTE: Se recomienda encarecidamente usar el header `X-Use-Defaults: true` en todas tus solicitudes de emisión masiva de documentos.** Este header simplifica significativamente la creación de documentos al hacer opcionales muchos campos y completar automáticamente los datos faltantes según tu configuración en Tupana.
 
 - **Tipo:** String
 - **Valores permitidos:** `"true"`, `"false"`
@@ -356,13 +356,13 @@ Incluye todos los campos de las Facturas Electrónicas con:
 
 ### Requisito previo: agregar el contribuyente real (SII Company)
 
-**Antes de emitir DTE 90, debes registrar el contribuyente real en Tu Pana:**
+**Antes de emitir DTE 90, debes registrar el contribuyente real en Tupana:**
 
-1. El `document_issuer.rut` debe corresponder a una **MasterEntity** ya existente en Tu Pana.
+1. El `document_issuer.rut` debe corresponder a una **MasterEntity** ya existente en Tupana.
 2. Esa entidad debe tener **credenciales SII de tipo `sii_company`** configuradas y activas.
 3. La API usa el RUT de `document_issuer` para buscar la entidad emisora; si no existe o no tiene credenciales, la emisión falla.
 
-**¿Qué es sii_company?** Es el tipo de credencial SII para empresas que emiten boletas de honorarios de terceros (a diferencia de credenciales personales). El contribuyente real (restaurante, empresa cliente) debe tener esta credencial en Tu Pana.
+**¿Qué es sii_company?** Es el tipo de credencial SII para empresas que emiten boletas de honorarios de terceros (a diferencia de credenciales personales). El contribuyente real (restaurante, empresa cliente) debe tener esta credencial en Tupana.
 
 **Pasos para configurar:**
 - Crear o importar la MasterEntity del contribuyente real (RUT, razón social, etc.).
@@ -375,11 +375,11 @@ Incluye todos los campos de las Facturas Electrónicas con:
 
 **Sí se puede usar** `X-Use-Defaults: true`, pero con una limitación importante:
 
-- **document_issuer:** El sistema completa datos desde la MasterEntity que coincida con `document_issuer.rut`. Si el contribuyente real **no está registrado** en Tu Pana, X-Use-Defaults no podrá completar datos y deberás enviar todos los campos obligatorios.
-- **document_receiver:** Igual que DTE 80; si el RUT existe en Tu Pana, se completan datos.
+- **document_issuer:** El sistema completa datos desde la MasterEntity que coincida con `document_issuer.rut`. Si el contribuyente real **no está registrado** en Tupana, X-Use-Defaults no podrá completar datos y deberás enviar todos los campos obligatorios.
+- **document_receiver:** Igual que DTE 80; si el RUT existe en Tupana, se completan datos.
 - **date_issued, header.payment_method:** Se aplican los mismos defaults que para otros tipos.
 
-**Recomendación:** Si emites DTE 90 de forma recurrente, registra los contribuyentes reales (restaurantes, clientes) como MasterEntity en Tu Pana para poder usar X-Use-Defaults con solo el RUT.
+**Recomendación:** Si emites DTE 90 de forma recurrente, registra los contribuyentes reales (restaurantes, clientes) como MasterEntity en Tupana para poder usar X-Use-Defaults con solo el RUT.
 
 ---
 
@@ -395,7 +395,7 @@ Incluye todos los campos de las Facturas Electrónicas con:
   - `rut` (String): RUT del contribuyente real — **debe existir como MasterEntity con credenciales sii_company**
   - `business_name` (String): Razón social del contribuyente real
   - `activity_code` (Integer): Código de actividad económica (ej: 620900)
-- **Con X-Use-Defaults:** Si el RUT existe en Tu Pana, los demás campos se completan automáticamente.
+- **Con X-Use-Defaults:** Si el RUT existe en Tupana, los demás campos se completan automáticamente.
 
 **document_receiver (Obligatorio)** — Profesional que recibe los honorarios
 - **Tipo:** Object
@@ -410,7 +410,7 @@ Incluye todos los campos de las Facturas Electrónicas con:
 - Array con `item_name`, `quantity`, `unit_price`
 
 **Responsabilidades:**
-- **Contribuyente real** (document_issuer): Debe estar en Tu Pana con credenciales sii_company; es el responsable tributario.
+- **Contribuyente real** (document_issuer): Debe estar en Tupana con credenciales sii_company; es el responsable tributario.
 - **Retención:** 14.5% sobre monto bruto, igual que DTE 80.
 
 **Casos de uso:**
@@ -451,7 +451,7 @@ Incluye todos los campos de las Facturas Electrónicas con:
 
 ### Respuesta del Webhook
 
-Cuando un documento se emite exitosamente, Tu Pana envía un webhook con la siguiente estructura:
+Cuando un documento se emite exitosamente, Tupana envía un webhook con la siguiente estructura:
 
 **event (Obligatorio)**
 - **Tipo:** String
@@ -469,7 +469,7 @@ Cuando un documento se emite exitosamente, Tu Pana envía un webhook con la sigu
 #### Campos del objeto data
 
 **Información básica del documento:**
-- `id` (Integer): ID único del documento en Tu Pana
+- `id` (Integer): ID único del documento en Tupana
 - `folio` (String): Folio asignado por el SII
 - `date_issued` (String): Fecha de emisión (formato YYYY-MM-DD)
 - `amount_with_iva` (Number): Monto total con IVA incluido
@@ -480,13 +480,13 @@ Cuando un documento se emite exitosamente, Tu Pana envía un webhook con la sigu
 - `description` (String): Descripción del tipo de documento
 
 **sender (Object):**
-- `id` (Integer): ID del emisor en Tu Pana
+- `id` (Integer): ID del emisor en Tupana
 - `name` (String): Nombre/razón social del emisor
 - `tax_id` (String): RUT del emisor (formato con puntos y guión)
 - `email` (String): Email del emisor
 
 **receiver (Object):**
-- `id` (Integer): ID del receptor en Tu Pana
+- `id` (Integer): ID del receptor en Tupana
 - `name` (String): Nombre/razón social del receptor
 - `tax_id` (String): RUT del receptor (formato con puntos y guión)
 - `email` (String): Email del receptor
@@ -745,7 +745,7 @@ El emisor de la boleta es `document_issuer.rut`, pero la emite un **usuario auto
 
 #### Boleta de Honorarios de Terceros (DTE 90)
 
-Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y receptor el backend completa `business_name` y el resto si existen en Tu Pana; usa fecha actual si se omite `date_issued`.
+Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y receptor el backend completa `business_name` y el resto si existen en Tupana; usa fecha actual si se omite `date_issued`.
 
 ```json
 {

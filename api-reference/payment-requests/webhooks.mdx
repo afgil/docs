@@ -5,7 +5,7 @@ description: 'Eventos disponibles para la API de Cobros y cómo recibirlos'
 
 ## ¿Cómo funcionan los webhooks de cobros?
 
-Cuando cambia el estado de una sesión de cobro, Tu Pana envía un `POST` firmado a tu endpoint registrado. El sistema de webhooks es el mismo que usan el resto de las APIs — si ya tienes uno configurado, solo necesitas suscribirte a los nuevos eventos.
+Cuando cambia el estado de una sesión de cobro, Tupana envía un `POST` firmado a tu endpoint registrado. El sistema de webhooks es el mismo que usan el resto de las APIs — si ya tienes uno configurado, solo necesitas suscribirte a los nuevos eventos.
 
 Para registrar o gestionar tus endpoints de webhook, consulta la sección de [Webhooks](/api-reference/webhooks/webhooks).
 
@@ -19,7 +19,7 @@ Para registrar o gestionar tus endpoints de webhook, consulta la sección de [We
 
 ## Estructura del payload
 
-Todos los eventos de cobro siguen la estructura estándar de webhooks de Tu Pana:
+Todos los eventos de cobro siguen la estructura estándar de webhooks de Tupana:
 
 ```json
 {
@@ -88,7 +88,7 @@ X-Pana-Signature: <firma-hmac>
 
 ## Verificar la firma
 
-Verifica que el webhook proviene realmente de Tu Pana usando el `secret` que recibiste al registrar el endpoint.
+Verifica que el webhook proviene realmente de Tupana usando el `secret` que recibiste al registrar el endpoint.
 
 ```python
 import hmac
@@ -137,7 +137,7 @@ if (!isValid) {
 
 ## Reintentos
 
-Tu endpoint debe responder con `2xx` en menos de **120 segundos**. Si no responde o devuelve error, Tu Pana reintenta con backoff:
+Tu endpoint debe responder con `2xx` en menos de **120 segundos**. Si no responde o devuelve error, Tupana reintenta con backoff:
 
 | Intento | Tiempo de espera |
 |---------|-----------------|
@@ -150,5 +150,5 @@ Tu endpoint debe responder con `2xx` en menos de **120 segundos**. Si no respond
 Cada entrega tiene un `X-Pana-Delivery` único. Si recibes el mismo ID dos veces, es un reintento del mismo evento — tu endpoint debe ser idempotente.
 
 <Tip>
-Usa el evento `webhook.test` disponible en el panel de Tu Pana para verificar que tu endpoint está recibiendo correctamente antes de ir a producción.
+Usa el evento `webhook.test` disponible en el panel de Tupana para verificar que tu endpoint está recibiendo correctamente antes de ir a producción.
 </Tip>
