@@ -226,7 +226,7 @@ Iguales a la Factura Electrónica (DTE 33), pero el documento no incluye IVA en 
     - `"4"`: **Multimodal** - Combinación de dos o más modos de transporte
 
   - `destination_country` (String): **País de destino final**
-    - Código ISO de 2 letras (ej: `"US"`, `"BR"`, `"AR"`, `"MX"`)
+    - **No es código ISO 3166-1.** Es el código de país del SII (tabla de Aduana), enviado como *string* (ej: `"225"` = U.S.A., `"220"` = Brasil, `"224"` = Argentina, `"216"` = México). Ver [Países de exportación](/user-guide/export-countries) para la tabla completa.
     - Debe coincidir exactamente con el país del receptor extranjero
     - Afecta tratados comerciales y aranceles
 
@@ -812,7 +812,7 @@ Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y 
   - `"4"`: Multimodal - Combinación de modos de transporte
 
 - **`destination_country`** (String, Obligatorio):
-  - Código ISO del país de destino (ej: `"US"`, `"BR"`, `"AR"`)
+  - **No es código ISO 3166-1.** Es el código de país del SII (ej: `"225"` = U.S.A., `"220"` = Brasil, `"224"` = Argentina). Ver [Países de exportación](/user-guide/export-countries) para la tabla completa.
   - Debe coincidir con el país del receptor
 
 - **`destination_port`** (String, Obligatorio):
