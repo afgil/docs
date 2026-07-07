@@ -1,0 +1,62 @@
+---
+title: 'Modalidades de venta de exportación'
+description: 'Códigos de modalidad de venta del SII aceptados en facturas de exportación (DTE 110, 111 y 112)'
+---
+
+Las facturas de exportación (DTE 110), notas de débito (111) y notas de crédito (112) declaran la modalidad de venta de la operación mediante el campo `sale_mode_code` dentro de `export_data`.
+
+<Warning>
+  El `sale_mode_code` **no es una cláusula Incoterm** (FOB, CIF, etc.). Es el **código de modalidad de venta del SII** (tabla de Aduana), enviado como *string*. Por ejemplo, "A Firme" es `"1"`, no `"FOB"`.
+</Warning>
+
+## Obtener la lista de modalidades
+
+El listado completo (código y nombre) está disponible en un endpoint público, sin autenticación:
+
+```bash
+curl https://api.tupana.ai/api/documents/export-sale-modes/
+```
+
+```json Respuesta
+[
+  { "code": "1", "name": "A Firme" },
+  { "code": "2", "name": "Bajo Condición" },
+  { "code": "9", "name": "Sin Pago" }
+]
+```
+
+<Info>
+  Este endpoint es la **fuente de verdad**. La tabla de abajo es una copia de referencia; ante cualquier diferencia, prevalece la respuesta del endpoint.
+</Info>
+
+## Uso en `export_data`
+
+<ParamField body="sale_mode_code" type="string" required>
+  Código de modalidad de venta del SII de la operación (ver tabla). Se envía como texto, por ejemplo `"1"`.
+</ParamField>
+
+```json export_data
+{
+  "export_data": {
+    "sale_mode_code": "1"
+  }
+}
+```
+
+<Note>
+  Obligatorio al emitir un DTE de exportación vía la API. En la importación desde Excel se usa `"1"` (A Firme) como valor por defecto si no se especifica.
+</Note>
+
+## Tabla de códigos
+
+| `sale_mode_code` | Modalidad de venta |
+|---|---|
+| `1` | A Firme |
+| `2` | Bajo Condición |
+| `3` | En Consignación Libre |
+| `4` | En Consig. con Mínimo a Firme |
+| `9` | Sin Pago |
+
+<Card title="Emisión masiva de documentos" icon="file-invoice" href="/api-reference/documents/batch">
+  Consulta cómo emitir facturas de exportación en el endpoint de emisión masiva.
+</Card>

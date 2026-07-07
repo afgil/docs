@@ -240,10 +240,8 @@ Iguales a la Factura Electrónica (DTE 33), pero el documento no incluye IVA en 
     - Para transporte terrestre: ciudad fronteriza chilena
     - Determina jurisdicción aduanera chilena
 
-  - `export_clause` (String): **Cláusula de exportación** (condiciones del envío)
-    - `"1"`: **A firme** - Compromiso incondicional de exportar (venta confirmada)
-    - `"2"`: **Bajo protesta** - Exportación sujeta a condiciones o aprobaciones
-    - `"3"`: **Sin cláusula** - Exportación sin especificar condiciones especiales
+  - `sale_mode_code` (String): **Modalidad de venta** (código de Aduana del SII, no una cláusula Incoterm)
+    - **No es código FOB/CIF.** Ver [Modalidades de venta de exportación](/user-guide/export-sale-modes) para la tabla completa (`"1"` = A Firme, `"2"` = Bajo Condición, `"3"` = En Consignación Libre, `"4"` = En Consig. con Mínimo a Firme, `"9"` = Sin Pago).
 
 - **Campos opcionales adicionales:**
   - `transport_company` (String): Nombre de la empresa de transporte
@@ -656,7 +654,7 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
         "destination_country": "US",
         "destination_port": "JFK",
         "origin_port": "SCL",
-        "export_clause": "1"
+        "sale_mode_code": "1"
       },
       "details": [
         {
@@ -823,10 +821,8 @@ Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y 
   - Nombre del puerto/aeropuerto/ciudad de origen en Chile
   - Ejemplos: `"SCL"`, `"IQQ"`, `"ANF"`
 
-- **`export_clause`** (String, Obligatorio):
-  - `"1"`: A firme - Compromiso incondicional de exportar
-  - `"2"`: Bajo protesta - Exportación sujeta a condiciones
-  - `"3"`: Sin cláusula - Exportación sin especificar condiciones
+- **`sale_mode_code`** (String, Obligatorio):
+  - Código de modalidad de venta del SII (no una cláusula Incoterm). Ver [Modalidades de venta de exportación](/user-guide/export-sale-modes) para la tabla completa.
 
 ### Campos específicos del header:
 
