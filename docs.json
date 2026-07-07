@@ -31,6 +31,7 @@
               "user-guide/documents",
               "user-guide/credential-types",
               "user-guide/export-currencies",
+              "user-guide/export-countries",
               "user-guide/webhooks"
             ]
           }

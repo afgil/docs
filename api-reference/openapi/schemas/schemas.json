@@ -1749,13 +1749,13 @@
           },
           "destination_country_code": {
             "type": "string",
-            "description": "Código del país de destino (ISO 3166-1 alpha-2)",
-            "example": "US"
+            "description": "Código de país del SII del destino (tabla de Aduana). No es código ISO 3166-1. Ver /user-guide/export-countries",
+            "example": "225"
           },
           "currency_code": {
             "type": "string",
-            "description": "Código de la moneda (ISO 4217)",
-            "example": "USD"
+            "description": "Código de moneda del SII (tabla de Aduana). No es código ISO 4217. Ver /user-guide/export-currencies",
+            "example": "13"
           },
           "exchange_rate": {
             "type": "string",

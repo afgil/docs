@@ -17,7 +17,564 @@
     }
   ],
   "paths": {
+    "/documents": {
+      "get": {
+        "operationId": "listDocuments",
+        "tags": [
+          "Documentos"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar documentos",
+        "description": "Obtiene las listas de documentos emitidos o recibidos por una entidad específica. Soporta búsqueda por folio, nombre del receptor y filtros avanzados.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad emisora o receptora cuyos documentos quieres consultar.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "document_type",
+            "in": "query",
+            "description": "`issued` (por defecto) o `received`. `issued` devuelve documentos donde la entidad es el **emisor**. `received` devuelve documentos donde la entidad es el **receptor** (cuando usas `received`, el parámetro `search` buscará en el nombre y RUT del emisor, y `issuer_tax_id` permite filtrar por RUT del emisor específico).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "issued",
+                "received"
+              ],
+              "default": "issued"
+            }
+          },
+          {
+            "name": "folio",
+            "in": "query",
+            "description": "Folio exacto del documento. Si se envía, se ignoran otros filtros y se devuelve el documento específico.",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Busca por nombre o RUT del receptor (cuando `document_type=issued`) o del emisor (cuando `document_type=received`).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dte_type__code__in",
+            "in": "query",
+            "description": "Lista de códigos DTE separados por coma (ej: 33,34). Opcional: si no se envía, se devuelven todos los tipos según document_type (emitidos o recibidos).",
+            "required": false,
+            "style": "form",
+            "explode": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "issuer_tax_id",
+            "in": "query",
+            "description": "RUT del emisor cuando `document_type=received`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "issue_date_gte",
+            "in": "query",
+            "description": "Fecha de emisión mínima (inclusive) en formato `YYYY-MM-DD`. Filtra documentos cuya fecha de emisión (`date_issued`) sea igual o posterior a esta fecha. Ejemplo: `issue_date_gte=2026-01-01` devuelve documentos emitidos desde el 1 de enero de 2026 en adelante.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-01-01"
+          },
+          {
+            "name": "issue_date_lte",
+            "in": "query",
+            "description": "Fecha de emisión máxima (inclusive) en formato `YYYY-MM-DD`. Filtra documentos cuya fecha de emisión (`date_issued`) sea igual o anterior a esta fecha. Ejemplo: `issue_date_lte=2026-01-31` devuelve documentos emitidos hasta el 31 de enero de 2026. Combínalo con `issue_date_gte` para definir un rango de fechas.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-01-31"
+          },
+          {
+            "name": "reception_date_from",
+            "in": "query",
+            "description": "Fecha de recepción mínima (inclusive) en formato `YYYY-MM-DD`. Filtra documentos recibidos cuya fecha de recepción en el libro del SII sea igual o posterior a esta fecha. Solo aplica a documentos que están en el libro de compras del SII (`document_type=received`).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-01-01"
+          },
+          {
+            "name": "reception_date_to",
+            "in": "query",
+            "description": "Fecha de recepción máxima (inclusive) en formato `YYYY-MM-DD`. Filtra documentos recibidos cuya fecha de recepción en el libro del SII sea igual o anterior a esta fecha. Solo aplica a documentos que están en el libro de compras del SII (`document_type=received`). Combínalo con `reception_date_from` para definir un rango.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-01-31"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Página actual, parte de la paginación estándar. Por defecto: 1. La respuesta incluye `count` (total), `next`, `previous` (URLs de navegación) y `results` (arreglo de documentos con información de emisor, receptor, montos, estado, PDF y referencias).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "description": "Tamaño de página (máx. 100). Por defecto: 20.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "include_trace_events",
+            "in": "query",
+            "description": "Si es `true`, cada documento incluye el array completo `traces` con sus `events` (eventos de la traza del SII: ACD, ERM, RCD, etc.). Por defecto la lista solo trae el resumen liviano `latest_trace_info` para no inflar la respuesta. Úsalo solo cuando necesites trazabilidad detallada — el endpoint de detalle (`GET /documents/{document_id}`) ya retorna estos eventos siempre.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de documentos obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentListResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para acceder a esta entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/batch": {
+      "post": {
+        "operationId": "createDocumentsBatch",
+        "summary": "Envío de documentos en lote",
+        "description": "Crea hasta 200 documentos en una sola llamada. La respuesta incluye información completa de cada documento creado, incluyendo PDF cuando está disponible. Los resultados también se enviarán por webhook si está configurado.\n\n**Permisos requeridos:** La API Key debe tener el permiso `document:create` o permisos completos (`*`). Además, la entidad emisora debe tener credenciales SII válidas configuradas.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Previene lotes duplicados (≤ 256 caracteres, expira después de 24 h)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Use-Defaults",
+            "in": "header",
+            "description": "Si se establece como true, el sistema usará valores por defecto para campos no proporcionados:\n- Fecha actual para date_issued\n- Datos del emisor según configuración de la plataforma o primera actividad/dirección disponible\n- Datos del receptor según configuración del cliente o primera actividad/dirección disponible\n- Payment method = '2' (crédito) en el header del documento",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Lote de documentos a crear",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentBatch"
+              },
+              "example": {
+                "documents": [
+                  {
+                    "dte_type": {
+                      "code": "33"
+                    },
+                    "date_issued": "2024-01-15",
+                    "document_issuer": {
+                      "rut": "12345678-9",
+                      "business_name": "Mi Empresa SpA"
+                    },
+                    "document_receiver": {
+                      "rut": "98765432-1",
+                      "business_name": "Cliente Importante Ltda"
+                    },
+                    "details": [
+                      {
+                        "item_name": "Servicio de Consultoría",
+                        "quantity": 1,
+                        "unit_price": 100000
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Solicitud de creación de documentos aceptada. Los resultados se enviarán por webhook.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchResponse"
+                },
+                "example": {
+                  "batch_id": "550e8400-e29b-41d4-a716-446655440000",
+                  "status": "processing",
+                  "created_at": "2024-01-15T10:30:00Z",
+                  "documents": [
+                    {
+                      "index": 0,
+                      "status": "created",
+                      "document": {
+                        "id": 12345,
+                        "folio": "1",
+                        "date_issued": "2024-01-15",
+                        "amount_with_iva": 119000.0,
+                        "receiver_id": 456,
+                        "is_draft": false,
+                        "can_be_issued": true,
+                        "dte_type": {
+                          "code": "33",
+                          "description": "Factura Electrónica"
+                        },
+                        "sender": {
+                          "id": 123,
+                          "name": "Mi Empresa SpA",
+                          "tax_id": "12345678-9"
+                        },
+                        "receiver": {
+                          "id": 456,
+                          "name": "Cliente Importante Ltda",
+                          "tax_id": "98765432-1"
+                        },
+                        "items": [
+                          {
+                            "item_name": "Servicio de Consultoría",
+                            "item_description": null,
+                            "quantity": 1.0,
+                            "unit_price": 100000.0,
+                            "unit": "UN",
+                            "item_code": null,
+                            "item_type_code": null,
+                            "discount_percent": null,
+                            "other_tax": null
+                          }
+                        ],
+                        "document_total": {
+                          "net_amount": 100000.0,
+                          "iva_rate": 19.0,
+                          "iva_amount": 19000.0,
+                          "total_amount": 119000.0
+                        },
+                        "pdf_url": "https://s3.amazonaws.com/bucket/documento_12345.pdf?signature=...",
+                        "pdf_download_url": "/api/master-entities/123/documents/12345/file/"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para crear documentos. La API Key debe tener el permiso 'document:create' o permisos completos ('*'). Además, la entidad emisora debe tener credenciales SII válidas configuradas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Esta entidad no tiene credenciales SII válidas configuradas"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Más de 200 documentos en el array",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Cuerpo malformado o fallo de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/documents/{document_id}": {
+      "get": {
+        "operationId": "getDocument",
+        "tags": [
+          "Documentos"
+        ],
+        "summary": "Obtener documento específico",
+        "description": "Obtiene toda la información completa de un documento tributario específico, incluyendo:\n\n- **PDF y XML** cuando están disponibles (el PDF siempre se incluye en la respuesta, campo `pdf_url`)\n- **Detalles (productos/líneas)** del documento (campo `details`)\n- **Header completo** con información de transacción, pago y tipo de compra (campo `header`)\n- **Información del emisor** completa (campo `document_issuer`)\n- **Información del receptor** completa (campo `document_receiver`)\n- **Referencias** a otros documentos, como notas de crédito (campo `references`)\n\nEste endpoint es útil para consultar detalles completos de un documento ya emitido o recibido.\n\n**Seguridad:** El usuario solo puede acceder al documento si es emisor (sender) o receptor (receiver) del documento. Si el usuario no tiene acceso, se retorna un error 403 Forbidden.",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "description": "ID único del documento a consultar (entero)",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Documento obtenido exitosamente con toda la información completa: PDF, XML, detalles (productos), header, información del emisor y receptor, y referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDetailWithFiles"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API Key faltante o inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para acceder al documento. El usuario debe ser emisor (sender) o receptor (receiver) del documento.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "No tienes acceso a este documento"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documento o entidad no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
     "/credentials": {
+      "get": {
+        "operationId": "listCredentials",
+        "tags": [
+          "Credenciales"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar credenciales",
+        "description": "Obtiene todas las activas del usuario autenticado",
+        "responses": {
+          "200": {
+            "description": "Lista de credenciales obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "description": "ID único de la credencial",
+                        "example": 245
+                      },
+                      "user": {
+                        "type": "string",
+                        "description": "RUT del usuario de la credencial",
+                        "example": "16659618-1"
+                      },
+                      "credential_type": {
+                        "type": "object",
+                        "description": "Tipo de credencial",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "description": "ID del tipo de credencial",
+                            "example": 70
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Nombre del tipo de credencial",
+                            "example": "SII"
+                          }
+                        }
+                      },
+                      "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Fecha de creación de la credencial",
+                        "example": "2025-08-06T01:24:45.422918Z"
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "Estado de la credencial",
+                        "enum": [
+                          "VALID",
+                          "INVALID",
+                          "EXPIRED"
+                        ],
+                        "example": "VALID"
+                      },
+                      "master_entities": {
+                        "type": "array",
+                        "description": "Lista de entidades maestras asociadas a la credencial",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "description": "ID de la entidad maestra",
+                              "example": 4355
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "Nombre de la entidad maestra",
+                              "example": "HIDDEN CORE SPA"
+                            },
+                            "tax_id": {
+                              "type": "string",
+                              "description": "RUT de la entidad maestra",
+                              "example": "78.121.555-4"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API key inválida o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin permisos para acceder a credenciales",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "operationId": "createCredential",
         "summary": "Crear credencial",
@@ -55,12 +612,6 @@
                     "type": "integer",
                     "description": "ID de la entidad maestra a la que pertenece la credencial",
                     "example": 123
-                  },
-                  "credential_type": {
-                    "type": "string",
-                    "description": "Tipo de credencial (recomendado). Valores: sii, sii_company, certificate, bank_chile, bank_estado, bank_santander, bank_scotiabank",
-                    "example": "sii",
-                    "enum": ["sii", "sii_company", "certificate", "bank_chile", "bank_estado", "bank_santander", "bank_scotiabank"]
                   },
                   "credential_type_id": {
                     "type": "integer",
@@ -210,103 +761,237 @@
             "apiKeyAuth": []
           }
         ]
-      },
+      }
+    },
+    "/master-entities": {
       "get": {
-        "operationId": "listCredentials",
+        "summary": "Buscar entidad por RUT",
+        "description": "Busca una entidad maestra específica por su RUT. Requiere autenticación por API Key.\n\n**Permisos requeridos:** Este endpoint actualmente no requiere permisos específicos (`AllowAny`), pero requiere autenticación válida por API Key.\n\n**Respuesta:** Retorna información completa de la entidad incluyendo direcciones y actividades económicas. Si la entidad no existe en la base de datos, el sistema intentará buscarla y crearla automáticamente usando el scraper del SII.",
+        "parameters": [
+          {
+            "name": "rut",
+            "in": "query",
+            "description": "RUT del cliente a consultar (formato: 76543210-1, sin puntos)",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{7,8}-[0-9K]$",
+              "example": "76543210-1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entidad encontrada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MasterEntity"
+                },
+                "example": {
+                  "id": 371,
+                  "tax_id": "76.798.398-0",
+                  "name": "SUPLO SPA",
+                  "email": "contacto@suplo.cl",
+                  "addresses": [
+                    {
+                      "id": 6,
+                      "address": "AV TAJAMAR 183 OF 401   OFIC",
+                      "district": {
+                        "id": 7,
+                        "name": "LAS CONDES",
+                        "city": {
+                          "id": 3,
+                          "name": "SANTIAGO"
+                        }
+                      },
+                      "sii_branch_code": null,
+                      "phone": null
+                    }
+                  ],
+                  "activities": [
+                    {
+                      "id": 1,
+                      "code": "620900",
+                      "name": "OTRAS ACTIVIDADES DE TECNOLOGIA DE LA IN"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "API Key inválida o sin autenticación. Aunque este endpoint no requiere permisos específicos, requiere una API Key válida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "API Key inválida o faltante"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetro 'rut' faltante o formato inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API Key inválida o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/scheduled-documents": {
+      "get": {
         "tags": [
-          "Credenciales"
+          "Documentos Programados"
         ],
         "security": [
           {
             "apiKeyAuth": []
           }
         ],
-        "summary": "Listar credenciales",
-        "description": "Obtiene todas las activas del usuario autenticado",
+        "summary": "Listar documentos programados",
+        "description": "Obtiene una lista paginada de documentos programados de una entidad específica. Los documentos programados son plantillas que se ejecutan automáticamente según una frecuencia definida.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad maestra",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filtrar por estado del documento programado",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "inactive",
+                "completed"
+              ],
+              "example": "active"
+            }
+          },
+          {
+            "name": "frequency",
+            "in": "query",
+            "description": "Filtrar por frecuencia de ejecución",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "daily",
+                "weekly",
+                "monthly",
+                "quarterly"
+              ],
+              "example": "monthly"
+            }
+          },
+          {
+            "name": "dte_type",
+            "in": "query",
+            "description": "Filtrar por tipo de DTE",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "33"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Número de página para paginación",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "example": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "description": "Número de elementos por página",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100,
+              "example": 20
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Lista de credenciales obtenida exitosamente",
+            "description": "Lista de documentos programados obtenida exitosamente",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "integer",
-                        "description": "ID único de la credencial",
-                        "example": 245
-                      },
-                      "user": {
-                        "type": "string",
-                        "description": "RUT del usuario de la credencial",
-                        "example": "16659618-1"
-                      },
-                      "credential_type": {
-                        "type": "object",
-                        "description": "Tipo de credencial",
-                        "properties": {
-                          "id": {
-                            "type": "integer",
-                            "description": "ID del tipo de credencial",
-                            "example": 70
-                          },
-                          "name": {
-                            "type": "string",
-                            "description": "Nombre del tipo de credencial",
-                            "example": "SII"
-                          }
-                        }
-                      },
-                      "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "description": "Fecha de creación de la credencial",
-                        "example": "2025-08-06T01:24:45.422918Z"
-                      },
-                      "status": {
-                        "type": "string",
-                        "description": "Estado de la credencial",
-                        "enum": [
-                          "VALID",
-                          "INVALID",
-                          "EXPIRED"
-                        ],
-                        "example": "VALID"
-                      },
-                      "master_entities": {
-                        "type": "array",
-                        "description": "Lista de entidades maestras asociadas a la credencial",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "integer",
-                              "description": "ID de la entidad maestra",
-                              "example": 4355
-                            },
-                            "name": {
-                              "type": "string",
-                              "description": "Nombre de la entidad maestra",
-                              "example": "HIDDEN CORE SPA"
-                            },
-                            "tax_id": {
-                              "type": "string",
-                              "description": "RUT de la entidad maestra",
-                              "example": "78.121.555-4"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ScheduledDocumentListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
           },
           "401": {
-            "description": "No autorizado - API key inválida o faltante",
+            "description": "No autorizado - API Key inválida",
             "content": {
               "application/json": {
                 "schema": {
@@ -316,11 +1001,937 @@
             }
           },
           "403": {
-            "description": "Prohibido - Sin permisos para acceder a credenciales",
+            "description": "Prohibido - Sin acceso a la entidad",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createScheduledDocument",
+        "tags": [
+          "Documentos Programados"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Crear documento programado",
+        "description": "Crea un nuevo documento programado que se ejecutará automáticamente según la frecuencia especificada.",
+        "requestBody": {
+          "description": "Datos del documento programado a crear",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduledDocumentCreate"
+              },
+              "example": {
+                "sender": 123,
+                "dte_type": "33",
+                "receiver_tax_id": "76111111-1",
+                "frequency": "monthly",
+                "day_of_month": 10,
+                "currency": "CLP",
+                "currency_day": 10,
+                "status": "active",
+                "references": [
+                  {
+                    "dte_type_code": "33",
+                    "reference_folio": "100",
+                    "reference_date": "2024-01-15",
+                    "reference_reason": "ANULA DOCUMENTO DE LA REFERENCIA"
+                  }
+                ],
+                "details": [
+                  {
+                    "item_name": "Servicio mensual de consultoría",
+                    "item_description": "Asistencia contable mensual",
+                    "quantity": 1,
+                    "unit_price": 150000
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Documento programado creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledDocument"
+                },
+                "example": {
+                  "id": 987,
+                  "sender": {
+                    "id": 123,
+                    "name": "Empresa Ejemplo SpA",
+                    "rut": "76543210-1"
+                  },
+                  "receiver": {
+                    "id": 456,
+                    "name": "Cliente ABC Ltda",
+                    "rut": "12345678-9"
+                  },
+                  "dte_type": {
+                    "id": 1,
+                    "code": "33",
+                    "description": "Factura Electrónica"
+                  },
+                  "frequency": "monthly",
+                  "frequency_display": "Mensual",
+                  "day_of_month": 10,
+                  "day_of_week": null,
+                  "next_execution": "2024-03-10T10:00:00Z",
+                  "status": "active",
+                  "status_display": "Activo",
+                  "amount": 150000,
+                  "currency": "CLP",
+                  "currency_day": 10,
+                  "completed_occurrences": 0,
+                  "max_occurrences": null,
+                  "references": [
+                    {
+                      "id": 1,
+                      "dte_type_code": "33",
+                      "reference_folio": "100",
+                      "reference_date": "2024-01-15",
+                      "reference_reason": "ANULA DOCUMENTO DE LA REFERENCIA"
+                    }
+                  ],
+                  "details": [
+                    {
+                      "id": 1,
+                      "item_name": "Servicio mensual de consultoría",
+                      "item_description": "Asistencia contable mensual",
+                      "quantity": 1,
+                      "unit_price": 150000
+                    }
+                  ],
+                  "created_at": "2024-02-05T12:15:00Z",
+                  "updated_at": "2024-02-05T12:15:00Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API Key inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error de validación en el SII",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scheduled-documents/{id}": {
+      "get": {
+        "tags": [
+          "Documentos Programados"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Obtener documento programado",
+        "description": "Obtiene los detalles de un documento programado específico.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del documento programado",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 789
+            }
+          },
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad maestra",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Documento programado obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledDocument"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documento programado no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API Key inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateScheduledDocument",
+        "tags": [
+          "Documentos Programados"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Actualizar documento programado",
+        "description": "Actualiza parcialmente un documento programado existente.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del documento programado",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 789
+            }
+          },
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad maestra",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Campos a actualizar del documento programado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduledDocumentUpdate"
+              },
+              "example": {
+                "status": "inactive",
+                "amount": 120000,
+                "currency_day": 15,
+                "references": [
+                  {
+                    "dte_type_code": "33",
+                    "reference_folio": "100",
+                    "reference_date": "2024-01-15",
+                    "reference_reason": "ANULA DOCUMENTO DE LA REFERENCIA"
+                  }
+                ],
+                "details": [
+                  {
+                    "item_name": "Servicio actualizado",
+                    "item_description": "Descripción del servicio",
+                    "quantity": 1,
+                    "unit_price": 120000
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Documento programado actualizado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledDocument"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API Key inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documento programado no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Documentos Programados"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Eliminar documento programado",
+        "description": "Elimina un documento programado existente.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del documento programado",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 789
+            }
+          },
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad maestra",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Documento programado eliminado exitosamente"
+          },
+          "404": {
+            "description": "Documento programado no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API Key inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scheduled-documents/{id}/preview": {
+      "get": {
+        "tags": [
+          "Documentos Programados"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Preview de documento programado guardado",
+        "description": "Genera un preview en PDF del próximo documento que se emitirá para un documento programado ya guardado.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del documento programado",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 789
+            }
+          },
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "ID de la entidad maestra",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Preview generado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pdf_base64": {
+                      "type": "string",
+                      "description": "PDF del documento en formato base64",
+                      "example": "JVBERi0xLjQKMSAwIG9iago8PC9UeXBlIC9DYXRhbG9n..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documento programado no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error generando el preview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API Key inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin acceso a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/{document_id}/states": {
+      "get": {
+        "operationId": "listDocumentStates",
+        "tags": [
+          "Estados de Documentos"
+        ],
+        "summary": "Consultar historial de estados de un documento",
+        "description": "Consultar el historial de estados asociados a un documento tributario específico.",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "description": "ID único del documento (integer)",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historial de estados obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentStatesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para acceder a este documento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "No tienes acceso a este documento"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documento no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Estados de Documentos"
+        ],
+        "summary": "Registrar nuevo estado en un documento",
+        "description": "Registrar un nuevo estado cuando ocurre un evento relevante sobre el documento. Admite eventos del SII (ERM, ACD, RCD, RFT, RFP) y eventos internos de cobranza: **PAID** (marcar factura emitida como pagada) y **UNPAID** (marcar como no pagada). Para PAID y UNPAID solo el emisor del documento puede usarlos; aplican a facturas emitidas (tipo 33, 34, 39, 41). PAID genera un asiento contable de cierre de cuentas por cobrar (CxC); UNPAID revierte ese asiento si existe.",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "description": "ID único del documento (integer)",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentStateRequest"
+              },
+              "examples": {
+                "acuse_recibo": {
+                  "summary": "Registrar acuse de recibo",
+                  "value": {
+                    "event_code": "ERM"
+                  }
+                },
+                "rechazo": {
+                  "summary": "Registrar rechazo",
+                  "value": {
+                    "event_code": "RCD",
+                    "rejection_reason": "Error en el monto facturado"
+                  }
+                },
+                "aceptacion_contenido": {
+                  "summary": "Aceptar contenido del documento",
+                  "value": {
+                    "event_code": "ACD"
+                  }
+                },
+                "marcar_como_pagado": {
+                  "summary": "Marcar factura como pagada (PAID)",
+                  "description": "Solo emisor; factura emitida (33, 34, 39, 41). Genera asiento de cierre CxC.",
+                  "value": {
+                    "event_code": "PAID"
+                  }
+                },
+                "marcar_como_no_pagado": {
+                  "summary": "Marcar factura como no pagada (UNPAID)",
+                  "description": "Solo emisor; revierte el asiento de cierre CxC si existe.",
+                  "value": {
+                    "event_code": "UNPAID"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Estado registrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentStateResponse"
+                },
+                "examples": {
+                  "respuesta_paid": {
+                    "summary": "Respuesta al marcar como pagado (PAID)",
+                    "value": {
+                      "success": true,
+                      "event_registered": true,
+                      "message": "Documento marcado como pagado. Se generó el asiento contable de cierre de cuentas por cobrar.",
+                      "document": {
+                        "id": 12345,
+                        "folio": "42",
+                        "date_issued": "2025-01-15",
+                        "document_status": {
+                          "paid_status": "PAID"
+                        }
+                      }
+                    }
+                  },
+                  "respuesta_unpaid": {
+                    "summary": "Respuesta al marcar como no pagado (UNPAID)",
+                    "value": {
+                      "success": true,
+                      "event_registered": true,
+                      "message": "Documento marcado como no pagado. Se revirtió el asiento de cierre de cuentas por cobrar.",
+                      "document": {
+                        "id": 12345,
+                        "folio": "42",
+                        "document_status": {
+                          "paid_status": "NOT_PAID"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos o error al registrar el evento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "parametros_faltantes": {
+                    "value": {
+                      "error": "Se requiere el código del evento (event_code)"
+                    }
+                  },
+                  "evento_invalido": {
+                    "value": {
+                      "error": "Código de evento inválido. Debe ser uno de: ERM, ACD, RCD, RFT, RFP, PAID, UNPAID"
+                    }
+                  },
+                  "error_sii": {
+                    "value": {
+                      "success": false,
+                      "error": "Error al registrar evento en el SII",
+                      "error_code": "SII_ERROR_CODE"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para acceder a este documento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documento no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/cessions": {
+      "get": {
+        "operationId": "listCessions",
+        "tags": [
+          "Cesiones"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar cesiones emitidas",
+        "description": "Obtiene todas las cesiones de facturas (AEC) emitidas por una entidad. Las cesiones son las transferencias de derechos de crédito de facturas a un cesionario (por ejemplo una empresa de factoring). Requiere el ID de la entidad emisora.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "required": true,
+            "description": "ID de la entidad maestra (emisora de las facturas cedidas). Obligatorio.",
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "description": "Fecha desde (YYYY-MM-DD) para filtrar por fecha de creación de la cesión.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "description": "Fecha hasta (YYYY-MM-DD) para filtrar por fecha de creación de la cesión.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Estado en el SII: processing, rejected o success.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "processing",
+                "rejected",
+                "success"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "description": "Búsqueda en folio del documento, nombre o RUT del emisor, o razón social/RUT del cesionario.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Número de página (paginación).",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "description": "Cantidad de resultados por página.",
+            "schema": {
+              "type": "integer",
+              "default": 25
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista paginada de cesiones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer",
+                      "description": "Total de resultados"
+                    },
+                    "total_pages": {
+                      "type": "integer"
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CessionListItem"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "master_entity_id faltante o inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "master_entity_id": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No tienes acceso a esta entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }
@@ -340,7 +1951,7 @@
           }
         ],
         "summary": "Obtener una cesión",
-        "description": "Obtiene el detalle de una cesión por ID. La respuesta incluye certificate_pdf_url con la URL presignada del certificado PDF si ya fue descargado (null si aún no se ha descargado).",
+        "description": "Obtiene el detalle de una cesión por ID. Si se envía el parámetro pdf=document-cession, la respuesta es una redirección (302) a la URL presignada del certificado de cesión en S3 (PDF del SII). Por defecto devuelve el JSON con el detalle de la cesión.",
         "parameters": [
           {
             "name": "id",
@@ -349,6 +1960,18 @@
             "description": "ID de la cesión",
             "schema": {
               "type": "integer"
+            }
+          },
+          {
+            "name": "pdf",
+            "in": "query",
+            "required": false,
+            "description": "Si se envía el valor document-cession, la API redirige a la URL presignada de S3 del certificado de cesión (PDF). Útil para descargar o mostrar el certificado.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "document-cession"
+              ]
             }
           }
         ],
@@ -408,15 +2031,21 @@
                       "items": {
                         "type": "object"
                       }
-                    },
-                    "certificate_pdf_url": {
-                      "type": "string",
-                      "format": "uri",
-                      "nullable": true,
-                      "description": "URL presignada del certificado de cesión (PDF) en S3/CDN. Tupana descarga automáticamente los certificados al scrapear cesiones."
                     }
                   }
                 }
+              }
+            }
+          },
+          "302": {
+            "description": "Redirección a la URL presignada del certificado de cesión (PDF en S3). Solo cuando se envía pdf=document-cession.",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "description": "URL presignada de S3 del PDF"
               }
             }
           },
@@ -817,1360 +2446,6 @@
         }
       }
     },
-    "/cessions": {
-      "get": {
-        "operationId": "listCessions",
-        "tags": [
-          "Cesiones"
-        ],
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ],
-        "summary": "Listar cesiones emitidas",
-        "description": "Obtiene todas las cesiones de facturas (AEC) emitidas por una entidad. Las cesiones son las transferencias de derechos de crédito de facturas a un cesionario (por ejemplo una empresa de factoring). Requiere el ID de la entidad emisora.",
-        "parameters": [
-          {
-            "name": "master_entity_id",
-            "in": "query",
-            "required": true,
-            "description": "ID de la entidad maestra (emisora de las facturas cedidas). Obligatorio.",
-            "schema": {
-              "type": "integer",
-              "example": 123
-            }
-          },
-          {
-            "name": "date_from",
-            "in": "query",
-            "required": false,
-            "description": "Fecha desde (YYYY-MM-DD) para filtrar por fecha de creación de la cesión.",
-            "schema": {
-              "type": "string",
-              "format": "date"
-            }
-          },
-          {
-            "name": "date_to",
-            "in": "query",
-            "required": false,
-            "description": "Fecha hasta (YYYY-MM-DD) para filtrar por fecha de creación de la cesión.",
-            "schema": {
-              "type": "string",
-              "format": "date"
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "description": "Estado en el SII: processing, rejected o success.",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "processing",
-                "rejected",
-                "success"
-              ]
-            }
-          },
-          {
-            "name": "search",
-            "in": "query",
-            "required": false,
-            "description": "Búsqueda en folio del documento, nombre o RUT del emisor, o razón social/RUT del cesionario.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "description": "Número de página (paginación).",
-            "schema": {
-              "type": "integer",
-              "default": 1
-            }
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "required": false,
-            "description": "Cantidad de resultados por página.",
-            "schema": {
-              "type": "integer",
-              "default": 25
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Lista paginada de cesiones",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "count": {
-                      "type": "integer",
-                      "description": "Total de resultados"
-                    },
-                    "total_pages": {
-                      "type": "integer"
-                    },
-                    "results": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/CessionListItem"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "master_entity_id faltante o inválido",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "master_entity_id": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "No tienes acceso a esta entidad",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "detail": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/documents/{document_id}": {
-      "get": {
-        "operationId": "getDocument",
-        "tags": [
-          "Documentos"
-        ],
-        "summary": "Obtener documento específico",
-        "description": "Obtiene toda la información completa de un documento tributario específico, incluyendo:\n\n- **PDF y XML** cuando están disponibles (el PDF siempre se incluye en la respuesta, campo `pdf_url`)\n- **Detalles (productos/líneas)** del documento (campo `details`)\n- **Header completo** con información de transacción, pago y tipo de compra (campo `header`)\n- **Información del emisor** completa (campo `document_issuer`)\n- **Información del receptor** completa (campo `document_receiver`)\n- **Referencias** a otros documentos, como notas de crédito (campo `references`)\n\nEste endpoint es útil para consultar detalles completos de un documento ya emitido o recibido.\n\n**Seguridad:** El usuario solo puede acceder al documento si es emisor (sender) o receptor (receiver) del documento. Si el usuario no tiene acceso, se retorna un error 403 Forbidden.",
-        "parameters": [
-          {
-            "name": "document_id",
-            "in": "path",
-            "description": "ID único del documento a consultar (entero)",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Documento obtenido exitosamente con toda la información completa: PDF, XML, detalles (productos), header, información del emisor y receptor, y referencias",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DocumentDetailWithFiles"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Parámetros inválidos",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "API Key faltante o inválida",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sin permisos para acceder al documento. El usuario debe ser emisor (sender) o receptor (receiver) del documento.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string",
-                      "example": "No tienes acceso a este documento"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Documento o entidad no encontrada",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ]
-      }
-    },
-    "/documents/batch": {
-      "post": {
-        "operationId": "createDocumentsBatch",
-        "summary": "Envío de documentos en lote",
-        "description": "Crea hasta 200 documentos en una sola llamada. La respuesta incluye información completa de cada documento creado, incluyendo PDF cuando está disponible. Los resultados también se enviarán por webhook si está configurado.\n\n**Permisos requeridos:** La API Key debe tener el permiso `document:create` o permisos completos (`*`). Además, la entidad emisora debe tener credenciales SII válidas configuradas.",
-        "parameters": [
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "description": "Previene lotes duplicados (≤ 256 caracteres, expira después de 24 h)",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "X-Use-Defaults",
-            "in": "header",
-            "description": "Si se establece como true, el sistema usará valores por defecto para campos no proporcionados:\n- Fecha actual para date_issued\n- Datos del emisor según configuración de la plataforma o primera actividad/dirección disponible\n- Datos del receptor según configuración del cliente o primera actividad/dirección disponible\n- Payment method = '2' (crédito) en el header del documento",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        ],
-        "requestBody": {
-          "description": "Lote de documentos a crear",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DocumentBatch"
-              },
-              "example": {
-                "documents": [
-                  {
-                    "dte_type": {
-                      "code": "33"
-                    },
-                    "date_issued": "2024-01-15",
-                    "document_issuer": {
-                      "rut": "12345678-9",
-                      "business_name": "Mi Empresa SpA"
-                    },
-                    "document_receiver": {
-                      "rut": "98765432-1",
-                      "business_name": "Cliente Importante Ltda"
-                    },
-                    "details": [
-                      {
-                        "item_name": "Servicio de Consultoría",
-                        "quantity": 1,
-                        "unit_price": 100000
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "202": {
-            "description": "Solicitud de creación de documentos aceptada. Los resultados se enviarán por webhook.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BatchResponse"
-                },
-                "example": {
-                  "batch_id": "550e8400-e29b-41d4-a716-446655440000",
-                  "status": "processing",
-                  "created_at": "2024-01-15T10:30:00Z",
-                  "documents": [
-                    {
-                      "index": 0,
-                      "status": "created",
-                      "document": {
-                        "id": 12345,
-                        "folio": "1",
-                        "date_issued": "2024-01-15",
-                        "amount_with_iva": 119000.0,
-                        "receiver_id": 456,
-                        "is_draft": false,
-                        "can_be_issued": true,
-                        "dte_type": {
-                          "code": "33",
-                          "description": "Factura Electrónica"
-                        },
-                        "sender": {
-                          "id": 123,
-                          "name": "Mi Empresa SpA",
-                          "tax_id": "12345678-9"
-                        },
-                        "receiver": {
-                          "id": 456,
-                          "name": "Cliente Importante Ltda",
-                          "tax_id": "98765432-1"
-                        },
-                        "items": [
-                          {
-                            "item_name": "Servicio de Consultoría",
-                            "item_description": null,
-                            "quantity": 1.0,
-                            "unit_price": 100000.0,
-                            "unit": "UN",
-                            "item_code": null,
-                            "item_type_code": null,
-                            "discount_percent": null,
-                            "other_tax": null
-                          }
-                        ],
-                        "document_total": {
-                          "net_amount": 100000.0,
-                          "iva_rate": 19.0,
-                          "iva_amount": 19000.0,
-                          "total_amount": 119000.0
-                        },
-                        "pdf_url": "https://s3.amazonaws.com/bucket/documento_12345.pdf?signature=...",
-                        "pdf_download_url": "/api/master-entities/123/documents/12345/file/"
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sin permisos para crear documentos. La API Key debe tener el permiso 'document:create' o permisos completos ('*'). Además, la entidad emisora debe tener credenciales SII válidas configuradas.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "error": "Esta entidad no tiene credenciales SII válidas configuradas"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Más de 200 documentos en el array",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Cuerpo malformado o fallo de validación",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ]
-      }
-    },
-    "/documents": {
-      "get": {
-        "operationId": "listDocuments",
-        "tags": [
-          "Documentos"
-        ],
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ],
-        "summary": "Listar documentos",
-        "description": "Obtiene las listas de documentos emitidos o recibidos por una entidad específica. Soporta búsqueda por folio, nombre del receptor y filtros avanzados.",
-        "parameters": [
-          {
-            "name": "master_entity_id",
-            "in": "query",
-            "description": "ID de la entidad emisora o receptora cuyos documentos quieres consultar.",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
-            "name": "document_type",
-            "in": "query",
-            "description": "`issued` (por defecto) o `received`. `issued` devuelve documentos donde la entidad es el **emisor**. `received` devuelve documentos donde la entidad es el **receptor** (cuando usas `received`, el parámetro `search` buscará en el nombre y RUT del emisor, y `issuer_tax_id` permite filtrar por RUT del emisor específico).",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "issued",
-                "received"
-              ],
-              "default": "issued"
-            }
-          },
-          {
-            "name": "folio",
-            "in": "query",
-            "description": "Folio exacto del documento. Si se envía, se ignoran otros filtros y se devuelve el documento específico.",
-            "required": false,
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
-            "name": "search",
-            "in": "query",
-            "description": "Busca por nombre o RUT del receptor (cuando `document_type=issued`) o del emisor (cuando `document_type=received`).",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "dte_type__code__in",
-            "in": "query",
-            "description": "Lista de códigos DTE separados por coma (ej: 33,34). Opcional: si no se envía, se devuelven todos los tipos según document_type (emitidos o recibidos).",
-            "required": false,
-            "style": "form",
-            "explode": false,
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          {
-            "name": "issuer_tax_id",
-            "in": "query",
-            "description": "RUT del emisor cuando `document_type=received`.",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "issue_date_gte",
-            "in": "query",
-            "description": "Fecha de emisión mínima (inclusive) en formato `YYYY-MM-DD`. Filtra documentos cuya fecha de emisión (`date_issued`) sea igual o posterior a esta fecha. Ejemplo: `issue_date_gte=2026-01-01` devuelve documentos emitidos desde el 1 de enero de 2026 en adelante.",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "format": "date"
-            },
-            "example": "2026-01-01"
-          },
-          {
-            "name": "issue_date_lte",
-            "in": "query",
-            "description": "Fecha de emisión máxima (inclusive) en formato `YYYY-MM-DD`. Filtra documentos cuya fecha de emisión (`date_issued`) sea igual o anterior a esta fecha. Ejemplo: `issue_date_lte=2026-01-31` devuelve documentos emitidos hasta el 31 de enero de 2026. Combínalo con `issue_date_gte` para definir un rango de fechas.",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "format": "date"
-            },
-            "example": "2026-01-31"
-          },
-          {
-            "name": "reception_date_from",
-            "in": "query",
-            "description": "Fecha de recepción mínima (inclusive) en formato `YYYY-MM-DD`. Filtra documentos recibidos cuya fecha de recepción en el libro del SII sea igual o posterior a esta fecha. Solo aplica a documentos que están en el libro de compras del SII (`document_type=received`).",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "format": "date"
-            },
-            "example": "2026-01-01"
-          },
-          {
-            "name": "reception_date_to",
-            "in": "query",
-            "description": "Fecha de recepción máxima (inclusive) en formato `YYYY-MM-DD`. Filtra documentos recibidos cuya fecha de recepción en el libro del SII sea igual o anterior a esta fecha. Solo aplica a documentos que están en el libro de compras del SII (`document_type=received`). Combínalo con `reception_date_from` para definir un rango.",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "format": "date"
-            },
-            "example": "2026-01-31"
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "description": "Página actual, parte de la paginación estándar. Por defecto: 1. La respuesta incluye `count` (total), `next`, `previous` (URLs de navegación) y `results` (arreglo de documentos con información de emisor, receptor, montos, estado, PDF y referencias).",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 1
-            }
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "description": "Tamaño de página (máx. 100). Por defecto: 20.",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 20,
-              "maximum": 100
-            }
-          },
-          {
-            "name": "include_trace_events",
-            "in": "query",
-            "description": "Si es `true`, cada documento incluye el array completo `traces` con sus `events` (eventos de la traza del SII: ACD, ERM, RCD, etc.). Por defecto la lista solo trae el resumen liviano `latest_trace_info` para no inflar la respuesta. Úsalo solo cuando necesites trazabilidad detallada — el endpoint de detalle (`GET /documents/{document_id}`) ya retorna estos eventos siempre.",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Lista de documentos obtenida exitosamente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DocumentListResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sin permisos para acceder a esta entidad",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Entidad no encontrada",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/master-entities": {
-      "get": {
-        "summary": "Buscar entidad por RUT",
-        "description": "Busca una entidad maestra específica por su RUT. Requiere autenticación por API Key.\n\n**Permisos requeridos:** Este endpoint actualmente no requiere permisos específicos (`AllowAny`), pero requiere autenticación válida por API Key.\n\n**Respuesta:** Retorna información completa de la entidad incluyendo direcciones y actividades económicas. Si la entidad no existe en la base de datos, el sistema intentará buscarla y crearla automáticamente usando el scraper del SII.",
-        "parameters": [
-          {
-            "name": "rut",
-            "in": "query",
-            "description": "RUT del cliente a consultar (formato: 76543210-1, sin puntos)",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "pattern": "^[0-9]{7,8}-[0-9K]$",
-              "example": "76543210-1"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Entidad encontrada exitosamente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MasterEntity"
-                },
-                "example": {
-                  "id": 371,
-                  "tax_id": "76.798.398-0",
-                  "name": "SUPLO SPA",
-                  "email": "contacto@suplo.cl",
-                  "addresses": [
-                    {
-                      "id": 6,
-                      "address": "AV TAJAMAR 183 OF 401   OFIC",
-                      "district": {
-                        "id": 7,
-                        "name": "LAS CONDES",
-                        "city": {
-                          "id": 3,
-                          "name": "SANTIAGO"
-                        }
-                      },
-                      "sii_branch_code": null,
-                      "phone": null
-                    }
-                  ],
-                  "activities": [
-                    {
-                      "id": 1,
-                      "code": "620900",
-                      "name": "OTRAS ACTIVIDADES DE TECNOLOGIA DE LA IN"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "API Key inválida o sin autenticación. Aunque este endpoint no requiere permisos específicos, requiere una API Key válida.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "error": "API Key inválida o faltante"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Parámetro 'rut' faltante o formato inválido",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "API Key inválida o faltante",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Entidad no encontrada",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Error interno del servidor",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ]
-      }
-    },
-    "/scheduled-documents/{id}": {
-      "patch": {
-        "operationId": "updateScheduledDocument",
-        "tags": [
-          "Documentos Programados"
-        ],
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ],
-        "summary": "Actualizar documento programado",
-        "description": "Actualiza parcialmente un documento programado existente.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID del documento programado",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "example": 789
-            }
-          },
-          {
-            "name": "master_entity_id",
-            "in": "query",
-            "description": "ID de la entidad maestra",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "example": 123
-            }
-          }
-        ],
-        "requestBody": {
-          "description": "Campos a actualizar del documento programado",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ScheduledDocumentUpdate"
-              },
-              "example": {
-                "status": "inactive",
-                "amount": 120000,
-                "currency_day": 15,
-                "references": [
-                  {
-                    "dte_type_code": "33",
-                    "reference_folio": "100",
-                    "reference_date": "2024-01-15",
-                    "reference_reason": "ANULA DOCUMENTO DE LA REFERENCIA"
-                  }
-                ],
-                "details": [
-                  {
-                    "item_name": "Servicio actualizado",
-                    "item_description": "Descripción del servicio",
-                    "quantity": 1,
-                    "unit_price": 120000
-                  }
-                ]
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Documento programado actualizado exitosamente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ScheduledDocument"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Datos inválidos",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No autorizado - API Key inválida",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Prohibido - Sin acceso a la entidad",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Documento programado no encontrado",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "Documentos Programados"
-        ],
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ],
-        "summary": "Obtener documento programado",
-        "description": "Obtiene los detalles de un documento programado específico.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID del documento programado",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "example": 789
-            }
-          },
-          {
-            "name": "master_entity_id",
-            "in": "query",
-            "description": "ID de la entidad maestra",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "example": 123
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Documento programado obtenido exitosamente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ScheduledDocument"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Documento programado no encontrado",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No autorizado - API Key inválida",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Prohibido - Sin acceso a la entidad",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Documentos Programados"
-        ],
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ],
-        "summary": "Eliminar documento programado",
-        "description": "Elimina un documento programado existente.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID del documento programado",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "example": 789
-            }
-          },
-          {
-            "name": "master_entity_id",
-            "in": "query",
-            "description": "ID de la entidad maestra",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "example": 123
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Documento programado eliminado exitosamente"
-          },
-          "404": {
-            "description": "Documento programado no encontrado",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No autorizado - API Key inválida",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Prohibido - Sin acceso a la entidad",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/scheduled-documents": {
-      "post": {
-        "operationId": "createScheduledDocument",
-        "tags": [
-          "Documentos Programados"
-        ],
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ],
-        "summary": "Crear documento programado",
-        "description": "Crea un nuevo documento programado que se ejecutará automáticamente según la frecuencia especificada.",
-        "requestBody": {
-          "description": "Datos del documento programado a crear",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ScheduledDocumentCreate"
-              },
-              "example": {
-                "sender": 123,
-                "dte_type": "33",
-                "receiver_tax_id": "76111111-1",
-                "frequency": "monthly",
-                "day_of_month": 10,
-                "currency": "CLP",
-                "currency_day": 10,
-                "status": "active",
-                "references": [
-                  {
-                    "dte_type_code": "33",
-                    "reference_folio": "100",
-                    "reference_date": "2024-01-15",
-                    "reference_reason": "ANULA DOCUMENTO DE LA REFERENCIA"
-                  }
-                ],
-                "details": [
-                  {
-                    "item_name": "Servicio mensual de consultoría",
-                    "item_description": "Asistencia contable mensual",
-                    "quantity": 1,
-                    "unit_price": 150000
-                  }
-                ]
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Documento programado creado exitosamente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ScheduledDocument"
-                },
-                "example": {
-                  "id": 987,
-                  "sender": {
-                    "id": 123,
-                    "name": "Empresa Ejemplo SpA",
-                    "rut": "76543210-1"
-                  },
-                  "receiver": {
-                    "id": 456,
-                    "name": "Cliente ABC Ltda",
-                    "rut": "12345678-9"
-                  },
-                  "dte_type": {
-                    "id": 1,
-                    "code": "33",
-                    "description": "Factura Electrónica"
-                  },
-                  "frequency": "monthly",
-                  "frequency_display": "Mensual",
-                  "day_of_month": 10,
-                  "day_of_week": null,
-                  "next_execution": "2024-03-10T10:00:00Z",
-                  "status": "active",
-                  "status_display": "Activo",
-                  "amount": 150000,
-                  "currency": "CLP",
-                  "currency_day": 10,
-                  "completed_occurrences": 0,
-                  "max_occurrences": null,
-                  "references": [
-                    {
-                      "id": 1,
-                      "dte_type_code": "33",
-                      "reference_folio": "100",
-                      "reference_date": "2024-01-15",
-                      "reference_reason": "ANULA DOCUMENTO DE LA REFERENCIA"
-                    }
-                  ],
-                  "details": [
-                    {
-                      "id": 1,
-                      "item_name": "Servicio mensual de consultoría",
-                      "item_description": "Asistencia contable mensual",
-                      "quantity": 1,
-                      "unit_price": 150000
-                    }
-                  ],
-                  "created_at": "2024-02-05T12:15:00Z",
-                  "updated_at": "2024-02-05T12:15:00Z"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Datos inválidos",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No autorizado - API Key inválida",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Prohibido - Sin acceso a la entidad",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Error de validación en el SII",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "Documentos Programados"
-        ],
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ],
-        "summary": "Listar documentos programados",
-        "description": "Obtiene una lista paginada de documentos programados de una entidad específica. Los documentos programados son plantillas que se ejecutan automáticamente según una frecuencia definida.",
-        "parameters": [
-          {
-            "name": "master_entity_id",
-            "in": "query",
-            "description": "ID de la entidad maestra",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "example": 123
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "description": "Filtrar por estado del documento programado",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "active",
-                "inactive",
-                "completed"
-              ],
-              "example": "active"
-            }
-          },
-          {
-            "name": "frequency",
-            "in": "query",
-            "description": "Filtrar por frecuencia de ejecución",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "daily",
-                "weekly",
-                "monthly",
-                "quarterly"
-              ],
-              "example": "monthly"
-            }
-          },
-          {
-            "name": "dte_type",
-            "in": "query",
-            "description": "Filtrar por tipo de DTE",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "example": "33"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "description": "Número de página para paginación",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 1,
-              "example": 1
-            }
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "description": "Número de elementos por página",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 20,
-              "maximum": 100,
-              "example": 20
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Lista de documentos programados obtenida exitosamente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ScheduledDocumentListResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Parámetros inválidos",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No autorizado - API Key inválida",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Prohibido - Sin acceso a la entidad",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/scheduled-documents/{id}/preview": {
-      "get": {
-        "tags": [
-          "Documentos Programados"
-        ],
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ],
-        "summary": "Preview de documento programado guardado",
-        "description": "Genera un preview en PDF del próximo documento que se emitirá para un documento programado ya guardado.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID del documento programado",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "example": 789
-            }
-          },
-          {
-            "name": "master_entity_id",
-            "in": "query",
-            "description": "ID de la entidad maestra",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "example": 123
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Preview generado exitosamente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "pdf_base64": {
-                      "type": "string",
-                      "description": "PDF del documento en formato base64",
-                      "example": "JVBERi0xLjQKMSAwIG9iago8PC9UeXBlIC9DYXRhbG9n..."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Documento programado no encontrado",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Error generando el preview",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No autorizado - API Key inválida",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Prohibido - Sin acceso a la entidad",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/webhooks": {
       "get": {
         "operationId": "listWebhooks",
@@ -2359,10 +2634,935 @@
           }
         }
       }
+    },
+    "/honorary/authorized-users/": {
+      "get": {
+        "summary": "Listar usuarios autorizados",
+        "description": "Obtiene la lista de usuarios autorizados para emitir boletas de honorarios desde el SII. El master_entity_id se proporciona como query parameter.",
+        "tags": [
+          "Honorary"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "ID de la entidad maestra"
+            },
+            "description": "ID de la entidad para la cual se consultan los autorizados. Debe proporcionarse como query parameter."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de usuarios autorizados obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "authorized_users": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "rut": {
+                            "type": "string",
+                            "description": "RUT del usuario con formato de puntos y guión",
+                            "example": "12.345.678-9"
+                          },
+                          "nombre": {
+                            "type": "string",
+                            "description": "Nombre completo del usuario autorizado",
+                            "example": "MARIA JOSEFA GONZALEZ LOPEZ"
+                          },
+                          "enrolled": {
+                            "type": "boolean",
+                            "description": "Si el usuario ya está enrolado en el sistema",
+                            "example": false
+                          }
+                        },
+                        "required": [
+                          "rut",
+                          "nombre",
+                          "enrolled"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "authorized_users"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Se requiere el parámetro master_entity_id"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para acceder a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Usuario sin permisos para acceder a la entidad"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad no encontrada o sin credenciales",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "No se encontró una credencial válida para la entidad"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Error al obtener usuarios autorizadores"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Enrolar usuario autorizado",
+        "description": "Enrola un usuario autorizado del SII para emitir boletas de honorarios. El master_entity_id y rut se proporcionan en el body o query parameters. Para desenrolar, usa el endpoint de desenrolar.",
+        "tags": [
+          "Honorary"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "ID de la entidad emisora"
+            },
+            "description": "ID de la entidad emisora. Puede proporcionarse en query parameter o en el body."
+          },
+          {
+            "name": "rut",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "RUT del usuario autorizado"
+            },
+            "description": "RUT del usuario a gestionar. Puede proporcionarse en query parameter o en el body."
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "master_entity_id": {
+                    "type": "integer",
+                    "description": "ID de la entidad emisora (requerido si no se proporciona en query parameter)",
+                    "example": 1
+                  },
+                  "rut": {
+                    "type": "string",
+                    "description": "RUT del usuario autorizado (requerido si no se proporciona en query parameter)",
+                    "example": "12.345.678-9"
+                  },
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "enroll",
+                      "unenroll"
+                    ],
+                    "description": "Acción a realizar. Por defecto 'enroll'",
+                    "default": "enroll",
+                    "example": "enroll"
+                  }
+                },
+                "required": [
+                  "master_entity_id",
+                  "rut"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operación exitosa (enrolar o desenrolar)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "description": "Respuesta al enrolar",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "enrolled",
+                            "already_enrolled"
+                          ],
+                          "description": "Estado del enrolamiento"
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Mensaje descriptivo"
+                        },
+                        "rut": {
+                          "type": "string",
+                          "description": "RUT normalizado del usuario enrolado"
+                        },
+                        "master_entity": {
+                          "type": "object",
+                          "description": "Información de la entidad creada/asociada",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "description": "ID de la entidad"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "Nombre completo de la entidad"
+                            },
+                            "tax_id": {
+                              "type": "string",
+                              "description": "RUT de la entidad"
+                            }
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "message",
+                        "rut"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "description": "Respuesta al desenrolar",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "description": "Siempre true para respuestas exitosas",
+                          "example": true
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Mensaje descriptivo del resultado",
+                          "example": "Usuario autorizador 12345678-9 desenrolado exitosamente"
+                        },
+                        "rut": {
+                          "type": "string",
+                          "description": "RUT del usuario desenrolado",
+                          "example": "12345678-9"
+                        }
+                      },
+                      "required": [
+                        "success",
+                        "message",
+                        "rut"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos, usuario no autorizado, o acción inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "example": "Se requiere el parámetro master_entity_id"
+                        },
+                        {
+                          "example": "Se requiere el parámetro rut"
+                        },
+                        {
+                          "example": "El RUT proporcionado no está en la lista de usuarios autorizadores"
+                        },
+                        {
+                          "example": "La acción debe ser 'enroll' o 'unenroll'"
+                        },
+                        {
+                          "example": "El RUT proporcionado no es válido"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para acceder a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Usuario sin permisos para acceder a la entidad"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad, credencial o usuario no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "example": "No se encontró una credencial válida para la entidad"
+                        },
+                        {
+                          "example": "No se encontró una entidad con el RUT asociada al usuario"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Error al gestionar usuario autorizador"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/honorary/master-entities/{master_entity_id}/authorized-users/": {
+      "get": {
+        "summary": "Listar usuarios autorizados",
+        "description": "Obtiene la lista de usuarios autorizados para emitir boletas de honorarios desde el SII",
+        "tags": [
+          "Honorary"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "ID de la entidad maestra"
+            },
+            "description": "ID de la entidad para la cual se consultan los autorizados"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de usuarios autorizados obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "authorized_users": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "rut": {
+                            "type": "string",
+                            "description": "RUT del usuario con formato de puntos y guión",
+                            "example": "12.345.678-9"
+                          },
+                          "nombre": {
+                            "type": "string",
+                            "description": "Nombre completo del usuario autorizado",
+                            "example": "MARIA JOSEFA GONZALEZ LOPEZ"
+                          },
+                          "enrolled": {
+                            "type": "boolean",
+                            "description": "Si el usuario ya está enrolado en el sistema",
+                            "example": false
+                          }
+                        },
+                        "required": [
+                          "rut",
+                          "nombre",
+                          "enrolled"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "authorized_users"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Se requiere el parámetro 'master_entity_id'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para acceder a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Usuario sin permisos para acceder a la entidad"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad no encontrada o sin credenciales",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "No se encontró una credencial válida para la entidad"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Error al obtener usuarios autorizadores"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/": {
+      "patch": {
+        "summary": "Enrolar usuario autorizado",
+        "description": "Enrola un usuario autorizado del SII para emitir boletas de honorarios. Para desenrolar, usa el endpoint de desenrolar.",
+        "tags": [
+          "Honorary"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "ID de la entidad emisora"
+            },
+            "description": "ID de la entidad emisora"
+          },
+          {
+            "name": "rut",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "RUT del usuario autorizado"
+            },
+            "description": "RUT del usuario a gestionar (con o sin formato)"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "enroll",
+                      "unenroll"
+                    ],
+                    "description": "Acción a realizar. Por defecto 'enroll'",
+                    "default": "enroll",
+                    "example": "enroll"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operación exitosa (enrolar o desenrolar)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "description": "Respuesta al enrolar",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "enrolled",
+                            "already_enrolled"
+                          ],
+                          "description": "Estado del enrolamiento"
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Mensaje descriptivo"
+                        },
+                        "rut": {
+                          "type": "string",
+                          "description": "RUT normalizado del usuario enrolado"
+                        },
+                        "master_entity": {
+                          "type": "object",
+                          "description": "Información de la entidad creada/asociada",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "description": "ID de la entidad"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "Nombre completo de la entidad"
+                            },
+                            "tax_id": {
+                              "type": "string",
+                              "description": "RUT de la entidad"
+                            }
+                          }
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "message",
+                        "rut"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "description": "Respuesta al desenrolar",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "description": "Siempre true para respuestas exitosas",
+                          "example": true
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Mensaje descriptivo del resultado",
+                          "example": "Usuario autorizador 12345678-9 desenrolado exitosamente"
+                        },
+                        "rut": {
+                          "type": "string",
+                          "description": "RUT del usuario desenrolado",
+                          "example": "12345678-9"
+                        }
+                      },
+                      "required": [
+                        "success",
+                        "message",
+                        "rut"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos, usuario no autorizado, o acción inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "example": "El RUT proporcionado no está en la lista de usuarios autorizadores"
+                        },
+                        {
+                          "example": "La acción debe ser 'enroll' o 'unenroll'"
+                        },
+                        {
+                          "example": "El RUT proporcionado no es válido"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para acceder a la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Usuario sin permisos para acceder a la entidad"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad, credencial o usuario no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "example": "No se encontró una credencial válida para la entidad"
+                        },
+                        {
+                          "example": "No se encontró una entidad con el RUT asociada al usuario"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Error al gestionar usuario autorizador"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
+    "securitySchemes": {
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization",
+        "description": "API Key para autenticación. Debe proporcionarse en el header Authorization con el formato: 'Api-Key YOUR-API-KEY' (incluye el prefijo 'Api-Key ' seguido de tu API key)"
+      }
+    },
     "schemas": {
+      "DocumentStateRequest": {
+        "type": "object",
+        "required": [
+          "event_code"
+        ],
+        "properties": {
+          "event_code": {
+            "type": "string",
+            "enum": [
+              "ERM",
+              "ACD",
+              "RCD",
+              "RFT",
+              "RFP",
+              "PAID",
+              "UNPAID"
+            ],
+            "description": "Código del evento a registrar:\n- ERM: Acuse de Recibo de Mercaderías y Servicios\n- ACD: Acepta Contenido del Documento\n- RCD: Reclama Contenido del Documento\n- RFT: Reclamo por Falta Total\n- RFP: Reclamo por Falta Parcial\n- PAID: Marcar factura emitida como pagada (genera asiento cierre CxC; solo emisor; tipos 33, 34, 39, 41)\n- UNPAID: Marcar factura emitida como no pagada (revierte asiento cierre CxC; solo emisor)",
+            "example": "ERM"
+          },
+          "rejection_reason": {
+            "type": "string",
+            "description": "Razón del rechazo (opcional, solo para eventos de rechazo: RCD, RFT, RFP)",
+            "example": "Error en el monto facturado"
+          }
+        }
+      },
+      "DocumentStatesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indica si la operación fue exitosa",
+            "example": true
+          },
+          "document_id": {
+            "type": "integer",
+            "description": "ID del documento",
+            "example": 12345
+          },
+          "folio": {
+            "type": "string",
+            "description": "Folio del documento",
+            "example": "123"
+          },
+          "states": {
+            "type": "array",
+            "description": "Lista de estados registrados para el documento, ordenados cronológicamente (más reciente primero)",
+            "items": {
+              "$ref": "#/components/schemas/DocumentState"
+            }
+          },
+          "document": {
+            "$ref": "#/components/schemas/DocumentDetail"
+          }
+        }
+      },
+      "DocumentState": {
+        "type": "object",
+        "properties": {
+          "event_code": {
+            "type": "string",
+            "description": "Código del evento",
+            "example": "ERM"
+          },
+          "event_description": {
+            "type": "string",
+            "description": "Descripción del evento",
+            "example": "Acuse de Recibo"
+          },
+          "event_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha y hora del evento (ISO 8601)",
+            "example": "2024-01-16T10:30:00Z"
+          },
+          "responsable_rut": {
+            "type": "integer",
+            "description": "RUT del responsable del evento",
+            "example": 12345678
+          },
+          "responsable_dv": {
+            "type": "string",
+            "description": "Dígito verificador del RUT del responsable",
+            "example": "9"
+          },
+          "rejected_by_user": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "description": "Email del usuario que registró el rechazo (solo para eventos de rechazo)",
+            "example": "usuario@ejemplo.com"
+          },
+          "accepted_by_user": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "description": "Email del usuario que registró la aprobación (solo para eventos de aprobación)",
+            "example": "usuario@ejemplo.com"
+          }
+        }
+      },
+      "DocumentStateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indica si la operación fue exitosa",
+            "example": true
+          },
+          "event_registered": {
+            "type": "boolean",
+            "description": "Indica si el evento fue registrado exitosamente",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensaje descriptivo del resultado",
+            "example": "Acuse de Recibo registrado. Este acuse rebajará el IVA del próximo mes."
+          },
+          "event_data": {
+            "type": "object",
+            "description": "Datos adicionales del evento registrado (proporcionados por el SII)",
+            "additionalProperties": true
+          },
+          "document": {
+            "$ref": "#/components/schemas/DocumentDetail"
+          },
+          "email_preview_data": {
+            "type": "object",
+            "description": "Datos para preview de email (solo para aprobaciones, rechazos o acuses de recibo)",
+            "properties": {
+              "should_open_modal": {
+                "type": "boolean",
+                "example": true
+              },
+              "document_id": {
+                "type": "integer",
+                "example": 12345
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "accept",
+                  "reject"
+                ],
+                "example": "accept"
+              },
+              "subject": {
+                "type": "string",
+                "example": "Acuse de Recibo - Factura 123"
+              },
+              "supplier_id": {
+                "type": "integer",
+                "example": 67890
+              },
+              "supplier_name": {
+                "type": "string",
+                "example": "Proveedor Ejemplo S.A."
+              },
+              "supplier_rut": {
+                "type": "string",
+                "example": "12345678-9"
+              },
+              "document_folio": {
+                "type": "string",
+                "example": "123"
+              },
+              "pdf_url": {
+                "type": "string",
+                "format": "uri",
+                "nullable": true,
+                "example": "https://api.tupana.ai/v1/documents/12345/pdf"
+              },
+              "rejection_reason": {
+                "type": "string",
+                "nullable": true,
+                "example": "Error en el monto facturado"
+              }
+            }
+          }
+        }
+      },
       "CessionListItem": {
         "type": "object",
         "properties": {
@@ -4442,13 +5642,13 @@
           },
           "destination_country_code": {
             "type": "string",
-            "description": "Código del país de destino (ISO 3166-1 alpha-2)",
-            "example": "US"
+            "description": "Código de país del SII del destino (tabla de Aduana). No es código ISO 3166-1. Ver /user-guide/export-countries",
+            "example": "225"
           },
           "currency_code": {
             "type": "string",
-            "description": "Código de la moneda (ISO 4217)",
-            "example": "USD"
+            "description": "Código de moneda del SII (tabla de Aduana). No es código ISO 4217. Ver /user-guide/export-currencies",
+            "example": "13"
           },
           "exchange_rate": {
             "type": "string",
@@ -4534,14 +5734,6 @@
             "example": "1"
           }
         }
-      }
-    },
-    "securitySchemes": {
-      "apiKeyAuth": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "Authorization",
-        "description": "API Key para autenticación. Debe proporcionarse en el header Authorization con el formato: 'Api-Key YOUR-API-KEY' (incluye el prefijo 'Api-Key ' seguido de tu API key)"
       }
     }
   }
