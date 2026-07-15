@@ -4035,11 +4035,12 @@
         "properties": {
           "code": {
             "type": "string",
-            "description": "Código del tipo de documento:\n- 33: Factura Electrónica\n- 34: Factura Exenta Electrónica\n- 39: Boleta Electrónica\n- 46: Factura de Compra Electrónica\n- 52: Guía de Despacho Electrónica\n- 61: Nota de Crédito Electrónica\n- 80: Boleta de Honorarios Electrónica\n- 90: Boleta de Honorarios a Terceros Electrónica\n- 110: Factura de Exportación Electrónica",
+            "description": "Código del tipo de documento:\n- 33: Factura Electrónica\n- 34: Factura Exenta Electrónica\n- 39: Boleta Electrónica\n- 41: Boleta Exenta Electrónica\n- 46: Factura de Compra Electrónica\n- 52: Guía de Despacho Electrónica\n- 61: Nota de Crédito Electrónica\n- 80: Boleta de Honorarios Electrónica\n- 90: Boleta de Honorarios a Terceros Electrónica\n- 110: Factura de Exportación Electrónica",
             "enum": [
               "33",
               "34",
               "39",
+              "41",
               "46",
               "52",
               "61",
