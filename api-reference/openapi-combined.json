@@ -763,6 +763,68 @@
         ]
       }
     },
+    "/credentials/{master_entity_id}": {
+      "delete": {
+        "operationId": "unenrollCredential",
+        "tags": [
+          "Credenciales"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Desenrolar entidad",
+        "description": "Elimina la asociación entre el usuario de la api key y la entidad maestra",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID de la entidad maestra a desenrolar",
+            "example": 123
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Entidad desenrolada exitosamente"
+          },
+          "401": {
+            "description": "No autorizado - API key inválida o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin permisos para desenrolar entidades",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad maestra no encontrada o no asociada al usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/master-entities": {
       "get": {
         "summary": "Buscar entidad por RUT",

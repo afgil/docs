@@ -57,7 +57,8 @@
             "group": "Credenciales",
             "pages": [
               "api-reference/credentials/list",
-              "api-reference/credentials/create"
+              "api-reference/credentials/create",
+              "api-reference/credentials/unenroll"
             ]
           },
           {
