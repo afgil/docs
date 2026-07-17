@@ -763,6 +763,347 @@
         ]
       }
     },
+    "/credentials/batch": {
+      "post": {
+        "operationId": "createCredentialsBatch",
+        "tags": [
+          "Credenciales"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Crear credenciales en lote",
+        "description": "Crea hasta 200 credenciales SII en una sola llamada. La respuesta confirma de inmediato que el formato de la solicitud es válido y devuelve un `batch_id`; la validación real contra el SII ocurre de forma asíncrona y el resultado final de cada credencial se notifica por webhook (`credential.validated` / `credential.invalid`).",
+        "requestBody": {
+          "description": "Lote de credenciales a crear/validar",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "credentials"
+                ],
+                "properties": {
+                  "credentials": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 200,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "master_entity_rut",
+                        "credential_type",
+                        "user_rut",
+                        "password"
+                      ],
+                      "properties": {
+                        "master_entity_rut": {
+                          "type": "string",
+                          "description": "RUT de la entidad maestra a la que se asociará la credencial. Si no existe una entidad con ese RUT en Tupana, se crea automáticamente.",
+                          "example": "76.123.456-0"
+                        },
+                        "credential_type": {
+                          "type": "string",
+                          "description": "Tipo de credencial. Solo se admiten credenciales SII en este endpoint.",
+                          "enum": [
+                            "SII",
+                            "sii_company"
+                          ],
+                          "example": "sii_company"
+                        },
+                        "user_rut": {
+                          "type": "string",
+                          "description": "RUT del usuario del SII",
+                          "example": "12.345.678-5"
+                        },
+                        "password": {
+                          "type": "string",
+                          "description": "Contraseña del usuario en el SII",
+                          "example": "mi_password_segura"
+                        }
+                      }
+                    }
+                  },
+                  "idempotency_key": {
+                    "type": "string",
+                    "description": "Clave opcional que previene la creación de lotes duplicados. Si se repite, se devuelve el batch ya creado en vez de uno nuevo.",
+                    "example": "batch_credenciales_2026_01_15_001"
+                  }
+                }
+              },
+              "example": {
+                "credentials": [
+                  {
+                    "master_entity_rut": "76.123.456-0",
+                    "credential_type": "sii_company",
+                    "user_rut": "12.345.678-5",
+                    "password": "mi_password_segura"
+                  },
+                  {
+                    "master_entity_rut": "77.698.843-K",
+                    "credential_type": "SII",
+                    "user_rut": "11.111.111-1",
+                    "password": "otra_password"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Solicitud aceptada. El formato de cada credencial es válido; el resultado de cada una se notificará por webhook.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "batch_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "ID único del batch, usado para consultarlo en GET /credentials/batch/{batch_id}",
+                      "example": "550e8400-e29b-41d4-a716-446655440000"
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "Estado del batch",
+                      "enum": [
+                        "processing",
+                        "completed",
+                        "partial",
+                        "failed"
+                      ],
+                      "example": "processing"
+                    },
+                    "items": {
+                      "type": "array",
+                      "description": "Un item por cada credencial recibida, en el mismo orden del request",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "item_id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "example": "6b1f3c2e-9a4d-4e7a-8e2a-1a2b3c4d5e6f"
+                          },
+                          "index": {
+                            "type": "integer",
+                            "description": "Posición de la credencial dentro del array `credentials` enviado",
+                            "example": 0
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "batch_id": "550e8400-e29b-41d4-a716-446655440000",
+                  "status": "processing",
+                  "items": [
+                    {
+                      "item_id": "6b1f3c2e-9a4d-4e7a-8e2a-1a2b3c4d5e6f",
+                      "index": 0
+                    },
+                    {
+                      "item_id": "8c2d4b1a-3f5e-4a6b-9c7d-2e3f4a5b6c7d",
+                      "index": 1
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API key inválida o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin permisos para crear credenciales",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Cuerpo malformado o alguna credencial del lote no pasó la validación de formato (RUT inválido, `credential_type` no soportado, contraseña vacía, más de 200 items, etc.)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "credentials": [
+                    {},
+                    {
+                      "master_entity_rut": [
+                        "RUT de la entidad inválido."
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/credentials/batch/{batch_id}": {
+      "get": {
+        "operationId": "getCredentialsBatchStatus",
+        "tags": [
+          "Credenciales"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Consultar estado de un lote de credenciales",
+        "description": "Consulta de respaldo al webhook: devuelve el estado del batch y de cada credencial dentro de él. Útil si el webhook no está configurado o para hacer polling mientras se procesa.",
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "ID del batch devuelto por POST /credentials/batch",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado del batch obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "batch_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "example": "550e8400-e29b-41d4-a716-446655440000"
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "Estado general del batch. `processing` mientras queden credenciales sin resolver; `completed` si todas quedaron válidas; `partial` si algunas fallaron; `failed` si ninguna quedó válida.",
+                      "enum": [
+                        "processing",
+                        "completed",
+                        "partial",
+                        "failed"
+                      ],
+                      "example": "partial"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "item_id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "example": "6b1f3c2e-9a4d-4e7a-8e2a-1a2b3c4d5e6f"
+                          },
+                          "index": {
+                            "type": "integer",
+                            "example": 0
+                          },
+                          "status": {
+                            "type": "string",
+                            "description": "Estado de esta credencial dentro del batch",
+                            "enum": [
+                              "pending",
+                              "processing",
+                              "valid",
+                              "invalid",
+                              "temporary_error",
+                              "permanent_error"
+                            ],
+                            "example": "valid"
+                          },
+                          "errors": {
+                            "type": "object",
+                            "nullable": true,
+                            "description": "Detalle del error cuando `status` no es `valid`",
+                            "example": null
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "batch_id": "550e8400-e29b-41d4-a716-446655440000",
+                  "status": "partial",
+                  "items": [
+                    {
+                      "item_id": "6b1f3c2e-9a4d-4e7a-8e2a-1a2b3c4d5e6f",
+                      "index": 0,
+                      "status": "valid",
+                      "errors": null
+                    },
+                    {
+                      "item_id": "8c2d4b1a-3f5e-4a6b-9c7d-2e3f4a5b6c7d",
+                      "index": 1,
+                      "status": "invalid",
+                      "errors": {
+                        "message": "Clave incorrecta",
+                        "blocked": false
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado - API key inválida o faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prohibido - Sin permisos para consultar credenciales",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Batch no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/credentials/{master_entity_id}": {
       "delete": {
         "operationId": "unenrollCredential",
@@ -3430,6 +3771,116 @@
           }
         }
       }
+    },
+    "/master-entities/{master_entity_id}/book-summaries": {
+      "get": {
+        "operationId": "listBookSummaries",
+        "tags": [
+          "Resumen de Libros"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar resumen de libro de compras/ventas SII",
+        "description": "Obtiene el resumen de libro de compras y ventas (getResumen del SII) para una entidad y período. Es data agregada por tipo de documento y operación (COMPRA/VENTA), no el detalle línea a línea. Solo devuelve datos para entidades habilitadas explícitamente para este scrape (ver `is_enabled` en la respuesta); si la entidad no está habilitada, `results` viene vacío.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la entidad maestra.",
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": true,
+            "description": "Período a consultar, formato YYYYMM.",
+            "schema": {
+              "type": "string",
+              "example": "202603"
+            }
+          },
+          {
+            "name": "operation",
+            "in": "query",
+            "required": false,
+            "description": "Filtra por operación: COMPRA o VENTA. Si se omite, devuelve ambas.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "COMPRA",
+                "VENTA"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resumen de libro para la entidad y período consultado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer",
+                      "description": "Total de filas en results"
+                    },
+                    "is_enabled": {
+                      "type": "boolean",
+                      "description": "true si la entidad tiene habilitado el scrape de resumen de libros (BOOK_SUMMARY). Si es false, results estará vacío aunque el período sea válido."
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BookSummaryItem"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "period faltante o con formato inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "period is required in YYYYMM format."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin acceso a la entidad, o la API key no tiene el permiso book_summary:access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Access denied."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3953,6 +4404,61 @@
                 "nullable": true
               }
             }
+          }
+        }
+      },
+      "BookSummaryItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "ID de la fila de resumen"
+          },
+          "period": {
+            "type": "string",
+            "description": "Período YYYYMM",
+            "example": "202603"
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "COMPRA",
+              "VENTA"
+            ]
+          },
+          "dte_type_code": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Código de tipo de documento SII (33, 34, 46, 61, etc.)"
+          },
+          "dte_type_name": {
+            "type": "string",
+            "description": "Nombre del tipo de documento"
+          },
+          "total_docs": {
+            "type": "integer",
+            "description": "Cantidad de documentos en esta línea del resumen"
+          },
+          "net_amount": {
+            "type": "integer",
+            "description": "Monto neto"
+          },
+          "exempt_amount": {
+            "type": "integer",
+            "description": "Monto exento"
+          },
+          "vat_amount": {
+            "type": "integer",
+            "description": "Monto IVA"
+          },
+          "total_amount": {
+            "type": "integer",
+            "description": "Monto total"
+          },
+          "scraped_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha/hora en que se obtuvo este resumen desde el SII"
           }
         }
       },

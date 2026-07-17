@@ -255,6 +255,8 @@ def combine_openapi_files():
         # Credentials
         base_dir / "credentials" / "list.json",
         base_dir / "credentials" / "create.json",
+        base_dir / "credentials" / "batch.json",
+        base_dir / "credentials" / "batch-status.json",
         base_dir / "credentials" / "unenroll.json",
         # Master entities
         base_dir / "master-entities" / "master-entities.json",
@@ -275,6 +277,8 @@ def combine_openapi_files():
         base_dir / "webhooks" / "webhooks.json",
         # Honorary
         base_dir / "honorary" / "authorized-users.json",
+        # Book summaries
+        base_dir / "book-summaries" / "list.json",
         # Schemas
         base_dir / "schemas" / "schemas.json",
     ]
