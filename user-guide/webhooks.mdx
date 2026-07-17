@@ -126,6 +126,11 @@ Cada notificación incluye los siguientes headers:
 - **`scheduled_document.run_succeeded`**: La ejecución de un documento programado fue exitosa
 - **`scheduled_document.run_failed`**: La ejecución de un documento programado falló
 
+### Eventos de credenciales
+
+- **`credential.validated`**: Una credencial SII fue validada exitosamente contra el SII
+- **`credential.invalid`**: Una credencial SII quedó inválida (clave incorrecta o cuenta bloqueada)
+
 ### Eventos operacionales
 
 - **`webhook.test`**: Evento de prueba para verificar que tu endpoint funciona correctamente
@@ -151,6 +156,9 @@ Cada evento tiene una estructura de payload específica. Navega a cada evento pa
   - [scheduled_document.run_started](#scheduled_documentrun_started)
   - [scheduled_document.run_succeeded](#scheduled_documentrun_succeeded)
   - [scheduled_document.run_failed](#scheduled_documentrun_failed)
+- [Eventos de Credenciales](#eventos-de-credenciales)
+  - [credential.validated](#credentialvalidated)
+  - [credential.invalid](#credentialinvalid)
 - [Eventos Operacionales](#eventos-operacionales)
   - [webhook.test](#webhooktest)
 
@@ -569,6 +577,56 @@ Se dispara cuando falla la ejecución de un documento programado.
   }
 }
 ```
+
+### Eventos de Credenciales
+
+Estos eventos se disparan por credencial individual, incluyendo las creadas vía [creación de credenciales en lote](/api-reference/credentials/batch). El webhook se configura por `master_entity`, y una credencial puede estar asociada a más de una entidad: si eso ocurre, se envía una notificación por cada entidad que tenga un webhook suscrito al evento.
+
+#### credential.validated
+
+Se dispara cuando una credencial SII fue validada exitosamente contra el SII (login exitoso).
+
+```json
+{
+  "event": "credential.validated",
+  "created_at": "2026-01-19T15:30:45.123456Z",
+  "data": {
+    "credential_id": 245,
+    "credential_type": "sii_company",
+    "user": "12.345.678-5",
+    "status": "VALID",
+    "master_entity": {
+      "id": 4355,
+      "name": "HIDDEN CORE SPA",
+      "tax_id": "78.121.555-4"
+    }
+  }
+}
+```
+
+#### credential.invalid
+
+Se dispara cuando una credencial SII queda inválida: clave incorrecta o cuenta bloqueada.
+
+```json
+{
+  "event": "credential.invalid",
+  "created_at": "2026-01-19T15:30:45.123456Z",
+  "data": {
+    "credential_id": 245,
+    "credential_type": "sii_company",
+    "user": "12.345.678-5",
+    "status": "INVALID",
+    "master_entity": {
+      "id": 4355,
+      "name": "HIDDEN CORE SPA",
+      "tax_id": "78.121.555-4"
+    }
+  }
+}
+```
+
+**Nota:** `status` refleja el estado de la credencial en Tupana (`VALID` / `INVALID`), no un detalle del error. Si necesitas saber si la cuenta quedó bloqueada específicamente, consulta el resultado del batch vía [GET /credentials/batch/{batch_id}](/api-reference/credentials/batch-status), que sí incluye ese detalle en `errors.blocked`.
 
 ### Eventos Operacionales
 
