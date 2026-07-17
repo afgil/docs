@@ -626,7 +626,7 @@ Se dispara cuando una credencial SII queda inválida: clave incorrecta o cuenta 
 }
 ```
 
-**Nota:** `status` refleja el estado de la credencial en Tupana (`VALID` / `INVALID`), no un detalle del error. Si necesitas saber si la cuenta quedó bloqueada específicamente, consulta el resultado del batch vía [GET /credentials/batch/{batch_id}](/api-reference/credentials/batch-status), que sí incluye ese detalle en `errors.blocked`.
+**Nota:** `status` refleja el estado de la credencial en Tupana (`VALID` / `INVALID`), no un detalle del error. El payload no distingue si la causa fue una clave incorrecta o una cuenta bloqueada.
 
 ### Eventos Operacionales
 

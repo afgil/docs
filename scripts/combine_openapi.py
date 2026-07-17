@@ -256,7 +256,6 @@ def combine_openapi_files():
         base_dir / "credentials" / "list.json",
         base_dir / "credentials" / "create.json",
         base_dir / "credentials" / "batch.json",
-        base_dir / "credentials" / "batch-status.json",
         base_dir / "credentials" / "unenroll.json",
         # Master entities
         base_dir / "master-entities" / "master-entities.json",
