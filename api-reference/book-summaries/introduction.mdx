@@ -1,0 +1,22 @@
+---
+title: 'Introduccion - API Consultas'
+description: 'Consultas de datos agregados scrapeados desde el SII, como el resumen de libro de compras/ventas'
+---
+
+## Para que sirve la API de Consultas?
+
+La **API de Consultas** agrupa endpoints de solo lectura sobre datos que Tupana obtiene periódicamente desde el SII u otras fuentes, distintos de los documentos tributarios electrónicos en sí. Por ahora incluye el **resumen de libro de compras y ventas** (getResumen del SII): totales agregados por tipo de documento y operación (COMPRA/VENTA) para un período dado.
+
+## Habilitación
+
+El resumen de libro de compras/ventas es un dato **opt-in**: solo se scrapea para las entidades que lo tengan explícitamente habilitado. Si tu integración necesita este dato para una entidad, solicita su habilitación a soporte@tupana.cl. El campo `is_enabled` en la respuesta del endpoint te indica si la entidad ya está habilitada.
+
+## Autenticacion
+
+Todos los endpoints requieren autenticacion (API Key o JWT). La API Key debe tener el permiso `book_summary:access` y acceso a la entidad consultada.
+
+## Referencia rapida
+
+| Accion | Metodo | Endpoint |
+|--------|--------|----------|
+| Resumen de libro de compras/ventas | GET | `/master-entities/{master_entity_id}/book-summaries?period={period}` |
