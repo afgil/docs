@@ -1,0 +1,19 @@
+---
+title: 'Resumen de libro de compras/ventas'
+openapi: 'GET /master-entities/{master_entity_id}/book-summaries'
+---
+
+## ¿Para qué se usa?
+
+Permite **obtener el resumen agregado del libro de compras y ventas** (getResumen del SII) de una entidad para un período determinado. Cada ítem representa un total por tipo de documento (factura, nota de crédito, etc.) y operación (COMPRA o VENTA), no el detalle línea a línea de cada documento.
+
+## Qué hace
+
+- Devuelve los totales del libro (`total_docs`, `net_amount`, `exempt_amount`, `vat_amount`, `total_amount`) agrupados por `dte_type_code` y `operation` para el `period` (YYYYMM) indicado.
+- Puedes filtrar por **operación** (`COMPRA` o `VENTA`); si se omite, devuelve ambas.
+- El campo **is_enabled** indica si la entidad tiene habilitado el scrape de este resumen. Si es `false`, `results` viene vacío aunque el período sea válido — la entidad necesita ser habilitada primero (ver [Introducción](/api-reference/book-summaries/introduction)).
+
+## Ejemplos de uso
+
+- Conciliar el IVA débito/crédito declarado por el SII contra tu propia contabilidad.
+- Mostrar en un dashboard los totales mensuales de compras y ventas de una entidad sin tener que descargar el detalle documento por documento.

@@ -171,6 +171,23 @@
         ]
       },
       {
+        "tab": "API Consultas",
+        "groups": [
+          {
+            "group": "Introducción",
+            "pages": [
+              "api-reference/book-summaries/introduction"
+            ]
+          },
+          {
+            "group": "Resumen de Libros",
+            "pages": [
+              "api-reference/book-summaries/list"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "API Boleta de Honorarios",
         "groups": [
           {

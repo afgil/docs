@@ -1,0 +1,105 @@
+{
+  "paths": {
+    "/master-entities/{master_entity_id}/book-summaries": {
+      "get": {
+        "operationId": "listBookSummaries",
+        "tags": ["Resumen de Libros"],
+        "security": [{"apiKeyAuth": []}],
+        "summary": "Listar resumen de libro de compras/ventas SII",
+        "description": "Obtiene el resumen de libro de compras y ventas (getResumen del SII) para una entidad y período. Es data agregada por tipo de documento y operación (COMPRA/VENTA), no el detalle línea a línea. Solo devuelve datos para entidades habilitadas explícitamente para este scrape (ver `is_enabled` en la respuesta); si la entidad no está habilitada, `results` viene vacío.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la entidad maestra.",
+            "schema": {"type": "integer", "example": 123}
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": true,
+            "description": "Período a consultar, formato YYYYMM.",
+            "schema": {"type": "string", "example": "202603"}
+          },
+          {
+            "name": "operation",
+            "in": "query",
+            "required": false,
+            "description": "Filtra por operación: COMPRA o VENTA. Si se omite, devuelve ambas.",
+            "schema": {"type": "string", "enum": ["COMPRA", "VENTA"]}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resumen de libro para la entidad y período consultado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {"type": "integer", "description": "Total de filas en results"},
+                    "is_enabled": {
+                      "type": "boolean",
+                      "description": "true si la entidad tiene habilitado el scrape de resumen de libros (BOOK_SUMMARY). Si es false, results estará vacío aunque el período sea válido."
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/BookSummaryItem"}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "period faltante o con formato inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {"type": "string", "example": "period is required in YYYYMM format."}
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin acceso a la entidad, o la API key no tiene el permiso book_summary:access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {"type": "string", "example": "Access denied."}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BookSummaryItem": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "description": "ID de la fila de resumen"},
+          "period": {"type": "string", "description": "Período YYYYMM", "example": "202603"},
+          "operation": {"type": "string", "enum": ["COMPRA", "VENTA"]},
+          "dte_type_code": {"type": "integer", "nullable": true, "description": "Código de tipo de documento SII (33, 34, 46, 61, etc.)"},
+          "dte_type_name": {"type": "string", "description": "Nombre del tipo de documento"},
+          "total_docs": {"type": "integer", "description": "Cantidad de documentos en esta línea del resumen"},
+          "net_amount": {"type": "integer", "description": "Monto neto"},
+          "exempt_amount": {"type": "integer", "description": "Monto exento"},
+          "vat_amount": {"type": "integer", "description": "Monto IVA"},
+          "total_amount": {"type": "integer", "description": "Monto total"},
+          "scraped_at": {"type": "string", "format": "date-time", "description": "Fecha/hora en que se obtuvo este resumen desde el SII"}
+        }
+      }
+    }
+  }
+}
