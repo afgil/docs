@@ -58,6 +58,8 @@
             "pages": [
               "api-reference/credentials/list",
               "api-reference/credentials/create",
+              "api-reference/credentials/batch",
+              "api-reference/credentials/batch-status",
               "api-reference/credentials/unenroll"
             ]
           },
