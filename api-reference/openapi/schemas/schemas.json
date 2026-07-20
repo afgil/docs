@@ -1847,6 +1847,127 @@
             "example": "1"
           }
         }
+      },
+      "SyncStatusType": {
+        "type": "object",
+        "description": "Última actualización de un tipo de scrape para la entidad",
+        "properties": {
+          "scrape_type": {
+            "type": "string",
+            "enum": [
+              "ISSUED_DOCS",
+              "RECEIVED_DOCS",
+              "RECEIVED_HONORARY_BILLS",
+              "THIRD_PARTY_HONORARY",
+              "EMITTED_HONORARY_BILLS",
+              "PURCHASE_BOOK",
+              "SALE_BOOK",
+              "BOOK_SUMMARY"
+            ],
+            "description": "Tipo de scrape: ISSUED_DOCS (facturas emitidas), RECEIVED_DOCS (facturas recibidas), RECEIVED_HONORARY_BILLS (boletas de honorarios recibidas), THIRD_PARTY_HONORARY (boletas de honorarios de terceros), EMITTED_HONORARY_BILLS (boletas de honorarios emitidas), PURCHASE_BOOK (libro de compras), SALE_BOOK (libro de ventas), BOOK_SUMMARY (resumen de libro de compras/ventas).",
+            "example": "ISSUED_DOCS"
+          },
+          "last_success_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Fecha/hora de la última sincronización exitosa de este tipo. null si nunca ha cargado con éxito.",
+            "example": "2026-07-20T06:12:41Z"
+          },
+          "last_status": {
+            "type": "string",
+            "enum": [
+              "in_progress",
+              "completed",
+              "failed"
+            ],
+            "description": "Estado de la última ejecución de este tipo de scrape",
+            "example": "completed"
+          }
+        }
+      },
+      "SyncRequest": {
+        "type": "object",
+        "description": "Solicitud de sincronización a demanda (recurso asíncrono)",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "ID de la solicitud",
+            "example": 1042
+          },
+          "master_entity_id": {
+            "type": "integer",
+            "description": "ID entero de la entidad sincronizada",
+            "example": 48213
+          },
+          "requested_types": {
+            "type": "array",
+            "description": "Tipos de scrape pedidos. Lista vacía = todos los tipos habilitados para la entidad.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ISSUED_DOCS",
+                "RECEIVED_DOCS",
+                "RECEIVED_HONORARY_BILLS",
+                "THIRD_PARTY_HONORARY",
+                "EMITTED_HONORARY_BILLS",
+                "PURCHASE_BOOK",
+                "SALE_BOOK",
+                "BOOK_SUMMARY"
+              ]
+            },
+            "example": [
+              "ISSUED_DOCS",
+              "RECEIVED_DOCS"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "completed",
+              "failed"
+            ],
+            "description": "Estado de la solicitud: pending (creada, en cola), processing (scrapes corriendo), completed (todos los tipos terminaron OK), failed (al menos un tipo falló).",
+            "example": "pending"
+          },
+          "webhook_url": {
+            "type": "string",
+            "description": "URL registrada para notificar al completar. String vacío si no se registró webhook.",
+            "example": "https://miapp.cl/webhooks/tupana-sync"
+          },
+          "results": {
+            "type": "object",
+            "description": "Resultado por tipo de scrape al terminar. Las claves son los scrape_type ejecutados y cada valor es un objeto con `success` (boolean) más contadores como `new_documents`, o `error` si falló. Objeto vacío mientras la solicitud está pending/processing.",
+            "additionalProperties": {
+              "type": "object"
+            },
+            "example": {
+              "ISSUED_DOCS": {
+                "success": true,
+                "new_documents": 3
+              },
+              "RECEIVED_DOCS": {
+                "success": true,
+                "new_documents": 0
+              }
+            }
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Fecha/hora en que terminó de procesarse. null mientras está pending/processing.",
+            "example": "2026-07-20T14:34:12Z"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha/hora de creación de la solicitud",
+            "example": "2026-07-20T14:30:00Z"
+          }
+        }
       }
     },
     "securitySchemes": {

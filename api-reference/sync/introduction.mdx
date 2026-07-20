@@ -1,0 +1,61 @@
+---
+title: 'Introducción - Sincronización'
+description: 'Cómo y cada cuánto Tupana sincroniza los datos SII de tus empresas conectadas, y cómo pedir una actualización a demanda'
+---
+
+## ¿Cómo funciona la sincronización?
+
+Por defecto, **cada empresa conectada se sincroniza automáticamente cada 24 horas**. En cada ciclo se actualizan todos los tipos de datos: facturas emitidas y recibidas, boletas de honorarios recibidas y de terceros emitidas, libros de compra y venta, resumen de libros de compras/ventas y cesiones. No tienes que hacer nada: los datos se refrescan solos.
+
+Si tu integración necesita datos más frescos, puedes contratar una **frecuencia mayor**:
+
+| Plan | Frecuencia |
+|------|------------|
+| Por defecto | Cada 24 horas |
+| Frecuencia media | Cada 12 horas |
+| Casi tiempo real | Cada 3 horas |
+
+Para cambiar de plan, escribe a soporte@tupana.cl.
+
+## ¿Cuándo se sincronizó por última vez?
+
+Con `GET /sync-status?master_entity_id=` consultas, para una entidad, la frecuencia contratada y la **última sincronización por tipo de dato** (`scrape_type`, `last_success_at`, `last_status`). Es la forma recomendada de mostrar en tu producto "datos actualizados hace X horas".
+
+## Sincronización a demanda
+
+Si estás en el plan de 24 horas y necesitas los datos al día **ahora** (por ejemplo, un cliente recién conectado, o vas a operar cobranza o cesiones sobre su cartera), puedes crear una **solicitud de sincronización a demanda** con `POST /sync-requests`.
+
+Es un **recurso asíncrono**, al estilo de Stripe o Plaid: el POST crea el objeto y responde altiro con `status: "pending"` — nunca bloquea esperando al SII. Después puedes:
+
+- Hacer **polling** con `GET /sync-requests/{id}` hasta que `status` sea `completed` o `failed`.
+- Registrar un **webhook_url** en el POST: al completar, hacemos un POST a esa URL con `{id, status, results}`.
+
+<Note>
+La sincronización a demanda está disponible **solo para el plan de 24 horas**. Si tu plan ya es de 12 h o 3 h, el POST responde 400: tu cartera ya se sincroniza sola con mayor frecuencia.
+</Note>
+
+## Tipos de scrape
+
+| `scrape_type` | Qué sincroniza |
+|---------------|----------------|
+| `ISSUED_DOCS` | Facturas y documentos emitidos |
+| `RECEIVED_DOCS` | Facturas y documentos recibidos |
+| `RECEIVED_HONORARY_BILLS` | Boletas de honorarios recibidas |
+| `THIRD_PARTY_HONORARY` | Boletas de honorarios de terceros emitidas |
+| `EMITTED_HONORARY_BILLS` | Boletas de honorarios emitidas |
+| `PURCHASE_BOOK` | Libro de compras SII |
+| `SALE_BOOK` | Libro de ventas SII |
+| `BOOK_SUMMARY` | Resumen de libro de compras/ventas (requiere habilitación, ver [Resumen de Libros](/api-reference/book-summaries/introduction)) |
+
+## Autenticación
+
+Todos los endpoints requieren autenticación (API Key o JWT) y acceso a la entidad consultada. `master_entity_id` acepta el id opaco (`eid_...`, campo `opaque_id` de `/master-entities?rut=`) o el id entero.
+
+## Referencia rápida
+
+| Acción | Método | Endpoint |
+|--------|--------|----------|
+| Estado de sincronización por tipo | GET | `/sync-status?master_entity_id={id}` |
+| Crear solicitud a demanda | POST | `/sync-requests` |
+| Listar solicitudes recientes | GET | `/sync-requests?master_entity_id={id}&hours=24` |
+| Detalle de una solicitud | GET | `/sync-requests/{id}` |

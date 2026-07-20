@@ -1,0 +1,120 @@
+{
+  "paths": {
+    "/sync-requests": {
+      "get": {
+        "operationId": "listSyncRequests",
+        "tags": ["Sincronización"],
+        "security": [{"apiKeyAuth": []}],
+        "summary": "Listar solicitudes de sincronización recientes",
+        "description": "Lista las solicitudes de sincronización de una entidad creadas en las últimas N horas (por defecto 24), ordenadas de la más nueva a la más antigua. Paginación simple con `page` y `page_size`.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "required": true,
+            "description": "ID de la entidad maestra. Acepta el id opaco (`eid_...`, campo `opaque_id` de `/master-entities?rut=`) o el id entero.",
+            "schema": {"type": "string", "example": "eid_NDgyMTM6c2lnbmF0dXJl"}
+          },
+          {
+            "name": "hours",
+            "in": "query",
+            "required": false,
+            "description": "Ventana hacia atrás, en horas, sobre la fecha de creación. Por defecto 24.",
+            "schema": {"type": "integer", "default": 24, "example": 72}
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Página a consultar (parte en 1).",
+            "schema": {"type": "integer", "default": 1}
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "description": "Tamaño de página. Por defecto 50, máximo 200.",
+            "schema": {"type": "integer", "default": 50, "maximum": 200}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de solicitudes de sincronización de la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {"type": "integer", "description": "Total de solicitudes dentro de la ventana de horas"},
+                    "page": {"type": "integer", "description": "Página actual"},
+                    "page_size": {"type": "integer", "description": "Tamaño de página usado"},
+                    "results": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/SyncRequest"}
+                    }
+                  }
+                },
+                "example": {
+                  "count": 2,
+                  "page": 1,
+                  "page_size": 50,
+                  "results": [
+                    {
+                      "id": 1042,
+                      "master_entity_id": 48213,
+                      "requested_types": ["ISSUED_DOCS", "RECEIVED_DOCS"],
+                      "status": "completed",
+                      "webhook_url": "",
+                      "results": {
+                        "ISSUED_DOCS": {"success": true, "new_documents": 3},
+                        "RECEIVED_DOCS": {"success": true, "new_documents": 0}
+                      },
+                      "completed_at": "2026-07-20T14:34:12Z",
+                      "created_at": "2026-07-20T14:30:00Z"
+                    },
+                    {
+                      "id": 1039,
+                      "master_entity_id": 48213,
+                      "requested_types": [],
+                      "status": "processing",
+                      "webhook_url": "https://miapp.cl/webhooks/tupana-sync",
+                      "results": {},
+                      "completed_at": null,
+                      "created_at": "2026-07-20T11:02:44Z"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "master_entity_id faltante o inválido, o hours/page/page_size no son enteros",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {"type": "string", "example": "hours debe ser un entero."}
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin acceso a la entidad consultada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {"type": "string", "example": "No tienes acceso a esta entidad."}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

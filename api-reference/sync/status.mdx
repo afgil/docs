@@ -1,0 +1,20 @@
+---
+title: 'Estado de sincronización'
+openapi: 'GET /sync-status'
+---
+
+## ¿Para qué se usa?
+
+Permite saber **cuándo fue la última sincronización de cada tipo de dato** de una entidad, y qué frecuencia de sincronización tiene contratada (`sync_frequency_hours`: 24, 12 o 3).
+
+## Qué hace
+
+- Devuelve una fila por tipo de scrape en `types`, con `scrape_type`, `last_success_at` (última carga exitosa) y `last_status` (`in_progress`, `completed` o `failed`).
+- Solo aparecen los tipos que se han sincronizado al menos una vez para la entidad.
+- La entidad se indica con el query param `master_entity_id`, igual que en `/documents`. Acepta el **id opaco** (`eid_...`, campo `opaque_id` de `/master-entities?rut=`) o el id entero.
+
+## Ejemplos de uso
+
+- Mostrar en tu producto "datos actualizados hace X horas" para cada empresa conectada.
+- Antes de operar cobranza o cesiones, verificar que `last_success_at` de `ISSUED_DOCS` sea reciente; si no, crear una [solicitud de sincronización a demanda](/api-reference/sync/request-create).
+- Detectar tipos con `last_status: "failed"` y alertar (por ejemplo, credenciales SII vencidas).

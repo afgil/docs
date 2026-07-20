@@ -183,6 +183,16 @@
             "pages": [
               "api-reference/book-summaries/list"
             ]
+          },
+          {
+            "group": "Sincronización",
+            "pages": [
+              "api-reference/sync/introduction",
+              "api-reference/sync/status",
+              "api-reference/sync/request-create",
+              "api-reference/sync/request-list",
+              "api-reference/sync/request-get"
+            ]
           }
         ]
       },

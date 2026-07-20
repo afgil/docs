@@ -1,0 +1,19 @@
+---
+title: 'Detalle de solicitud de sincronización'
+openapi: 'GET /sync-requests/{id}'
+---
+
+## ¿Para qué se usa?
+
+Permite **consultar el estado de una solicitud de sincronización** creada con `POST /sync-requests`. Es el endpoint de polling del flujo asíncrono.
+
+## Qué hace
+
+- Devuelve el objeto completo de la solicitud: `status` (`pending`, `processing`, `completed` o `failed`), `requested_types`, `completed_at` y `results`.
+- Cuando la solicitud termina, `results` trae el **resultado por tipo de scrape**: cada clave es un `scrape_type` ejecutado y su valor incluye `success` más contadores como `new_documents`, o `error` si ese tipo falló.
+- Solo puedes consultar solicitudes de entidades a las que tienes acceso (si no, responde 403).
+
+## Ejemplos de uso
+
+- Polling después del POST: consultar cada algunos segundos hasta que `status` sea `completed` o `failed`, y recién ahí leer `/documents`.
+- Diagnóstico: si `status` es `failed`, revisar en `results` qué tipo falló y con qué error.
