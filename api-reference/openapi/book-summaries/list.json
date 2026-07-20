@@ -1,6 +1,6 @@
 {
   "paths": {
-    "/master-entities/{master_entity_id}/book-summaries": {
+    "/book-summaries": {
       "get": {
         "operationId": "listBookSummaries",
         "tags": ["Resumen de Libros"],
@@ -10,10 +10,10 @@
         "parameters": [
           {
             "name": "master_entity_id",
-            "in": "path",
+            "in": "query",
             "required": true,
-            "description": "ID de la entidad maestra.",
-            "schema": {"type": "integer", "example": 123}
+            "description": "ID de la entidad maestra. Acepta el id opaco (`eid_...`) que entregan los endpoints de la API, o el id entero legacy.",
+            "schema": {"type": "string", "example": "eid_NDgyMTM6c2lnbmF0dXJl"}
           },
           {
             "name": "period",
@@ -53,7 +53,7 @@
             }
           },
           "400": {
-            "description": "period faltante o con formato inválido",
+            "description": "master_entity_id faltante o inválido, o period faltante o con formato inválido",
             "content": {
               "application/json": {
                 "schema": {

@@ -26,7 +26,7 @@
                   "$ref": "#/components/schemas/MasterEntity"
                 },
                 "example": {
-                  "id": 371,
+                  "id": "eid_NDgyMTM6c2lnbmF0dXJl",
                   "tax_id": "76.798.398-0",
                   "name": "SUPLO SPA",
                   "email": "contacto@suplo.cl",

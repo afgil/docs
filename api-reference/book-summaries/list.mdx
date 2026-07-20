@@ -1,6 +1,6 @@
 ---
 title: 'Resumen de libro de compras/ventas'
-openapi: 'GET /master-entities/{master_entity_id}/book-summaries'
+openapi: 'GET /book-summaries'
 ---
 
 ## ¿Para qué se usa?
@@ -10,6 +10,7 @@ Permite **obtener el resumen agregado del libro de compras y ventas** (getResume
 ## Qué hace
 
 - Devuelve los totales del libro (`total_docs`, `net_amount`, `exempt_amount`, `vat_amount`, `total_amount`) agrupados por `dte_type_code` y `operation` para el `period` (YYYYMM) indicado.
+- La entidad se indica con el query param `master_entity_id`, igual que en `/documents`. Acepta el **id opaco** (`eid_...`) que entrega `/master-entities?rut=` o el id entero legacy.
 - Puedes filtrar por **operación** (`COMPRA` o `VENTA`); si se omite, devuelve ambas.
 - El campo **is_enabled** indica si la entidad tiene habilitado el scrape de este resumen. Si es `false`, `results` viene vacío aunque el período sea válido — la entidad necesita ser habilitada primero (ver [Introducción](/api-reference/book-summaries/introduction)).
 
