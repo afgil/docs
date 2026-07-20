@@ -1891,14 +1891,14 @@
         "description": "Solicitud de sincronización a demanda (recurso asíncrono)",
         "properties": {
           "id": {
-            "type": "integer",
-            "description": "ID de la solicitud",
-            "example": 1042
+            "type": "string",
+            "description": "ID de la solicitud Id opaco (eid_...); la entrada acepta también el entero.",
+            "example": "eid_NDgyMTM6c2lnbmF0dXJl"
           },
           "master_entity_id": {
-            "type": "integer",
-            "description": "ID entero de la entidad sincronizada",
-            "example": 48213
+            "type": "string",
+            "description": "ID entero de la entidad sincronizada Id opaco (eid_...); la entrada acepta también el entero.",
+            "example": "eid_NDgyMTM6c2lnbmF0dXJl"
           },
           "requested_types": {
             "type": "array",
