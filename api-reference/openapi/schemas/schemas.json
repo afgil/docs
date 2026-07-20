@@ -964,8 +964,13 @@
         "type": "object",
         "properties": {
           "id": {
+            "type": "integer",
+            "description": "ID entero de la entidad maestra (contrato v1). Para integraciones nuevas prefiere `opaque_id`.",
+            "example": 371
+          },
+          "opaque_id": {
             "type": "string",
-            "description": "ID opaco de la entidad maestra (`eid_...`). Úsalo tal cual como `master_entity_id` en los demás endpoints (documentos, resumen de libros, etc.); los ids enteros legacy guardados antes siguen siendo aceptados como entrada.",
+            "description": "ID opaco de la entidad (`eid_...`), no enumerable. Úsalo tal cual como `master_entity_id` en los demás endpoints (documentos, resumen de libros, etc.) — aceptan ambos formatos. En la futura v2, `id` pasará a ser este token.",
             "example": "eid_NDgyMTM6c2lnbmF0dXJl"
           },
           "tax_id": {

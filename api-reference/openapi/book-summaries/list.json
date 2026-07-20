@@ -12,7 +12,7 @@
             "name": "master_entity_id",
             "in": "query",
             "required": true,
-            "description": "ID de la entidad maestra. Acepta el id opaco (`eid_...`) que entregan los endpoints de la API, o el id entero legacy.",
+            "description": "ID de la entidad maestra. Acepta el id opaco (`eid_...`, campo `opaque_id` de `/master-entities?rut=`) o el id entero.",
             "schema": {"type": "string", "example": "eid_NDgyMTM6c2lnbmF0dXJl"}
           },
           {
