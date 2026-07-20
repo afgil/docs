@@ -17,7 +17,7 @@
           {
             "name": "master_entity_id",
             "in": "query",
-            "description": "ID de la entidad emisora o receptora cuyos documentos quieres consultar. Acepta el id opaco (`eid_...`) que entregan los endpoints de la API (ej. `/master-entities?rut=`), o el id entero legacy.",
+            "description": "ID de la entidad emisora o receptora cuyos documentos quieres consultar. Acepta el id opaco (`eid_...`, campo `opaque_id` de `/master-entities?rut=`) o el id entero.",
             "required": true,
             "schema": {
               "type": "string",
