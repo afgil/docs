@@ -1,0 +1,20 @@
+---
+title: 'Crear solicitud de sincronización'
+openapi: 'POST /sync-requests'
+---
+
+## ¿Para qué se usa?
+
+Permite **pedir una sincronización a demanda** de una entidad, sin esperar el próximo ciclo automático de 24 horas. Casos típicos: un cliente recién conectado del que quieres los datos altiro, o necesitas la cartera al día antes de operar cobranza o cesiones.
+
+## Qué hace
+
+- Es un **recurso asíncrono** (estilo Stripe/Plaid): crea el objeto, responde **201 de inmediato** con `status: "pending"` y el scrape corre en segundo plano. La llamada nunca bloquea esperando al SII.
+- Con `scrape_types` eliges qué tipos sincronizar; si lo omites, se sincronizan **todos los tipos habilitados** para la entidad.
+- Si mandas `webhook_url`, al completar hacemos un **POST a esa URL** con `{id, status, results}` (best effort, timeout 5 s). Si no, haz polling con [`GET /sync-requests/{id}`](/api-reference/sync/request-get).
+- Disponible **solo para el plan de 24 horas**: si la entidad ya está en un plan de 12 h o 3 h responde 400 — su cartera ya se sincroniza sola con mayor frecuencia.
+
+## Ejemplos de uso
+
+- Onboarding: el cliente conectó su empresa hace 5 minutos y quieres mostrarle sus facturas sin esperar al ciclo nocturno.
+- Cobranza/cesiones: antes de calcular la cartera cedible, fuerza `ISSUED_DOCS` para trabajar con los folios más recientes.

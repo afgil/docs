@@ -1,0 +1,19 @@
+---
+title: 'Listar solicitudes de sincronización'
+openapi: 'GET /sync-requests'
+---
+
+## ¿Para qué se usa?
+
+Permite **listar las solicitudes de sincronización recientes** de una entidad, para auditar qué se ha pedido y en qué estado va cada una.
+
+## Qué hace
+
+- Devuelve las solicitudes creadas en las últimas `hours` horas (por defecto **24**), de la más nueva a la más antigua.
+- Paginación simple con `page` (parte en 1) y `page_size` (por defecto 50, máximo 200).
+- La entidad se indica con el query param `master_entity_id`. Acepta el **id opaco** (`eid_...`, campo `opaque_id` de `/master-entities?rut=`) o el id entero.
+
+## Ejemplos de uso
+
+- Evitar duplicar trabajo: antes de crear una solicitud nueva, revisar si ya hay una `pending` o `processing` para la entidad.
+- Panel de soporte: ver el historial de sincronizaciones a demanda del día y sus resultados.

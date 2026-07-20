@@ -278,6 +278,11 @@ def combine_openapi_files():
         base_dir / "honorary" / "authorized-users.json",
         # Book summaries
         base_dir / "book-summaries" / "list.json",
+        # Sync (estado de sincronización + solicitudes a demanda)
+        base_dir / "sync" / "status.json",
+        base_dir / "sync" / "requests-create.json",
+        base_dir / "sync" / "requests-list.json",
+        base_dir / "sync" / "requests-get.json",
         # Schemas
         base_dir / "schemas" / "schemas.json",
     ]

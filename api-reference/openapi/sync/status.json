@@ -1,0 +1,108 @@
+{
+  "paths": {
+    "/sync-status": {
+      "get": {
+        "operationId": "getSyncStatus",
+        "tags": ["Sincronización"],
+        "security": [{"apiKeyAuth": []}],
+        "summary": "Estado de sincronización de una entidad",
+        "description": "Devuelve la frecuencia de sincronización contratada para la entidad (`sync_frequency_hours`: 24, 12 o 3) y la última actualización por tipo de scrape. Cada fila de `types` indica cuándo fue la última carga exitosa (`last_success_at`) y el estado de la última ejecución (`last_status`). Solo aparecen los tipos que se han sincronizado al menos una vez para la entidad.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "required": true,
+            "description": "ID de la entidad maestra. Acepta el id opaco (`eid_...`, campo `opaque_id` de `/master-entities?rut=`) o el id entero.",
+            "schema": {"type": "string", "example": "eid_NDgyMTM6c2lnbmF0dXJl"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado de sincronización de la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "master_entity_id": {"type": "integer", "description": "ID entero de la entidad", "example": 48213},
+                    "sync_frequency_hours": {
+                      "type": "integer",
+                      "enum": [24, 12, 3],
+                      "description": "Frecuencia de sincronización contratada, en horas. 24 es el plan por defecto; 12 y 3 (casi tiempo real) son planes de mayor frecuencia.",
+                      "example": 24
+                    },
+                    "types": {
+                      "type": "array",
+                      "description": "Última actualización por tipo de scrape",
+                      "items": {"$ref": "#/components/schemas/SyncStatusType"}
+                    }
+                  }
+                },
+                "example": {
+                  "master_entity_id": 48213,
+                  "sync_frequency_hours": 24,
+                  "types": [
+                    {
+                      "scrape_type": "ISSUED_DOCS",
+                      "last_success_at": "2026-07-20T06:12:41Z",
+                      "last_status": "completed"
+                    },
+                    {
+                      "scrape_type": "RECEIVED_DOCS",
+                      "last_success_at": "2026-07-20T06:15:03Z",
+                      "last_status": "completed"
+                    },
+                    {
+                      "scrape_type": "PURCHASE_BOOK",
+                      "last_success_at": "2026-07-19T06:14:10Z",
+                      "last_status": "failed"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "master_entity_id faltante o inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {"type": "string", "example": "master_entity_id es requerido."}
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin acceso a la entidad consultada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {"type": "string", "example": "No tienes acceso a esta entidad."}
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "La entidad no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {"type": "string", "example": "No encontrado."}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

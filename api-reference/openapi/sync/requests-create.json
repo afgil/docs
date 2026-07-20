@@ -1,0 +1,104 @@
+{
+  "paths": {
+    "/sync-requests": {
+      "post": {
+        "operationId": "createSyncRequest",
+        "tags": ["Sincronización"],
+        "security": [{"apiKeyAuth": []}],
+        "summary": "Crear solicitud de sincronización a demanda",
+        "description": "Crea una solicitud de sincronización a demanda para una entidad. Es un **recurso asíncrono**: la API crea el objeto, responde 201 de inmediato con `status: \"pending\"` y el scrape corre en segundo plano — la llamada nunca bloquea esperando al SII. Luego puedes hacer polling con `GET /sync-requests/{id}` o registrar un `webhook_url` para que te avisemos al terminar.\n\nDisponible **solo para entidades en el plan de 24 horas**. Si la entidad ya está en un plan de 12 h o 3 h, responde 400: su cartera ya se sincroniza sola con mayor frecuencia y no necesita solicitudes a demanda.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["master_entity_id"],
+                "properties": {
+                  "master_entity_id": {
+                    "type": "string",
+                    "description": "ID de la entidad maestra. Acepta el id opaco (`eid_...`, campo `opaque_id` de `/master-entities?rut=`) o el id entero.",
+                    "example": "eid_NDgyMTM6c2lnbmF0dXJl"
+                  },
+                  "scrape_types": {
+                    "type": "array",
+                    "description": "Tipos de scrape a ejecutar. Si se omite o va vacío, se sincronizan todos los tipos habilitados para la entidad.",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "ISSUED_DOCS",
+                        "RECEIVED_DOCS",
+                        "RECEIVED_HONORARY_BILLS",
+                        "THIRD_PARTY_HONORARY",
+                        "EMITTED_HONORARY_BILLS",
+                        "PURCHASE_BOOK",
+                        "SALE_BOOK",
+                        "BOOK_SUMMARY"
+                      ]
+                    },
+                    "example": ["ISSUED_DOCS", "RECEIVED_DOCS"]
+                  },
+                  "webhook_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "URL opcional. Al completarse la solicitud hacemos un POST (best effort, timeout 5 s) con el payload `{id, status, results}`.",
+                    "example": "https://miapp.cl/webhooks/tupana-sync"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Solicitud creada; el scrape corre en segundo plano",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SyncRequest"},
+                "example": {
+                  "id": 1042,
+                  "master_entity_id": 48213,
+                  "requested_types": ["ISSUED_DOCS", "RECEIVED_DOCS"],
+                  "status": "pending",
+                  "webhook_url": "https://miapp.cl/webhooks/tupana-sync",
+                  "results": {},
+                  "completed_at": null,
+                  "created_at": "2026-07-20T14:30:00Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body inválido (master_entity_id faltante, scrape_type desconocido) o la entidad está en un plan de 12 h / 3 h (la sincronización a demanda es solo para el plan de 24 horas)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "La actualización a demanda está disponible solo para el plan de 24 horas; tu plan ya sincroniza cada 12 horas."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin acceso a la entidad indicada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {"type": "string", "example": "No tienes acceso a esta entidad."}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "paths": {
+    "/sync-requests/{id}": {
+      "get": {
+        "operationId": "getSyncRequest",
+        "tags": ["Sincronización"],
+        "security": [{"apiKeyAuth": []}],
+        "summary": "Detalle de una solicitud de sincronización",
+        "description": "Devuelve el estado actual de una solicitud de sincronización. Úsalo para hacer polling después del `POST /sync-requests`: cuando `status` pase a `completed` (o `failed`), el campo `results` trae el resultado por cada tipo de scrape ejecutado.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la solicitud de sincronización (campo `id` de la respuesta del POST).",
+            "schema": {"type": "integer", "example": 1042}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle de la solicitud, con resultados por tipo si ya terminó",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SyncRequest"},
+                "example": {
+                  "id": 1042,
+                  "master_entity_id": 48213,
+                  "requested_types": ["ISSUED_DOCS", "RECEIVED_DOCS"],
+                  "status": "completed",
+                  "webhook_url": "https://miapp.cl/webhooks/tupana-sync",
+                  "results": {
+                    "ISSUED_DOCS": {"success": true, "new_documents": 3},
+                    "RECEIVED_DOCS": {"success": true, "new_documents": 0}
+                  },
+                  "completed_at": "2026-07-20T14:34:12Z",
+                  "created_at": "2026-07-20T14:30:00Z"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin acceso a la entidad dueña de la solicitud",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {"type": "string", "example": "No tienes acceso a esta entidad."}
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "La solicitud no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {"type": "string", "example": "No encontrado."}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

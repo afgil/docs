@@ -3748,6 +3748,510 @@
           }
         }
       }
+    },
+    "/sync-status": {
+      "get": {
+        "operationId": "getSyncStatus",
+        "tags": [
+          "Sincronización"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Estado de sincronización de una entidad",
+        "description": "Devuelve la frecuencia de sincronización contratada para la entidad (`sync_frequency_hours`: 24, 12 o 3) y la última actualización por tipo de scrape. Cada fila de `types` indica cuándo fue la última carga exitosa (`last_success_at`) y el estado de la última ejecución (`last_status`). Solo aparecen los tipos que se han sincronizado al menos una vez para la entidad.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "required": true,
+            "description": "ID de la entidad maestra. Acepta el id opaco (`eid_...`, campo `opaque_id` de `/master-entities?rut=`) o el id entero.",
+            "schema": {
+              "type": "string",
+              "example": "eid_NDgyMTM6c2lnbmF0dXJl"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado de sincronización de la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "master_entity_id": {
+                      "type": "integer",
+                      "description": "ID entero de la entidad",
+                      "example": 48213
+                    },
+                    "sync_frequency_hours": {
+                      "type": "integer",
+                      "enum": [
+                        24,
+                        12,
+                        3
+                      ],
+                      "description": "Frecuencia de sincronización contratada, en horas. 24 es el plan por defecto; 12 y 3 (casi tiempo real) son planes de mayor frecuencia.",
+                      "example": 24
+                    },
+                    "types": {
+                      "type": "array",
+                      "description": "Última actualización por tipo de scrape",
+                      "items": {
+                        "$ref": "#/components/schemas/SyncStatusType"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "master_entity_id": 48213,
+                  "sync_frequency_hours": 24,
+                  "types": [
+                    {
+                      "scrape_type": "ISSUED_DOCS",
+                      "last_success_at": "2026-07-20T06:12:41Z",
+                      "last_status": "completed"
+                    },
+                    {
+                      "scrape_type": "RECEIVED_DOCS",
+                      "last_success_at": "2026-07-20T06:15:03Z",
+                      "last_status": "completed"
+                    },
+                    {
+                      "scrape_type": "PURCHASE_BOOK",
+                      "last_success_at": "2026-07-19T06:14:10Z",
+                      "last_status": "failed"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "master_entity_id faltante o inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "master_entity_id es requerido."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin acceso a la entidad consultada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "No tienes acceso a esta entidad."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "La entidad no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "No encontrado."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sync-requests": {
+      "post": {
+        "operationId": "createSyncRequest",
+        "tags": [
+          "Sincronización"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Crear solicitud de sincronización a demanda",
+        "description": "Crea una solicitud de sincronización a demanda para una entidad. Es un **recurso asíncrono**: la API crea el objeto, responde 201 de inmediato con `status: \"pending\"` y el scrape corre en segundo plano — la llamada nunca bloquea esperando al SII. Luego puedes hacer polling con `GET /sync-requests/{id}` o registrar un `webhook_url` para que te avisemos al terminar.\n\nDisponible **solo para entidades en el plan de 24 horas**. Si la entidad ya está en un plan de 12 h o 3 h, responde 400: su cartera ya se sincroniza sola con mayor frecuencia y no necesita solicitudes a demanda.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "master_entity_id"
+                ],
+                "properties": {
+                  "master_entity_id": {
+                    "type": "string",
+                    "description": "ID de la entidad maestra. Acepta el id opaco (`eid_...`, campo `opaque_id` de `/master-entities?rut=`) o el id entero.",
+                    "example": "eid_NDgyMTM6c2lnbmF0dXJl"
+                  },
+                  "scrape_types": {
+                    "type": "array",
+                    "description": "Tipos de scrape a ejecutar. Si se omite o va vacío, se sincronizan todos los tipos habilitados para la entidad.",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "ISSUED_DOCS",
+                        "RECEIVED_DOCS",
+                        "RECEIVED_HONORARY_BILLS",
+                        "THIRD_PARTY_HONORARY",
+                        "EMITTED_HONORARY_BILLS",
+                        "PURCHASE_BOOK",
+                        "SALE_BOOK",
+                        "BOOK_SUMMARY"
+                      ]
+                    },
+                    "example": [
+                      "ISSUED_DOCS",
+                      "RECEIVED_DOCS"
+                    ]
+                  },
+                  "webhook_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "URL opcional. Al completarse la solicitud hacemos un POST (best effort, timeout 5 s) con el payload `{id, status, results}`.",
+                    "example": "https://miapp.cl/webhooks/tupana-sync"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Solicitud creada; el scrape corre en segundo plano",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncRequest"
+                },
+                "example": {
+                  "id": 1042,
+                  "master_entity_id": 48213,
+                  "requested_types": [
+                    "ISSUED_DOCS",
+                    "RECEIVED_DOCS"
+                  ],
+                  "status": "pending",
+                  "webhook_url": "https://miapp.cl/webhooks/tupana-sync",
+                  "results": {},
+                  "completed_at": null,
+                  "created_at": "2026-07-20T14:30:00Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body inválido (master_entity_id faltante, scrape_type desconocido) o la entidad está en un plan de 12 h / 3 h (la sincronización a demanda es solo para el plan de 24 horas)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "La actualización a demanda está disponible solo para el plan de 24 horas; tu plan ya sincroniza cada 12 horas."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin acceso a la entidad indicada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "No tienes acceso a esta entidad."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listSyncRequests",
+        "tags": [
+          "Sincronización"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar solicitudes de sincronización recientes",
+        "description": "Lista las solicitudes de sincronización de una entidad creadas en las últimas N horas (por defecto 24), ordenadas de la más nueva a la más antigua. Paginación simple con `page` y `page_size`.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "required": true,
+            "description": "ID de la entidad maestra. Acepta el id opaco (`eid_...`, campo `opaque_id` de `/master-entities?rut=`) o el id entero.",
+            "schema": {
+              "type": "string",
+              "example": "eid_NDgyMTM6c2lnbmF0dXJl"
+            }
+          },
+          {
+            "name": "hours",
+            "in": "query",
+            "required": false,
+            "description": "Ventana hacia atrás, en horas, sobre la fecha de creación. Por defecto 24.",
+            "schema": {
+              "type": "integer",
+              "default": 24,
+              "example": 72
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Página a consultar (parte en 1).",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "description": "Tamaño de página. Por defecto 50, máximo 200.",
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "maximum": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de solicitudes de sincronización de la entidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer",
+                      "description": "Total de solicitudes dentro de la ventana de horas"
+                    },
+                    "page": {
+                      "type": "integer",
+                      "description": "Página actual"
+                    },
+                    "page_size": {
+                      "type": "integer",
+                      "description": "Tamaño de página usado"
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SyncRequest"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "count": 2,
+                  "page": 1,
+                  "page_size": 50,
+                  "results": [
+                    {
+                      "id": 1042,
+                      "master_entity_id": 48213,
+                      "requested_types": [
+                        "ISSUED_DOCS",
+                        "RECEIVED_DOCS"
+                      ],
+                      "status": "completed",
+                      "webhook_url": "",
+                      "results": {
+                        "ISSUED_DOCS": {
+                          "success": true,
+                          "new_documents": 3
+                        },
+                        "RECEIVED_DOCS": {
+                          "success": true,
+                          "new_documents": 0
+                        }
+                      },
+                      "completed_at": "2026-07-20T14:34:12Z",
+                      "created_at": "2026-07-20T14:30:00Z"
+                    },
+                    {
+                      "id": 1039,
+                      "master_entity_id": 48213,
+                      "requested_types": [],
+                      "status": "processing",
+                      "webhook_url": "https://miapp.cl/webhooks/tupana-sync",
+                      "results": {},
+                      "completed_at": null,
+                      "created_at": "2026-07-20T11:02:44Z"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "master_entity_id faltante o inválido, o hours/page/page_size no son enteros",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "hours debe ser un entero."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin acceso a la entidad consultada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "No tienes acceso a esta entidad."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sync-requests/{id}": {
+      "get": {
+        "operationId": "getSyncRequest",
+        "tags": [
+          "Sincronización"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Detalle de una solicitud de sincronización",
+        "description": "Devuelve el estado actual de una solicitud de sincronización. Úsalo para hacer polling después del `POST /sync-requests`: cuando `status` pase a `completed` (o `failed`), el campo `results` trae el resultado por cada tipo de scrape ejecutado.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la solicitud de sincronización (campo `id` de la respuesta del POST).",
+            "schema": {
+              "type": "integer",
+              "example": 1042
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle de la solicitud, con resultados por tipo si ya terminó",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncRequest"
+                },
+                "example": {
+                  "id": 1042,
+                  "master_entity_id": 48213,
+                  "requested_types": [
+                    "ISSUED_DOCS",
+                    "RECEIVED_DOCS"
+                  ],
+                  "status": "completed",
+                  "webhook_url": "https://miapp.cl/webhooks/tupana-sync",
+                  "results": {
+                    "ISSUED_DOCS": {
+                      "success": true,
+                      "new_documents": 3
+                    },
+                    "RECEIVED_DOCS": {
+                      "success": true,
+                      "new_documents": 0
+                    }
+                  },
+                  "completed_at": "2026-07-20T14:34:12Z",
+                  "created_at": "2026-07-20T14:30:00Z"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin acceso a la entidad dueña de la solicitud",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "No tienes acceso a esta entidad."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "La solicitud no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "No encontrado."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -6173,6 +6677,127 @@
             "description": "Código de tipo de ítem",
             "nullable": true,
             "example": "1"
+          }
+        }
+      },
+      "SyncStatusType": {
+        "type": "object",
+        "description": "Última actualización de un tipo de scrape para la entidad",
+        "properties": {
+          "scrape_type": {
+            "type": "string",
+            "enum": [
+              "ISSUED_DOCS",
+              "RECEIVED_DOCS",
+              "RECEIVED_HONORARY_BILLS",
+              "THIRD_PARTY_HONORARY",
+              "EMITTED_HONORARY_BILLS",
+              "PURCHASE_BOOK",
+              "SALE_BOOK",
+              "BOOK_SUMMARY"
+            ],
+            "description": "Tipo de scrape: ISSUED_DOCS (facturas emitidas), RECEIVED_DOCS (facturas recibidas), RECEIVED_HONORARY_BILLS (boletas de honorarios recibidas), THIRD_PARTY_HONORARY (boletas de honorarios de terceros), EMITTED_HONORARY_BILLS (boletas de honorarios emitidas), PURCHASE_BOOK (libro de compras), SALE_BOOK (libro de ventas), BOOK_SUMMARY (resumen de libro de compras/ventas).",
+            "example": "ISSUED_DOCS"
+          },
+          "last_success_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Fecha/hora de la última sincronización exitosa de este tipo. null si nunca ha cargado con éxito.",
+            "example": "2026-07-20T06:12:41Z"
+          },
+          "last_status": {
+            "type": "string",
+            "enum": [
+              "in_progress",
+              "completed",
+              "failed"
+            ],
+            "description": "Estado de la última ejecución de este tipo de scrape",
+            "example": "completed"
+          }
+        }
+      },
+      "SyncRequest": {
+        "type": "object",
+        "description": "Solicitud de sincronización a demanda (recurso asíncrono)",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "ID de la solicitud",
+            "example": 1042
+          },
+          "master_entity_id": {
+            "type": "integer",
+            "description": "ID entero de la entidad sincronizada",
+            "example": 48213
+          },
+          "requested_types": {
+            "type": "array",
+            "description": "Tipos de scrape pedidos. Lista vacía = todos los tipos habilitados para la entidad.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ISSUED_DOCS",
+                "RECEIVED_DOCS",
+                "RECEIVED_HONORARY_BILLS",
+                "THIRD_PARTY_HONORARY",
+                "EMITTED_HONORARY_BILLS",
+                "PURCHASE_BOOK",
+                "SALE_BOOK",
+                "BOOK_SUMMARY"
+              ]
+            },
+            "example": [
+              "ISSUED_DOCS",
+              "RECEIVED_DOCS"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "completed",
+              "failed"
+            ],
+            "description": "Estado de la solicitud: pending (creada, en cola), processing (scrapes corriendo), completed (todos los tipos terminaron OK), failed (al menos un tipo falló).",
+            "example": "pending"
+          },
+          "webhook_url": {
+            "type": "string",
+            "description": "URL registrada para notificar al completar. String vacío si no se registró webhook.",
+            "example": "https://miapp.cl/webhooks/tupana-sync"
+          },
+          "results": {
+            "type": "object",
+            "description": "Resultado por tipo de scrape al terminar. Las claves son los scrape_type ejecutados y cada valor es un objeto con `success` (boolean) más contadores como `new_documents`, o `error` si falló. Objeto vacío mientras la solicitud está pending/processing.",
+            "additionalProperties": {
+              "type": "object"
+            },
+            "example": {
+              "ISSUED_DOCS": {
+                "success": true,
+                "new_documents": 3
+              },
+              "RECEIVED_DOCS": {
+                "success": true,
+                "new_documents": 0
+              }
+            }
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Fecha/hora en que terminó de procesarse. null mientras está pending/processing.",
+            "example": "2026-07-20T14:34:12Z"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha/hora de creación de la solicitud",
+            "example": "2026-07-20T14:30:00Z"
           }
         }
       }
