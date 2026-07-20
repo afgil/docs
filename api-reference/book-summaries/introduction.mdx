@@ -19,4 +19,6 @@ Todos los endpoints requieren autenticacion (API Key o JWT). La API Key debe ten
 
 | Accion | Metodo | Endpoint |
 |--------|--------|----------|
-| Resumen de libro de compras/ventas | GET | `/master-entities/{master_entity_id}/book-summaries?period={period}` |
+| Resumen de libro de compras/ventas | GET | `/book-summaries?master_entity_id={id}&period={period}` |
+
+`master_entity_id` acepta el id opaco (`eid_...`) que entregan los endpoints de la API, o el id entero legacy. La ruta anidada anterior (`/master-entities/{id}/book-summaries`) sigue funcionando por compatibilidad.

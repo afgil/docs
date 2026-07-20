@@ -29,3 +29,15 @@ GET /v1/documents?master_entity_id=123&include_trace_events=true
 ```
 
 Con la flag activa, cada documento de la respuesta incluye un array `traces`, y cada traza un array `events` (ver el schema `Trace` y `TraceEvent` en la referencia). El endpoint de detalle (`GET /v1/documents/{document_id}`) ya retorna estos eventos de forma permanente, sin necesidad de la flag.
+
+## Datos del libro RCV del SII (opt-in)
+
+Si necesitas los datos del **Registro de Compras y Ventas (RCV)** de cada documento — por ejemplo para reconstruir los libros de compras y ventas completos de un período — agrega `include_book_metadata=true`:
+
+```bash
+GET /v1/documents?master_entity_id=eid_...&document_type=received&include_book_metadata=true
+```
+
+Cada documento incluye entonces el objeto `book_metadata` (o `null` si aún no aparece en el RCV) con los montos según el libro (`net_amount`, `vat_amount`, `total_amount`, `exempt_amount`), IVA no recuperable / uso común / retenido, fechas de recepción y acuse, los flags `in_sii_compra_book` / `in_sii_venta_book` y los períodos de carga `compra_loading_period` / `venta_loading_period` (YYYYMM).
+
+Para armar el **libro de compras** de un período filtra por `in_sii_compra_book=true` y `compra_loading_period == "YYYYMM"` usando `document_type=received`; para el **libro de ventas**, `in_sii_venta_book=true` y `venta_loading_period` con `document_type=issued`. Usa el período de carga y no la fecha de emisión: un documento emitido a fin de mes puede caer en el período siguiente del libro de compras del receptor.

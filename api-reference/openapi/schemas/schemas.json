@@ -964,9 +964,9 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "description": "ID único de la entidad maestra",
-            "example": 371
+            "type": "string",
+            "description": "ID opaco de la entidad maestra (`eid_...`). Úsalo tal cual como `master_entity_id` en los demás endpoints (documentos, resumen de libros, etc.); los ids enteros legacy guardados antes siguen siendo aceptados como entrada.",
+            "example": "eid_NDgyMTM6c2lnbmF0dXJl"
           },
           "tax_id": {
             "type": "string",
