@@ -5,7 +5,9 @@ openapi: "GET /honorary/authorized-users/"
 
 ## Qué hace
 
-Obtiene la lista completa de usuarios autorizados para emitir boletas de honorarios desde el Servicio de Impuestos Internos (SII) para una entidad emisora específica. Esta lista incluye todos los usuarios que tienen permisos para autorizar boletas en la empresa.
+Obtiene la lista de usuarios autorizados para emitir boletas de honorarios para una entidad emisora específica, **leída desde un caché local** — nunca consulta el SII en el momento del request. Esta lista incluye todos los usuarios que tenían permisos para autorizar boletas en la empresa según la última sincronización.
+
+Para refrescar el caché contra el SII, usa [Sincronizar Usuarios Autorizados](/api-reference/honorary/authorized-users-sync). Si la entidad nunca fue sincronizada, este endpoint devuelve una lista vacía.
 
 ## Endpoints disponibles
 
@@ -22,18 +24,21 @@ Este endpoint está disponible en dos formatos:
 
 ## Reglas de negocio
 
-### Obtención de datos en tiempo real
-La lista se obtiene directamente del SII en tiempo real cada vez que se consulta. No se almacena en caché para garantizar que siempre refleje el estado actual de autorizaciones.
+### Lectura siempre desde caché
+La lista nunca se scrapea del SII en el momento del `GET` — esto garantiza que el endpoint responda rápido y no falle por una caída o lentitud transitoria del SII. El caché se actualiza únicamente vía [Sincronizar Usuarios Autorizados](/api-reference/honorary/authorized-users-sync).
+
+### Un sync fallido no borra el caché
+Si la última sincronización terminó en error, el `GET` sigue devolviendo la última lista exitosa conocida — nunca queda vacío por una falla transitoria del SII. El campo `last_sync_status` permite distinguir "nunca sincronizado" de "sincronizado con error" de "sincronizado con éxito".
 
 ### Estado de enrolamiento
 Cada usuario en la lista incluye un campo que indica si ya fue enrolado en el sistema. Esto permite al frontend mostrar visualmente qué usuarios están disponibles para enrolar y cuáles ya están activos.
 
-### Validación de credenciales
-Se requiere una credencial SII válida asociada a la entidad emisora. Si no existe una credencial válida, la consulta falla.
+### Validación de credenciales (solo al sincronizar)
+La credencial SII válida asociada a la entidad emisora solo se necesita al sincronizar (ver [Sincronizar Usuarios Autorizados](/api-reference/honorary/authorized-users-sync)), no al hacer este `GET`.
 
 ## Consideraciones importantes
 
-- La lista se obtiene directamente del SII en tiempo real
-- Se requiere una credencial SII válida asociada a la entidad
+- La lista se lee de un caché local; nunca dispara un scrape al SII
+- Incluye `last_sync_status`, `last_sync_error` y `last_synced_at` para saber el estado y frescura del caché
 - El campo `enrolled` indica si el usuario ya fue enrolado en el sistema
-- Los nombres se obtienen tal como aparecen en el registro del SII
+- Los nombres se obtienen tal como aparecían en el SII durante la última sincronización exitosa

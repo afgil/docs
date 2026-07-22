@@ -2908,7 +2908,7 @@
     "/honorary/authorized-users/": {
       "get": {
         "summary": "Listar usuarios autorizados",
-        "description": "Obtiene la lista de usuarios autorizados para emitir boletas de honorarios desde el SII. El master_entity_id se proporciona como query parameter.",
+        "description": "Obtiene la lista de usuarios autorizados para emitir boletas de honorarios, leída desde un caché local. Nunca consulta el SII en el momento del request — para refrescarla contra el SII, usa POST /honorary/master-entities/{master_entity_id}/authorized-users/sync/. El master_entity_id se proporciona como query parameter.",
         "tags": [
           "Honorary"
         ],
@@ -2964,6 +2964,31 @@
                           "enrolled"
                         ]
                       }
+                    },
+                    "last_sync_status": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "queued",
+                        "syncing",
+                        "done",
+                        "error",
+                        null
+                      ],
+                      "description": "Estado del último intento de sincronización con el SII. null si esta entidad nunca fue sincronizada.",
+                      "example": "done"
+                    },
+                    "last_sync_error": {
+                      "type": "string",
+                      "description": "Mensaje de error del último intento, solo presente si last_sync_status es 'error'",
+                      "example": ""
+                    },
+                    "last_synced_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true,
+                      "description": "Fecha y hora (ISO 8601) en que terminó la última sincronización exitosa o fallida. null si nunca terminó ninguna (incluye el caso de una sincronización todavía en curso, cuando aún no hay ninguna completada).",
+                      "example": "2026-07-22T15:40:12.123456+00:00"
                     }
                   },
                   "required": [
@@ -3041,7 +3066,7 @@
       },
       "patch": {
         "summary": "Enrolar usuario autorizado",
-        "description": "Enrola un usuario autorizado del SII para emitir boletas de honorarios. El master_entity_id y rut se proporcionan en el body o query parameters. Para desenrolar, usa el endpoint de desenrolar.",
+        "description": "Enrola un usuario autorizado del SII para emitir boletas de honorarios. El RUT se valida contra el caché local (poblado por POST .../authorized-users/sync/), no contra el SII en vivo — sincroniza primero si la entidad nunca fue sincronizada. El master_entity_id y rut se proporcionan en el body o query parameters. Para desenrolar, usa el endpoint de desenrolar.",
         "tags": [
           "Honorary"
         ],
@@ -3211,6 +3236,9 @@
                           "example": "El RUT proporcionado no está en la lista de usuarios autorizadores"
                         },
                         {
+                          "example": "Aún no se ha sincronizado la lista de usuarios autorizadores con el SII para esta entidad. Sincroniza primero e inténtalo de nuevo."
+                        },
+                        {
                           "example": "La acción debe ser 'enroll' o 'unenroll'"
                         },
                         {
@@ -3284,7 +3312,7 @@
     "/honorary/master-entities/{master_entity_id}/authorized-users/": {
       "get": {
         "summary": "Listar usuarios autorizados",
-        "description": "Obtiene la lista de usuarios autorizados para emitir boletas de honorarios desde el SII",
+        "description": "Obtiene la lista de usuarios autorizados para emitir boletas de honorarios, leída desde un caché local. Nunca consulta el SII en el momento del request — para refrescarla contra el SII, usa POST /honorary/master-entities/{master_entity_id}/authorized-users/sync/.",
         "tags": [
           "Honorary"
         ],
@@ -3340,6 +3368,31 @@
                           "enrolled"
                         ]
                       }
+                    },
+                    "last_sync_status": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "queued",
+                        "syncing",
+                        "done",
+                        "error",
+                        null
+                      ],
+                      "description": "Estado del último intento de sincronización con el SII. null si esta entidad nunca fue sincronizada.",
+                      "example": "done"
+                    },
+                    "last_sync_error": {
+                      "type": "string",
+                      "description": "Mensaje de error del último intento, solo presente si last_sync_status es 'error'",
+                      "example": ""
+                    },
+                    "last_synced_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true,
+                      "description": "Fecha y hora (ISO 8601) en que terminó la última sincronización exitosa o fallida. null si ninguna ha terminado todavía.",
+                      "example": "2026-07-22T15:40:12.123456+00:00"
                     }
                   },
                   "required": [
@@ -3419,7 +3472,7 @@
     "/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/": {
       "patch": {
         "summary": "Enrolar usuario autorizado",
-        "description": "Enrola un usuario autorizado del SII para emitir boletas de honorarios. Para desenrolar, usa el endpoint de desenrolar.",
+        "description": "Enrola un usuario autorizado del SII para emitir boletas de honorarios. El RUT se valida contra el caché local (poblado por POST .../authorized-users/sync/), no contra el SII en vivo — sincroniza primero si la entidad nunca fue sincronizada. Para desenrolar, usa el endpoint de desenrolar.",
         "tags": [
           "Honorary"
         ],
@@ -3569,6 +3622,9 @@
                           "example": "El RUT proporcionado no está en la lista de usuarios autorizadores"
                         },
                         {
+                          "example": "Aún no se ha sincronizado la lista de usuarios autorizadores con el SII para esta entidad. Sincroniza primero e inténtalo de nuevo."
+                        },
+                        {
                           "example": "La acción debe ser 'enroll' o 'unenroll'"
                         },
                         {
@@ -3630,6 +3686,100 @@
                     "error": {
                       "type": "string",
                       "example": "Error al gestionar usuario autorizador"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/honorary/master-entities/{master_entity_id}/authorized-users/sync/": {
+      "post": {
+        "summary": "Sincronizar usuarios autorizados con el SII",
+        "description": "Encola de forma asíncrona (no bloquea la respuesta) una consulta al SII para refrescar el caché local de usuarios autorizados de la entidad. Responde de inmediato con un job_id. El caché nunca queda vacío ni se corrompe por un sync fallido: solo un sync exitoso puede actualizar o desactivar usuarios (nunca los borra). Para saber cuándo terminó, haz polling de GET /honorary/master-entities/{master_entity_id}/authorized-users/ hasta que last_sync_status sea 'done' o 'error' — el canal WebSocket que expone el avance en tiempo real solo acepta autenticación de sesión (JWT), no API key.",
+        "tags": [
+          "Honorary"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "ID de la entidad emisora"
+            },
+            "description": "ID de la entidad emisora a sincronizar"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Sincronización encolada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "job_id": {
+                      "type": "integer",
+                      "description": "ID del job de sincronización, útil para trazabilidad interna",
+                      "example": 123
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "queued"
+                      ],
+                      "example": "queued"
+                    },
+                    "channel_key": {
+                      "type": "string",
+                      "description": "Canal WebSocket interno (solo JWT) donde se publica el avance",
+                      "example": "honorary-authorized-users-sync-456"
+                    }
+                  },
+                  "required": [
+                    "job_id",
+                    "status",
+                    "channel_key"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para acceder a la entidad, o API key inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Usuario sin permisos para acceder a la entidad"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entidad no encontrada o sin acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "No encontrado"
                     }
                   }
                 }

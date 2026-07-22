@@ -19,8 +19,8 @@ Enrola un usuario autorizado del SII para emitir boletas de honorarios. El `mast
 
 Enrola un usuario autorizado del SII para que pueda emitir boletas de honorarios desde la cuenta del usuario para una entidad emisora específica. Al enrolar:
 
-1. Valida que el RUT esté en la lista de autorizados del SII para la entidad
-2. Extrae el nombre real del usuario desde el SII
+1. Valida que el RUT esté en el **caché local** de autorizados de la entidad (poblado por [Sincronizar Usuarios Autorizados](/api-reference/honorary/authorized-users-sync), no consulta el SII en el momento)
+2. Extrae el nombre real del usuario tal como quedó registrado en la última sincronización
 3. Crea una nueva entidad con la razón social completa
 4. Asocia la entidad al usuario y a la credencial de la entidad emisora
 
@@ -36,7 +36,9 @@ Enrola un usuario autorizado del SII para que pueda emitir boletas de honorarios
 Este endpoint está diseñado para enrolar usuarios. Si no se especifica el parámetro `action` en el body, el sistema asume que se quiere enrolar el usuario. Para desenrolar un usuario, usa el endpoint de [Desenrolar Usuario Autorizado](/api-reference/honorary/unenroll).
 
 ### Validación automática
-El RUT debe existir en la lista de autorizados del SII. Si el RUT no está autorizado, la operación falla. Esto garantiza que solo se puedan enrolar usuarios que realmente tienen permisos en el SII.
+El RUT debe existir en el caché local de autorizados (última sincronización exitosa con el SII). Si el RUT no está en el caché, la operación falla — con dos mensajes posibles:
+- **La entidad nunca fue sincronizada**: pide sincronizar primero (ver [Sincronizar Usuarios Autorizados](/api-reference/honorary/authorized-users-sync)).
+- **La entidad sí fue sincronizada, pero el RUT no aparece** en el listado del SII: el RUT simplemente no está autorizado.
 
 ### Creación de entidad automática
 Si el usuario no tiene una entidad asociada, se crea automáticamente. El nombre de la entidad se obtiene del registro del SII para garantizar exactitud. La entidad se asocia tanto al usuario como a la credencial de la entidad emisora.
