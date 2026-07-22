@@ -1,0 +1,101 @@
+---
+title: "Sincronizar Usuarios Autorizados"
+openapi: "POST /honorary/master-entities/{master_entity_id}/authorized-users/sync/"
+description: "Refresca contra el SII el caché de usuarios autorizados de una entidad"
+---
+
+## Qué hace
+
+`GET /honorary/authorized-users/` **no consulta el SII en cada request** — lee
+de un caché local que solo se actualiza cuando se dispara una sincronización
+explícita. Este endpoint encola esa sincronización de forma asíncrona: la
+consulta al SII corre en background y el POST responde de inmediato, sin
+esperar a que termine.
+
+```
+POST /honorary/master-entities/{master_entity_id}/authorized-users/sync/
+```
+
+Respuesta (`202 Accepted`):
+
+```json
+{
+    "job_id": 123,
+    "status": "queued",
+    "channel_key": "honorary-authorized-users-sync-456"
+}
+```
+
+## Cómo saber cuándo terminó
+
+El `channel_key` referencia un canal WebSocket interno usado por el frontend
+de Tu Pana (autenticación de sesión JWT) para mostrar el progreso en tiempo
+real. **Ese WebSocket no acepta API key** — si estás integrando desde afuera,
+la forma soportada es hacer **polling** de [Listar Usuarios Autorizados](/api-reference/honorary/authorized-users) hasta que `last_sync_status` sea
+`"done"` o `"error"`:
+
+```
+GET /honorary/master-entities/{master_entity_id}/authorized-users/
+```
+
+```json
+{
+    "authorized_users": [...],
+    "last_sync_status": "done",
+    "last_sync_error": "",
+    "last_synced_at": "2026-07-22T15:40:12.123456+00:00"
+}
+```
+
+Como el GET solo lee del caché (nunca vuelve a tocar el SII), el polling es
+barato. Un intervalo de 2-3 segundos mientras el estado sea `"queued"` o
+`"syncing"` es razonable.
+
+`last_synced_at` refleja cuándo **terminó** el último intento (exitoso o
+fallido) — si hay una sincronización en curso, sigue mostrando la fecha del
+último intento que ya concluyó, no se adelanta hasta que el nuevo intento
+también termine.
+
+## Reglas de negocio
+
+### Nunca se scrapea el SII en el GET
+Antes, `GET /honorary/authorized-users/` consultaba el SII en cada llamada.
+Ahora esa lectura es siempre local; el único punto que toca el SII es este
+endpoint de sync.
+
+### Un sync fallido nunca borra ni corrompe el caché
+Si el SII no responde, la credencial está inválida, o cualquier otro error
+ocurre durante el scraping, el caché **no se modifica en absoluto** — sigue
+reflejando la última sincronización exitosa. Solo se registra el error en
+`last_sync_status`/`last_sync_error`.
+
+### Un sync exitoso puede desactivar usuarios, nunca borrarlos
+Si un usuario que estaba autorizado deja de aparecer en la respuesta del SII
+durante un sync **exitoso**, se marca como inactivo (no vuelve a aparecer en
+`GET .../authorized-users/`) pero la fila no se elimina — se conserva el
+historial de cuándo se vio por última vez.
+
+### Enrolar requiere sincronizar primero
+[Enrolar Usuario Autorizado](/api-reference/honorary/enroll) valida el RUT
+contra este mismo caché. Si la entidad nunca fue sincronizada, el enroll
+responde `400` pidiendo sincronizar primero.
+
+## Ejemplos de uso
+
+- Antes de mostrar el listado de autorizados en tu integración por primera
+  vez para una entidad nueva (el caché empieza vacío).
+- Cuando el usuario final pide explícitamente "actualizar" el listado (botón
+  de refrescar).
+- Después de que el cliente autorice a un nuevo usuario directamente en el
+  portal del SII, para que el cambio se refleje en Tu Pana.
+
+## Consideraciones importantes
+
+- Requiere una credencial SII (`sii_company` o `sii`) válida asociada a la
+  entidad — si no existe, el sync termina en `last_sync_status: "error"`.
+- No hay límite de frecuencia explícito, pero cada llamada dispara un scrape
+  real al SII: evita sincronizar en un loop ajustado a los reintentos de
+  polling.
+- Es idempotente en efecto (no en side-effects): podés disparar varios syncs
+  seguidos sin riesgo de corromper el caché, aunque cada uno consume un scrape
+  real.

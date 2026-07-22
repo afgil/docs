@@ -209,6 +209,7 @@
             "group": "Usuarios Autorizados",
             "pages": [
               "api-reference/honorary/authorized-users",
+              "api-reference/honorary/authorized-users-sync",
               "api-reference/honorary/enroll",
               "api-reference/honorary/unenroll"
             ]

@@ -9,7 +9,8 @@ La API de Boletas de Honorarios permite gestionar usuarios autorizados para emit
 ## Funcionalidades principales
 
 ### Gestión de usuarios autorizados
-- **Listar autorizados**: Consulta la lista completa de usuarios autorizados por el SII
+- **Listar autorizados**: Consulta el caché local de usuarios autorizados (sin tocar el SII)
+- **Sincronizar autorizados**: Refresca ese caché contra el SII de forma asíncrona
 - **Enrolar usuarios**: Agrega usuarios autorizados al sistema con sus datos completos
 - **Desenrolar usuarios**: Remueve permisos de emisión de boletas
 
@@ -27,10 +28,12 @@ Empresa o entidad que emite las boletas de honorarios. Debe tener credenciales v
 ## Flujo típico de uso
 
 1. **Configurar credenciales SII** para la entidad emisora
-2. **[Listar usuarios autorizados](/api-reference/honorary/authorized-users)** desde el SII para ver qué usuarios están disponibles
-3. **[Enrolar usuarios](/api-reference/honorary/enroll)** que necesiten emitir boletas
-4. **Emitir boletas** de honorarios usando las entidades enroladas. Al emitir vía [batch](/api-reference/documents/batch), envía `header.authorized_user_rut` para indicar qué usuario autorizado emite cuando la cuenta tiene acceso a varias credenciales `sii_company`
-5. **[Desenrolar usuarios](/api-reference/honorary/unenroll)** cuando ya no necesiten permisos
+2. **[Sincronizar usuarios autorizados](/api-reference/honorary/authorized-users-sync)** contra el SII (obligatorio antes del primer listado/enrolamiento — el caché empieza vacío)
+3. **[Listar usuarios autorizados](/api-reference/honorary/authorized-users)** desde el caché local para ver qué usuarios están disponibles
+4. **[Enrolar usuarios](/api-reference/honorary/enroll)** que necesiten emitir boletas
+5. **Emitir boletas** de honorarios usando las entidades enroladas. Al emitir vía [batch](/api-reference/documents/batch), envía `header.authorized_user_rut` para indicar qué usuario autorizado emite cuando la cuenta tiene acceso a varias credenciales `sii_company`
+6. **[Desenrolar usuarios](/api-reference/honorary/unenroll)** cuando ya no necesiten permisos
+7. **Volver a sincronizar** periódicamente (paso 2) para que el caché refleje cambios hechos directamente en el portal del SII
 
 ## Requisitos
 
@@ -42,13 +45,14 @@ Empresa o entidad que emite las boletas de honorarios. Debe tener credenciales v
 
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| `GET` | [Listar Usuarios Autorizados](/api-reference/honorary/authorized-users) | Lista usuarios autorizados por el SII para una entidad. Recomendado: `/v1/honorary/authorized-users/?master_entity_id={id}` (master_entity_id como query parameter). También disponible: `/v1/honorary/master-entities/{master_entity_id}/authorized-users/` (compatibilidad) |
-| `PATCH` | [Enrolar Usuario Autorizado](/api-reference/honorary/enroll) | Enrola un usuario autorizado. Recomendado: `/v1/honorary/authorized-users/` con master_entity_id y rut en body. También disponible: `/v1/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/` (compatibilidad) |
+| `GET` | [Listar Usuarios Autorizados](/api-reference/honorary/authorized-users) | Lista usuarios autorizados desde el caché local (nunca consulta el SII). Recomendado: `/v1/honorary/authorized-users/?master_entity_id={id}` (master_entity_id como query parameter). También disponible: `/v1/honorary/master-entities/{master_entity_id}/authorized-users/` (compatibilidad) |
+| `POST` | [Sincronizar Usuarios Autorizados](/api-reference/honorary/authorized-users-sync) | Encola de forma asíncrona una consulta al SII para refrescar el caché: `/v1/honorary/master-entities/{master_entity_id}/authorized-users/sync/` |
+| `PATCH` | [Enrolar Usuario Autorizado](/api-reference/honorary/enroll) | Enrola un usuario autorizado (valida contra el caché). Recomendado: `/v1/honorary/authorized-users/` con master_entity_id y rut en body. También disponible: `/v1/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/` (compatibilidad) |
 | `PATCH` | [Desenrolar Usuario Autorizado](/api-reference/honorary/unenroll) | Desenrola un usuario autorizado. Recomendado: `/v1/honorary/authorized-users/` con `action="unenroll"` y master_entity_id y rut en body. También disponible: `/v1/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/` con `action="unenroll"` (compatibilidad) |
 
 ## Consideraciones de seguridad
 
-- Todos los endpoints requieren autenticación JWT
-- Se valida que el usuario tenga acceso a la entidad emisora
-- Los datos se obtienen directamente del SII para garantizar integridad
+- Todos los endpoints aceptan autenticación por API Key o JWT
+- Se valida que el usuario (o el dueño de la API key) tenga acceso a la entidad emisora
+- El listado (`GET`) se sirve desde caché; solo el sync (`POST .../sync/`) consulta el SII
 - Las operaciones quedan registradas en los logs del sistema
