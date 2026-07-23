@@ -9,15 +9,22 @@ La **API de Cesiones** permite consultar y gestionar las **cesiones de facturas*
 
 Con esta API puedes:
 
-- **Listar** todas las cesiones emitidas por una entidad (con filtros por fecha, estado, busqueda).
+- **Listar** las cesiones de una entidad (con filtros por fecha, estado, busqueda), tanto las que **emitio** (facturas propias cedidas a un tercero) como las que **recibio** (facturas de sus proveedores cedidas a un tercero) via el parametro `document_type`.
 - **Obtener el detalle** de una cesion concreta, incluidos eventos de trazabilidad en el SII.
-- **Obtener la URL del certificado de cesion** (PDF) del SII via `certificate_pdf_url` en el detalle.
+- **Obtener el certificado de cesion** (PDF) del SII, tanto la URL presignada async (`certificate_pdf_url` en el detalle) como en descarga directa via `?pdf=document-cession`.
 - **Crear cesiones en lote** (generar AECs y enviarlos al SII) desde el endpoint de batch.
+
+## Emitidas vs recibidas
+
+Toda cesion involucra dos entidades del documento cedido: quien **emitio** la factura (cedente) y quien la **recibio** (el deudor, cuya deuda cambia de acreedor cuando se cede). El parametro `document_type` del listado controla desde que lado consultas:
+
+- `document_type=issued` (default): cesiones donde `master_entity_id` es la **emisora** de la factura cedida — tus propias ventas que cediste a un factoring.
+- `document_type=received`: cesiones donde `master_entity_id` es la **receptora** de la factura cedida — facturas de tus **proveedores** que ellos cedieron a un tercero. Util para saber a quien pagarle en vez del proveedor original.
 
 ## Flujo tipico
 
-1. **Listar cesiones** con `GET /cessions?master_entity_id={id}` para ver todas las cesiones de la entidad.
-2. **Obtener una cesion** con `GET /cessions/{id}` para ver detalle, eventos y `certificate_pdf_url`.
+1. **Listar cesiones** con `GET /cessions?master_entity_id={id}` (agregando `&document_type=received` si quieres las de tus proveedores) para ver las cesiones de la entidad.
+2. **Obtener una cesion** con `GET /cessions/{id}` para ver detalle, eventos y `certificate_pdf_url`. Es accesible tanto si tenes acceso a la entidad emisora como a la receptora del documento cedido.
 3. **Crear nuevas cesiones** con `POST /cessions/batch` enviando los IDs de documentos y datos del cesionario.
 
 ## Autenticacion
@@ -28,6 +35,8 @@ Todos los endpoints requieren autenticacion (API Key o JWT). La API Key debe ten
 
 | Accion | Metodo | Endpoint |
 |--------|--------|----------|
-| Listar cesiones | GET | `/cessions?master_entity_id={id}` |
+| Listar cesiones emitidas (default) | GET | `/cessions?master_entity_id={id}` |
+| Listar cesiones recibidas | GET | `/cessions?master_entity_id={id}&document_type=received` |
 | Detalle de cesion | GET | `/cessions/{id}` |
+| Descargar certificado (PDF inline) | GET | `/cessions/{id}?pdf=document-cession` |
 | Crear cesiones en lote | POST | `/cessions/batch` |

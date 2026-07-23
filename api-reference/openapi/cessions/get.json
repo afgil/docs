@@ -6,7 +6,7 @@
         "tags": ["Cesiones"],
         "security": [{"apiKeyAuth": []}],
         "summary": "Obtener una cesión",
-        "description": "Obtiene el detalle de una cesión por ID. Si se envía el parámetro pdf=document-cession, la respuesta es una redirección (302) a la URL presignada del certificado de cesión en S3 (PDF del SII). Por defecto devuelve el JSON con el detalle de la cesión.",
+        "description": "Obtiene el detalle de una cesión por ID. Es accesible tanto si tenés acceso a la entidad emisora como a la receptora del documento cedido. Si se envía el parámetro pdf=document-cession, la respuesta es el PDF del certificado de cesión servido inline (200, Content-Type application/pdf) en vez del JSON — se lee del caché en S3 si ya existe, o se scrapea del SII en el momento (requiere que Tupana administre la credencial SII del emisor de la factura). Por defecto (sin el parámetro) devuelve el JSON con el detalle de la cesión.",
         "parameters": [
           {
             "name": "id",
@@ -19,13 +19,13 @@
             "name": "pdf",
             "in": "query",
             "required": false,
-            "description": "Si se envía el valor document-cession, la API redirige a la URL presignada de S3 del certificado de cesión (PDF). Útil para descargar o mostrar el certificado.",
+            "description": "Si se envía el valor document-cession, la respuesta es el PDF del certificado de cesión servido inline (no JSON, no redirect). Útil para descargar o mostrar el certificado directamente.",
             "schema": {"type": "string", "enum": ["document-cession"]}
           }
         ],
         "responses": {
           "200": {
-            "description": "Detalle de la cesión (JSON). Incluye eventos de trazabilidad y errores si existen.",
+            "description": "Sin pdf=document-cession: detalle de la cesión (JSON), incluye eventos de trazabilidad y errores si existen. Con pdf=document-cession: el PDF del certificado de cesión servido inline, reemplazando la respuesta JSON.",
             "content": {
               "application/json": {
                 "schema": {
@@ -57,13 +57,11 @@
                     }
                   }
                 }
+              },
+              "application/pdf": {
+                "schema": {"type": "string", "format": "binary"},
+                "description": "PDF del certificado de cesión inline (solo con ?pdf=document-cession)."
               }
-            }
-          },
-          "302": {
-            "description": "Redirección a la URL presignada del certificado de cesión (PDF en S3). Solo cuando se envía pdf=document-cession.",
-            "headers": {
-              "Location": {"schema": {"type": "string", "format": "uri"}, "description": "URL presignada de S3 del PDF"}
             }
           },
           "403": {
