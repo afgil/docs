@@ -5,17 +5,23 @@ openapi: 'GET /cessions/{id}'
 
 ## Para que se usa?
 
-Sirve para **consultar el detalle de una cesion** por ID, incluyendo la URL del **certificado de cesion (PDF)** del SII.
+Sirve para **consultar el detalle de una cesion** por ID, incluyendo el **certificado de cesion (PDF)** del SII.
 
 ## Que hace
 
 Devuelve el detalle completo en JSON: documento, cesionario, monto, estado, eventos de trazabilidad, errores y `certificate_pdf_url`.
 
+Es accesible tanto si tenes acceso a la entidad **emisora** como a la **receptora** del documento cedido — no hace falta indicar `document_type`, el acceso se resuelve automaticamente segun a que lado de la cesion pertenece tu entidad.
+
 ## Campo `certificate_pdf_url`
 
-La respuesta JSON incluye el campo `certificate_pdf_url` con la URL presignada del certificado de cesion (PDF) en S3/CDN. Tupana descarga automaticamente los certificados al scrapear las cesiones del SII.
+La respuesta JSON incluye el campo `certificate_pdf_url` con la URL presignada del certificado de cesion (PDF) en S3/CDN, si ya fue descargado. Tupana descarga automaticamente los certificados al scrapear las cesiones del SII; si todavia no esta disponible el campo viene `null` y se dispara una descarga en background para la proxima consulta (no bloquea la respuesta).
+
+## Descarga directa: `?pdf=document-cession`
+
+Si necesitas el PDF ya mismo (sin esperar el proceso async), pedi `GET /cessions/{id}?pdf=document-cession`. La respuesta es el **PDF inline** (`200`, `Content-Type: application/pdf`), no un JSON ni un redirect. Si el PDF ya estaba cacheado se devuelve al instante; si no, Tupana lo scrapea del SII en el momento (requiere que Tupana administre la credencial SII del **emisor** de la factura — si la cesion es `document_type=received` y el emisor es un proveedor externo sin credencial en Tupana, esto devuelve `502` con el error correspondiente).
 
 ## Ejemplos de uso
 
 - Ver en tu sistema el detalle y la trazabilidad de una cesion.
-- Ofrecer un boton "Descargar certificado" que abra directamente `certificate_pdf_url`.
+- Ofrecer un boton "Descargar certificado" que abra directamente `certificate_pdf_url` (si ya esta disponible) o pegue a `?pdf=document-cession` para forzar la descarga.

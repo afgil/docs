@@ -5,15 +5,22 @@
         "operationId": "listCessions",
         "tags": ["Cesiones"],
         "security": [{"apiKeyAuth": []}],
-        "summary": "Listar cesiones emitidas",
-        "description": "Obtiene todas las cesiones de facturas (AEC) emitidas por una entidad. Las cesiones son las transferencias de derechos de crédito de facturas a un cesionario (por ejemplo una empresa de factoring). Requiere el ID de la entidad emisora.",
+        "summary": "Listar cesiones (emitidas o recibidas)",
+        "description": "Obtiene las cesiones de facturas (AEC) de una entidad. Las cesiones son las transferencias de derechos de crédito de facturas a un cesionario (por ejemplo una empresa de factoring). Por defecto devuelve las cesiones EMITIDAS por la entidad (document_type=issued); con document_type=received devuelve las cesiones RECIBIDAS — facturas de sus proveedores que ellos cedieron a un tercero, útil para saber a quién pagarle en vez del proveedor original.",
         "parameters": [
           {
             "name": "master_entity_id",
             "in": "query",
             "required": true,
-            "description": "ID de la entidad maestra (emisora de las facturas cedidas). Obligatorio.",
+            "description": "ID de la entidad maestra. Su rol en las facturas cedidas (emisora o receptora) depende de document_type. Obligatorio.",
             "schema": {"type": "integer", "example": 123}
+          },
+          {
+            "name": "document_type",
+            "in": "query",
+            "required": false,
+            "description": "issued (default) = cesiones donde master_entity_id es la EMISORA de la factura cedida. received = cesiones donde master_entity_id es la RECEPTORA de la factura cedida (facturas de proveedores cedidas por ellos a un tercero).",
+            "schema": {"type": "string", "enum": ["issued", "received"], "default": "issued"}
           },
           {
             "name": "date_from",
@@ -78,7 +85,7 @@
             }
           },
           "400": {
-            "description": "master_entity_id faltante o inválido",
+            "description": "master_entity_id faltante o inválido, o document_type con un valor distinto de issued/received",
             "content": {
               "application/json": {
                 "schema": {"type": "object", "properties": {"master_entity_id": {"type": "array", "items": {"type": "string"}}}}
