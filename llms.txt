@@ -17,11 +17,13 @@ https://api.tupana.ai/v1
 
 ## Core Concepts
 
-**Master Entity:** A company registered in Tupana. Each has an ID, RUT (Chilean tax ID), name, addresses, economic activities, and SII credentials.
+**Master Entity:** A company registered in Tupana. Each has an ID (also available as an opaque `eid_...` ID via `opaque_id`), RUT (Chilean tax ID), name, addresses, economic activities, and SII credentials.
 
 **DTE (Documento Tributario Electrónico):** An electronic tax document. Supported types:
 - 33: Factura Electrónica (standard invoice, with IVA)
 - 34: Factura Exenta (tax-exempt invoice)
+- 39: Boleta Electrónica (not created via API; valid for payment state events)
+- 41: Boleta Exenta Electrónica (not created via API; valid for payment state events)
 - 46: Factura de Compra (purchase invoice)
 - 61: Nota de Crédito (credit note)
 - 80: Boleta de Honorarios (honorary receipt)
@@ -37,6 +39,8 @@ https://api.tupana.ai/v1
 - `GET /master-entities?rut={rut}` — Look up a company by RUT
 - `GET /credentials` — List SII credentials
 - `POST /credentials` — Create and validate SII credential
+- `POST /credentials/batch` — Create up to 200 SII credentials (async, webhook-notified)
+- `DELETE /credentials/{master_entity_id}` — Unenroll an entity
 - `GET /documents?master_entity_id={id}` — List documents (issued or received)
 - `GET /documents/{id}` — Get document details with PDF/XML URLs
 - `POST /documents/batch` — Create up to 200 documents (async, returns 202)
@@ -44,10 +48,15 @@ https://api.tupana.ai/v1
 - `POST /documents/{id}/states` — Register payment or SII event
 - `GET /scheduled-documents?master_entity_id={id}` — List recurring documents
 - `POST /scheduled-documents` — Create a recurring document template
-- `GET /cessions?master_entity_id={id}` — List invoice factoring transfers
+- `GET /cessions?master_entity_id={id}` — List invoice factoring transfers (add `document_type=received` for cessions received from suppliers)
 - `POST /cessions/batch` — Create cessions (AECs) for multiple invoices
 - `GET /webhooks?master_entity_id={id}` — List webhooks
-- `POST /webhooks` — Create a webhook for document.issued events
+- `POST /webhooks` — Create a webhook (document.issued, document.delivered, document.rejected, document.paid, document.unpaid, document.cancelled)
+- `GET /honorary/authorized-users/?master_entity_id={id}` — List SII-authorized honorary-receipt users (cached; sync first)
+- `POST /honorary/master-entities/{id}/authorized-users/sync/` — Refresh the authorized-users cache from SII (async)
+- `GET /sync-status?master_entity_id={id}` — Get an entity's sync frequency and last scrape status per type
+- `POST /sync-requests` — Request an on-demand SII sync (24h-plan entities only; async)
+- `GET /book-summaries?master_entity_id={id}&period={YYYYMM}` — Get the SII purchase/sale book summary
 
 ## Document Creation
 

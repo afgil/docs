@@ -33,14 +33,18 @@ https://api.tupana.ai/v1
 
 **IVA:** Chilean VAT at 19%. Automatically calculated for DTE 33, 46. Not applied to DTE 34 (exempt), 110 (exports), 80/90 (honorary).
 
+**Opaque entity IDs:** `GET /master-entities` also returns an `opaque_id` field (format `eid_...`). Anywhere `master_entity_id` is accepted (list/filter endpoints, sync endpoints), you can pass either the integer ID or the opaque `eid_...` value.
+
 ---
 
 ## Supported Document Types
 
 | Code | Name | IVA | Notes |
 |------|------|-----|-------|
-| 33 | Factura Electrónica | 19% | Standard B2B invoice. Receiver must have economic activity. |
-| 34 | Factura Exenta | 0% | Tax-exempt invoice. Same fields as 33. |
+| 33 | Factura Electrónica | 19% | Standard B2B invoice. Receiver must have economic activity. Creatable via `POST /documents/batch`. |
+| 34 | Factura Exenta | 0% | Tax-exempt invoice. Same fields as 33. Creatable via `POST /documents/batch`. |
+| 39 | Boleta Electrónica | 19% | Electronic receipt. Not created via `POST /documents/batch`; valid as `dte_type` for PAID/UNPAID payment events. |
+| 41 | Boleta Exenta Electrónica | 0% | Tax-exempt electronic receipt. Not created via `POST /documents/batch`; valid as `dte_type` for PAID/UNPAID payment events. |
 | 46 | Factura de Compra | 19% | Purchase invoice. Requires `purchase_transaction_type`. |
 | 61 | Nota de Crédito | — | Credit note. Must reference original document via `references`. |
 | 80 | Boleta de Honorarios | — | Honorary receipt. 14.5% withholding. For independent professionals. |
@@ -66,11 +70,13 @@ Use this endpoint to retrieve the entity ID and address/activity data before cre
 
 ## Credentials
 
+**Credential types:** `SII` (personal SII credential — user RUT + password + digital certificate password) and `sii_company` (SII credential scoped to a company). `credential_type_id` (default 70 = `SII`) is used on `POST /credentials`; `credential_type` (string enum `SII` / `sii_company`) is used on `POST /credentials/batch`.
+
 ### GET /credentials
 
 List all active SII credentials for the authenticated user.
 
-**Response:** Array of credentials, each with status (`VALID`, `INVALID`, `EXPIRED`), credential type, and associated master entities.
+**Response:** Array of credentials, each with status (`VALID`, `INVALID`, `EXPIRED`), credential type (`id`, `name`), and associated master entities.
 
 ### POST /credentials
 
@@ -83,11 +89,40 @@ Create and validate a new SII credential.
   "password": "sii-password",
   "digital_certificate_password": "cert-password",
   "master_entity_id": 123,
-  "credential_type_id": 1
+  "credential_type_id": 70
 }
 ```
 
 **Response:** Credential details with validation status.
+
+### POST /credentials/batch
+
+Create up to 200 SII credentials in one call. Responds immediately confirming the request format is valid and returns a `batch_id`; actual SII validation happens asynchronously and the final result of each credential is delivered via webhook (`credential.validated` / `credential.invalid`).
+
+**Body:**
+```json
+{
+  "credentials": [
+    {
+      "master_entity_rut": "76.123.456-0",
+      "credential_type": "sii_company",
+      "user_rut": "12.345.678-5",
+      "password": "mi_password_segura"
+    }
+  ],
+  "idempotency_key": "batch_credenciales_2026_01_15_001"
+}
+```
+
+If `master_entity_rut` doesn't match an existing entity in Tupana, one is created automatically. `idempotency_key` is optional; repeating it returns the already-created batch instead of a new one.
+
+**Response code:** 201, with `batch_id`, `status` (`processing`, `completed`, `partial`, `failed`), and one `items` entry per credential submitted (`item_id`, `index`).
+
+### DELETE /credentials/{master_entity_id}
+
+Unenroll an entity — removes the association between the API key's user and the master entity.
+
+**Response code:** 204 on success.
 
 ---
 
@@ -98,12 +133,16 @@ Create and validate a new SII credential.
 List documents (issued or received) for an entity.
 
 **Query params:**
-- `master_entity_id` (required): Entity ID
+- `master_entity_id` (required): Entity ID (integer or opaque `eid_...`)
 - `document_type`: `"issued"` (default) or `"received"`
-- `folio`: Exact folio number
-- `search`: Search by name or RUT
+- `folio`: Exact folio number (if sent, other filters are ignored)
+- `search`: Search by receiver name/RUT (`document_type=issued`) or issuer name/RUT (`document_type=received`)
 - `dte_type__code__in`: Comma-separated DTE codes, e.g. `"33,34"`
 - `issuer_tax_id`: Filter by issuer RUT (only for received documents)
+- `issue_date_gte` / `issue_date_lte`: Filter by issue date range (`YYYY-MM-DD`, inclusive)
+- `reception_date_from` / `reception_date_to`: Filter received documents by reception date range (`YYYY-MM-DD`, inclusive)
+- `include_trace_events`: If `true`, each document includes the full `traces` array with its `events`
+- `include_book_metadata`: If `true`, each document includes a `book_metadata` object with Registro de Compra/Venta data
 - `page`: Page number (default 1)
 - `page_size`: Results per page (max 100, default 20)
 
@@ -255,11 +294,11 @@ Get the full status history of a document with timestamps.
 Register a payment or SII event on a document.
 
 **SII event codes:**
-- `ERM`: Acuse de Recibo Manual (manual acknowledgment)
-- `ACD`: Aceptación de Contenido (content acceptance)
-- `RCD`: Rechazo (rejection) — optionally include `rejection_reason`
-- `RFT`: Reclamo por Falta de Traslado
-- `RFP`: Reclamo por Falta de Pago
+- `ERM`: Acuse de Recibo de Mercaderías y Servicios (goods/services receipt acknowledgment)
+- `ACD`: Acepta Contenido del Documento (content acceptance)
+- `RCD`: Reclama Contenido del Documento (content rejection) — optionally include `rejection_reason`
+- `RFT`: Reclamo por Falta Total (total non-delivery claim)
+- `RFP`: Reclamo por Falta Parcial (partial non-delivery claim)
 
 **Payment event codes** (issuer only, for DTE 33/34/39/41):
 - `PAID`: Mark as paid. Generates accounting entry (closes accounts receivable).
@@ -317,10 +356,11 @@ Returns a base64-encoded PDF preview of the document as it would be emitted.
 
 ### GET /cessions
 
-List invoice factoring transfers (AECs) for an entity.
+List invoice factoring transfers (AECs) for an entity. By default returns cessions ISSUED by the entity (`document_type=issued`); with `document_type=received` returns cessions RECEIVED — invoices from the entity's suppliers that they ceded to a third party, useful for knowing who to pay instead of the original supplier.
 
 **Query params:**
 - `master_entity_id` (required)
+- `document_type`: `"issued"` (default) or `"received"`
 - `date_from`, `date_to`: Date range (YYYY-MM-DD)
 - `status`: `processing`, `rejected`, `success`
 - `search`: Folio, name, or RUT
@@ -372,7 +412,7 @@ Create a webhook to receive document emission notifications.
 }
 ```
 
-Currently supported event: `document.issued`.
+**Supported events:** `document.issued`, `document.delivered`, `document.rejected`, `document.paid`, `document.unpaid`, `document.cancelled`. `POST /credentials/batch` additionally delivers `credential.validated` / `credential.invalid` for each credential once SII validation completes.
 
 **Webhook request headers:**
 ```
@@ -414,13 +454,21 @@ X-Pana-Signature: hmac-sha256=... (only if secret configured)
 
 ## Honorary Receipts Management
 
+Authorized-user lookups are served from a local cache — they never query SII live. Sync the cache first (or after enrollment failures) with `POST /honorary/master-entities/{master_entity_id}/authorized-users/sync/`.
+
 ### GET /honorary/authorized-users/?master_entity_id={id}
 
-List users authorized by SII to issue honorary receipts for the entity.
+List users authorized by SII to issue honorary receipts for the entity, read from the local cache.
+
+**Response includes:** `authorized_users` (array of `{ rut, nombre, enrolled }`), `last_sync_status` (`queued`, `syncing`, `done`, `error`, or `null` if never synced), `last_sync_error`, `last_synced_at`.
+
+Equivalent path: `GET /honorary/master-entities/{master_entity_id}/authorized-users/`.
 
 ### PATCH /honorary/authorized-users/
 
-Enroll a user:
+Enroll a user. The RUT is validated against the local cache (populated by the sync endpoint below), not live against SII — if the entity was never synced, a sync is triggered first.
+
+Enroll:
 ```json
 { "master_entity_id": 123, "rut": "12345678-9" }
 ```
@@ -429,6 +477,62 @@ Unenroll a user:
 ```json
 { "master_entity_id": 123, "rut": "12345678-9", "action": "unenroll" }
 ```
+
+Equivalent path: `PATCH /honorary/master-entities/{master_entity_id}/authorized-users/{rut}/`.
+
+### POST /honorary/master-entities/{master_entity_id}/authorized-users/sync/
+
+Asynchronously queues a query to SII to refresh the entity's authorized-users cache. Responds immediately with a `job_id`. A failed sync never empties or corrupts the cache — only a successful sync can update or deactivate users, never delete them.
+
+Poll `GET /honorary/master-entities/{master_entity_id}/authorized-users/` until `last_sync_status` is `done` or `error`.
+
+---
+
+## Sync (On-Demand SII Scraping)
+
+### GET /sync-status
+
+Returns the entity's contracted sync frequency (`sync_frequency_hours`: 24, 12, or 3) and the last update per scrape type.
+
+**Query params:** `master_entity_id` (required, integer or opaque `eid_...`)
+
+**Response:** `master_entity_id`, `sync_frequency_hours`, and `types` (array of `{ scrape_type, last_success_at, last_status }` — only types that have synced at least once appear).
+
+### POST /sync-requests
+
+Creates an on-demand sync request for an entity. Asynchronous: responds 201 immediately with `status: "pending"` and the scrape runs in the background. Poll `GET /sync-requests/{id}` or set `webhook_url` to be notified on completion (best-effort POST, 5s timeout, payload `{ id, status, results }`).
+
+**Available only for entities on the 24-hour sync plan.** Entities on the 12h or 3h plan get a 400 — their portfolio already syncs more frequently and doesn't need on-demand requests.
+
+**Body:**
+```json
+{
+  "master_entity_id": "eid_NDgyMTM6c2lnbmF0dXJl",
+  "scrape_types": ["ISSUED_DOCS", "RECEIVED_DOCS"],
+  "webhook_url": "https://myapp.cl/webhooks/tupana-sync"
+}
+```
+
+`scrape_types` (optional; omit or leave empty to sync all enabled types for the entity): `ISSUED_DOCS`, `RECEIVED_DOCS`, `RECEIVED_HONORARY_BILLS`, `THIRD_PARTY_HONORARY`, `EMITTED_HONORARY_BILLS`, `PURCHASE_BOOK`, `SALE_BOOK`, `BOOK_SUMMARY`.
+
+### GET /sync-requests/{id}
+
+Returns the current status of a sync request. Poll after `POST /sync-requests` — once `status` is `completed` (or `failed`), `results` carries the outcome per scrape type executed.
+
+---
+
+## Book Summaries
+
+### GET /book-summaries
+
+Gets the purchase/sale book summary (SII's `getResumen`) for an entity and period. Aggregated data by document type and operation (COMPRA/VENTA), not line-item detail. Only returns data for entities explicitly enabled for this scrape (see `is_enabled` in the response); if not enabled, `results` is empty.
+
+**Query params:**
+- `master_entity_id` (required, integer or opaque `eid_...`)
+- `period` (required): `YYYYMM` format
+- `operation`: `COMPRA` or `VENTA` — omit to return both
+
+**Response:** `count`, `is_enabled`, `results` (array of `{ id, period, operation, dte_type_code, dte_type_name, total_docs, net_amount, exempt_amount, vat_amount, total_amount, scraped_at }`).
 
 ---
 
