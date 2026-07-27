@@ -2090,7 +2090,10 @@
             "description": "issued (default) = cesiones donde master_entity_id es la EMISORA de la factura cedida. received = cesiones donde master_entity_id es la RECEPTORA de la factura cedida (facturas de proveedores cedidas por ellos a un tercero).",
             "schema": {
               "type": "string",
-              "enum": ["issued", "received"],
+              "enum": [
+                "issued",
+                "received"
+              ],
               "default": "issued"
             }
           },
@@ -2320,8 +2323,7 @@
                 "schema": {
                   "type": "string",
                   "format": "binary"
-                },
-                "description": "PDF del certificado de cesión inline (solo con ?pdf=document-cession)."
+                }
               }
             }
           },
