@@ -114,6 +114,7 @@ Con `X-Use-Defaults: true`, solo necesitas proporcionar el `rut` del receptor. E
   - `item_name` (String): Nombre del producto/servicio
   - `quantity` (Number): Cantidad (debe ser mayor a 0)
   - `unit_price` (Number): Precio unitario sin IVA
+  - `gross_unit_price` (Number): **No aplica a este tipo de documento.** Solo válido para boletas electrónicas (DTE 39 y 41); en Factura Electrónica se debe enviar el neto en `unit_price`.
 
 </details>
 
@@ -129,7 +130,65 @@ Iguales a la Factura Electrónica (DTE 33), pero el documento no incluye IVA en 
 - Servicios específicos exentos por ley
 
 **document_issuer y document_receiver:** Mismos campos que Factura Electrónica
-**details:** Mismos campos que Factura Electrónica
+**details:** Mismos campos que Factura Electrónica (solo `unit_price`; `gross_unit_price` no aplica a este tipo de documento)
+
+</details>
+
+<details>
+<summary><strong>🧾 Boleta Electrónica (DTE 39)</strong> - Venta a consumidor final, IVA incluido en el precio</summary>
+
+**Campos específicos:**
+
+**document_issuer (Obligatorio)**
+- **Tipo:** Object
+- Mismos campos que Factura Electrónica
+
+**document_receiver (Opcional)**
+- **Tipo:** Object
+- **Descripción:** Al ser venta a consumidor final, los datos del receptor no son obligatorios. Con boletas (39/41) la dirección del receptor se blanquea automáticamente.
+
+**details (Obligatorio)**
+- **Tipo:** Array
+- **Descripción:** Lista de productos/servicios del documento. Acepta **neto o bruto por línea**, pero no ambos en el mismo documento.
+- **Campos de cada elemento:**
+  - `item_name` (String): Nombre del producto/servicio
+  - `quantity` (Number): Cantidad (puede ser negativa solo en boletas, ej. para aplicar descuentos, siempre que el total del documento sea positivo)
+  - `unit_price` (Number): Precio unitario **neto**, sin IVA
+  - `gross_unit_price` (Number): Precio unitario **bruto, con IVA incluido**. Alternativa a `unit_price` — **exclusiva de boletas (DTE 39 y 41)**.
+    - Si se usa en una línea, el `item_total` de esa línea queda en bruto y el neto/IVA del documento completo se derivan hacia atrás a partir del bruto.
+    - **No se puede mezclar** `unit_price` (neto) y `gross_unit_price` (bruto) entre líneas del mismo documento: todas las líneas deben usar el mismo modo.
+    - Si se usa `gross_unit_price` en cualquier tipo de documento que no sea 39 o 41, la API responde `422`.
+
+**Ejemplo — boleta en bruto:**
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": { "code": "39" },
+      "document_issuer": { "rut": "12345678-9" },
+      "document_receiver": { "rut": "1-9" },
+      "details": [
+        {
+          "item_name": "Producto A",
+          "quantity": 1,
+          "gross_unit_price": 11900
+        }
+      ]
+    }
+  ]
+}
+```
+
+</details>
+
+<details>
+<summary><strong>🧾 Boleta Exenta Electrónica (DTE 41)</strong> - Venta a consumidor final exenta de IVA</summary>
+
+**Campos específicos:**
+Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en los cálculos.
+
+**details:** Mismos campos que Boleta Electrónica, incluyendo `gross_unit_price` (bruto). Al no llevar IVA, en la práctica `unit_price` y `gross_unit_price` producen el mismo resultado, pero la restricción de no mezclar ambos modos en el mismo documento se mantiene.
 
 </details>
 
@@ -167,6 +226,7 @@ Iguales a la Factura Electrónica (DTE 33), pero el documento no incluye IVA en 
   - `item_name` (String): Nombre del producto/servicio comprado
   - `quantity` (Number): Cantidad comprada
   - `unit_price` (Number): Precio unitario sin IVA pagado
+  - `gross_unit_price` (Number): **No aplica a este tipo de documento.** Solo válido para boletas electrónicas (DTE 39 y 41).
 
 **header (Obligatorio para ciertos casos)**
 - **Tipo:** Object
@@ -255,6 +315,7 @@ Iguales a la Factura Electrónica (DTE 33), pero el documento no incluye IVA en 
   - `item_name` (String): Nombre del producto exportado
   - `quantity` (Number): Cantidad exportada
   - `unit_price` (Number): Precio unitario sin IVA FOB (Free on Board)
+  - `gross_unit_price` (Number): **No aplica a este tipo de documento.** Solo válido para boletas electrónicas (DTE 39 y 41).
 
 **header (Obligatorio)**
 - **Tipo:** Object
@@ -328,6 +389,11 @@ Incluye todos los campos de las Facturas Electrónicas con:
   - `district` (String): **Opcional** - Comuna del profesional
   - `city` (String): **Opcional** - Ciudad del profesional
   - `email` (String): **Opcional** - Email de contacto
+
+**details (Obligatorio)**
+- **Tipo:** Array
+- **Campos de cada elemento:** Mismos campos que Factura Electrónica (`item_name`, `quantity`, `unit_price`)
+- `gross_unit_price` (Number): **No aplica a este tipo de documento** (Boleta de Honorarios, DTE 80). Solo válido para boletas electrónicas de venta (DTE 39 y 41).
 
 **Cálculo automático de retención:**
 - **Tasa**: 14.5% sobre el monto bruto (antes de IVA)
@@ -406,6 +472,7 @@ Incluye todos los campos de las Facturas Electrónicas con:
 
 **details (Obligatorio)**
 - Array con `item_name`, `quantity`, `unit_price`
+- `gross_unit_price`: **No aplica a este tipo de documento** (Boleta de Honorarios de Terceros, DTE 90). Solo válido para boletas electrónicas de venta (DTE 39 y 41).
 
 **Responsabilidades:**
 - **Contribuyente real** (document_issuer): Debe estar en Tupana con credenciales sii_company; es el responsable tributario.
@@ -528,7 +595,7 @@ Lista de productos/servicios del documento. Cada elemento contiene:
 - `item_name` (String): Nombre del producto/servicio
 - `item_description` (String): Descripción del producto/servicio
 - `quantity` (Number): Cantidad
-- `unit_price` (Number): Precio unitario sin IVA
+- `unit_price` (Number): Precio unitario neto, sin IVA. Si el documento se emitió en bruto (boletas 39/41 con `gross_unit_price`), este campo refleja el monto bruto de la línea — `gross_unit_price` es solo de entrada y no se retorna en la respuesta.
 - `item_code` (String): Código del producto/servicio
 - `item_type_code` (String): Código del tipo de ítem
 - `unit` (String): Unidad de medida

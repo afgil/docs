@@ -5254,7 +5254,12 @@
             "type": "number",
             "format": "float",
             "minimum": 0,
-            "description": "Precio unitario sin IVA (no puede ser negativo)"
+            "description": "Precio unitario neto, sin IVA (no puede ser negativo)"
+          },
+          "gross_unit_price": {
+            "type": "number",
+            "format": "float",
+            "description": "Precio unitario bruto, con IVA incluido. Solo válido para boletas electrónicas (dte_type 39 y 41); en cualquier otro tipo de documento la API responde 422. No se puede combinar con unit_price en el mismo documento: todas las líneas deben usar uno u otro. Si se envía, se usa como unit_price para calcular item_total, y el neto/IVA del documento se derivan a partir del bruto."
           },
           "item_description": {
             "type": "string",
