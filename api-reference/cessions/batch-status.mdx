@@ -1,0 +1,24 @@
+---
+title: 'Consultar estado de un lote de cesión'
+openapi: 'GET /cessions/batch/{batch_id}'
+---
+
+## ¿Para qué se usa?
+
+Sirve para **consultar el resultado de un lote creado con `POST /cessions/batch`**, usando el `cession_batch_id` que ese endpoint devuelve en el `202`. Es la forma correcta de confirmar si las cesiones realmente se generaron — el `202` solo indica que la solicitud fue aceptada y encolada, no que el SII las haya procesado con éxito.
+
+## Qué hace
+
+- Devuelve el **estado agregado** del lote: `pending`, `processing`, `completed` (todos los documentos se cedieron con éxito), `failed` (ninguno) o `partial` (una mezcla de éxitos y fallos).
+- Incluye `success_count` y `failed_count` para saber de un vistazo cuántos documentos de los `total` terminaron bien.
+- Devuelve `batch_cessions`: el detalle **por documento**, con su `folio`, `status` individual, el `cession_id` si tuvo éxito, y — muy importante — el **`error_message` real devuelto por el SII** si falló (por ejemplo, un error transitorio del portal, credenciales inválidas, o un documento que no cumple los requisitos para cesión).
+
+## Por qué importa
+
+Antes de este endpoint, si el SII fallaba (incluso de forma transitoria) al generar una cesión, no había ninguna forma de saberlo desde la API: no se creaba ninguna cesión, y el único registro del intento quedaba en logs internos de Tupana. Con este endpoint, cualquier integración puede hacer *polling* del `cession_batch_id` recibido y saber con certeza qué pasó con cada documento — sin depender de notificaciones en tiempo real ni de revisar manualmente.
+
+## Ejemplos de uso
+
+- Después de llamar a `POST /cessions/batch`, consultar este endpoint (con reintentos espaciados) hasta que `status` deje de ser `pending`/`processing`.
+- Mostrar en tu sistema qué documentos de un lote fallaron y por qué, para poder reintentarlos o escalar el error.
+- Auditar el historial de intentos de cesión de una integración sin depender de que el equipo de Tupana revise logs internos.

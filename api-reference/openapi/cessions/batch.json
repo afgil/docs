@@ -91,8 +91,8 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "Cesiones generadas exitosamente",
+          "202": {
+            "description": "Solicitud aceptada y encolada. La generación real de las cesiones corre en segundo plano — este 202 NO confirma que las cesiones se hayan generado exitosamente, solo que la solicitud fue validada y aceptada. Usa `cession_batch_id` para consultar el resultado final en GET /cessions/batches/{id}.",
             "content": {
               "application/json": {
                 "schema": {
@@ -102,133 +102,39 @@
                       "type": "boolean",
                       "example": true
                     },
+                    "status": {
+                      "type": "string",
+                      "example": "processing"
+                    },
+                    "ws_channel": {
+                      "type": "string",
+                      "description": "Canal WebSocket donde se publica el avance en tiempo real (opcional de escuchar)",
+                      "example": "cessions-70193"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "Cantidad de documentos incluidos en el lote",
+                      "example": 2
+                    },
                     "message": {
                       "type": "string",
-                      "example": "2 assignment(s) generated successfully"
+                      "example": "Generando las cesiones y enviándolas al SII…"
                     },
-                    "cessions": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "cession_id": {
-                            "type": "integer",
-                            "example": 133
-                          },
-                          "document_id": {
-                            "type": "integer",
-                            "example": 858405
-                          },
-                          "folio": {
-                            "type": "integer",
-                            "example": 12345
-                          },
-                          "file_name": {
-                            "type": "string",
-                            "example": "AEC_12345.xml"
-                          },
-                          "presigned_url": {
-                            "type": "string",
-                            "format": "uri",
-                            "example": "https://s3.amazonaws.com/..."
-                          }
-                        }
-                      }
-                    },
-                    "aec_results": {
-                      "type": "array",
-                      "description": "Resultados del envío de AECs al SII",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "folio": {
-                            "type": "integer"
-                          },
-                          "sii_identifier": {
-                            "type": "string"
-                          },
-                          "sii_file_name": {
-                            "type": "string"
-                          },
-                          "status": {
-                            "type": "string",
-                            "enum": ["sent_to_sii", "failed"]
-                          },
-                          "error": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    },
-                    "errors": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "document_id": {
-                            "type": "integer"
-                          },
-                          "folio": {
-                            "type": "integer"
-                          },
-                          "error": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    },
-                    "total_processed": {
-                      "type": "integer",
-                      "example": 2
-                    },
-                    "total_errors": {
-                      "type": "integer",
-                      "example": 0
-                    },
-                    "aec_sent": {
-                      "type": "integer",
-                      "description": "Número de AECs enviados exitosamente al SII",
-                      "example": 2
+                    "cession_batch_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "ID del lote creado. Consúltalo con GET /cessions/batches/{id} para conocer el resultado (éxito, fallo o parcial) de cada documento.",
+                      "example": "e7877303-1a03-424d-a024-48c1de218611"
                     }
                   }
                 },
                 "example": {
                   "success": true,
-                  "message": "2 assignment(s) generated successfully",
-                  "cessions": [
-                    {
-                      "cession_id": 133,
-                      "document_id": 858405,
-                      "folio": 12345,
-                      "file_name": "AEC_12345.xml",
-                      "presigned_url": "https://s3.amazonaws.com/bucket/AEC_12345.xml?signature=..."
-                    },
-                    {
-                      "cession_id": 134,
-                      "document_id": 858406,
-                      "folio": 12346,
-                      "file_name": "AEC_12346.xml",
-                      "presigned_url": "https://s3.amazonaws.com/bucket/AEC_12346.xml?signature=..."
-                    }
-                  ],
-                  "aec_results": [
-                    {
-                      "folio": 12345,
-                      "sii_identifier": "AEC-2024-001234",
-                      "sii_file_name": "AEC_12345.xml",
-                      "status": "sent_to_sii"
-                    },
-                    {
-                      "folio": 12346,
-                      "sii_identifier": "AEC-2024-001235",
-                      "sii_file_name": "AEC_12346.xml",
-                      "status": "sent_to_sii"
-                    }
-                  ],
-                  "errors": null,
-                  "total_processed": 2,
-                  "total_errors": 0,
-                  "aec_sent": 2
+                  "status": "processing",
+                  "ws_channel": "cessions-70193",
+                  "total": 2,
+                  "message": "Generando las cesiones y enviándolas al SII…",
+                  "cession_batch_id": "e7877303-1a03-424d-a024-48c1de218611"
                 }
               }
             }

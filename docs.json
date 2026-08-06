@@ -111,7 +111,8 @@
             "pages": [
               "api-reference/cessions/list",
               "api-reference/cessions/get",
-              "api-reference/cessions/batch"
+              "api-reference/cessions/batch",
+              "api-reference/cessions/batch-status"
             ]
           }
         ]
