@@ -389,7 +389,50 @@ Create cessions (AECs) for multiple invoices and submit to SII.
 }
 ```
 
-Only DTE 33 and 34 can be ceded. Requires valid SII personal credentials (not certificate-based). The EHDR code is automatically fetched from SII by Tupana.
+Only DTE 33 and 34 can be ceded. Requires valid SII personal credentials (not certificate-based, except for market-billing enrolled entities, which use the native AEC with the company certificate). The EHDR code is automatically fetched from SII by Tupana.
+
+**This endpoint is asynchronous.** It validates the request (400/403/404 on real errors) and enqueues the actual generation in the background, responding immediately with `202`:
+```json
+{
+  "success": true,
+  "status": "processing",
+  "ws_channel": "cessions-70193",
+  "total": 2,
+  "message": "Generando las cesiones y enviándolas al SII…",
+  "cession_batch_id": "e7877303-1a03-424d-a024-48c1de218611"
+}
+```
+`202` only confirms the request was accepted — it does NOT confirm the cessions were generated successfully. Use `cession_batch_id` with `GET /cessions/batch/{batch_id}` to check the actual result.
+
+### GET /cessions/batch/{batch_id}
+
+Get the status of a cession batch created with `POST /cessions/batch`, using the `cession_batch_id` from its `202` response. This is the only way to know if a cession actually succeeded or failed — a `DocumentCession` (returned by `GET /cessions` / `GET /cessions/{id}`) is only created for cessions the SII confirmed as successful; if the SII fails (even transiently) while generating the AEC, no `DocumentCession` is ever created for that document.
+
+**Response:**
+```json
+{
+  "id": "e7877303-1a03-424d-a024-48c1de218611",
+  "status": "failed",
+  "total": 1,
+  "success_count": 0,
+  "failed_count": 1,
+  "assignee_business_name": "CAPITAL EXPRESS SERVICIOS FINANCIEROS SA.",
+  "assignee_rut": "76083507-2",
+  "created_at": "2026-08-05T20:18:53.703Z",
+  "error_message": null,
+  "batch_cessions": [
+    {
+      "document_id": 4929562,
+      "folio": "674",
+      "status": "failed",
+      "cession_id": null,
+      "error_message": "Error al contribuyente. Código SII: 02.35.209.54.211.2"
+    }
+  ]
+}
+```
+
+`status` is `pending`, `processing`, `completed` (all documents succeeded), `failed` (none succeeded) or `partial` (a mix). Each `batch_cessions` item carries the real SII error message for that document when it failed. No `master_entity_id` needed — the batch already knows which entity it belongs to.
 
 ---
 

@@ -26,11 +26,32 @@ Permite **generar cesiones (AECs) de múltiples facturas en una sola llamada** y
 
 ### Credenciales necesarias
 
-**Las cesiones se generan usando la contraseña del SII del representante legal, NO con el certificado digital.**
+**Las cesiones se generan usando la contraseña del SII del representante legal, NO con el certificado digital** (excepto para entidades enroladas en el facturador de mercado, que usan el AEC nativo con el certificado de la empresa).
 
 La entidad debe tener configurada una **credencial SII personal** (no credencial de empresa) con:
 
 - RUT del representante legal
 - Contraseña del SII del representante legal
 - La credencial debe estar en estado `VALID`
+
+## Respuesta asíncrona: `202` + `cession_batch_id`
+
+Este endpoint **no genera las cesiones en el momento de la llamada**. Valida el request (400/403/404 si algo es inválido) y encola la generación real en segundo plano, respondiendo de inmediato con `202`:
+
+```json
+{
+    "success": true,
+    "status": "processing",
+    "ws_channel": "cessions-70193",
+    "total": 2,
+    "message": "Generando las cesiones y enviándolas al SII…",
+    "cession_batch_id": "e7877303-1a03-424d-a024-48c1de218611"
+}
+```
+
+El campo **`cession_batch_id`** identifica el lote creado — úsalo para consultar el resultado más tarde con [`GET /cessions/batches/{id}`](/api-reference/cessions/batch-detail), que muestra el estado final (`completed`, `failed` o `partial`) y el detalle por documento, **incluyendo el mensaje de error real del SII si alguna cesión falló**. Esto es importante porque:
+
+- El SII puede fallar, incluso de forma transitoria, durante la generación del AEC — en ese caso ninguna cesión se crea para ese documento.
+- No existe reintento automático: si un documento falla, hay que volver a intentarlo con una nueva llamada a este endpoint.
+- No asumas éxito por recibir `202` — es solo la confirmación de que la solicitud fue aceptada y encolada, no de que las cesiones se generaron correctamente. Consulta `cession_batch_id` para confirmar el resultado.
 

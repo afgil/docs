@@ -1,0 +1,114 @@
+{
+  "paths": {
+    "/cessions/batch/{batch_id}": {
+      "get": {
+        "operationId": "getCessionBatchStatus",
+        "tags": ["Cesiones"],
+        "security": [{"apiKeyAuth": []}],
+        "summary": "Consultar el estado de un lote de cesión",
+        "description": "Obtiene el estado agregado de un lote creado con POST /cessions/batch (identificado por el cession_batch_id recibido en el 202), junto con el detalle por documento — incluyendo el mensaje de error real del SII si alguna cesión falló. No requiere master_entity_id: el lote ya sabe a qué entidad pertenece.",
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "description": "cession_batch_id devuelto por POST /cessions/batch",
+            "schema": {"type": "string", "format": "uuid"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado del lote y detalle por documento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {"type": "string", "format": "uuid"},
+                    "status": {
+                      "type": "string",
+                      "enum": ["pending", "processing", "completed", "failed", "partial"],
+                      "description": "completed = todos los documentos se cedieron con éxito. failed = ninguno. partial = una mezcla."
+                    },
+                    "total": {"type": "integer"},
+                    "success_count": {"type": "integer"},
+                    "failed_count": {"type": "integer"},
+                    "assignee_business_name": {"type": "string"},
+                    "assignee_rut": {"type": "string"},
+                    "created_at": {"type": "string", "format": "date-time"},
+                    "error_message": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Error general del lote (ej. sin credenciales SII válidas), si aplica"
+                    },
+                    "batch_cessions": {
+                      "type": "array",
+                      "description": "Un item por documento incluido en el lote",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "document_id": {"type": "integer"},
+                          "folio": {"type": "string"},
+                          "status": {
+                            "type": "string",
+                            "enum": ["pending", "processing", "success", "failed"]
+                          },
+                          "cession_id": {
+                            "type": "integer",
+                            "nullable": true,
+                            "description": "ID de la DocumentCession creada, solo si status=success"
+                          },
+                          "error_message": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Mensaje real del último intento fallido contra el SII, si status=failed"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "id": "e7877303-1a03-424d-a024-48c1de218611",
+                  "status": "failed",
+                  "total": 1,
+                  "success_count": 0,
+                  "failed_count": 1,
+                  "assignee_business_name": "CAPITAL EXPRESS SERVICIOS FINANCIEROS SA.",
+                  "assignee_rut": "76083507-2",
+                  "created_at": "2026-08-05T20:18:53.703Z",
+                  "error_message": null,
+                  "batch_cessions": [
+                    {
+                      "document_id": 4929562,
+                      "folio": "674",
+                      "status": "failed",
+                      "cession_id": null,
+                      "error_message": "Error al contribuyente. Código SII: 02.35.209.54.211.2"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No tienes acceso a este lote de cesión",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"detail": {"type": "string"}}}
+              }
+            }
+          },
+          "404": {
+            "description": "Lote no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object", "properties": {"detail": {"type": "string"}}}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -13,6 +13,7 @@ Con esta API puedes:
 - **Obtener el detalle** de una cesion concreta, incluidos eventos de trazabilidad en el SII.
 - **Obtener el certificado de cesion** (PDF) del SII, tanto la URL presignada async (`certificate_pdf_url` en el detalle) como en descarga directa via `?pdf=document-cession`.
 - **Crear cesiones en lote** (generar AECs y enviarlos al SII) desde el endpoint de batch.
+- **Consultar el estado de un lote** creado (éxito, fallo o parcial, con el detalle y error real por documento) usando el `cession_batch_id` recibido.
 
 ## Emitidas vs recibidas
 
@@ -25,7 +26,8 @@ Toda cesion involucra dos entidades del documento cedido: quien **emitio** la fa
 
 1. **Listar cesiones** con `GET /cessions?master_entity_id={id}` (agregando `&document_type=received` si quieres las de tus proveedores) para ver las cesiones de la entidad.
 2. **Obtener una cesion** con `GET /cessions/{id}` para ver detalle, eventos y `certificate_pdf_url`. Es accesible tanto si tenes acceso a la entidad emisora como a la receptora del documento cedido.
-3. **Crear nuevas cesiones** con `POST /cessions/batch` enviando los IDs de documentos y datos del cesionario.
+3. **Crear nuevas cesiones** con `POST /cessions/batch` enviando los IDs de documentos y datos del cesionario. La respuesta es asincrona (`202`) y trae un `cession_batch_id`.
+4. **Consultar el resultado** con `GET /cessions/batch/{batch_id}` usando ese `cession_batch_id`, hasta que el `status` deje de ser `pending`/`processing`. Es el unico lugar donde se ve si una cesion fallo en el SII (`DocumentCession` solo existe para las exitosas).
 
 ## Autenticacion
 
@@ -40,3 +42,4 @@ Todos los endpoints requieren autenticacion (API Key o JWT). La API Key debe ten
 | Detalle de cesion | GET | `/cessions/{id}` |
 | Descargar certificado (PDF inline) | GET | `/cessions/{id}?pdf=document-cession` |
 | Crear cesiones en lote | POST | `/cessions/batch` |
+| Consultar estado de un lote | GET | `/cessions/batch/{batch_id}` |

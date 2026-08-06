@@ -272,6 +272,7 @@ def combine_openapi_files():
         base_dir / "cessions" / "list.json",
         base_dir / "cessions" / "get.json",
         base_dir / "cessions" / "batch.json",
+        base_dir / "cessions" / "batch-status.json",
         # Webhooks
         base_dir / "webhooks" / "webhooks.json",
         # Honorary
