@@ -94,6 +94,12 @@
               "api-reference/webhooks/webhooks",
               "api-reference/webhooks/create"
             ]
+          },
+          {
+            "group": "Eventos",
+            "pages": [
+              "api-reference/events/list"
+            ]
           }
         ]
       },

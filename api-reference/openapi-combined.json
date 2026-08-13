@@ -2913,6 +2913,98 @@
         }
       }
     },
+    "/events": {
+      "get": {
+        "operationId": "listEvents",
+        "tags": [
+          "Eventos"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar eventos",
+        "description": "Log de eventos de completación de documentos (document.issued / document.issue_failed), consultable a demanda y paginado por cursor. Pensado como fuente de verdad complementaria a los webhooks: si un webhook falla repetidamente y se desactiva automáticamente, este endpoint sigue teniendo el historial completo -- nada se pierde.",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filtra por tipo de evento. Repetible (`type=document.issued&type=document.issue_failed`) o separado por coma vía `types` (`types=document.issued,document.issue_failed`). Sin filtro: todos los tipos.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "document.issued",
+                "document.issue_failed"
+              ]
+            }
+          },
+          {
+            "name": "starting_after",
+            "in": "query",
+            "description": "Cursor: el `id` del último evento ya procesado por el cliente. La respuesta incluye solo eventos posteriores a este, en orden. Por defecto `0` (desde el principio del stream).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Máximo de eventos a devolver en esta página.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "maximum": 500
+            }
+          },
+          {
+            "name": "batch_id",
+            "in": "query",
+            "description": "Filtra por el batch (`DocumentBatch`) que originó los documentos.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "description": "Filtra por empresa emisora. Acepta el id opaco (`eid_...`) o el id entero. Requiere que el usuario/API key autenticado tenga acceso a esa entidad.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "eid_NDgyMTM6c2lnbmF0dXJl"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de eventos obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventListResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin acceso a la master_entity_id solicitada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/honorary/authorized-users/": {
       "get": {
         "summary": "Listar usuarios autorizados",
@@ -4933,6 +5025,267 @@
                 "nullable": true
               }
             }
+          }
+        }
+      },
+      "EventListResponse": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "list"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "example": "/v1/events"
+          },
+          "has_more": {
+            "type": "boolean",
+            "description": "true si hay más eventos después de esta página -- se puede volver a pedir de inmediato con `starting_after` en el último `id` recibido."
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentEvent"
+            }
+          }
+        }
+      },
+      "DocumentEvent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Identificador único y estrictamente creciente del evento. Úsalo como cursor (`starting_after`) para la siguiente página."
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "event"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "document.issued",
+              "document.issue_failed"
+            ]
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "object": {
+                "$ref": "#/components/schemas/DocumentEventData"
+              }
+            }
+          }
+        }
+      },
+      "DocumentEventData": {
+        "type": "object",
+        "description": "Mismo shape que el payload que recibe el webhook document.issued/document.issue_failed.",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "folio": {
+            "type": "string",
+            "nullable": true
+          },
+          "date_issued": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount_with_iva": {
+            "type": "number",
+            "nullable": true
+          },
+          "is_sandbox": {
+            "type": "boolean"
+          },
+          "dte_type": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          },
+          "sender": {
+            "$ref": "#/components/schemas/DocumentEventParty"
+          },
+          "receiver": {
+            "$ref": "#/components/schemas/DocumentEventParty",
+            "nullable": true
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentEventDetailLine"
+            }
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentEventReference"
+            }
+          },
+          "document_total": {
+            "type": "object",
+            "properties": {
+              "net_amount": {
+                "type": "number",
+                "nullable": true
+              },
+              "iva_rate": {
+                "type": "number",
+                "nullable": true
+              },
+              "iva_amount": {
+                "type": "number",
+                "nullable": true
+              },
+              "total_amount": {
+                "type": "number",
+                "nullable": true
+              }
+            }
+          },
+          "has_credit_note": {
+            "type": "boolean"
+          },
+          "credit_note_status": {
+            "type": "string"
+          },
+          "xml_file": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL presignada del XML, solo si ya fue generado antes -- este endpoint no lo genera on-demand. null si todavía no existe (pídelo con el endpoint de detalle de documento)."
+          },
+          "pdf_file": {
+            "type": "string",
+            "nullable": true,
+            "description": "Solo presente cuando type=document.issued. Igual que xml_file: URL solo si ya existe cacheada, null si no."
+          },
+          "error": {
+            "type": "object",
+            "description": "Solo presente cuando type=document.issue_failed.",
+            "properties": {
+              "message": {
+                "type": "string",
+                "nullable": true
+              },
+              "code": {
+                "type": "string",
+                "nullable": true
+              },
+              "type": {
+                "type": "string",
+                "nullable": true
+              },
+              "user_message": {
+                "type": "string",
+                "nullable": true,
+                "description": "Mensaje accionable para el usuario final, si el error requiere alguna acción de su parte (null si es un error interno/transitorio)."
+              }
+            }
+          }
+        }
+      },
+      "DocumentEventParty": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tax_id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "DocumentEventDetailLine": {
+        "type": "object",
+        "properties": {
+          "line_number": {
+            "type": "integer"
+          },
+          "item_name": {
+            "type": "string"
+          },
+          "item_description": {
+            "type": "string",
+            "nullable": true
+          },
+          "quantity": {
+            "type": "number",
+            "nullable": true
+          },
+          "unit_price": {
+            "type": "number",
+            "nullable": true
+          },
+          "item_total": {
+            "type": "number"
+          },
+          "item_code": {
+            "type": "string",
+            "nullable": true
+          },
+          "item_type_code": {
+            "type": "string",
+            "nullable": true
+          },
+          "unit": {
+            "type": "string",
+            "nullable": true
+          },
+          "discount_percent": {
+            "type": "number",
+            "nullable": true
+          },
+          "other_tax": {
+            "type": "number",
+            "nullable": true
+          }
+        }
+      },
+      "DocumentEventReference": {
+        "type": "object",
+        "properties": {
+          "reference_type": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              }
+            }
+          },
+          "reference_folio": {
+            "type": "string"
+          },
+          "reference_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "reference_reason": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
