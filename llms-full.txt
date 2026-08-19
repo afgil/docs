@@ -412,7 +412,7 @@ Create a webhook to receive document emission notifications.
 }
 ```
 
-**Supported events:** `document.issued`, `document.delivered`, `document.rejected`, `document.paid`, `document.unpaid`, `document.cancelled`. `POST /credentials/batch` additionally delivers `credential.validated` / `credential.invalid` for each credential once SII validation completes.
+**Supported events:** `document.issued`, `document.delivered`, `document.rejected`, `document.trace_updated`, `document.paid`, `document.unpaid`, `document.cancelled`. `document.trace_updated` fires on every new SII trace event (acuse, reclamo, rechazo) and is the only event delivered to both ends of the document — its payload carries `role` (`issuer`/`receiver`) plus a `trace` block with `new_events` and the full event history. `POST /credentials/batch` additionally delivers `credential.validated` / `credential.invalid` for each credential once SII validation completes.
 
 **Webhook request headers:**
 ```

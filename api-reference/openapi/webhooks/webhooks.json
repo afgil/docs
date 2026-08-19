@@ -219,6 +219,7 @@
                                 "document.issued",
                                 "document.delivered",
                                 "document.rejected",
+                                "document.trace_updated",
                                 "document.paid",
                                 "document.unpaid",
                                 "document.cancelled"
@@ -259,6 +260,7 @@
                                 "document.issued",
                                 "document.delivered",
                                 "document.rejected",
+                                "document.trace_updated",
                                 "document.paid",
                                 "document.unpaid",
                                 "document.cancelled"
@@ -359,6 +361,7 @@
                             "document.issued",
                             "document.delivered",
                             "document.rejected",
+                            "document.trace_updated",
                             "document.paid",
                             "document.unpaid",
                             "document.cancelled"

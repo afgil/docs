@@ -51,7 +51,7 @@ https://api.tupana.ai/v1
 - `GET /cessions?master_entity_id={id}` — List invoice factoring transfers (add `document_type=received` for cessions received from suppliers)
 - `POST /cessions/batch` — Create cessions (AECs) for multiple invoices
 - `GET /webhooks?master_entity_id={id}` — List webhooks
-- `POST /webhooks` — Create a webhook (document.issued, document.delivered, document.rejected, document.paid, document.unpaid, document.cancelled)
+- `POST /webhooks` — Create a webhook (document.issued, document.delivered, document.rejected, document.trace_updated, document.paid, document.unpaid, document.cancelled)
 - `GET /honorary/authorized-users/?master_entity_id={id}` — List SII-authorized honorary-receipt users (cached; sync first)
 - `POST /honorary/master-entities/{id}/authorized-users/sync/` — Refresh the authorized-users cache from SII (async)
 - `GET /sync-status?master_entity_id={id}` — Get an entity's sync frequency and last scrape status per type
