@@ -117,6 +117,7 @@ Cada notificación incluye los siguientes headers:
 - **`document.paid`**: El documento fue pagado (conciliación bancaria)
 - **`document.unpaid`**: El documento volvió de pagado a no pagado (se revirtió el pago/conciliación)
 - **`document.cancelled`**: El documento fue anulado o tiene nota de crédito
+- **`document.trace_updated`**: Apareció un evento nuevo en la traza del SII (acuse de recibo, reclamo, rechazo). Es el único evento que se notifica tanto al emisor como al receptor del documento
 
 ### Eventos de documentos programados
 
@@ -150,6 +151,7 @@ Cada evento tiene una estructura de payload específica. Navega a cada evento pa
   - [document.paid](#documentpaid)
   - [document.unpaid](#documentunpaid)
   - [document.cancelled](#documentcancelled)
+  - [document.trace_updated](#documenttrace_updated)
 - [Eventos de Documentos Programados](#eventos-de-documentos-programados)
   - [scheduled_document.created](#scheduled_documentcreated)
   - [scheduled_document.updated](#scheduled_documentupdated)
@@ -458,6 +460,119 @@ Se dispara cuando un documento es anulado o tiene una nota de crédito asociada.
 
 **Nota:** El campo `references` puede contener información sobre la nota de crédito o anulación asociada.
 
+#### document.trace_updated
+
+Se dispara cada vez que aparece un **evento nuevo en la traza del SII** de un
+documento: un acuse de recibo, un reclamo, un rechazo o el vencimiento del
+plazo de mérito ejecutivo.
+
+<Note>
+Es el único evento que se notifica a **las dos puntas del documento**. El resto
+de los eventos de documento se envían al emisor; este también le llega al
+receptor, para que puedas seguir la traza tanto de lo que emites como de lo que
+recibes. El campo `role` te dice desde qué lado estás mirando:
+
+- `"issuer"`: tu empresa emitió el documento (lo ves en tus emitidos).
+- `"receiver"`: tu empresa recibió el documento (lo ves en tus recibidos).
+
+Si ambas puntas son clientes de Tupana y las dos están suscritas, cada una
+recibe su propia notificación con su propio `role`.
+</Note>
+
+```json
+{
+  "event": "document.trace_updated",
+  "created_at": "2026-01-19T15:30:45.123456Z",
+  "data": {
+    "id": 1234,
+    "folio": "12345",
+    "date_issued": "2026-01-19",
+    "amount_with_iva": 119000.0,
+    "dte_type": { /* objeto dte_type completo */ },
+    "sender": { /* objeto sender completo */ },
+    "receiver": { /* objeto receiver completo */ },
+    "document_total": { /* objeto document_total completo */ },
+    "details": [ /* array de detalles completo */ ],
+    "xml_file": "https://s3.amazonaws.com/bucket/documento.xml",
+    "role": "receiver",
+    "trace": {
+      "id": 987,
+      "date_reception": "2026-01-19T12:03:11-03:00",
+      "has_acknowledgments": true,
+      "has_claims": false,
+      "is_rejected": false,
+      "is_paid_cash": false,
+      "is_more_than_eight_days": false,
+      "days_until_executive_merit": 6,
+      "new_events": [
+        {
+          "code": "ACD",
+          "description": "Acuse de recibo",
+          "date": "2026-01-19T15:29:58-03:00",
+          "responsable_tax_id": "76798398-0"
+        }
+      ],
+      "events": [
+        {
+          "code": "ACD",
+          "description": "Acuse de recibo",
+          "date": "2026-01-19T15:29:58-03:00",
+          "responsable_tax_id": "76798398-0"
+        }
+      ]
+    }
+  }
+}
+```
+
+##### Campos de `trace`
+
+- **`id`**: ID de la traza en Tupana (integer)
+- **`date_reception`**: Fecha y hora en que el SII recibió el documento (string ISO 8601 o null)
+- **`has_acknowledgments`**: El documento tiene acuse de recibo (boolean)
+- **`has_claims`**: El documento tiene reclamos (boolean)
+- **`is_rejected`**: Hay al menos un evento de rechazo (`RCD`, `RFP` o `RFT`) en la traza (boolean)
+- **`is_paid_cash`**: El documento fue pagado al contado (boolean)
+- **`is_more_than_eight_days`**: Pasaron más de 8 días desde la recepción (boolean)
+- **`days_until_executive_merit`**: Días que faltan para el mérito ejecutivo (integer o null; es null si ya hay acuse o rechazo)
+- **`new_events`**: Los eventos que gatillaron **esta** notificación. Es lo que cambió desde el aviso anterior (array)
+- **`events`**: Todos los eventos de la traza, ordenados por fecha. Te sirve para reconstruir el historial completo si te perdiste alguna entrega (array)
+
+Cada evento de la traza trae:
+
+- **`code`**: Código del evento en el SII (string)
+- **`description`**: Descripción del evento (string)
+- **`date`**: Fecha y hora del evento (string ISO 8601)
+- **`responsable_tax_id`**: RUT de quien registró el evento (string o null)
+
+##### Códigos de evento del SII
+
+| Código | Significado | Efecto |
+| --- | --- | --- |
+| `ACD` | Acuse de recibo de la mercadería o servicio | El receptor aceptó el documento |
+| `ERM` | Acuse de recibo electrónico (mercaderías) | Corre el plazo de mérito ejecutivo |
+| `RCD` | Reclamo al contenido del documento | `is_rejected: true` |
+| `RFP` | Reclamo por falta parcial de mercaderías | `is_rejected: true` |
+| `RFT` | Reclamo por falta total de mercaderías | `is_rejected: true` |
+| `PAG` | Registro de pago | Informativo |
+
+<Warning>
+Los códigos los define el SII y pueden aparecer otros que no estén en esta
+tabla. Trata cualquier código desconocido como informativo en vez de fallar:
+lo que determina si el documento quedó rechazado es `is_rejected`.
+</Warning>
+
+##### Cuándo se envía
+
+- Se envía **un evento por cada evento nuevo de la traza**, no uno por
+  actualización. Tupana consulta la traza de tus documentos varias veces al día;
+  mientras no haya novedad, no recibes nada.
+- Un mismo evento del SII notifica **una sola vez**, por más veces que se
+  vuelva a consultar la traza. Los reintentos por fallas de tu endpoint sí
+  repiten el envío, con el mismo `delivery_id` (ver [Idempotencia](#idempotencia)).
+- `xml_file` viaja sólo si el XML ya está guardado en Tupana; si no, va en
+  `null`. Este evento no dispara la descarga del archivo desde el SII.
+
 ### Eventos de Documentos Programados
 
 #### scheduled_document.created
@@ -671,6 +786,8 @@ Todos los payloads comparten esta estructura base:
 - **`details`**: Array con las líneas del documento
 - **`xml_file`**: URL del XML del documento (string o null)
 - **`pdf_file`**: URL del PDF del documento (string o null, solo en `document.issued`)
+- **`role`**: Punta del documento en la que está tu empresa, `"issuer"` o `"receiver"` (string, solo en `document.trace_updated`)
+- **`trace`**: Estado de la traza del SII (objeto, solo en `document.trace_updated`)
 
 ## Reintentos
 
