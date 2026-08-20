@@ -143,6 +143,7 @@ List documents (issued or received) for an entity.
 - `reception_date_from` / `reception_date_to`: Filter received documents by reception date range (`YYYY-MM-DD`, inclusive)
 - `include_trace_events`: If `true`, each document includes the full `traces` array with its `events`
 - `include_book_metadata`: If `true`, each document includes a `book_metadata` object with Registro de Compra/Venta data
+- `json_param__<key>`: Filter by any key in the `json_param` object you stored on the document (exact match, string values only). Combine multiple keys for AND. Key must match `[a-zA-Z0-9_]{1,64}`, e.g. `json_param__external_order_id=PED-123`
 - `page`: Page number (default 1)
 - `page_size`: Results per page (max 100, default 20)
 

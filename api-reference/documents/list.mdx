@@ -41,3 +41,21 @@ GET /v1/documents?master_entity_id=eid_...&document_type=received&include_book_m
 Cada documento incluye entonces el objeto `book_metadata` (o `null` si aún no aparece en el RCV) con los montos según el libro (`net_amount`, `vat_amount`, `total_amount`, `exempt_amount`), IVA no recuperable / uso común / retenido, fechas de recepción y acuse, los flags `in_sii_compra_book` / `in_sii_venta_book` y los períodos de carga `compra_loading_period` / `venta_loading_period` (YYYYMM).
 
 Para armar el **libro de compras** de un período filtra por `in_sii_compra_book=true` y `compra_loading_period == "YYYYMM"` usando `document_type=received`; para el **libro de ventas**, `in_sii_venta_book=true` y `venta_loading_period` con `document_type=issued`. Usa el período de carga y no la fecha de emisión: un documento emitido a fin de mes puede caer en el período siguiente del libro de compras del receptor.
+
+## Filtrar por json_param (campos personalizados)
+
+Si al crear el documento guardaste datos propios en `json_param` (ver el campo `json_param` en [Crear documentos](/api-reference/documents/batch)), puedes filtrar el listado por cualquier key de ese objeto con `json_param__<key>=<valor>`:
+
+```bash
+GET /v1/documents?master_entity_id=eid_...&json_param__external_order_id=PED-123
+```
+
+Esto devuelve solo los documentos donde `json_param` contiene esa key con exactamente ese valor (coincidencia exacta, no búsqueda parcial). Podés combinar varias keys en la misma request — se aplican con AND:
+
+```bash
+GET /v1/documents?master_entity_id=eid_...&json_param__external_order_id=PED-123&json_param__priority=high
+```
+
+- La key es abierta (es tu propio campo, no algo predefinido por Pana), pero solo acepta letras, números y `_` (`^[a-zA-Z0-9_]{1,64}$`). Una key con otros caracteres devuelve `400`.
+- El valor de la query siempre se compara como string, así que hoy este filtro solo funciona para keys cuyo valor en `json_param` también sea un string (ej. `{"external_order_id": "PED-123"}`). Si guardaste un booleano o número (ej. `{"active": true}`), esa key no es filtrable todavía por esta vía — no hay coincidencia de tipo entre el string de la query y el booleano/número guardado.
+- Documentos sin `json_param`, o cuyo `json_param` no tiene esa key, quedan fuera del resultado.

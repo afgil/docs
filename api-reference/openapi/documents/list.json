@@ -155,6 +155,16 @@
             }
           },
           {
+            "name": "json_param__{key}",
+            "in": "query",
+            "description": "Filtra por cualquier key del objeto `json_param` que guardaste al crear el documento (ver `json_param` en el endpoint de creación). Reemplaza `{key}` por el nombre real de tu campo, ej. `json_param__external_order_id=PED-123`. Coincidencia exacta (no búsqueda parcial); podés repetir el parámetro con distintas keys en la misma request y se combinan con AND. La key solo acepta `[a-zA-Z0-9_]` (máx. 64 caracteres) — otro caracter devuelve 400. El valor de la query siempre se compara como string, así que solo sirve para keys cuyo valor en `json_param` también sea un string; valores booleanos o numéricos no son filtrables por esta vía todavía.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "PED-123"
+          },
+          {
             "name": "include_book_metadata",
             "in": "query",
             "description": "Si es `true`, cada documento incluye el objeto `book_metadata` con todos los datos del Registro de Compras y Ventas (RCV) del SII: montos según el libro (`net_amount`, `vat_amount`, `total_amount`, `exempt_amount`), IVA no recuperable/uso común/retenido, fechas de recepción y acuse, flags `in_sii_compra_book`/`in_sii_venta_book` y los períodos de carga `compra_loading_period`/`venta_loading_period` (YYYYMM). Es `null` si el documento aún no aparece en el RCV. Para reconstruir el **libro de compras** de un período usa `document_type=received` y filtra por `in_sii_compra_book=true` y `compra_loading_period`; para el **libro de ventas** usa `document_type=issued` con `in_sii_venta_book=true` y `venta_loading_period` (el período de carga del RCV puede diferir de la fecha de emisión en documentos de fin de mes).",
