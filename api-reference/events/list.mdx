@@ -1,0 +1,49 @@
+---
+title: 'Listar eventos'
+openapi: 'GET /events'
+---
+
+## Por qué existe
+
+Los webhooks (`document.issued` / `document.issue_failed`) notifican en tiempo real, pero no son la única vía de verdad: si tu endpoint de webhook falla repetidamente, se desactiva automáticamente y deja de notificar. `GET /events` es un log de eventos consultable en cualquier momento, con el **mismo payload completo** que ya manda el webhook — te permite reconciliar sin importar si algún webhook falló, se desactivó, o nunca llegó.
+
+Mismo patrón que usa Stripe para su propia Events API: un recurso genérico paginado por cursor, no anidado bajo el tipo de objeto.
+
+## Qué hace
+
+- Devuelve los eventos de completación de documentos (`document.issued`, `document.issue_failed`) de tus propios documentos, en orden estricto
+- Paginado por cursor (`starting_after`/`limit`/`has_more`), no por número de página
+- Filtrable por tipo de evento, batch, o entidad emisora
+- Nunca mezcla eventos de otro cliente — el scoping es siempre por tu API key
+
+## Loop de polling recomendado
+
+```python
+cursor = load_saved_cursor()  # persistido de tu lado
+
+while True:
+    resp = requests.get(
+        "https://api.tupana.ai/v1/events",
+        params={"starting_after": cursor, "limit": 500},
+        headers={"Authorization": f"Api-Key {API_KEY}"},
+    ).json()
+
+    for event in resp["data"]:
+        procesar(event)          # idempotente: el id nunca se repite ni retrocede
+        cursor = event["id"]
+
+    save_cursor(cursor)          # recién después de procesar OK
+
+    if not resp["has_more"]:
+        time.sleep(5)
+```
+
+Como vos guardás tu propio cursor, si tu servicio se cae por horas, retomás exactamente donde quedaste — no depende de que el webhook haya reintentado a tiempo, ni de que siga activo.
+
+## Sobre `xml_file` / `pdf_file`
+
+A diferencia del webhook (que genera el PDF/XML al momento si no existe), este endpoint solo devuelve la URL si ya fue generada antes — generarla on-demand por cada uno de hasta 500 documentos de una página sería demasiado lento. Si viene `null`, el archivo todavía no se generó; pídelo por separado con el endpoint de detalle de documento (`GET /documents/{document_id}`).
+
+## Un documento puede tener más de un evento
+
+Si un documento falla y luego se reprocesa exitosamente, vas a ver **dos** eventos distintos para el mismo `document.id` — primero `document.issue_failed`, después `document.issued` — en ese orden. No asumas que cada documento produce como máximo un evento.
