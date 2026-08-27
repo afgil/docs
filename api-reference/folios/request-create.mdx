@@ -1,0 +1,54 @@
+---
+title: 'Solicitar timbraje'
+openapi: 'POST /folio-requests'
+---
+
+## ¿Para qué se usa?
+
+Para pedir folios al SII y recibir el **CAF** con el que emites DTE desde tu propio facturador. Casos típicos: te estás quedando sin folios de factura, o habilitas un tipo de documento nuevo (una nota de crédito, una guía) y necesitas su primer rango.
+
+## Qué hace
+
+- Es un **recurso asíncrono**: registra el pedido, responde **201** con `status: "pending"` y hace el trámite ante el SII en segundo plano. La llamada nunca bloquea.
+- Timbra con el certificado digital de tu empresa cargado en Tupana.
+- Cuando termina, el CAF se retira con [`GET /folio-requests/{id}`](/api-reference/folios/request-get) o te avisamos por el webhook `folio_request.completed`.
+
+## La clave de idempotencia
+
+<Warning>
+`Idempotency-Key` es **obligatoria**. Un folio timbrado no se puede devolver, así que un reintento tuyo —por un timeout, un retry automático, un doble click— no puede convertirse en un segundo timbraje.
+</Warning>
+
+- Misma clave ⇒ te devolvemos el pedido original con **200**, sin tocar el SII.
+- Clave nueva ⇒ pedido nuevo, folios nuevos.
+- Genera la clave a partir de algo estable de tu lado (por ejemplo `folios-33-2026-08-27-01`), no de un aleatorio por intento.
+
+## Cuántos folios pedir
+
+El SII fija un **máximo por solicitud** que sube con el uso de la empresa, y no siempre honra su propio tope. Pedimos el mayor lote que acepte en ese momento, así que **es normal recibir menos de lo pedido**.
+
+La respuesta final te lo dice sin que tengas que compararlo tú: `partially_granted` en `true`, y `sii_max_per_request` con el tope que lo causó.
+
+```json
+{
+  "requested_quantity": 50,
+  "granted_quantity": 9,
+  "partially_granted": true,
+  "sii_max_per_request": 9
+}
+```
+
+Si necesitas los que faltan, pide de nuevo con otra `Idempotency-Key`. Puedes consultar el tope vigente en [`GET /folios`](/api-reference/folios/availability) antes de pedir.
+
+## Límites
+
+Cada empresa puede pedir **3 timbrajes por hora** y **20 por mes**. El límite horario protege tu propio RUT: cada timbraje son unos cinco requests contra el portal del SII, que penaliza por RUT alrededor de los catorce y ahí deja de responder todo lo de esa empresa. El mensual acota cuántos folios reales puedes consumir por error.
+
+Los límites son por empresa, no por API key. Un reintento con la misma `Idempotency-Key` no consume cuota.
+
+## Errores que vas a ver
+
+- **400** — falta la cabecera, el tipo de documento no es timbrable o la cantidad está fuera de rango.
+- **409** — ya hay un timbraje de ese mismo tipo de documento en curso para la empresa. Espera a que termine; dos trámites simultáneos sobre el mismo tipo pueden consumir rangos de más.
+- **429** — se agotó la cuota. El cuerpo trae `limit`, `window` y `resets_at` para que sepas cuándo reintentar en vez de adivinar.
+- **403** — la entidad no es tuya.

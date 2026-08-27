@@ -18,15 +18,17 @@ def combine_openapi_files():
     files = [base_file] if os.path.exists(base_file) else []
 
     # Luego procesar los demás archivos
-    subdirs = [
-        "credentials",
-        "cessions",
-        "documents",
-        "master-entities",
-        "scheduled-documents",
-        "webhooks",
-        "schemas",
-    ]
+    # Se recorren TODOS los subdirectorios, no una lista escrita a mano: la
+    # lista fija se quedó atrás cada vez que se agregó un grupo de endpoints
+    # (sync, honorary, cessions y document-states no estaban), y regenerar el
+    # combinado con ella los habría borrado de la documentación publicada.
+    # "schemas" va al final para que los $ref resuelvan contra todo lo demás.
+    subdirs = sorted(
+        name
+        for name in os.listdir(base_dir)
+        if os.path.isdir(os.path.join(base_dir, name)) and name not in ("base", "schemas")
+    )
+    subdirs.append("schemas")
 
     for subdir in subdirs:
         subdir_path = os.path.join(base_dir, subdir)

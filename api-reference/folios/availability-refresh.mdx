@@ -1,0 +1,22 @@
+---
+title: 'Releer folios desde el SII'
+openapi: 'POST /folios/refresh'
+---
+
+## ¿Para qué se usa?
+
+Para actualizar la foto de disponibilidad cuando necesitas el dato fresco: antes de decidir un timbraje grande, después de una jornada de emisión fuerte, o cuando el `as_of` de [`GET /folios`](/api-reference/folios/availability) ya quedó viejo.
+
+## Qué hace
+
+- Encola la consulta y responde **202** de inmediato.
+- Lee del SII la disponibilidad y el histórico de timbrajes de ese tipo de documento.
+- Cuando termina, la foto queda actualizada: vuelve a leer `GET /folios` y compara `as_of`.
+
+<Note>
+**Consultar no consume folios.** Esta operación abre el trámite en el portal del SII y lee lo que publica, sin llegar al paso que reserva un rango. Puedes llamarla las veces que necesites.
+</Note>
+
+<Tip>
+Si el SII está intermitente, la foto anterior **no se pisa**: preferimos devolverte un dato viejo con su fecha antes que uno vacío que parezca "cero folios".
+</Tip>

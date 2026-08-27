@@ -1,0 +1,110 @@
+---
+title: 'Folios'
+description: 'Timbra folios ante el SII y recibe el CAF para emitir con tu propio facturador'
+---
+
+## Qué resuelve
+
+Si emites DTE con tu propio software, necesitas folios timbrados ante el SII y el archivo **CAF** que los acompaña. Esta API hace ese trámite por ti: pides folios, nosotros los timbramos con el certificado digital de tu empresa y te devolvemos el CAF en XML.
+
+También puedes consultar, sin timbrar nada, cuántos folios te quedan sin usar y qué rangos te timbraron antes.
+
+## Antes de empezar
+
+1. **Certificado digital vigente** cargado en Tupana para la empresa.
+2. La persona del certificado debe estar **autorizada ante el SII** para timbrar por esa empresa.
+3. El `master_entity_id` de la empresa: lo obtienes de `GET /master-entities?rut=` (campo `opaque_id`).
+
+## Cómo funciona
+
+El trámite ante el SII son cuatro pasos y puede tardar minutos, así que el timbraje es un **recurso asíncrono**:
+
+<Steps>
+  <Step title="Pides los folios">
+    `POST /folio-requests` con el tipo de documento y la cantidad. Responde **201** con `status: "pending"`.
+  </Step>
+  <Step title="Esperas el resultado">
+    Haz polling con `GET /folio-requests/{id}` o suscríbete al webhook `folio_request.completed`.
+  </Step>
+  <Step title="Retiras el CAF">
+    Cuando `status` es `completed`, el pedido trae `caf_xml` y el rango autorizado.
+  </Step>
+</Steps>
+
+## Lo que tienes que saber del SII
+
+<Warning>
+**Un folio timbrado no se devuelve.** Por eso la cabecera `Idempotency-Key` es obligatoria: si repites la llamada con la misma clave te devolvemos el pedido original en vez de timbrar de nuevo. Usa una clave distinta solo cuando quieras folios nuevos de verdad.
+</Warning>
+
+**Puedes recibir menos folios de los que pediste.** El SII fija un máximo por solicitud que sube con el uso de la empresa; una empresa nueva puede empezar autorizada a muy pocos por vez. Pedimos siempre el máximo que el SII acepte en ese momento.
+
+No tienes que deducirlo comparando números: la respuesta te lo dice.
+
+| Campo | Qué te dice |
+|---|---|
+| `granted_quantity` | Cuántos folios entregó el SII |
+| `partially_granted` | `true` cuando entregó menos de los que pediste |
+| `sii_max_per_request` | El tope que el SII publicó en ese momento, o sea el motivo |
+
+Un pedido de 50 folios de una empresa nueva puede terminar así, y es un desenlace normal, no un error:
+
+```json
+{
+  "requested_quantity": 50,
+  "granted_quantity": 9,
+  "partially_granted": true,
+  "sii_max_per_request": 9,
+  "folio_start": 15,
+  "folio_end": 23
+}
+```
+
+Si necesitas más, pide de nuevo con otra `Idempotency-Key`. El tope sube con el uso de la empresa; el vigente también lo ves en `GET /folios` (`max_per_request`).
+
+**El estado `authorized_without_caf`.** A veces el SII autoriza el rango y falla al entregar el archivo. Esos folios ya salieron de tu stock: el pedido queda en ese estado con el rango indicado y nosotros recuperamos el CAF. No vuelvas a pedir ese mismo rango.
+
+## Seguridad del CAF
+
+El CAF contiene la **llave privada** con la que se firman tus documentos. Viaja solo en la respuesta autenticada de `GET /folio-requests/{id}` — nunca en un webhook — y cada entrega queda registrada. Guárdalo como guardarías una credencial.
+
+## Límites
+
+Cada empresa tiene dos límites de timbraje. No son un capricho nuestro: existen porque un folio timbrado no se devuelve, y porque el SII penaliza por RUT.
+
+| Límite | Cuánto | Por qué existe |
+|---|---|---|
+| Por hora | **3** timbrajes | Cada timbraje son unos cinco requests contra el portal del SII. El SII abre caja de castigo por RUT alrededor de los catorce, y ahí deja de responderte **todo** lo de esa empresa, no solo el timbraje |
+| Por mes | **20** timbrajes | Acota cuántos folios reales puedes consumir por error mientras pruebas |
+
+Los límites son **por empresa**, no por API key: si usas varias claves para la misma empresa, comparten cuota.
+
+Al superar cualquiera de los dos, `POST /folio-requests` responde **429** diciendo cuál se agotó y cuándo se libera:
+
+```json
+{
+  "error": "Cuota de timbrajes agotada: 3 de 3 por hora.",
+  "limit": 3,
+  "window": "hora",
+  "used": 3,
+  "resets_at": "2026-08-27T22:05:00Z"
+}
+```
+
+<Note>
+Un reintento con la **misma** `Idempotency-Key` no consume cuota: te devolvemos el pedido original sin tocar el SII. Tampoco consumen cuota los pedidos que fallan antes de llegar al SII, por ejemplo si a la empresa le falta el certificado digital.
+</Note>
+
+<Tip>
+Consultar no consume cuota de timbraje: `GET /folios` y `POST /folios/refresh` no timbran nada.
+</Tip>
+
+## Webhooks
+
+Suscríbete en el panel o por API a estos eventos para no hacer polling:
+
+| Evento | Cuándo llega |
+|---|---|
+| `folio_request.completed` | El CAF está listo para retirar |
+| `folio_request.failed` | El SII no autorizó folios; no se consumió nada |
+| `folio_request.authorized_without_caf` | El SII autorizó un rango y no entregó el archivo |
