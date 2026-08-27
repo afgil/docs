@@ -1,0 +1,31 @@
+---
+title: 'Folios disponibles'
+openapi: 'GET /folios'
+---
+
+## ¿Para qué se usa?
+
+Para saber **cuántos folios te quedan sin usar** según el SII, cuántos te autoriza por solicitud y qué rangos te timbraron antes. Es lo que consultas para decidir si necesitas pedir más, y cuántos pedir.
+
+## Qué hace
+
+- Responde con la **última foto guardada** del estado de tus folios en el SII, junto con `as_of`: cuándo se leyó.
+- No va al SII en esta llamada, así que no bloquea. Para forzar una relectura usa [`POST /folios/refresh`](/api-reference/folios/availability-refresh).
+- Trae también `timbrajes`: los rangos históricos que el SII tiene registrados a nombre de la empresa.
+
+## Cómo leer la respuesta
+
+| Campo | Qué es |
+|---|---|
+| `available` | Folios timbrados y **sin emitir** que el SII te reconoce |
+| `max_per_request` | Máximo que el SII autoriza en un solo pedido ahora. Sube con el uso de la empresa |
+| `timbrajes` | Rangos timbrados históricamente, con su fecha |
+| `as_of` | Cuándo leímos esto del SII |
+
+<Note>
+`available: null` o una lista `results` vacía significan **"no lo sabemos"**, no "cero folios": nunca se consultó esa empresa, o el SII no publicó el dato en la última lectura. Pide un refresco antes de concluir que te quedaste sin folios.
+</Note>
+
+<Tip>
+`consistent: false` en una fila de `timbrajes` indica que la tabla del SII no cuadraba con su propio rango y la interpretamos en el orden habitual. El dato sirve de referencia, pero no lo uses como fuente de verdad para ese rango puntual.
+</Tip>

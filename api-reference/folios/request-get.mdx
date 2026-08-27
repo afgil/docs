@@ -1,0 +1,28 @@
+---
+title: 'Consultar pedido y retirar CAF'
+openapi: 'GET /folio-requests/{id}'
+---
+
+## ¿Para qué se usa?
+
+Para saber en qué va tu pedido de timbraje y, cuando termina, **retirar el CAF**.
+
+## Estados
+
+| `status` | Qué significa | Qué hacer |
+|---|---|---|
+| `pending` | Registrado, aún no empieza | Esperar |
+| `processing` | El trámite está corriendo en el SII | Esperar |
+| `completed` | Listo | Retirar `caf_xml` y cargarlo en tu facturador. Revisa `partially_granted`: si es `true`, el SII entregó menos de los que pediste |
+| `failed` | El SII no autorizó folios | No se consumió nada: puedes volver a pedir con otra `Idempotency-Key`. El motivo va en `error` |
+| `authorized_without_caf` | El SII autorizó el rango y no entregó el archivo | **No vuelvas a pedir ese rango**: esos folios ya salieron de tu stock. Estamos recuperando el CAF; `folio_start` y `folio_end` te dicen cuál es |
+
+## Sobre el CAF
+
+<Warning>
+El CAF contiene la **llave privada** con la que se firman tus documentos tributarios. Viaja solo en esta respuesta autenticada —nunca en un webhook— y cada entrega queda registrada. Guárdalo con el mismo cuidado que una credencial: quien lo tenga puede emitir a nombre de tu empresa.
+</Warning>
+
+## Ritmo de polling
+
+El trámite tarda del orden de minutos. Consultar cada 15–30 segundos es suficiente; si prefieres no hacer polling, suscríbete al webhook `folio_request.completed`.

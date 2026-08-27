@@ -1,0 +1,189 @@
+{
+  "components": {
+    "schemas": {
+      "FolioRequest": {
+        "type": "object",
+        "description": "Pedido de timbraje de folios ante el SII.",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 8821
+          },
+          "dte_type": {
+            "type": "integer",
+            "description": "Tipo de documento timbrado.",
+            "example": 33
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "completed",
+              "failed",
+              "authorized_without_caf"
+            ],
+            "description": "`authorized_without_caf` significa que el SII autorizó el rango y no entregó el archivo: esos folios ya salieron de tu stock.",
+            "example": "completed"
+          },
+          "requested_quantity": {
+            "type": "integer",
+            "description": "Folios que pediste.",
+            "example": 50
+          },
+          "granted_quantity": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Folios que el SII autorizó. Puede ser menor al pedido: el tope por solicitud lo pone el SII y sube con el uso.",
+            "example": 50
+          },
+          "partially_granted": {
+            "type": "boolean",
+            "description": "`true` cuando el SII entregó menos folios de los que pediste. Es un desenlace normal: el tope por solicitud lo fija el SII y sube con el uso de la empresa.",
+            "example": true
+          },
+          "sii_max_per_request": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Tope por solicitud que el SII publicó al hacer este trámite: el motivo por el que se entregó menos de lo pedido.",
+            "example": 9
+          },
+          "folio_start": {
+            "type": "integer",
+            "nullable": true,
+            "example": 539
+          },
+          "folio_end": {
+            "type": "integer",
+            "nullable": true,
+            "example": 588
+          },
+          "caf_xml": {
+            "type": "string",
+            "nullable": true,
+            "description": "CAF entregado por el SII. Contiene la llave privada con la que se firman tus DTE: trátalo como secreto. Es `null` hasta que el pedido queda `completed`.",
+            "example": "<AUTORIZACION><CAF version=\"1.0\">…</CAF></AUTORIZACION>"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "description": "La clave que enviaste al crear el pedido.",
+            "example": "pedido-facturas-2026-08-27-01"
+          },
+          "error": {
+            "type": "string",
+            "description": "Motivo del SII cuando el pedido no terminó bien.",
+            "example": ""
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-08-27T14:30:00Z"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2026-08-27T14:32:11Z"
+          }
+        }
+      },
+      "FolioAvailability": {
+        "type": "object",
+        "description": "Foto del estado de los folios de una empresa en el SII para un tipo de documento.",
+        "properties": {
+          "dte_type": {
+            "type": "integer",
+            "example": 33
+          },
+          "available": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Folios timbrados y sin emitir según el SII. `null` significa que el SII no publicó el dato, no que sean cero.",
+            "example": 120
+          },
+          "max_per_request": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Máximo de folios que el SII autoriza por solicitud en este momento. Sube con el uso.",
+            "example": 50
+          },
+          "last_timbraje": {
+            "type": "string",
+            "description": "Fecha del último timbraje según el SII.",
+            "example": "2026-08-19"
+          },
+          "timbrajes": {
+            "type": "array",
+            "description": "Rangos timbrados históricamente a nombre de la empresa.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "authorization_date": {
+                  "type": "string",
+                  "format": "date",
+                  "example": "2026-08-19"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "example": 50
+                },
+                "folio_start": {
+                  "type": "integer",
+                  "example": 539
+                },
+                "folio_end": {
+                  "type": "integer",
+                  "example": 588
+                },
+                "consistent": {
+                  "type": "boolean",
+                  "description": "`false` cuando la fila del SII no cuadra con su propio rango y la leímos en el orden documentado.",
+                  "example": true
+                }
+              }
+            }
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Cuándo se leyó del SII. Un número sin esta fecha no dice nada.",
+            "example": "2026-08-27T14:05:00Z"
+          }
+        }
+      },
+      "FolioQuotaExceeded": {
+        "type": "object",
+        "description": "Cuota de timbrajes agotada para la empresa. Los límites son por empresa, no por API key.",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Cuota de timbrajes agotada: 3 de 3 por hora."
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Tope de la ventana que se agotó.",
+            "example": 3
+          },
+          "window": {
+            "type": "string",
+            "enum": [
+              "hora",
+              "mes"
+            ],
+            "example": "hora"
+          },
+          "used": {
+            "type": "integer",
+            "description": "Timbrajes ya consumidos en esa ventana.",
+            "example": 3
+          },
+          "resets_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Cuándo vuelve a haber cupo."
+          }
+        }
+      }
+    }
+  }
+}

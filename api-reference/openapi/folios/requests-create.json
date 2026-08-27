@@ -1,0 +1,229 @@
+{
+  "paths": {
+    "/folio-requests": {
+      "post": {
+        "operationId": "createFolioRequest",
+        "tags": [
+          "Folios"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Solicitar timbraje de folios",
+        "description": "Pide folios al SII para tu empresa y te devuelve el **CAF** en XML para que emitas con tu propio facturador.\n\nEs un **recurso asíncrono**: el trámite ante el SII son cuatro pasos y puede tardar minutos, así que la API registra el pedido, responde **201** con `status: \"pending\"` y el timbraje corre en segundo plano. Consulta el pedido con `GET /folio-requests/{id}` o suscríbete al webhook `folio_request.completed`.\n\n**La cabecera `Idempotency-Key` es obligatoria.** Un folio timbrado no se puede devolver: si repites la llamada con la misma clave te devolvemos el pedido original (200) en vez de timbrar de nuevo. Usa una clave distinta por cada pedido real.\n\nRequisitos: tu empresa debe tener cargado en Tupana un certificado digital vigente, y la persona del certificado debe estar autorizada ante el SII para timbrar por la empresa.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "description": "Clave única del pedido. Repetirla devuelve el pedido original sin timbrar de nuevo.",
+            "example": "pedido-facturas-2026-08-27-01"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "master_entity_id",
+                  "dte_type",
+                  "quantity"
+                ],
+                "properties": {
+                  "master_entity_id": {
+                    "type": "string",
+                    "description": "ID de la entidad maestra. Acepta el id opaco (`eid_...`, campo `opaque_id` de `/master-entities?rut=`) o el id entero.",
+                    "example": "eid_NDgyMTM6c2lnbmF0dXJl"
+                  },
+                  "dte_type": {
+                    "type": "integer",
+                    "description": "Código del tipo de documento a timbrar.",
+                    "enum": [
+                      33,
+                      34,
+                      39,
+                      41,
+                      43,
+                      46,
+                      52,
+                      56,
+                      61,
+                      110,
+                      111,
+                      112
+                    ],
+                    "example": 33
+                  },
+                  "quantity": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000,
+                    "description": "Folios a pedir. El SII acota cada solicitud con su propio máximo autorizado, que sube con el uso: es normal recibir menos de los pedidos. Consulta el tope vigente en `GET /folios`.",
+                    "example": 50
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ya existía un pedido con esa `Idempotency-Key`: se devuelve el original, sin timbrar de nuevo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolioRequest"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Pedido registrado; el timbraje corre en segundo plano",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolioRequest"
+                },
+                "example": {
+                  "id": 8821,
+                  "dte_type": 33,
+                  "status": "pending",
+                  "requested_quantity": 50,
+                  "granted_quantity": null,
+                  "folio_start": null,
+                  "folio_end": null,
+                  "caf_xml": null,
+                  "idempotency_key": "pedido-facturas-2026-08-27-01",
+                  "error": "",
+                  "created_at": "2026-08-27T14:30:00Z",
+                  "completed_at": null
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Falta la cabecera `Idempotency-Key`, el tipo de DTE no es timbrable o la cantidad está fuera de rango",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "La cabecera Idempotency-Key es obligatoria: sin ella un reintento timbraría folios de nuevo."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin acceso a la entidad indicada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "No tienes acceso a esta entidad."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ya hay un timbraje de ese tipo de documento en curso para la empresa. Espera a que termine: dos trámites simultáneos sobre el mismo tipo pueden consumir rangos de más.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "Ya hay un timbraje de DTE 33 en curso para 78.422.108-3"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Cuota de timbrajes agotada (3 por hora o 20 por mes, por empresa). El cuerpo dice cuál se agotó y cuándo se libera.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolioQuotaExceeded"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listFolioRequests",
+        "tags": [
+          "Folios"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar pedidos de timbraje",
+        "description": "Pedidos de timbraje de la entidad, del más reciente al más antiguo.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la entidad maestra (opaco `eid_...` o entero).",
+            "example": "eid_NDgyMTM6c2lnbmF0dXJl"
+          },
+          {
+            "name": "dte_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Filtra por tipo de documento.",
+            "example": 33
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listado de pedidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FolioRequest"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

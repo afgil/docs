@@ -194,6 +194,17 @@
               "api-reference/sync/request-list",
               "api-reference/sync/request-get"
             ]
+          },
+          {
+            "group": "Folios",
+            "pages": [
+              "api-reference/folios/introduction",
+              "api-reference/folios/request-create",
+              "api-reference/folios/request-get",
+              "api-reference/folios/request-list",
+              "api-reference/folios/availability",
+              "api-reference/folios/availability-refresh"
+            ]
           }
         ]
       },

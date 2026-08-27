@@ -1,0 +1,18 @@
+---
+title: 'Listar pedidos de timbraje'
+openapi: 'GET /folio-requests'
+---
+
+## ¿Para qué se usa?
+
+Para ver el historial de pedidos de timbraje de una empresa: qué se pidió, cuánto entregó el SII y cómo terminó cada uno. Útil para conciliar tu inventario de folios con lo que realmente se timbró, y para detectar pedidos que quedaron en `authorized_without_caf`.
+
+## Qué hace
+
+- Devuelve los pedidos de la entidad, del más reciente al más antiguo.
+- Filtra por tipo de documento con `dte_type`.
+- Los pedidos ya completados incluyen su `caf_xml`: si solo quieres revisar estados, ignóralo.
+
+<Tip>
+Para saber cuántos folios tienes disponibles **ahora** según el SII, no sumes este listado: usa [`GET /folios`](/api-reference/folios/availability). Los folios se consumen al emitir, y eso no pasa por esta API.
+</Tip>

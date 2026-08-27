@@ -134,6 +134,13 @@ Crea un nuevo webhook para la empresa del usuario.
 | `document.paid` | Documento conciliado/pagado |
 | `document.unpaid` | Documento revertido de pagado a no pagado |
 | `document.cancelled` | Documento anulado o nota de crédito |
+| `folio_request.completed` | Timbraje listo: el CAF se puede retirar |
+| `folio_request.failed` | El SII no autorizó folios; no se consumió ninguno |
+| `folio_request.authorized_without_caf` | El SII autorizó un rango y no entregó el CAF: esos folios ya salieron del stock del contribuyente |
+
+> Esta tabla es un extracto. El catálogo completo y siempre al día se consulta
+> en `GET /webhooks/events/`: úsalo como fuente de verdad antes de suscribirte,
+> en vez de copiar esta lista.
 
 ## Formato de Notificaciones
 
