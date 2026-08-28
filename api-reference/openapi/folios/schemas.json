@@ -153,7 +153,7 @@
       },
       "FolioQuotaExceeded": {
         "type": "object",
-        "description": "Cuota de timbrajes agotada para la empresa. Los límites son por empresa, no por API key.",
+        "description": "Cuota agotada para la empresa. Timbraje y consulta tienen cuotas separadas; las dos se cuentan por empresa, no por API key.",
         "properties": {
           "error": {
             "type": "string",
@@ -181,6 +181,70 @@
             "type": "string",
             "format": "date-time",
             "description": "Cuándo vuelve a haber cupo."
+          }
+        }
+      },
+      "FolioQuery": {
+        "type": "object",
+        "description": "Consulta de folios al SII. Es un recurso para que puedas seguirla: antes esto era una acción que respondía 202 sin nada que consultar.",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "dte_type": {
+            "type": "integer",
+            "example": 33
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "completed",
+              "failed"
+            ]
+          },
+          "result": {
+            "type": "object",
+            "description": "Lo que dijo el SII cuando la consulta terminó.",
+            "properties": {
+              "available": {
+                "type": "integer",
+                "nullable": true,
+                "description": "Folios timbrados y sin emitir. `null` significa que no lo sabemos, no cero.",
+                "example": 3
+              },
+              "max_per_request": {
+                "type": "integer",
+                "nullable": true,
+                "description": "Máximo por solicitud vigente.",
+                "example": 8
+              },
+              "last_timbraje": {
+                "type": "string",
+                "nullable": true
+              },
+              "timbrajes": {
+                "type": "array",
+                "description": "Rangos timbrados históricamente.",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "error": {
+            "type": "string",
+            "description": "Motivo cuando la consulta no terminó bien."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       }

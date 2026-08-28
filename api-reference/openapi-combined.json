@@ -2147,6 +2147,170 @@
         }
       }
     },
+    "/folio-queries": {
+      "post": {
+        "operationId": "createFolioQuery",
+        "tags": [
+          "Folios"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Pedir una lectura de folios al SII",
+        "description": "Crea una consulta de folios contra el SII. Es un **recurso asíncrono**: responde 201 con `status: \"pending\"` y lee en segundo plano.\n\n**Consultar no consume folios**: el trámite se queda en el paso 1 del portal, que no reserva ningún rango. Por eso no lleva `Idempotency-Key` — repetirla no cuesta nada irreversible.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "master_entity_id",
+                  "dte_type"
+                ],
+                "properties": {
+                  "master_entity_id": {
+                    "type": "string",
+                    "description": "ID de la entidad. Acepta el id opaco (`eid_...`) o el entero.",
+                    "example": "eid_NDgyMTM6c2lnbmF0dXJl"
+                  },
+                  "dte_type": {
+                    "type": "integer",
+                    "description": "Tipo de DTE a consultar.",
+                    "example": 33
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Consulta creada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolioQuery"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Tipo de documento inválido."
+          },
+          "403": {
+            "description": "La entidad no pertenece al cliente."
+          },
+          "429": {
+            "description": "Límite horario de consultas agotado (10 por hora, por empresa). Se cuenta aparte de la cuota de timbraje.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolioQuotaExceeded"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listFolioQueries",
+        "tags": [
+          "Folios"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar consultas de folios",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la entidad. Acepta el id opaco (`eid_...`) o el entero.",
+            "example": "eid_NDgyMTM6c2lnbmF0dXJl"
+          },
+          {
+            "name": "dte_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Filtra por tipo de documento."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Consultas de la entidad.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FolioQuery"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/folio-queries/{id}": {
+      "get": {
+        "operationId": "getFolioQuery",
+        "tags": [
+          "Folios"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Resultado de una consulta de folios",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado y resultado de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolioQuery"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La consulta es de otra entidad."
+          },
+          "404": {
+            "description": "Consulta no encontrada."
+          }
+        }
+      }
+    },
     "/folio-requests/{id}": {
       "get": {
         "operationId": "getFolioRequest",
@@ -2527,102 +2691,6 @@
                       "as_of": "2026-08-27T14:05:00Z"
                     }
                   ]
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sin acceso a la entidad indicada",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "detail": {
-                      "type": "string",
-                      "example": "No tienes acceso a esta entidad."
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/folios/refresh": {
-      "post": {
-        "operationId": "refreshFolioAvailability",
-        "tags": [
-          "Folios"
-        ],
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ],
-        "summary": "Releer los folios desde el SII",
-        "description": "Encola una consulta al SII para actualizar la foto de disponibilidad e histórico. Responde **202** de inmediato.\n\nLa consulta **no consume folios**: solo abre el trámite y lee lo que el SII publica, sin llegar al paso que reserva un rango.\n\nPara saber cuándo terminó, vuelve a leer `GET /folios` y compara el campo `as_of`.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "master_entity_id",
-                  "dte_type"
-                ],
-                "properties": {
-                  "master_entity_id": {
-                    "type": "string",
-                    "description": "ID de la entidad maestra (opaco `eid_...` o entero).",
-                    "example": "eid_NDgyMTM6c2lnbmF0dXJl"
-                  },
-                  "dte_type": {
-                    "type": "integer",
-                    "enum": [
-                      33,
-                      34,
-                      39,
-                      41,
-                      43,
-                      46,
-                      52,
-                      56,
-                      61,
-                      110,
-                      111,
-                      112
-                    ],
-                    "example": 33
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "202": {
-            "description": "Consulta encolada",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "refreshing"
-                    },
-                    "dte_type": {
-                      "type": "integer",
-                      "example": 33
-                    },
-                    "detail": {
-                      "type": "string",
-                      "example": "La consulta al SII quedó encolada. Vuelve a leer /v1/folios/ y compara el campo as_of."
-                    }
-                  }
                 }
               }
             }
@@ -5478,7 +5546,7 @@
       },
       "FolioQuotaExceeded": {
         "type": "object",
-        "description": "Cuota de timbrajes agotada para la empresa. Los límites son por empresa, no por API key.",
+        "description": "Cuota agotada para la empresa. Timbraje y consulta tienen cuotas separadas; las dos se cuentan por empresa, no por API key.",
         "properties": {
           "error": {
             "type": "string",
@@ -5506,6 +5574,70 @@
             "type": "string",
             "format": "date-time",
             "description": "Cuándo vuelve a haber cupo."
+          }
+        }
+      },
+      "FolioQuery": {
+        "type": "object",
+        "description": "Consulta de folios al SII. Es un recurso para que puedas seguirla: antes esto era una acción que respondía 202 sin nada que consultar.",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "dte_type": {
+            "type": "integer",
+            "example": 33
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "completed",
+              "failed"
+            ]
+          },
+          "result": {
+            "type": "object",
+            "description": "Lo que dijo el SII cuando la consulta terminó.",
+            "properties": {
+              "available": {
+                "type": "integer",
+                "nullable": true,
+                "description": "Folios timbrados y sin emitir. `null` significa que no lo sabemos, no cero.",
+                "example": 3
+              },
+              "max_per_request": {
+                "type": "integer",
+                "nullable": true,
+                "description": "Máximo por solicitud vigente.",
+                "example": 8
+              },
+              "last_timbraje": {
+                "type": "string",
+                "nullable": true
+              },
+              "timbrajes": {
+                "type": "array",
+                "description": "Rangos timbrados históricamente.",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "error": {
+            "type": "string",
+            "description": "Motivo cuando la consulta no terminó bien."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       },

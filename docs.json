@@ -203,7 +203,8 @@
               "api-reference/folios/request-get",
               "api-reference/folios/request-list",
               "api-reference/folios/availability",
-              "api-reference/folios/availability-refresh"
+              "api-reference/folios/query-create",
+              "api-reference/folios/query-get"
             ]
           }
         ]
@@ -233,7 +234,10 @@
       "anchors": []
     }
   },
-  "openapi": ["api-reference/openapi-combined.json", "api-reference/openapi-payment-requests.json"],
+  "openapi": [
+    "api-reference/openapi-combined.json",
+    "api-reference/openapi-payment-requests.json"
+  ],
   "topbarLinks": [
     {
       "name": "Soporte",

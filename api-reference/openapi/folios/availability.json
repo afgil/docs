@@ -3,8 +3,14 @@
     "/folios": {
       "get": {
         "operationId": "listFolioAvailability",
-        "tags": ["Folios"],
-        "security": [{ "apiKeyAuth": [] }],
+        "tags": [
+          "Folios"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
         "summary": "Folios disponibles y timbrajes históricos",
         "description": "Última lectura conocida del estado de tus folios en el SII: cuántos tienes timbrados y sin emitir (`available`), cuántos te autoriza el SII por solicitud (`max_per_request`) y los rangos que te timbraron antes (`timbrajes`).\n\nEl dato vive en el SII y solo se conoce consultándolo, así que este endpoint responde con la **última foto guardada** y su fecha (`as_of`) — no bloquea. Para forzar una relectura usa `POST /folios/refresh`.\n\nSi la entidad nunca fue consultada, `results` viene vacío. Vacío significa *no sabemos*, no *cero folios*.",
         "parameters": [
@@ -12,7 +18,9 @@
             "name": "master_entity_id",
             "in": "query",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "ID de la entidad maestra (opaco `eid_...` o entero).",
             "example": "eid_NDgyMTM6c2lnbmF0dXJl"
           },
@@ -20,7 +28,9 @@
             "name": "dte_type",
             "in": "query",
             "required": false,
-            "schema": { "type": "integer" },
+            "schema": {
+              "type": "integer"
+            },
             "description": "Filtra por tipo de documento.",
             "example": 33
           }
@@ -60,74 +70,6 @@
                       "as_of": "2026-08-27T14:05:00Z"
                     }
                   ]
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sin acceso a la entidad indicada",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "detail": {
-                      "type": "string",
-                      "example": "No tienes acceso a esta entidad."
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/folios/refresh": {
-      "post": {
-        "operationId": "refreshFolioAvailability",
-        "tags": ["Folios"],
-        "security": [{ "apiKeyAuth": [] }],
-        "summary": "Releer los folios desde el SII",
-        "description": "Encola una consulta al SII para actualizar la foto de disponibilidad e histórico. Responde **202** de inmediato.\n\nLa consulta **no consume folios**: solo abre el trámite y lee lo que el SII publica, sin llegar al paso que reserva un rango.\n\nPara saber cuándo terminó, vuelve a leer `GET /folios` y compara el campo `as_of`.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["master_entity_id", "dte_type"],
-                "properties": {
-                  "master_entity_id": {
-                    "type": "string",
-                    "description": "ID de la entidad maestra (opaco `eid_...` o entero).",
-                    "example": "eid_NDgyMTM6c2lnbmF0dXJl"
-                  },
-                  "dte_type": {
-                    "type": "integer",
-                    "enum": [33, 34, 39, 41, 43, 46, 52, 56, 61, 110, 111, 112],
-                    "example": 33
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "202": {
-            "description": "Consulta encolada",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": { "type": "string", "example": "refreshing" },
-                    "dte_type": { "type": "integer", "example": 33 },
-                    "detail": {
-                      "type": "string",
-                      "example": "La consulta al SII quedó encolada. Vuelve a leer /v1/folios/ y compara el campo as_of."
-                    }
-                  }
                 }
               }
             }

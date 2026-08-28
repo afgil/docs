@@ -76,6 +76,7 @@ Cada empresa tiene dos límites de timbraje. No son un capricho nuestro: existen
 |---|---|---|
 | Por hora | **3** timbrajes | Cada timbraje son unos cinco requests contra el portal del SII. El SII abre caja de castigo por RUT alrededor de los catorce, y ahí deja de responderte **todo** lo de esa empresa, no solo el timbraje |
 | Por mes | **20** timbrajes | Acota cuántos folios reales puedes consumir por error mientras pruebas |
+| Por hora | **10** consultas | Consultar no quema folios, pero también habla con el SII y empuja hacia la misma penalización por RUT |
 
 Los límites son **por empresa**, no por API key: si usas varias claves para la misma empresa, comparten cuota.
 
@@ -96,7 +97,7 @@ Un reintento con la **misma** `Idempotency-Key` no consume cuota: te devolvemos 
 </Note>
 
 <Tip>
-Consultar no consume cuota de timbraje: `GET /folios` y `POST /folios/refresh` no timbran nada.
+Las cuotas de timbraje y de consulta se cuentan por separado: pedir lecturas no gasta tus timbrajes. Y `GET /folios` no tiene límite, porque sirve la última foto guardada sin ir al SII.
 </Tip>
 
 ## Webhooks
