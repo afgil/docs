@@ -1,0 +1,23 @@
+---
+title: 'Pedir una lectura al SII'
+openapi: 'POST /folio-queries'
+---
+
+## ¿Para qué se usa?
+
+Para leer del SII el estado real de tus folios cuando necesitas el dato fresco: antes de decidir un timbraje grande, después de una jornada de emisión fuerte, o cuando el `as_of` de [`GET /folios`](/api-reference/folios/availability) ya quedó viejo.
+
+## Qué hace
+
+- Es un **recurso asíncrono**: crea la consulta, responde **201** con `status: "pending"` y va al SII en segundo plano. La llamada nunca bloquea.
+- Lee la disponibilidad y el histórico de timbrajes del tipo de documento que pidas.
+- Sigue el resultado con [`GET /folio-queries/{id}`](/api-reference/folios/query-get). Cuando termina, la foto de `GET /folios` también queda actualizada.
+
+<Note>
+**Consultar no consume folios.** La consulta abre el trámite en el portal del SII y lee lo que publica, sin llegar al paso que reserva un rango. Por eso tampoco lleva `Idempotency-Key`: repetirla no cuesta nada irreversible, a diferencia de un timbraje.
+</Note>
+
+## Errores que vas a ver
+
+- **400** — el tipo de documento no es válido.
+- **403** — la entidad no es tuya.

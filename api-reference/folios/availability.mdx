@@ -10,7 +10,7 @@ Para saber **cuántos folios te quedan sin usar** según el SII, cuántos te aut
 ## Qué hace
 
 - Responde con la **última foto guardada** del estado de tus folios en el SII, junto con `as_of`: cuándo se leyó.
-- No va al SII en esta llamada, así que no bloquea. Para forzar una relectura usa [`POST /folios/refresh`](/api-reference/folios/availability-refresh).
+- No va al SII en esta llamada, así que no bloquea. Para forzar una relectura usa [`POST /folio-queries`](/api-reference/folios/query-create).
 - Trae también `timbrajes`: los rangos históricos que el SII tiene registrados a nombre de la empresa.
 
 ## Cómo leer la respuesta

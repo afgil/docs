@@ -1,0 +1,30 @@
+---
+title: 'Consultar el resultado de una lectura'
+openapi: 'GET /folio-queries/{id}'
+---
+
+## ¿Para qué se usa?
+
+Para saber en qué va la lectura que pediste y, cuando termina, ver lo que dijo el SII.
+
+## Estados
+
+| `status` | Qué significa | Qué hacer |
+|---|---|---|
+| `pending` | Registrada, aún no empieza | Esperar |
+| `processing` | Leyendo del SII | Esperar |
+| `completed` | Lista | El campo `result` trae la disponibilidad y los timbrajes |
+| `failed` | El SII no respondió | El motivo va en `error`. Puedes volver a pedirla: consultar no consume folios |
+
+## Qué trae `result`
+
+| Campo | Qué es |
+|---|---|
+| `available` | Folios timbrados y **sin emitir** que el SII te reconoce |
+| `max_per_request` | Máximo que el SII autoriza en un solo pedido ahora |
+| `last_timbraje` | Fecha del último timbraje según el SII |
+| `timbrajes` | Rangos timbrados históricamente, con su fecha |
+
+<Tip>
+Una consulta puede terminar `failed` habiendo leído parte: si el SII entregó la disponibilidad pero no el histórico, `result` trae lo que sí se pudo leer y `error` explica qué faltó. Preferimos darte el dato parcial antes que nada.
+</Tip>

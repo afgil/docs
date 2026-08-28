@@ -1,0 +1,163 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Consultas de folios",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/folio-queries": {
+      "post": {
+        "operationId": "createFolioQuery",
+        "tags": [
+          "Folios"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Pedir una lectura de folios al SII",
+        "description": "Crea una consulta de folios contra el SII. Es un **recurso asíncrono**: responde 201 con `status: \"pending\"` y lee en segundo plano.\n\n**Consultar no consume folios**: el trámite se queda en el paso 1 del portal, que no reserva ningún rango. Por eso no lleva `Idempotency-Key` — repetirla no cuesta nada irreversible.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "master_entity_id",
+                  "dte_type"
+                ],
+                "properties": {
+                  "master_entity_id": {
+                    "type": "string",
+                    "description": "ID de la entidad. Acepta el id opaco (`eid_...`) o el entero.",
+                    "example": "eid_NDgyMTM6c2lnbmF0dXJl"
+                  },
+                  "dte_type": {
+                    "type": "integer",
+                    "description": "Tipo de DTE a consultar.",
+                    "example": 33
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Consulta creada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolioQuery"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Tipo de documento inválido."
+          },
+          "403": {
+            "description": "La entidad no pertenece al cliente."
+          }
+        }
+      },
+      "get": {
+        "operationId": "listFolioQueries",
+        "tags": [
+          "Folios"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar consultas de folios",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la entidad. Acepta el id opaco (`eid_...`) o el entero.",
+            "example": "eid_NDgyMTM6c2lnbmF0dXJl"
+          },
+          {
+            "name": "dte_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Filtra por tipo de documento."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Consultas de la entidad.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FolioQuery"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/folio-queries/{id}": {
+      "get": {
+        "operationId": "getFolioQuery",
+        "tags": [
+          "Folios"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Resultado de una consulta de folios",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado y resultado de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolioQuery"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La consulta es de otra entidad."
+          },
+          "404": {
+            "description": "Consulta no encontrada."
+          }
+        }
+      }
+    }
+  }
+}
