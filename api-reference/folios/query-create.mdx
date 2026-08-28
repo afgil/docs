@@ -17,7 +17,24 @@ Para leer del SII el estado real de tus folios cuando necesitas el dato fresco: 
 **Consultar no consume folios.** La consulta abre el trámite en el portal del SII y lee lo que publica, sin llegar al paso que reserva un rango. Por eso tampoco lleva `Idempotency-Key`: repetirla no cuesta nada irreversible, a diferencia de un timbraje.
 </Note>
 
+## Límite
+
+Cada empresa puede pedir **10 lecturas por hora**. No hay límite mensual: una consulta no consume nada irreversible.
+
+El límite existe porque consultar no quema folios, pero sí habla con el SII —un login más dos lecturas—, y el SII penaliza por RUT. Cuando eso pasa deja de responder **todo** lo de esa empresa, no solo los folios. Se cuenta por empresa, no por API key, y aparte de la cuota de timbraje: son recursos distintos.
+
 ## Errores que vas a ver
 
 - **400** — el tipo de documento no es válido.
 - **403** — la entidad no es tuya.
+- **429** — se agotó el límite horario. El cuerpo trae `limit`, `window` y `resets_at` para que sepas cuándo reintentar.
+
+```json
+{
+  "error": "Cuota de consultas de folios agotada: 10 de 10 por hora.",
+  "limit": 10,
+  "window": "hora",
+  "used": 10,
+  "resets_at": "2026-08-28T15:05:00Z"
+}
+```

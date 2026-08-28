@@ -153,7 +153,7 @@
       },
       "FolioQuotaExceeded": {
         "type": "object",
-        "description": "Cuota de timbrajes agotada para la empresa. Los límites son por empresa, no por API key.",
+        "description": "Cuota agotada para la empresa. Timbraje y consulta tienen cuotas separadas; las dos se cuentan por empresa, no por API key.",
         "properties": {
           "error": {
             "type": "string",

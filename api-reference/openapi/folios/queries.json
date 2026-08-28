@@ -60,6 +60,16 @@
           },
           "403": {
             "description": "La entidad no pertenece al cliente."
+          },
+          "429": {
+            "description": "Límite horario de consultas agotado (10 por hora, por empresa). Se cuenta aparte de la cuota de timbraje.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolioQuotaExceeded"
+                }
+              }
+            }
           }
         }
       },

@@ -2202,6 +2202,16 @@
           },
           "403": {
             "description": "La entidad no pertenece al cliente."
+          },
+          "429": {
+            "description": "Límite horario de consultas agotado (10 por hora, por empresa). Se cuenta aparte de la cuota de timbraje.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolioQuotaExceeded"
+                }
+              }
+            }
           }
         }
       },
@@ -5536,7 +5546,7 @@
       },
       "FolioQuotaExceeded": {
         "type": "object",
-        "description": "Cuota de timbrajes agotada para la empresa. Los límites son por empresa, no por API key.",
+        "description": "Cuota agotada para la empresa. Timbraje y consulta tienen cuotas separadas; las dos se cuentan por empresa, no por API key.",
         "properties": {
           "error": {
             "type": "string",
