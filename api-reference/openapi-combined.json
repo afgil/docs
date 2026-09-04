@@ -2336,20 +2336,6 @@
             "schema": {
               "type": "integer"
             }
-          },
-          {
-            "name": "sii_environment",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "production",
-                "certification"
-              ],
-              "default": "production"
-            },
-            "description": "Ambiente del SII. Si se omite, producción: los folios de certificación son un stock distinto y mostrarlos como propios sería peor que no mostrar nada."
           }
         ],
         "responses": {
@@ -2706,6 +2692,19 @@
             },
             "description": "Filtra por tipo de documento.",
             "example": 33
+          },
+          {
+            "name": "sii_environment",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "production",
+                "certification"
+              ]
+            },
+            "description": "Filtra por ambiente. Si se omite, se listan los de los DOS ambientes: es lo que necesita un cliente que está migrando de uno a otro."
           }
         ],
         "responses": {

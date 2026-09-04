@@ -15,7 +15,17 @@ Para leer del SII el estado real de tus folios cuando necesitas el dato fresco: 
 
 ## En qué ambiente lees
 
-`sii_environment` decide qué stock lees: `production` (palena, tus folios reales) o `certification` (maullin). Si lo omites, producción. Cada ambiente guarda su propia foto, así que una lectura de certificación no pisa lo que sabemos de tus folios reales.
+`sii_environment` decide qué stock lees: `production` (palena, tus folios reales) o `certification` (maullin). Si lo omites, producción. Va en el **cuerpo** de la llamada:
+
+```json
+{
+  "master_entity_id": "eid_...",
+  "dte_type": 33,
+  "sii_environment": "certification"
+}
+```
+
+Cada ambiente guarda su propia foto, así que una lectura de certificación no pisa lo que sabemos de tus folios reales.
 
 <Note>
 **Consultar no consume folios.** La consulta abre el trámite en el portal del SII y lee lo que publica, sin llegar al paso que reserva un rango. Por eso tampoco lleva `Idempotency-Key`: repetirla no cuesta nada irreversible, a diferencia de un timbraje.
