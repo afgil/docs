@@ -204,7 +204,8 @@
               "api-reference/folios/request-list",
               "api-reference/folios/availability",
               "api-reference/folios/query-create",
-              "api-reference/folios/query-get"
+              "api-reference/folios/query-get",
+              "api-reference/folios/errors"
             ]
           }
         ]

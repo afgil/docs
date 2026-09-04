@@ -1,0 +1,44 @@
+---
+title: 'Códigos de error'
+description: 'Qué salió mal y si tiene sentido reintentar'
+---
+
+Toda respuesta fallida de la API de folios trae dos campos: `error`, legible, con lo que dijo el SII; y `error_code`, un vocabulario cerrado.
+
+**Programa contra el código, no contra el texto.** El texto viene del portal del SII, cambia sin aviso y a veces dice lo contrario de lo que pasa: su página de rechazo dice *"inténtelo más tarde"* incluso cuando la causa es permanente.
+
+```json
+{
+  "status": "failed",
+  "error_code": "certification_not_enabled",
+  "error": "ACME SPA no está habilitada en el ambiente de certificación del SII…",
+  "sii_environment": "certification"
+}
+```
+
+## La tabla
+
+| `error_code` | Qué pasó | ¿Reintentar? |
+|---|---|---|
+| `certification_not_enabled` | Tu empresa no está postulada en maullin | **No.** Postula ante el SII y vuelve |
+| `missing_certificate` | La empresa no tiene certificado digital vigente en Tupana | **No.** Cárgalo y vuelve |
+| `invalid_environment` | El valor de `sii_environment` no existe | **No.** Corrige el valor |
+| `environment_not_allowed` | Ese ambiente no está habilitado | **No.** Escríbenos |
+| `idempotency_environment_conflict` | Esa clave ya se usó en el otro ambiente | **No.** Usa una clave por ambiente |
+| `no_folios_authorized` | El SII no autoriza folios de ese tipo ahora mismo | Más tarde, no de inmediato |
+| `sii_unavailable` | El SII no respondió o respondió algo que no pudimos leer | **Sí**, con backoff |
+| `sii_unrecognized_page` | El SII devolvió una página que no reconocemos | No automáticamente: lo estamos mirando |
+
+## Cuándo reintentar, en concreto
+
+Los códigos marcados **No** son terminales: la misma llamada va a fallar igual las veces que la hagas, y cada intento gasta requests contra tu RUT ante el SII, que penaliza por contribuyente. Cuando eso pasa **deja de responderte todo** lo de esa empresa, no solo el timbraje.
+
+`sii_unavailable` sí se reintenta, pero con espera creciente y **siempre con la misma `Idempotency-Key`** si estabas timbrando: así te devolvemos el pedido original en vez de pedir un rango nuevo.
+
+<Warning>
+Nunca reintentes un timbraje con una clave nueva "por si acaso". Un folio timbrado no se devuelve: si el primero sí llegó al SII, el segundo te quema otro rango.
+</Warning>
+
+## El estado `authorized_without_caf`
+
+No es un error, y por eso no tiene `error_code`. Significa que el SII autorizó tu rango y falló al entregar el archivo: esos folios **ya salieron de tu stock**. Nosotros recuperamos el CAF; tú no vuelvas a pedir ese mismo rango.

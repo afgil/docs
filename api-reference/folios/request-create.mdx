@@ -13,6 +13,19 @@ Para pedir folios al SII y recibir el **CAF** con el que emites DTE desde tu pro
 - Timbra con el certificado digital de tu empresa cargado en Tupana.
 - Cuando termina, el CAF se retira con [`GET /folio-requests/{id}`](/api-reference/folios/request-get) o te avisamos por el webhook `folio_request.completed`.
 
+## En qué ambiente timbras
+
+`sii_environment` decide contra cuál de los dos ambientes del SII se hace el trámite. Si lo omites, **producción**.
+
+| Valor | Qué obtienes |
+|---|---|
+| `production` *(default)* | Folios **reales**, que no se devuelven |
+| `certification` | Folios de prueba en maullin, que **no sirven para emitir** |
+
+Un valor que no sea uno de esos dos falla con **422** `invalid_environment`. No asumimos un default ante un typo: te quemaría folios reales.
+
+Para timbrar en `certification` tu empresa tiene que estar postulada en maullin. Si no lo está, respondemos `certification_not_enabled` sin haber tocado el trámite de folios.
+
 ## La clave de idempotencia
 
 <Warning>
@@ -20,6 +33,7 @@ Para pedir folios al SII y recibir el **CAF** con el que emites DTE desde tu pro
 </Warning>
 
 - Misma clave ⇒ te devolvemos el pedido original con **200**, sin tocar el SII.
+- Misma clave, **otro ambiente** ⇒ **409** `idempotency_environment_conflict`. Devolverte el pedido original sería mentirte sobre qué CAF tienes en la mano; timbrar de nuevo te quemaría un rango extra. Usa una clave distinta por ambiente.
 - Clave nueva ⇒ pedido nuevo, folios nuevos.
 - Genera la clave a partir de algo estable de tu lado (por ejemplo `folios-33-2026-08-27-01`), no de un aleatorio por intento.
 

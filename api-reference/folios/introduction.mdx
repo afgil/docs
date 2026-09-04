@@ -15,6 +15,31 @@ También puedes consultar, sin timbrar nada, cuántos folios te quedan sin usar 
 2. La persona del certificado debe estar **autorizada ante el SII** para timbrar por esa empresa.
 3. El `master_entity_id` de la empresa: lo obtienes de `GET /master-entities?rut=` (campo `opaque_id`).
 
+## Ambientes del SII
+
+El SII tiene dos ambientes y esta API llega a los dos. Lo eliges en cada llamada con `sii_environment`, con la misma API key.
+
+| Valor | Ambiente | Qué obtienes |
+|---|---|---|
+| `production` *(default)* | palena | Folios **reales** de tu empresa. No se devuelven |
+| `certification` | maullin | Folios de prueba, para ensayar tu integración |
+
+<Warning>
+**Un CAF de certificación no sirve para emitir.** Los folios de maullin no existen para el SII de producción: si firmas un DTE real con ese CAF, te lo rechazan. La respuesta y los webhooks siempre traen `sii_environment` para que puedas verificarlo antes de usarlo.
+</Warning>
+
+Si no mandas el campo, vas a producción. Y si mandas un valor que no reconocemos —`staging`, `maullin`, `prod`— la llamada falla con **422** `invalid_environment` en vez de asumir un default: un error de tipeo no puede terminar quemándote folios reales.
+
+### Para usar certificación, tu empresa tiene que estar postulada en maullin
+
+Este es un trámite **tuyo ante el SII**, no algo que podamos hacer por ti: la empresa se inscribe como postulante en el ambiente de certificación declarando qué tipos de DTE va a certificar. Hasta que eso esté hecho, el SII no atiende a tu empresa en maullin.
+
+Si pides folios de certificación sin estar habilitado, te respondemos `certification_not_enabled` sin haber tocado el trámite de folios. El SII, en ese caso, contesta *"inténtelo más tarde"* aunque la condición sea permanente — por eso lo traducimos nosotros en vez de pasártelo tal cual.
+
+<Note>
+Las claves de idempotencia son **por ambiente**. Si reutilizas una clave que ya usaste en el otro, la llamada falla con **409** `idempotency_environment_conflict` en vez de devolverte un pedido que no corresponde al ambiente que pediste.
+</Note>
+
 ## Cómo funciona
 
 El trámite ante el SII son cuatro pasos y puede tardar minutos, así que el timbraje es un **recurso asíncrono**:
@@ -100,6 +125,12 @@ Un reintento con la **misma** `Idempotency-Key` no consume cuota: te devolvemos 
 Las cuotas de timbraje y de consulta se cuentan por separado: pedir lecturas no gasta tus timbrajes. Y `GET /folios` no tiene límite, porque sirve la última foto guardada sin ir al SII.
 </Tip>
 
+## Errores
+
+Toda respuesta fallida trae un `error_code` de vocabulario cerrado, además del `error` legible. Programa contra el código, no contra el texto: el texto viene del SII y cambia.
+
+Los códigos y qué hacer con cada uno están en [Códigos de error](/api-reference/folios/errors).
+
 ## Webhooks
 
 Suscríbete en el panel o por API a estos eventos para no hacer polling:
@@ -109,3 +140,5 @@ Suscríbete en el panel o por API a estos eventos para no hacer polling:
 | `folio_request.completed` | El CAF está listo para retirar |
 | `folio_request.failed` | El SII no autorizó folios; no se consumió nada |
 | `folio_request.authorized_without_caf` | El SII autorizó un rango y no entregó el archivo |
+
+El payload incluye `sii_environment` y `error_code`: lo que necesitas para saber si ese CAF sirve para emitir y si vale la pena reintentar.
