@@ -84,6 +84,26 @@
             "format": "date-time",
             "nullable": true,
             "example": "2026-08-27T14:32:11Z"
+          },
+          "sii_environment": {
+            "type": "string",
+            "enum": [
+              "production",
+              "certification"
+            ],
+            "description": "Ambiente del SII en el que se hizo la operación. Un CAF de `certification` NO sirve para emitir."
+          },
+          "error_code": {
+            "type": "string",
+            "description": "Vocabulario cerrado del desenlace fallido; vacío si no hubo error. Ver la página de códigos de error.",
+            "enum": [
+              "",
+              "certification_not_enabled",
+              "missing_certificate",
+              "no_folios_authorized",
+              "sii_unavailable",
+              "sii_unrecognized_page"
+            ]
           }
         }
       },
@@ -148,6 +168,14 @@
             "format": "date-time",
             "description": "Cuándo se leyó del SII. Un número sin esta fecha no dice nada.",
             "example": "2026-08-27T14:05:00Z"
+          },
+          "sii_environment": {
+            "type": "string",
+            "enum": [
+              "production",
+              "certification"
+            ],
+            "description": "Ambiente del SII en el que se hizo la operación. Un CAF de `certification` NO sirve para emitir."
           }
         }
       },
@@ -245,6 +273,26 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "sii_environment": {
+            "type": "string",
+            "enum": [
+              "production",
+              "certification"
+            ],
+            "description": "Ambiente del SII en el que se hizo la operación. Un CAF de `certification` NO sirve para emitir."
+          },
+          "error_code": {
+            "type": "string",
+            "description": "Vocabulario cerrado del desenlace fallido; vacío si no hubo error. Ver la página de códigos de error.",
+            "enum": [
+              "",
+              "certification_not_enabled",
+              "missing_certificate",
+              "no_folios_authorized",
+              "sii_unavailable",
+              "sii_unrecognized_page"
+            ]
           }
         }
       }

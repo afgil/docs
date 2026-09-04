@@ -68,6 +68,16 @@
                     "maximum": 1000,
                     "description": "Folios a pedir. El SII acota cada solicitud con su propio máximo autorizado, que sube con el uso: es normal recibir menos de los pedidos. Consulta el tope vigente en `GET /folios`.",
                     "example": 50
+                  },
+                  "sii_environment": {
+                    "type": "string",
+                    "enum": [
+                      "production",
+                      "certification"
+                    ],
+                    "default": "production",
+                    "description": "Ambiente del SII contra el que se hace la operación. `production` (palena) entrega folios REALES, que no se devuelven; `certification` (maullin) entrega folios de prueba, que NO sirven para emitir. Si se omite, producción. Un valor distinto de los dos se rechaza con 422 en vez de asumir un default.",
+                    "example": "certification"
                   }
                 }
               }
@@ -104,7 +114,9 @@
                   "idempotency_key": "pedido-facturas-2026-08-27-01",
                   "error": "",
                   "created_at": "2026-08-27T14:30:00Z",
-                  "completed_at": null
+                  "completed_at": null,
+                  "sii_environment": "production",
+                  "error_code": ""
                 }
               }
             }
@@ -142,17 +154,26 @@
             }
           },
           "409": {
-            "description": "Ya hay un timbraje de ese tipo de documento en curso para la empresa. Espera a que termine: dos trámites simultáneos sobre el mismo tipo pueden consumir rangos de más.",
+            "description": "Ya hay un timbraje de ese tipo de documento en curso para la empresa. Espera a que termine: dos trámites simultáneos sobre el mismo tipo pueden consumir rangos de más.. También cuando la `Idempotency-Key` ya se usó en el otro ambiente",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "detail": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "error_code": {
                       "type": "string",
-                      "example": "Ya hay un timbraje de DTE 33 en curso para 78.422.108-3"
+                      "enum": [
+                        "idempotency_environment_conflict"
+                      ]
                     }
                   }
+                },
+                "example": {
+                  "error": "La clave de idempotencia 'pedido-01' ya se usó en production y ahora se pide en certification. Usa una clave distinta por ambiente.",
+                  "error_code": "idempotency_environment_conflict"
                 }
               }
             }
@@ -163,6 +184,33 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FolioQuotaExceeded"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "El ambiente pedido no existe, no está habilitado, o la empresa no está postulada en certificación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "enum": [
+                        "invalid_environment",
+                        "environment_not_allowed",
+                        "certification_not_enabled"
+                      ]
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Ambiente 'staging' desconocido. Valores válidos: certification, production.",
+                  "error_code": "invalid_environment"
                 }
               }
             }

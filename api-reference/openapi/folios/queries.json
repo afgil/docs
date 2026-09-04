@@ -38,6 +38,16 @@
                     "type": "integer",
                     "description": "Tipo de DTE a consultar.",
                     "example": 33
+                  },
+                  "sii_environment": {
+                    "type": "string",
+                    "enum": [
+                      "production",
+                      "certification"
+                    ],
+                    "default": "production",
+                    "description": "Ambiente del SII contra el que se hace la operación. `production` (palena) entrega folios REALES, que no se devuelven; `certification` (maullin) entrega folios de prueba, que NO sirven para emitir. Si se omite, producción. Un valor distinto de los dos se rechaza con 422 en vez de asumir un default.",
+                    "example": "certification"
                   }
                 }
               }
@@ -67,6 +77,29 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FolioQuotaExceeded"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "El ambiente pedido no existe o no está habilitado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "enum": [
+                        "invalid_environment",
+                        "environment_not_allowed",
+                        "certification_not_enabled"
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -103,6 +136,20 @@
               "type": "integer"
             },
             "description": "Filtra por tipo de documento."
+          },
+          {
+            "name": "sii_environment",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "production",
+                "certification"
+              ],
+              "default": "production"
+            },
+            "description": "Ambiente del SII. Si se omite, producción: los folios de certificación son un stock distinto y mostrarlos como propios sería peor que no mostrar nada."
           }
         ],
         "responses": {
@@ -147,6 +194,20 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "name": "sii_environment",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "production",
+                "certification"
+              ],
+              "default": "production"
+            },
+            "description": "Ambiente del SII. Si se omite, producción: los folios de certificación son un stock distinto y mostrarlos como propios sería peor que no mostrar nada."
           }
         ],
         "responses": {

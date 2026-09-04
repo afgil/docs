@@ -3,8 +3,14 @@
     "/folio-requests/{id}": {
       "get": {
         "operationId": "getFolioRequest",
-        "tags": ["Folios"],
-        "security": [{ "apiKeyAuth": [] }],
+        "tags": [
+          "Folios"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
         "summary": "Consultar un pedido y retirar el CAF",
         "description": "Estado del pedido de timbraje. Cuando `status` es `completed`, la respuesta incluye el **CAF en XML** (`caf_xml`) y el rango de folios autorizado.\n\nEl CAF contiene la llave privada con la que se firman tus DTE: trátalo como un secreto. Cada entrega queda registrada.\n\nEstados posibles:\n\n| `status` | Qué significa |\n|---|---|\n| `pending` | Registrado, aún no empieza |\n| `processing` | El trámite está corriendo en el SII |\n| `completed` | Listo: `caf_xml` trae tus folios |\n| `failed` | El SII no autorizó folios. No se consumió nada, puedes volver a pedir con otra `Idempotency-Key` |\n| `authorized_without_caf` | El SII autorizó el rango pero no entregó el archivo. **Esos folios ya salieron de tu stock**: no vuelvas a pedir el mismo rango, estamos recuperando el CAF. `folio_start` y `folio_end` indican cuál |",
         "parameters": [
@@ -12,7 +18,9 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "integer" },
+            "schema": {
+              "type": "integer"
+            },
             "description": "ID del pedido de timbraje.",
             "example": 8821
           }
@@ -22,7 +30,9 @@
             "description": "Pedido encontrado",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/FolioRequest" },
+                "schema": {
+                  "$ref": "#/components/schemas/FolioRequest"
+                },
                 "example": {
                   "id": 8821,
                   "dte_type": 33,
