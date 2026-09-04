@@ -249,6 +249,19 @@
             },
             "description": "Filtra por tipo de documento.",
             "example": 33
+          },
+          {
+            "name": "sii_environment",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "production",
+                "certification"
+              ]
+            },
+            "description": "Filtra por ambiente. Si se omite, se listan los de los DOS ambientes: es lo que necesita un cliente que está migrando de uno a otro."
           }
         ],
         "responses": {
