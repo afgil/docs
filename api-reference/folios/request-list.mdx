@@ -10,7 +10,7 @@ Para ver el historial de pedidos de timbraje de una empresa: qué se pidió, cu�
 ## Qué hace
 
 - Devuelve los pedidos de la entidad, del más reciente al más antiguo.
-- Filtra por tipo de documento con `dte_type`.
+- Filtra por tipo de documento con `dte_type`, y por ambiente del SII con `sii_environment`. **Sin ese filtro se listan los dos ambientes**: es lo que necesitas mientras migras de certificación a producción. Cada pedido trae el suyo en la respuesta.
 - Los pedidos ya completados incluyen su `caf_xml`: si solo quieres revisar estados, ignóralo.
 
 <Tip>

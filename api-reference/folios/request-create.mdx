@@ -22,6 +22,17 @@ Para pedir folios al SII y recibir el **CAF** con el que emites DTE desde tu pro
 | `production` *(default)* | Folios **reales**, que no se devuelven |
 | `certification` | Folios de prueba en maullin, que **no sirven para emitir** |
 
+Va en el **cuerpo** de la llamada, junto al resto:
+
+```json
+{
+  "master_entity_id": "eid_...",
+  "dte_type": 33,
+  "quantity": 50,
+  "sii_environment": "certification"
+}
+```
+
 Un valor que no sea uno de esos dos falla con **422** `invalid_environment`. No asumimos un default ante un typo: te quemaría folios reales.
 
 Para timbrar en `certification` tu empresa tiene que estar postulada en maullin. Si no lo está, respondemos `certification_not_enabled` sin haber tocado el trámite de folios.
