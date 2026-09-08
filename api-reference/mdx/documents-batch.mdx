@@ -814,8 +814,24 @@ indicador aparte.
 | Campo | Tipo | Descripción |
 |---|---|---|
 | `show_item_type` | String | `01` si la línea es la entrada, `02` si es el valor por servicio que cobra el emisor, es decir su comisión |
-| `principal_rut` | String | RUT de la empresa mandante, la dueña de la venta. Se acepta con o sin puntos |
 | `ticket` | Object | Datos del evento. Obligatorio en las líneas `01`, rechazado en las `02` |
+
+### Bloque `principal`, a nivel del documento:
+
+Identifica a la empresa mandante, la dueña de la venta. Es obligatorio cuando las líneas declaran `show_item_type`.
+
+| Campo | Tipo | Obligatorio | Descripción |
+|---|---|---|---|
+| `rut` | String | Sí | RUT del mandante. Se acepta con o sin puntos |
+| `name` | String (100) | Sí | Razón social |
+| `business_activity` | String (80) | No | Giro |
+| `address` | String (120) | No | Dirección |
+
+<Note>
+Al XML sólo viaja el RUT, como `RUTMandante` en cada línea de entrada. El
+esquema del SII no admite el nombre, el giro ni la dirección del mandante, así
+que esos tres se usan en la representación impresa.
+</Note>
 
 ### Campos del objeto `ticket`:
 
@@ -841,8 +857,9 @@ es a las 21:00, envíe `2026-09-20T21:00:00` y así llegará al SII.
 
 - Si una línea declara `show_item_type`, **todas** las líneas del documento deben declararlo.
 - El documento necesita al menos una línea de entrada (`01`).
+- El bloque `principal` es obligatorio: sin él la boleta saldría sin `RUTMandante`.
 - Solo se acepta en boletas, `dte_type` 39 y 41. En cualquier otro tipo la API responde 422.
-- Un `principal_rut` inválido se rechaza en la entrada.
+- Un RUT de mandante inválido se rechaza en la entrada.
 
 Cada una de estas reglas evita un rechazo del SII, y ese rechazo bota el envío
 completo y consume el folio.
@@ -857,13 +874,18 @@ completo y consume el folio.
       "date_issued": "2026-09-20",
       "document_issuer": { "rut": "78.422.108-3" },
       "document_receiver": { "rut": "66.666.666-6" },
+      "principal": {
+        "rut": "76.123.456-7",
+        "name": "PRODUCTORA DE EVENTOS S.A.",
+        "business_activity": "Productora de espectáculos",
+        "address": "Av Apoquindo 1234, Las Condes"
+      },
       "details": [
         {
           "item_name": "TICKET CONCIERTO SINFONICO",
           "quantity": 1,
           "gross_unit_price": 25000,
           "show_item_type": "01",
-          "principal_rut": "76.123.456-7",
           "ticket": {
             "ticket_folio": 123456,
             "generated_at": "2026-09-01T10:30:00",
@@ -888,6 +910,23 @@ completo y consume el folio.
   ]
 }
 ```
+
+### En la boleta impresa
+
+El emisor encabeza con su razón social y su RUT, que son los dos únicos datos suyos que el SII exige imprimir. El mandante aparece debajo en un bloque propio:
+
+```
+ABACCO SPA
+RUT: 78.422.108-3
+-------------------------------------
+VENTA POR CUENTA DE TERCEROS
+Razón Social: PRODUCTORA DE EVENTOS S.A.
+RUT: 76.123.456-7
+Giro: Productora de espectáculos
+Dirección: Av Apoquindo 1234, Las Condes
+```
+
+Los datos del evento se imprimen en cada línea de entrada, porque el instructivo también los exige en papel.
 
 ### Sobre el IVA
 

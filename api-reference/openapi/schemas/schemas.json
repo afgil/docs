@@ -69,6 +69,10 @@
           },
           "transport_data": {
             "$ref": "#/components/schemas/TransportData"
+          },
+          "principal": {
+            "$ref": "#/components/schemas/Principal",
+            "description": "Empresa mandante. Obligatorio cuando las líneas declaran show_item_type."
           }
         }
       },
@@ -303,12 +307,7 @@
               "01",
               "02"
             ],
-            "description": "Boleta de espectáculo emitida por cuenta de terceros (solo dte_type 39 y 41). Indica qué representa la línea: 01 la entrada, 02 el valor por servicio que cobra el emisor, es decir su comisión por vender la entrada. Si una línea lo declara, TODAS las líneas del documento deben declararlo, y el documento necesita al menos una línea 01. Con esto la boleta se emite con IndServicio = 4; no hay que enviarlo aparte."
-          },
-          "principal_rut": {
-            "type": "string",
-            "example": "76.123.456-7",
-            "description": "RUT de la empresa mandante, la dueña de la venta (RUTMandante del SII). Se acepta con o sin puntos y se normaliza. Va en la línea de entrada."
+            "description": "Boleta de espectáculo emitida por cuenta de terceros (solo dte_type 39 y 41). Indica qué representa la línea: 01 la entrada, 02 el valor por servicio que cobra el emisor, es decir su comisión por vender la entrada. Si una línea lo declara, TODAS las líneas del documento deben declararlo, el documento necesita al menos una línea 01 y debe incluir el bloque principal. Con esto la boleta se emite con IndServicio = 4; no hay que enviarlo aparte."
           },
           "ticket": {
             "$ref": "#/components/schemas/ShowTicket",
@@ -2058,6 +2057,36 @@
             "type": "string",
             "maxLength": 3,
             "description": "Asiento de la ubicación (opcional). Alfanumérico: hay recintos que numeran con letras"
+          }
+        }
+      },
+      "Principal": {
+        "type": "object",
+        "description": "Empresa mandante de un documento emitido por cuenta de terceros. Al XML sólo viaja el RUT (RUTMandante): el esquema del SII no admite el nombre, el giro ni la dirección del mandante. Esos tres se usan en la representación impresa, donde el mandante aparece bajo el título VENTA POR CUENTA DE TERCEROS.",
+        "required": [
+          "rut",
+          "name"
+        ],
+        "properties": {
+          "rut": {
+            "type": "string",
+            "example": "76.123.456-7",
+            "description": "RUT de la empresa mandante. Se acepta con o sin puntos"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Razón social del mandante"
+          },
+          "business_activity": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Giro del mandante (opcional)"
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "Dirección del mandante (opcional)"
           }
         }
       }
