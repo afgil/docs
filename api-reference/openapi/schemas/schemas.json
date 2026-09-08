@@ -296,6 +296,23 @@
           "item_type_code": {
             "type": "integer",
             "description": "Código de tipo de ítem"
+          },
+          "show_item_type": {
+            "type": "string",
+            "enum": [
+              "01",
+              "02"
+            ],
+            "description": "Boleta de espectáculo emitida por cuenta de terceros (solo dte_type 39 y 41). Indica qué representa la línea: 01 la entrada, 02 el valor por servicio que cobra el emisor, es decir su comisión por vender la entrada. Si una línea lo declara, TODAS las líneas del documento deben declararlo, y el documento necesita al menos una línea 01. Con esto la boleta se emite con IndServicio = 4; no hay que enviarlo aparte."
+          },
+          "principal_rut": {
+            "type": "string",
+            "example": "76.123.456-7",
+            "description": "RUT de la empresa mandante, la dueña de la venta (RUTMandante del SII). Se acepta con o sin puntos y se normaliza. Va en la línea de entrada."
+          },
+          "ticket": {
+            "$ref": "#/components/schemas/ShowTicket",
+            "description": "Datos del evento. Obligatorio cuando show_item_type es 01 y rechazado cuando es 02."
           }
         }
       },
@@ -1971,6 +1988,76 @@
             "format": "date-time",
             "description": "Fecha/hora de creación de la solicitud",
             "example": "2026-07-20T14:30:00Z"
+          }
+        }
+      },
+      "ShowTicket": {
+        "type": "object",
+        "description": "Bloque INFO TICKET de una entrada de espectáculo. Solo row y seat son opcionales; el resto es obligatorio cuando la línea es una entrada.",
+        "required": [
+          "ticket_folio",
+          "generated_at",
+          "event_name",
+          "ticket_type",
+          "event_code",
+          "event_datetime",
+          "event_place",
+          "event_location"
+        ],
+        "properties": {
+          "ticket_folio": {
+            "type": "integer",
+            "maximum": 999999,
+            "description": "Numeración única de la entrada para el evento (hasta 6 dígitos)"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-09-01T10:30:00",
+            "description": "Fecha y hora de generación de la entrada. Sin zona horaria se interpreta como hora de Chile"
+          },
+          "event_name": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Nombre del espectáculo"
+          },
+          "ticket_type": {
+            "type": "string",
+            "maxLength": 10,
+            "example": "ADULTO",
+            "description": "Tipo de entrada"
+          },
+          "event_code": {
+            "type": "string",
+            "maxLength": 5,
+            "description": "Código del evento"
+          },
+          "event_datetime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-09-20T21:00:00",
+            "description": "Fecha y hora del evento. Sin zona horaria se interpreta como hora de Chile"
+          },
+          "event_place": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Dirección o recinto donde se realiza el evento"
+          },
+          "event_location": {
+            "type": "string",
+            "maxLength": 20,
+            "example": "PLATEA BAJA",
+            "description": "Sector o sección de la ubicación"
+          },
+          "row": {
+            "type": "string",
+            "maxLength": 3,
+            "description": "Fila de la ubicación (opcional)"
+          },
+          "seat": {
+            "type": "string",
+            "maxLength": 3,
+            "description": "Asiento de la ubicación (opcional). Alfanumérico: hay recintos que numeran con letras"
           }
         }
       }

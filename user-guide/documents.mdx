@@ -121,6 +121,22 @@ La **Boleta Electrónica** es el documento para ventas directas a consumidores f
 - **Crédito fiscal:** No otorga derecho a crédito fiscal
 - **Simplicidad:** Proceso de emisión más simple
 
+#### Variante: boleta de espectáculo por cuenta de terceros
+
+La misma boleta sirve para vender entradas por cuenta de la productora dueña del
+evento. Se declara marcando cada línea del detalle con `show_item_type`: `01`
+para la entrada y `02` para el valor por servicio que cobra el emisor. La línea
+de entrada lleva además el RUT de la empresa mandante y los datos del evento.
+
+El detalle de los campos y sus validaciones está en la
+[emisión masiva de documentos](/api-reference/documents/batch).
+
+<Note>
+La boleta se registra completa como venta del emisor. El SII no reasigna el IVA
+al mandante por venir su RUT en el documento: eso se resuelve después con la
+liquidación factura (DTE 43).
+</Note>
+
 ---
 
 ### Boleta Exenta (DTE 41)

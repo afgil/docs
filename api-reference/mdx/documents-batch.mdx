@@ -803,6 +803,101 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
 
 ---
 
+## 🎟️ **Boleta de Espectáculo por Cuenta de Terceros (DTE 39, 41)**
+
+Es la boleta que emite un vendedor de entradas por cuenta de la productora dueña
+del evento. Se declara marcando cada línea del detalle; no hay que enviar ningún
+indicador aparte.
+
+### Campos en cada línea de `details`:
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `show_item_type` | String | `01` si la línea es la entrada, `02` si es el valor por servicio que cobra el emisor, es decir su comisión |
+| `principal_rut` | String | RUT de la empresa mandante, la dueña de la venta. Se acepta con o sin puntos |
+| `ticket` | Object | Datos del evento. Obligatorio en las líneas `01`, rechazado en las `02` |
+
+### Campos del objeto `ticket`:
+
+| Campo | Tipo | Obligatorio | Descripción |
+|---|---|---|---|
+| `ticket_folio` | Integer | Sí | Numeración única de la entrada para el evento, hasta 6 dígitos |
+| `generated_at` | DateTime | Sí | Fecha y hora de generación de la entrada |
+| `event_name` | String (80) | Sí | Nombre del espectáculo |
+| `ticket_type` | String (10) | Sí | Tipo de entrada, por ejemplo `ADULTO` |
+| `event_code` | String (5) | Sí | Código del evento |
+| `event_datetime` | DateTime | Sí | Fecha y hora del evento |
+| `event_place` | String (80) | Sí | Dirección o recinto |
+| `event_location` | String (20) | Sí | Sector o sección de la ubicación |
+| `row` | String (3) | No | Fila |
+| `seat` | String (3) | No | Asiento. Alfanumérico: hay recintos que numeran con letras |
+
+<Warning>
+Las fechas sin zona horaria se interpretan como **hora de Chile**. Si el evento
+es a las 21:00, envíe `2026-09-20T21:00:00` y así llegará al SII.
+</Warning>
+
+### Validaciones:
+
+- Si una línea declara `show_item_type`, **todas** las líneas del documento deben declararlo.
+- El documento necesita al menos una línea de entrada (`01`).
+- Solo se acepta en boletas, `dte_type` 39 y 41. En cualquier otro tipo la API responde 422.
+- Un `principal_rut` inválido se rechaza en la entrada.
+
+Cada una de estas reglas evita un rechazo del SII, y ese rechazo bota el envío
+completo y consume el folio.
+
+### Ejemplo:
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": "39",
+      "date_issued": "2026-09-20",
+      "document_issuer": { "rut": "78.422.108-3" },
+      "document_receiver": { "rut": "66.666.666-6" },
+      "details": [
+        {
+          "item_name": "TICKET CONCIERTO SINFONICO",
+          "quantity": 1,
+          "gross_unit_price": 25000,
+          "show_item_type": "01",
+          "principal_rut": "76.123.456-7",
+          "ticket": {
+            "ticket_folio": 123456,
+            "generated_at": "2026-09-01T10:30:00",
+            "event_name": "CONCIERTO SINFONICO",
+            "ticket_type": "ADULTO",
+            "event_code": "E001",
+            "event_datetime": "2026-09-20T21:00:00",
+            "event_place": "MOVISTAR ARENA",
+            "event_location": "PLATEA BAJA",
+            "row": "A",
+            "seat": "12"
+          }
+        },
+        {
+          "item_name": "VALOR SERVICIO - COMISION",
+          "quantity": 1,
+          "gross_unit_price": 2000,
+          "show_item_type": "02"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Sobre el IVA
+
+La boleta se registra completa como venta del **emisor**, no del mandante. El
+SII no reasigna el IVA por venir el RUT del mandante en el documento: eso se
+resuelve después, con la liquidación factura (DTE 43) que el emisor le emite al
+mandante. Conviene acordarlo con el contador antes de operar.
+
+---
+
 ## 🔒 **Seguridad y URLs temporales**
 
 ### URLs de archivos temporales:
