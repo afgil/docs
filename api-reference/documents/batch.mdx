@@ -279,34 +279,33 @@ Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en l
 - **Descripción:** Información detallada de la exportación requerida por aduanas y SII
 - **Campos obligatorios:**
 
-  - `transport_mode` (String): **Modalidad de transporte utilizada**
-    - `"1"`: **Marítimo** - Envío por barco (contenedor, carga suelta)
-    - `"2"`: **Aéreo** - Envío por avión (carga aérea, courier)
-    - `"3"`: **Terrestre** - Envío por tierra (camión, ferrocarril, terrestre internacional)
-    - `"4"`: **Multimodal** - Combinación de dos o más modos de transporte
-
-  - `destination_country` (String): **País de destino final**
+  - `destination_country_code` (String): **País de destino final**
     - **No es código ISO 3166-1.** Es el código de país del SII (tabla de Aduana), enviado como *string* (ej: `"225"` = U.S.A., `"220"` = Brasil, `"224"` = Argentina, `"216"` = México). Ver [Países de exportación](/user-guide/export-countries) para la tabla completa.
     - Debe coincidir exactamente con el país del receptor extranjero
-    - Afecta tratados comerciales y aranceles
 
-  - `destination_port` (String): **Puerto/aeropuerto/ciudad de destino**
-    - Nombre oficial del punto de entrada (ej: `"JFK"`, `"Santos"`, `"Buenos Aires"`, `"Veracruz"`)
-    - Para transporte terrestre: ciudad fronteriza de destino
-    - Debe ser reconocible por autoridades aduaneras
-
-  - `origin_port` (String): **Puerto/aeropuerto/ciudad de origen en Chile**
-    - Punto chileno de salida (ej: `"SCL"`, `"IQQ"`, `"ANF"`, `"VAP"`)
-    - Para transporte terrestre: ciudad fronteriza chilena
-    - Determina jurisdicción aduanera chilena
+  - `currency_code` (String): **Moneda de la operación**
+    - Código de moneda del SII, como *string* (ej: `"13"` = Dólar USA). No es ISO 4217.
 
   - `sale_mode_code` (String): **Modalidad de venta** (código de Aduana del SII, no una cláusula Incoterm)
     - **No es código FOB/CIF.** Ver [Modalidades de venta de exportación](/user-guide/export-sale-modes) para la tabla completa (`"1"` = A Firme, `"2"` = Bajo Condición, `"3"` = En Consignación Libre, `"4"` = En Consig. con Mínimo a Firme, `"9"` = Sin Pago).
 
-- **Campos opcionales adicionales:**
-  - `transport_company` (String): Nombre de la empresa de transporte
-  - `tracking_number` (String): Número de seguimiento del envío
-  - `customs_declaration` (String): Número de declaración aduanera (si aplica)
+- **Campos opcionales:**
+
+  - `sale_clause_code` (String): **Cláusula de venta / Incoterm** — el `CodClauVenta` del DTE
+    - Define hasta dónde llegan la responsabilidad y el costo del vendedor. **No es lo mismo que `sale_mode_code`**, que es la *modalidad* de venta.
+    - Se acepta el **código del SII o el nombre del Incoterm** (`"5"` o `"FOB"`, indistintamente; el nombre no distingue mayúsculas ni acentos).
+    - Códigos: `"1"` = CIF, `"2"` = CFR, `"3"` = EXW, `"4"` = FAS, `"5"` = FOB, `"6"` = S/CL, `"8"` = OTROS, `"9"` = DDP, `"10"` = FCA, `"11"` = CPT, `"12"` = CIP, `"17"` = DAT, `"18"` = DAP.
+    - Un valor fuera de esta tabla devuelve `400` con la lista de opciones válidas.
+    - Para exportación de **bienes** el SII la exige; para exportación de **servicios** es opcional.
+
+  - `exchange_rate` (String o Number): **Tipo de cambio** a pesos chilenos (ej: `"965.40"`)
+    - Si no se envía, la plataforma usa el observado del día de emisión.
+
+  - `tax_id_receptor` (String): Tax ID / identificador tributario del receptor extranjero
+  - `departure_port_code` / `departure_port_name` (String): Puerto de embarque (código del SII / nombre)
+  - `arrival_port_code` / `arrival_port_name` (String): Puerto de desembarque (código del SII / nombre)
+  - `total_packages` (Integer): Total de bultos
+  - `export_type` (String): `IndServicio` del DTE. Vacío o `"0"` = exportación de bienes; `"3"`/`"4"`/`"5"`/`"6"` = exportación de servicios.
 
 **details (Obligatorio)**
 - **Tipo:** Array
@@ -717,11 +716,11 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
         "currency": "USD"
       },
       "export_data": {
-        "transport_mode": "2",
-        "destination_country": "US",
-        "destination_port": "JFK",
-        "origin_port": "SCL",
-        "sale_mode_code": "1"
+        "destination_country_code": "225",
+        "currency_code": "13",
+        "sale_mode_code": "1",
+        "sale_clause_code": "5",
+        "exchange_rate": "965.40"
       },
       "details": [
         {
@@ -870,26 +869,43 @@ Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y 
 
 ### Campos requeridos en export_data:
 
-- **`transport_mode`** (String, Obligatorio):
-  - `"1"`: Marítimo - Envío por barco
-  - `"2"`: Aéreo - Envío por avión
-  - `"3"`: Terrestre - Envío por tierra (camión, tren)
-  - `"4"`: Multimodal - Combinación de modos de transporte
-
-- **`destination_country`** (String, Obligatorio):
+- **`destination_country_code`** (String, Obligatorio):
   - **No es código ISO 3166-1.** Es el código de país del SII (ej: `"225"` = U.S.A., `"220"` = Brasil, `"224"` = Argentina). Ver [Países de exportación](/user-guide/export-countries) para la tabla completa.
   - Debe coincidir con el país del receptor
 
-- **`destination_port`** (String, Obligatorio):
-  - Nombre del puerto/aeropuerto/ciudad de destino
-  - Ejemplos: `"JFK"`, `"Santos"`, `"Buenos Aires"`
-
-- **`origin_port`** (String, Obligatorio):
-  - Nombre del puerto/aeropuerto/ciudad de origen en Chile
-  - Ejemplos: `"SCL"`, `"IQQ"`, `"ANF"`
+- **`currency_code`** (String, Obligatorio):
+  - Código de moneda del SII (ej: `"13"` = Dólar USA). No es ISO 4217.
 
 - **`sale_mode_code`** (String, Obligatorio):
   - Código de modalidad de venta del SII (no una cláusula Incoterm). Ver [Modalidades de venta de exportación](/user-guide/export-sale-modes) para la tabla completa.
+
+### Cláusula de venta (Incoterm)
+
+- **`sale_clause_code`** (String, Opcional):
+  - Es el **Incoterm** de la operación (`CodClauVenta` del DTE): FOB, EXW, CIF, etc.
+  - **No confundir con `sale_mode_code`**: ése es la *modalidad* de venta (a firme, en consignación...). Son dos campos distintos del DTE.
+  - Se acepta el código o el nombre: `"5"` y `"FOB"` son equivalentes.
+
+  | Código | Cláusula | Código | Cláusula |
+  |---|---|---|---|
+  | `"1"` | CIF | `"8"` | OTROS |
+  | `"2"` | CFR | `"9"` | DDP |
+  | `"3"` | EXW | `"10"` | FCA |
+  | `"4"` | FAS | `"11"` | CPT |
+  | `"5"` | FOB | `"12"` | CIP |
+  | `"6"` | S/CL | `"17"` | DAT |
+  | | | `"18"` | DAP |
+
+  Ejemplo — pasar de Ex Works a FOB:
+
+  ```json
+  "export_data": {
+    "destination_country_code": "225",
+    "currency_code": "13",
+    "sale_mode_code": "1",
+    "sale_clause_code": "FOB"
+  }
+  ```
 
 ### Campos específicos del header:
 
