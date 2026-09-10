@@ -1,0 +1,71 @@
+---
+title: 'Liquidaciones'
+description: 'Obtener detalle de una liquidación individual — IDs prefijados v2'
+---
+
+## Obtener liquidación
+
+`GET /api/v2/payroll/payslips/{id}/`
+
+Retorna el detalle completo de una liquidación individual, incluyendo
+todas las líneas (haberes, descuentos, aportes).
+
+### Path params
+
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| `id` | string | Public ID de la liquidación (`slip_...`) |
+
+### Respuesta
+
+```json
+{
+  "id": "slip_7291048302917",
+  "employee_rut": "12345678-9",
+  "employee_name": "Ana González Rojas",
+  "worked_days": 30,
+  "total_earnings": 850000,
+  "total_taxable": 780000,
+  "total_deductions": 127500,
+  "net_pay": 722500,
+  "employer_cost": 935000,
+  "availability": "2024-09-05",
+  "lines": [
+    {
+      "code": "SUELDO",
+      "name": "Sueldo Base",
+      "kind": "earning",
+      "amount": 850000
+    },
+    {
+      "code": "AFP",
+      "name": "Cotización AFP Habitat",
+      "kind": "deduction",
+      "amount": 90950
+    },
+    {
+      "code": "SALUD",
+      "name": "Cotización Salud Fonasa",
+      "kind": "deduction",
+      "amount": 60350
+    }
+  ]
+}
+```
+
+### Ejemplo cURL
+
+```bash
+curl -H "Authorization: Api-Key TU_API_KEY" \
+  "https://app.tupana.ai/api/v2/payroll/payslips/slip_7291048302917/"
+```
+
+## Compatibilidad
+
+El `id` legacy (entero) también es aceptado:
+
+```bash
+# Ambas requests retornan lo mismo
+curl ".../payslips/slip_7291048302917/"
+curl ".../payslips/7291048302917/"
+```

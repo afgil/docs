@@ -1,0 +1,66 @@
+---
+title: 'API v2 — Introducción'
+description: 'API v2 de Tupana: IDs limpios, sin tokens opacos'
+---
+
+# API v2
+
+Cada recurso tiene un **public ID**: un string con prefijo de tipo y número
+aleatorio (`ment_4829301923847`, `prun_7291048302917`) almacenado en la base
+de datos. No es una codificación del ID interno — es un identificador propio,
+imposible de enumerar.
+
+## Principios de diseño
+
+| Versión | ID | Ejemplo |
+|---------|-----|---------|
+| v1 | entero incremental | `1234` |
+| **v2** | public ID (prefijo + aleatorio) | `ment_4829301923847` |
+
+- El prefijo identifica el tipo de recurso sin ambigüedad: `ment_` es una
+  empresa, `docu_` un documento, `prun_` un proceso de liquidación, `slip_`
+  una liquidación, `empl_` un trabajador.
+- El número es **aleatorio de 62 bits** — no revela volumen ni orden de
+  creación, y no se puede adivinar el siguiente.
+
+## Base URL
+
+```
+https://app.tupana.ai/api/v2/
+```
+
+## Autenticación
+
+Idéntica a v1: API Key en el header `Authorization`.
+
+```bash
+Authorization: Api-Key TU_API_KEY
+```
+
+## v1 y v2 conviven
+
+- **v1** sigue funcionando con enteros incrementales, sin cambios: los
+  clientes actuales con API key no se tocan.
+- **v2** usa exclusivamente el public ID, en entrada y salida.
+
+El mismo recurso es accesible por ambas versiones — `1234` en v1 y
+`ment_4829301923847` en v2 apuntan a la misma empresa.
+
+## Recursos disponibles
+
+| Recurso | Prefijo | Endpoints |
+|---------|---------|-----------|
+| Entidades | `ment_` | `GET /api/v2/master-entities/` |
+| Documentos | `docu_` | `GET /api/v2/documents/`, `GET /api/v2/documents/{id}/` |
+| Credenciales | — | `GET /api/v2/credentials/` |
+| Cesiones | `cess_` | `GET /api/v2/cessions/`, `GET /api/v2/cessions/{id}/` |
+| Webhooks | — | `GET/POST /api/v2/webhooks/` |
+| Libros SII | — | `GET /api/v2/book-summaries/` |
+| Sincronización | — | `GET/POST /api/v2/sync-requests/`, `GET /api/v2/sync-status/` |
+| Folios | — | `GET/POST /api/v2/folio-requests/`, `GET /api/v2/folios/` |
+| Recaudación | — | `GET/POST /api/v2/payment-requests/` |
+| Boleta honorarios | — | `GET /api/v2/honorary/authorized-users/` |
+| Trabajadores | `empl_` | `GET /api/v2/payroll/employees/` |
+| Procesos liquidación | `prun_` | `GET /api/v2/payroll/runs/` |
+| Liquidaciones | `slip_` | `GET /api/v2/payroll/payslips/{id}/` |
+| Indicadores | — | `GET /api/v2/payroll/indicators/` |

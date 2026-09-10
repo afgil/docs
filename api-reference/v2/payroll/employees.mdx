@@ -1,0 +1,74 @@
+---
+title: 'Trabajadores'
+description: 'Listar y obtener trabajadores — IDs prefijados v2'
+---
+
+## Listar trabajadores
+
+`GET /api/v2/payroll/employees/`
+
+### Query params
+
+| Parámetro | Tipo | Requerido | Descripción |
+|-----------|------|-----------|-------------|
+| `master_entity_id` | string | ✓ | Public ID de la empresa (`ment_...`) |
+| `page` | int | — | Página (default: 1) |
+| `page_size` | int | — | Resultados por página (máx 200, default 50) |
+
+### Respuesta
+
+```json
+{
+  "count": 12,
+  "page": 1,
+  "page_size": 50,
+  "results": [
+    {
+      "id": "empl_4829301923847",
+      "rut": "12345678-9",
+      "full_name": "Ana González Rojas",
+      "is_active": true,
+      "worker_type": "dependent",
+      "contract_type": "indefinite",
+      "base_salary": 850000,
+      "start_date": "2023-03-01",
+      "position": "Analista Contable",
+      "afp": "Habitat",
+      "health_system": "Fonasa"
+    }
+  ]
+}
+```
+
+---
+
+## Obtener trabajador
+
+`GET /api/v2/payroll/employees/{id}/`
+
+El path es el public ID (`empl_...`).
+
+### Respuesta
+
+```json
+{
+  "id": "empl_4829301923847",
+  "rut": "12345678-9",
+  "full_name": "Ana González Rojas",
+  "is_active": true,
+  "worker_type": "dependent",
+  "contract_type": "indefinite",
+  "base_salary": 850000,
+  "start_date": "2023-03-01",
+  "position": "Analista Contable",
+  "afp": "Habitat",
+  "health_system": "Fonasa"
+}
+```
+
+### Ejemplo cURL
+
+```bash
+curl -H "Authorization: Api-Key TU_API_KEY" \
+  "https://app.tupana.ai/api/v2/payroll/employees/empl_4829301923847/"
+```

@@ -1,0 +1,84 @@
+---
+title: 'Documentos'
+description: 'Listar y obtener documentos — API v2 (IDs enteros planos)'
+---
+
+## Listar documentos
+
+`GET /api/v2/documents/`
+
+### Query params
+
+| Parámetro | Tipo | Requerido | Descripción |
+|-----------|------|-----------|-------------|
+| `master_entity_id` | string | ✓ | Public ID de la empresa (`ment_...`) |
+| `document_type` | string | — | `issued` o `received` |
+| `dte_type` | int | — | Tipo de DTE (33=Factura, 39=Boleta, etc.) |
+| `folio` | int | — | Buscar por folio |
+| `page` | int | — | Página (default: 1) |
+| `page_size` | int | — | Resultados por página |
+
+### Respuesta
+
+```json
+{
+  "count": 150,
+  "page": 1,
+  "page_size": 50,
+  "results": [
+    {
+      "id": "docu_8371029384756",
+      "folio": 1842,
+      "dte_type": 33,
+      "document_type": "issued",
+      "master_entity_id": "ment_4829301923847",
+      "receiver_rut": "77.111.222-3",
+      "receiver_name": "Cliente SpA",
+      "amount_net": 1000000,
+      "amount_with_iva": 1190000,
+      "issue_date": "2024-08-15",
+      "status": "issued"
+    }
+  ]
+}
+```
+
+### Ejemplo cURL
+
+```bash
+curl -H "Authorization: Api-Key TU_API_KEY" \
+  "https://app.tupana.ai/api/v2/documents/?master_entity_id=ment_4829301923847&document_type=issued"
+```
+
+---
+
+## Obtener documento
+
+`GET /api/v2/documents/{id}/`
+
+### Ejemplo cURL
+
+```bash
+curl -H "Authorization: Api-Key TU_API_KEY" \
+  "https://app.tupana.ai/api/v2/documents/docu_8371029384756/"
+```
+
+### Respuesta
+
+```json
+{
+  "id": "docu_8371029384756",
+  "folio": 1842,
+  "dte_type": 33,
+  "document_type": "issued",
+  "master_entity_id": "ment_4829301923847",
+  "receiver_rut": "77.111.222-3",
+  "receiver_name": "Cliente SpA",
+  "amount_net": 1000000,
+  "amount_with_iva": 1190000,
+  "issue_date": "2024-08-15",
+  "status": "issued",
+  "xml_url": "https://...",
+  "pdf_url": "https://..."
+}
+```

@@ -197,6 +197,65 @@
         ]
       },
       {
+        "tab": "API v2",
+        "groups": [
+          {
+            "group": "Introducción",
+            "pages": [
+              "api-reference/v2/introduction"
+            ]
+          },
+          {
+            "group": "Facturación — Entidades",
+            "pages": [
+              "api-reference/v2/documents/master-entities"
+            ]
+          },
+          {
+            "group": "Facturación — Documentos",
+            "pages": [
+              "api-reference/v2/documents/documents"
+            ]
+          },
+          {
+            "group": "Facturación — Credenciales",
+            "pages": [
+              "api-reference/v2/documents/credentials"
+            ]
+          },
+          {
+            "group": "Cesiones",
+            "pages": [
+              "api-reference/v2/cessions/cessions"
+            ]
+          },
+          {
+            "group": "Nómina — Trabajadores",
+            "pages": [
+              "api-reference/v2/payroll/employees"
+            ]
+          },
+          {
+            "group": "Nómina — Procesos",
+            "pages": [
+              "api-reference/v2/payroll/runs"
+            ]
+          },
+          {
+            "group": "Nómina — Liquidaciones",
+            "pages": [
+              "api-reference/v2/payroll/payslips"
+            ]
+          },
+          {
+            "group": "Nómina — Indicadores",
+            "pages": [
+              "api-reference/v2/payroll/indicators"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "API Boleta de Honorarios",
         "groups": [
           {
