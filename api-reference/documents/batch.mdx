@@ -298,6 +298,13 @@ Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en l
     - Un valor fuera de esta tabla devuelve `400` con la lista de opciones válidas.
     - Para exportación de **bienes** el SII la exige; para exportación de **servicios** es opcional.
 
+  - `export_payment_method_code` (String): **Forma de pago de exportación** — el `FmaPagExp` del DTE
+    - Cómo se paga la operación: cobranza, acreditivo (carta de crédito), anticipo, etc. **No es `header.payment_method`**: ése es la forma de pago de las facturas nacionales (contado / crédito) y no aplica a exportación.
+    - Se acepta el **código del SII o el nombre** (`"11"` o `"ACRED"`, indistintamente).
+    - Códigos: `"1"` = COB1, `"2"` = COBRANZA, `"11"` = ACRED, `"12"` = CBOF, `"21"` = S/PAGO, `"32"` = ANTICIPO, `"50"` = ANT/COB, `"60"` = ANT/CRED, `"80"` = S/PAGO/COB.
+    - Si no se envía, el documento se emite con `"21"` (sin pago); en ese caso el SII exige que el total en pesos vaya en cero.
+    - Un valor fuera de esta tabla devuelve `400` con la lista de opciones válidas.
+
   - `exchange_rate` (String o Number): **Tipo de cambio** a pesos chilenos (ej: `"965.40"`)
     - Si no se envía, la plataforma usa el observado del día de emisión.
 
@@ -720,6 +727,7 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
         "currency_code": "13",
         "sale_mode_code": "1",
         "sale_clause_code": "5",
+        "export_payment_method_code": "11",
         "exchange_rate": "965.40"
       },
       "details": [
@@ -906,6 +914,25 @@ Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y 
     "sale_clause_code": "FOB"
   }
   ```
+
+### Forma de pago de exportación
+
+- **`export_payment_method_code`** (String, Opcional, por defecto `"21"`):
+  - Es la **forma de pago** de la operación de exportación (`FmaPagExp` del DTE).
+  - **`header.payment_method` no aplica a exportación**: el DTE de exportación no lleva la forma de pago nacional (contado / crédito), así que ese campo se ignora en los tipos 110, 111 y 112.
+  - Se acepta el código o el nombre: `"11"` y `"ACRED"` son equivalentes.
+
+  | Código | Forma de pago | Código | Forma de pago |
+  |---|---|---|---|
+  | `"1"` | COB1 | `"32"` | ANTICIPO |
+  | `"2"` | COBRANZA | `"50"` | ANT/COB |
+  | `"11"` | ACRED | `"60"` | ANT/CRED |
+  | `"12"` | CBOF | `"80"` | S/PAGO/COB |
+  | `"21"` | S/PAGO | | |
+
+  - Sin el campo el documento sale como **sin pago** (`"21"`): el SII exige entonces que el total en pesos (`MntTotOtrMnda`) vaya en cero.
+  - Con **ANTICIPO** (`"32"`) el DTE declara como fecha de pago la fecha de emisión.
+  - La forma de pago se muestra en el PDF, en el recuadro de exportación.
 
 ### Campos específicos del header:
 
