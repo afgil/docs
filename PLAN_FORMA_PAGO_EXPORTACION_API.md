@@ -260,3 +260,26 @@ Queda anotado, sin plan asociado:
 | Patrón de persistencia a copiar | `ExportService._sale_clause_code` (`export_service.py`) |
 | PDF oculta "Forma de Pago" en moneda extranjera | `apps/documents/utils/dte_pdf_renderer.py:681` |
 | Parser del bloque Aduana del PDF | `custom_invoice_pdf_renderer._parse_aduana_from_xml` |
+
+---
+
+## 9. Agregado en la misma PR: tipo de cambio
+
+La prueba seca con ABACCO mostró que el total en pesos salía **USD 2.055 × 950**:
+el adapter no pasaba el tipo de cambio y el builder caía a un `950` fijo
+(`export.py:200`), aunque el cliente mandara `export_data.exchange_rate`. Con el
+default "sin pago" el error ya afectaba al exento en pesos; con una forma de pago
+con pago pasaba además al total, que deja de ir en cero.
+
+Arreglo: una fila más en `DocumentFacturadorAdapter._EXPORT_DETAILS_ADUANA_FIELDS`
+(`("tipo_cambio", "exchange_rate")`). El builder ya consumía la clave.
+
+- Si el cliente **envía** `exchange_rate`, se usa ése (`exchange_rate_source =
+  informed`).
+- Si **no lo envía**, `ExportService` guarda al crear el documento el observado
+  del día (`daily_published`), y es el que ahora viaja al XML.
+
+Pendiente, sin plan: en MIPYME el tipo de cambio `daily_published` se realinea al
+día de emisión (`ExportExchangeRateValidator.enforce`, llamado sólo desde
+`strategy_issue_export_invoice.py`). El facturador de mercado no lo llama, así que
+un documento creado un día y emitido otro usa el observado del día de creación.
