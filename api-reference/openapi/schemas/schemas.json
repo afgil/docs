@@ -1802,6 +1802,11 @@
             "description": "Cláusula de venta / Incoterm (CodClauVenta del DTE). No confundir con sale_mode_code, que es la modalidad de venta. Se acepta el código del SII o el nombre del Incoterm: 1=CIF, 2=CFR, 3=EXW, 4=FAS, 5=FOB, 6=S/CL, 8=OTROS, 9=DDP, 10=FCA, 11=CPT, 12=CIP, 17=DAT, 18=DAP.",
             "example": "5"
           },
+          "export_payment_method_code": {
+            "type": "string",
+            "description": "Forma de pago de exportación (FmaPagExp del DTE). No es header.payment_method, que no aplica a exportación. Se acepta el código del SII o el nombre: 1=COB1, 2=COBRANZA, 11=ACRED, 12=CBOF, 21=S/PAGO, 32=ANTICIPO, 50=ANT/COB, 60=ANT/CRED, 80=S/PAGO/COB. Si no se envía, se emite 21 (sin pago).",
+            "example": "11"
+          },
           "export_type": {
             "type": "string",
             "description": "Tipo de exportación",
