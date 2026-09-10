@@ -1,6 +1,6 @@
 # Plan: Forma de Pago de Exportación (FmaPagExp) vía API
 
-**Estado:** propuesta, sin implementar
+**Estado:** implementado
 **Fecha:** 2026-09-10
 **Branch:** `feat/export-payment-method` (en `pana-backend` y en este repo)
 **Origen:** el mismo cliente integrado por API (facturador de mercado) que pidió
@@ -151,7 +151,7 @@ TDD: cada fase parte por sus tests.
 
 ### Fase 1 — Modelo
 `ExportDetails.export_payment_method_code` (`CharField`, `blank=True`,
-`default=""`). `makemigrations`; `migrate` lo corre el pipeline.
+`default=""`), migración `0280`. `migrate` lo corre el pipeline.
 → `apps/documents/app_models/export_models.py`
 
 ### Fase 2 — API
@@ -220,6 +220,11 @@ En `apps/<app>/tests/unit/` o `tests/integration/`, **registrados en
 El test HTTP necesita el mismo parche de `connection.close` que
 `test_batch_api_export_sale_clause`. **No usar `TransactionTestCase`**: su flush
 falla contra `test_pana` y deja filas residuales.
+
+Los tests con base crean en su `setUp` las filas de catálogo que usan (país,
+moneda, modalidad): al implementar, `test_pana` apareció vaciada entera (todas
+las tablas sembradas por migraciones en 0, `django_migrations` intacta), y no
+deben depender de lo que sembró la migración 0028.
 
 ---
 
