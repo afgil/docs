@@ -6,7 +6,7 @@
         "tags": ["Cesiones"],
         "security": [{"apiKeyAuth": []}],
         "summary": "Obtener una cesión",
-        "description": "Obtiene el detalle de una cesión por ID. Es accesible tanto si tenés acceso a la entidad emisora como a la receptora del documento cedido. Si se envía el parámetro pdf=document-cession, la respuesta es el PDF del certificado de cesión servido inline (200, Content-Type application/pdf) en vez del JSON — se lee del caché en S3 si ya existe, o se scrapea del SII en el momento (requiere que Tupana administre la credencial SII del emisor de la factura). Por defecto (sin el parámetro) devuelve el JSON con el detalle de la cesión.",
+        "description": "Obtiene el detalle de una cesión por ID. Es accesible tanto si tienes acceso a la entidad emisora como a la receptora del documento cedido. Si se envía el parámetro pdf=document-cession, la respuesta es el PDF del certificado de cesión servido inline (200, Content-Type application/pdf) en vez del JSON — se lee del caché en S3 si ya existe, o se scrapea del SII en el momento (requiere que Tupana administre la credencial SII del emisor de la factura). Por defecto (sin el parámetro) devuelve el JSON con el detalle de la cesión.",
         "parameters": [
           {
             "name": "id",

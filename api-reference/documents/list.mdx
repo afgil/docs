@@ -50,7 +50,7 @@ Si al crear el documento guardaste datos propios en `json_param` (ver el campo `
 GET /v1/documents?master_entity_id=eid_...&json_param__external_order_id=PED-123
 ```
 
-Esto devuelve solo los documentos donde `json_param` contiene esa key con exactamente ese valor (coincidencia exacta, no búsqueda parcial). Podés combinar varias keys en la misma request — se aplican con AND:
+Esto devuelve solo los documentos donde `json_param` contiene esa key con exactamente ese valor (coincidencia exacta, no búsqueda parcial). Puedes combinar varias keys en la misma request — se aplican con AND:
 
 ```bash
 GET /v1/documents?master_entity_id=eid_...&json_param__external_order_id=PED-123&json_param__priority=high

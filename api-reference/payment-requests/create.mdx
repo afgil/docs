@@ -20,7 +20,7 @@ Crea una sesión de pago y retorna la `payment_url` a la que debes redirigir al 
 | Modo | Cuándo usarlo | Campos requeridos |
 |------|---------------|-------------------|
 | **Emisión** | Cobrás un servicio nuevo y necesitás emitir un DTE al confirmarse el pago | `amount`, `target_dte_type`, `dte_recipient`, `items` |
-| **Cobro directo** | Querés cobrar uno o más DTEs ya emitidos | `document_ids` |
+| **Cobro directo** | Quieres cobrar uno o más DTEs ya emitidos | `document_ids` |
 
 Los modos son mutuamente excluyentes: si envías `document_ids`, no puedes incluir `amount`, `target_dte_type`, `dte_recipient` ni `items` (Tupana retorna `CANNOT_MIX_MODES`).
 

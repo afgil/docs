@@ -10,7 +10,7 @@ Registra la cuenta bancaria a la que Tupana depositará los fondos una vez confi
 ## Qué hace
 
 - Registra una cuenta bancaria para el destinatario identificado por `master_entity_id`.
-- Cada destinatario tiene **una sola** cuenta bancaria activa. Para cambiar los datos, usá `PUT /v1/master-entities/{master_entity_id}/banking-info/`.
+- Cada destinatario tiene **una sola** cuenta bancaria activa. Para cambiar los datos, usa `PUT /v1/master-entities/{master_entity_id}/banking-info/`.
 - El titular de la cuenta es el propio destinatario (la `master_entity` con `master_entity_id`).
 
 ## Cómo identificar el banco
@@ -20,7 +20,7 @@ El parámetro del banco se puede enviar de dos formas:
 - **`sbif_code`** (recomendado): código SBIF de tres dígitos (ej `"037"`). Es el identificador estable y estándar de la Superintendencia de Bancos chilena.
 - **`bank`**: ID interno del banco en Tupana. El ID puede variar entre ambientes, así que preferí `sbif_code`.
 
-Enviá uno de los dos. Si enviás ambos, deben referirse al mismo banco.
+Envía uno de los dos. Si enviás ambos, deben referirse al mismo banco.
 
 ## Códigos SBIF disponibles
 
