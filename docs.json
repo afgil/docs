@@ -58,6 +58,7 @@
               },
               {
                 "group": "Documentos",
+                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "GET /api/v2/documents/",
                   "GET /api/v2/documents/{document_id}/",
@@ -68,12 +69,14 @@
               },
               {
                 "group": "Entidades",
+                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "GET /api/v2/master-entities/"
                 ]
               },
               {
                 "group": "Credenciales",
+                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "GET /api/v2/credentials/",
                   "POST /api/v2/credentials/",
@@ -83,6 +86,7 @@
               },
               {
                 "group": "Folios",
+                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "GET /api/v2/folios/",
                   "GET /api/v2/folio-queries/",
@@ -93,6 +97,7 @@
               },
               {
                 "group": "Documentos Programados",
+                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "GET /api/v2/scheduled-documents/",
                   "POST /api/v2/scheduled-documents/",
@@ -101,6 +106,7 @@
               },
               {
                 "group": "Webhooks",
+                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "GET /api/v2/webhooks/",
                   "POST /api/v2/webhooks/"
@@ -113,6 +119,7 @@
             "groups": [
               {
                 "group": "Cesiones",
+                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "GET /api/v2/cessions/",
                   "GET /api/v2/cessions/{id}/",
@@ -180,6 +187,7 @@
             "groups": [
               {
                 "group": "Consultas",
+                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "GET /api/v2/book-summaries/",
                   "GET /api/v2/sync-status/"
@@ -192,6 +200,7 @@
             "groups": [
               {
                 "group": "Boleta de Honorarios",
+                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "GET /api/v2/honorary/authorized-users/",
                   "GET /api/v2/honorary/master-entities/{master_entity_id}/authorized-users/"

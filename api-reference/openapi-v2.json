@@ -1,9 +1,9 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "API de Boletas de Honorarios - Usuarios Autorizados — v2",
-    "description": "Endpoints para gestión de usuarios autorizados de boletas de honorarios",
-    "version": "1.0.0"
+    "title": "Tupana API — v2",
+    "description": "API v2 de Tupana: facturación electrónica, cesiones, recaudación, consultas, boleta de honorarios y nómina. Los identificadores de recursos son public IDs opacos con prefijo (docu_, ment_, cred_, cess_, empl_…).",
+    "version": "2.0.0"
   },
   "servers": [
     {
