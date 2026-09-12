@@ -57,21 +57,53 @@
                 ]
               },
               {
-                "group": "Facturación — Entidades",
+                "group": "Documentos",
                 "pages": [
-                  "api-reference/v2/documents/master-entities"
+                  "GET /api/v2/documents/",
+                  "GET /api/v2/documents/{document_id}/",
+                  "POST /api/v2/documents/batch/",
+                  "GET /api/v2/documents/{document_id}/states/",
+                  "POST /api/v2/documents/{document_id}/states/"
                 ]
               },
               {
-                "group": "Facturación — Documentos",
+                "group": "Entidades",
                 "pages": [
-                  "api-reference/v2/documents/documents"
+                  "GET /api/v2/master-entities/"
                 ]
               },
               {
-                "group": "Facturación — Credenciales",
+                "group": "Credenciales",
                 "pages": [
-                  "api-reference/v2/documents/credentials"
+                  "GET /api/v2/credentials/",
+                  "POST /api/v2/credentials/",
+                  "POST /api/v2/credentials/batch/",
+                  "DELETE /api/v2/credentials/{master_entity_id}/"
+                ]
+              },
+              {
+                "group": "Folios",
+                "pages": [
+                  "GET /api/v2/folios/",
+                  "GET /api/v2/folio-queries/",
+                  "POST /api/v2/folio-queries/",
+                  "GET /api/v2/folio-requests/",
+                  "POST /api/v2/folio-requests/"
+                ]
+              },
+              {
+                "group": "Documentos Programados",
+                "pages": [
+                  "GET /api/v2/scheduled-documents/",
+                  "POST /api/v2/scheduled-documents/",
+                  "GET /api/v2/scheduled-documents/{id}/"
+                ]
+              },
+              {
+                "group": "Webhooks",
+                "pages": [
+                  "GET /api/v2/webhooks/",
+                  "POST /api/v2/webhooks/"
                 ]
               }
             ]
@@ -82,7 +114,10 @@
               {
                 "group": "Cesiones",
                 "pages": [
-                  "api-reference/v2/cessions/cessions"
+                  "GET /api/v2/cessions/",
+                  "GET /api/v2/cessions/{id}/",
+                  "POST /api/v2/cessions/batch/",
+                  "GET /api/v2/cessions/batch/{batch_id}/"
                 ]
               }
             ]
@@ -144,38 +179,10 @@
             "tab": "API Consultas",
             "groups": [
               {
-                "group": "Introducción",
+                "group": "Consultas",
                 "pages": [
-                  "api-reference/book-summaries/introduction"
-                ]
-              },
-              {
-                "group": "Resumen de Libros",
-                "pages": [
-                  "api-reference/book-summaries/list"
-                ]
-              },
-              {
-                "group": "Sincronización",
-                "pages": [
-                  "api-reference/sync/introduction",
-                  "api-reference/sync/status",
-                  "api-reference/sync/request-create",
-                  "api-reference/sync/request-list",
-                  "api-reference/sync/request-get"
-                ]
-              },
-              {
-                "group": "Folios",
-                "pages": [
-                  "api-reference/folios/introduction",
-                  "api-reference/folios/request-create",
-                  "api-reference/folios/request-get",
-                  "api-reference/folios/request-list",
-                  "api-reference/folios/availability",
-                  "api-reference/folios/query-create",
-                  "api-reference/folios/query-get",
-                  "api-reference/folios/errors"
+                  "GET /api/v2/book-summaries/",
+                  "GET /api/v2/sync-status/"
                 ]
               }
             ]
@@ -184,18 +191,10 @@
             "tab": "API Boleta de Honorarios",
             "groups": [
               {
-                "group": "Introducción",
+                "group": "Boleta de Honorarios",
                 "pages": [
-                  "api-reference/honorary/introduction"
-                ]
-              },
-              {
-                "group": "Usuarios Autorizados",
-                "pages": [
-                  "api-reference/honorary/authorized-users",
-                  "api-reference/honorary/authorized-users-sync",
-                  "api-reference/honorary/enroll",
-                  "api-reference/honorary/unenroll"
+                  "GET /api/v2/honorary/authorized-users/",
+                  "GET /api/v2/honorary/master-entities/{master_entity_id}/authorized-users/"
                 ]
               }
             ]
@@ -456,7 +455,8 @@
   },
   "openapi": [
     "api-reference/openapi-combined.json",
-    "api-reference/openapi-payment-requests.json"
+    "api-reference/openapi-payment-requests.json",
+    "api-reference/openapi-v2.json"
   ],
   "topbarLinks": [
     {
