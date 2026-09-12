@@ -1,0 +1,48 @@
+---
+title: 'Indicadores previsionales'
+description: 'Indicadores legales del período (UF, UTM, AFP, tasas) — v2'
+---
+
+## Obtener indicadores del período
+
+`GET /api/v2/payroll/indicators/`
+
+Retorna los indicadores legales vigentes para el período indicado.
+No devuelve IDs de recursos propios, por lo que el comportamiento
+es idéntico a v1.
+
+### Query params
+
+| Parámetro | Tipo | Requerido | Descripción |
+|-----------|------|-----------|-------------|
+| `master_entity_id` | string | ✓ | Public ID de la empresa (`ment_...`) |
+| `period` | string | — | Período `YYYYMM` (default: mes actual) |
+
+### Respuesta
+
+```json
+{
+  "period": "202408",
+  "uf": 37523.45,
+  "utm": 65443,
+  "afp_rates": {
+    "Habitat": 11.27,
+    "Capital": 11.44,
+    "Cuprum": 11.44,
+    "Modelo": 10.58,
+    "Planvital": 11.16,
+    "ProVida": 11.45,
+    "Uno": 10.49
+  },
+  "health_rate": 7.0,
+  "unemployment_rate_dependent": 0.6,
+  "unemployment_rate_employer": 2.4
+}
+```
+
+### Ejemplo cURL
+
+```bash
+curl -H "Authorization: Api-Key TU_API_KEY" \
+  "https://app.tupana.ai/api/v2/payroll/indicators/?master_entity_id=ment_4829301923847&period=202408"
+```

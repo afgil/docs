@@ -1,0 +1,40 @@
+---
+title: 'Nómina v2'
+description: 'API de Nómina — public IDs por tipo de recurso'
+---
+
+# Nómina v2
+
+Los recursos de nómina usan el public ID de la plataforma: un string con
+prefijo de tipo y número aleatorio, almacenado en la base de datos.
+
+## Tabla de prefijos
+
+| Recurso | Prefijo | Ejemplo |
+|---------|---------|---------|
+| PayrollRun (proceso de liquidación) | `prun` | `prun_4829301923847` |
+| Payslip (liquidación individual) | `slip` | `slip_7291048302917` |
+| Employee (trabajador) | `empl` | `empl_5638201947382` |
+
+El prefijo elimina la ambigüedad de tipos: un `slip_...` nunca puede pasarse
+por error a un endpoint de procesos, y viceversa.
+
+## Base URL
+
+```
+https://app.tupana.ai/api/v2/payroll/
+```
+
+## Autenticación
+
+API Key en el header `Authorization` (igual que el resto de la API):
+
+```bash
+Authorization: Api-Key TU_API_KEY
+```
+
+## Identificadores
+
+- El campo `id` de cada recurso es su public ID (string).
+- `master_entity_id` en query params es el public ID de la empresa
+  (`ment_...`), obtenible desde `GET /api/v2/master-entities/?rut=...`.

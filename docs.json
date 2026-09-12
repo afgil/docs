@@ -13,227 +13,333 @@
   },
   "favicon": "/images/tupana.png",
   "navigation": {
-    "tabs": [
+    "versions": [
       {
-        "tab": "Guía de Usuario",
-        "groups": [
+        "version": "v1",
+        "tabs": [
           {
-            "group": "Primeros Pasos",
-            "pages": [
-              "index",
-              "user-guide/getting-started",
-              "user-guide/authentication"
+            "tab": "Guía de Usuario",
+            "groups": [
+              {
+                "group": "Primeros Pasos",
+                "pages": [
+                  "index",
+                  "user-guide/getting-started",
+                  "user-guide/authentication"
+                ]
+              },
+              {
+                "group": "Referencia",
+                "pages": [
+                  "user-guide/documents",
+                  "user-guide/credential-types",
+                  "user-guide/export-currencies",
+                  "user-guide/export-countries",
+                  "user-guide/export-sale-modes",
+                  "user-guide/webhooks"
+                ]
+              }
             ]
           },
           {
-            "group": "Referencia",
-            "pages": [
-              "user-guide/documents",
-              "user-guide/credential-types",
-              "user-guide/export-currencies",
-              "user-guide/export-countries",
-              "user-guide/export-sale-modes",
-              "user-guide/webhooks"
+            "tab": "API Facturación",
+            "groups": [
+              {
+                "group": "Introducción",
+                "pages": [
+                  "api-reference/introduction"
+                ]
+              },
+              {
+                "group": "Entidades",
+                "pages": [
+                  "api-reference/endpoint/master-entity"
+                ]
+              },
+              {
+                "group": "Credenciales",
+                "pages": [
+                  "api-reference/credentials/list",
+                  "api-reference/credentials/create",
+                  "api-reference/credentials/batch",
+                  "api-reference/credentials/unenroll"
+                ]
+              },
+              {
+                "group": "Documentos",
+                "pages": [
+                  "api-reference/documents/list",
+                  "api-reference/documents/batch",
+                  "api-reference/documents/get"
+                ]
+              },
+              {
+                "group": "Estados de Documentos",
+                "pages": [
+                  "api-reference/document-states/list",
+                  "api-reference/document-states/create"
+                ]
+              },
+              {
+                "group": "Documentos Programados",
+                "pages": [
+                  "api-reference/scheduled-documents/list",
+                  "api-reference/scheduled-documents/create",
+                  "api-reference/scheduled-documents/get",
+                  "api-reference/scheduled-documents/update",
+                  "api-reference/scheduled-documents/preview",
+                  "api-reference/scheduled-documents/delete"
+                ]
+              },
+              {
+                "group": "Webhooks",
+                "pages": [
+                  "api-reference/webhooks/webhooks",
+                  "api-reference/webhooks/create"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "API Cesiones",
+            "groups": [
+              {
+                "group": "Introducción",
+                "pages": [
+                  "api-reference/cessions/introduction"
+                ]
+              },
+              {
+                "group": "Referencia",
+                "pages": [
+                  "api-reference/cessions/list",
+                  "api-reference/cessions/get",
+                  "api-reference/cessions/batch",
+                  "api-reference/cessions/batch-status"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "API Recaudación",
+            "groups": [
+              {
+                "group": "Introducción",
+                "pages": [
+                  "api-reference/payment-requests/introduction"
+                ]
+              },
+              {
+                "group": "Cuenta Bancaria",
+                "pages": [
+                  "api-reference/payment-requests/banking-info-get",
+                  "api-reference/payment-requests/banking-info-create",
+                  "api-reference/payment-requests/banking-info-update"
+                ]
+              },
+              {
+                "group": "Medios de pago",
+                "pages": [
+                  "api-reference/payment-requests/payment-methods-list"
+                ]
+              },
+              {
+                "group": "Liquidaciones",
+                "pages": [
+                  "api-reference/payment-requests/settlements-list",
+                  "api-reference/payment-requests/settlements-get"
+                ]
+              },
+              {
+                "group": "Cobros",
+                "pages": [
+                  "api-reference/payment-requests/create",
+                  "api-reference/payment-requests/get",
+                  "api-reference/payment-requests/list",
+                  "api-reference/payment-requests/issue"
+                ]
+              },
+              {
+                "group": "Webhooks",
+                "pages": [
+                  "api-reference/payment-requests/webhooks"
+                ]
+              },
+              {
+                "group": "Referencia",
+                "pages": [
+                  "api-reference/payment-requests/reference"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "API Consultas",
+            "groups": [
+              {
+                "group": "Introducción",
+                "pages": [
+                  "api-reference/book-summaries/introduction"
+                ]
+              },
+              {
+                "group": "Resumen de Libros",
+                "pages": [
+                  "api-reference/book-summaries/list"
+                ]
+              },
+              {
+                "group": "Sincronización",
+                "pages": [
+                  "api-reference/sync/introduction",
+                  "api-reference/sync/status",
+                  "api-reference/sync/request-create",
+                  "api-reference/sync/request-list",
+                  "api-reference/sync/request-get"
+                ]
+              },
+              {
+                "group": "Folios",
+                "pages": [
+                  "api-reference/folios/introduction",
+                  "api-reference/folios/request-create",
+                  "api-reference/folios/request-get",
+                  "api-reference/folios/request-list",
+                  "api-reference/folios/availability",
+                  "api-reference/folios/query-create",
+                  "api-reference/folios/query-get",
+                  "api-reference/folios/errors"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "API Boleta de Honorarios",
+            "groups": [
+              {
+                "group": "Introducción",
+                "pages": [
+                  "api-reference/honorary/introduction"
+                ]
+              },
+              {
+                "group": "Usuarios Autorizados",
+                "pages": [
+                  "api-reference/honorary/authorized-users",
+                  "api-reference/honorary/authorized-users-sync",
+                  "api-reference/honorary/enroll",
+                  "api-reference/honorary/unenroll"
+                ]
+              }
             ]
           }
         ]
       },
       {
-        "tab": "API Facturación",
-        "groups": [
+        "version": "v2",
+        "tabs": [
           {
-            "group": "Introducción",
-            "pages": [
-              "api-reference/introduction"
+            "tab": "Guía de Usuario",
+            "groups": [
+              {
+                "group": "Primeros Pasos",
+                "pages": [
+                  "index",
+                  "user-guide/getting-started",
+                  "user-guide/authentication"
+                ]
+              },
+              {
+                "group": "Referencia",
+                "pages": [
+                  "user-guide/documents",
+                  "user-guide/credential-types",
+                  "user-guide/export-currencies",
+                  "user-guide/export-countries",
+                  "user-guide/export-sale-modes",
+                  "user-guide/webhooks"
+                ]
+              }
             ]
           },
           {
-            "group": "Entidades",
-            "pages": [
-              "api-reference/endpoint/master-entity"
+            "tab": "API Facturación",
+            "groups": [
+              {
+                "group": "Introducción",
+                "pages": [
+                  "api-reference/v2/introduction"
+                ]
+              },
+              {
+                "group": "Errores",
+                "pages": [
+                  "api-reference/v2/errors"
+                ]
+              },
+              {
+                "group": "Facturación — Entidades",
+                "pages": [
+                  "api-reference/v2/documents/master-entities"
+                ]
+              },
+              {
+                "group": "Facturación — Documentos",
+                "pages": [
+                  "api-reference/v2/documents/documents"
+                ]
+              },
+              {
+                "group": "Facturación — Credenciales",
+                "pages": [
+                  "api-reference/v2/documents/credentials"
+                ]
+              }
             ]
           },
           {
-            "group": "Credenciales",
-            "pages": [
-              "api-reference/credentials/list",
-              "api-reference/credentials/create",
-              "api-reference/credentials/batch",
-              "api-reference/credentials/unenroll"
+            "tab": "API Cesiones",
+            "groups": [
+              {
+                "group": "Cesiones",
+                "pages": [
+                  "api-reference/v2/cessions/cessions"
+                ]
+              }
             ]
           },
           {
-            "group": "Documentos",
-            "pages": [
-              "api-reference/documents/list",
-              "api-reference/documents/batch",
-              "api-reference/documents/get"
-            ]
-          },
-          {
-            "group": "Estados de Documentos",
-            "pages": [
-              "api-reference/document-states/list",
-              "api-reference/document-states/create"
-            ]
-          },
-          {
-            "group": "Documentos Programados",
-            "pages": [
-              "api-reference/scheduled-documents/list",
-              "api-reference/scheduled-documents/create",
-              "api-reference/scheduled-documents/get",
-              "api-reference/scheduled-documents/update",
-              "api-reference/scheduled-documents/preview",
-              "api-reference/scheduled-documents/delete"
-            ]
-          },
-          {
-            "group": "Webhooks",
-            "pages": [
-              "api-reference/webhooks/webhooks",
-              "api-reference/webhooks/create"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API Cesiones",
-        "groups": [
-          {
-            "group": "Introducción",
-            "pages": [
-              "api-reference/cessions/introduction"
-            ]
-          },
-          {
-            "group": "Referencia",
-            "pages": [
-              "api-reference/cessions/list",
-              "api-reference/cessions/get",
-              "api-reference/cessions/batch",
-              "api-reference/cessions/batch-status"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API Recaudación",
-        "groups": [
-          {
-            "group": "Introducción",
-            "pages": [
-              "api-reference/payment-requests/introduction"
-            ]
-          },
-          {
-            "group": "Cuenta Bancaria",
-            "pages": [
-              "api-reference/payment-requests/banking-info-get",
-              "api-reference/payment-requests/banking-info-create",
-              "api-reference/payment-requests/banking-info-update"
-            ]
-          },
-          {
-            "group": "Medios de pago",
-            "pages": [
-              "api-reference/payment-requests/payment-methods-list"
-            ]
-          },
-          {
-            "group": "Liquidaciones",
-            "pages": [
-              "api-reference/payment-requests/settlements-list",
-              "api-reference/payment-requests/settlements-get"
-            ]
-          },
-          {
-            "group": "Cobros",
-            "pages": [
-              "api-reference/payment-requests/create",
-              "api-reference/payment-requests/get",
-              "api-reference/payment-requests/list",
-              "api-reference/payment-requests/issue"
-            ]
-          },
-          {
-            "group": "Webhooks",
-            "pages": [
-              "api-reference/payment-requests/webhooks"
-            ]
-          },
-          {
-            "group": "Referencia",
-            "pages": [
-              "api-reference/payment-requests/reference"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API Consultas",
-        "groups": [
-          {
-            "group": "Introducción",
-            "pages": [
-              "api-reference/book-summaries/introduction"
-            ]
-          },
-          {
-            "group": "Resumen de Libros",
-            "pages": [
-              "api-reference/book-summaries/list"
-            ]
-          },
-          {
-            "group": "Sincronización",
-            "pages": [
-              "api-reference/sync/introduction",
-              "api-reference/sync/status",
-              "api-reference/sync/request-create",
-              "api-reference/sync/request-list",
-              "api-reference/sync/request-get"
-            ]
-          },
-          {
-            "group": "Folios",
-            "pages": [
-              "api-reference/folios/introduction",
-              "api-reference/folios/request-create",
-              "api-reference/folios/request-get",
-              "api-reference/folios/request-list",
-              "api-reference/folios/availability",
-              "api-reference/folios/query-create",
-              "api-reference/folios/query-get",
-              "api-reference/folios/errors"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API Boleta de Honorarios",
-        "groups": [
-          {
-            "group": "Introducción",
-            "pages": [
-              "api-reference/honorary/introduction"
-            ]
-          },
-          {
-            "group": "Usuarios Autorizados",
-            "pages": [
-              "api-reference/honorary/authorized-users",
-              "api-reference/honorary/authorized-users-sync",
-              "api-reference/honorary/enroll",
-              "api-reference/honorary/unenroll"
+            "tab": "API Nómina",
+            "groups": [
+              {
+                "group": "Nómina — Trabajadores",
+                "pages": [
+                  "api-reference/v2/payroll/employees"
+                ]
+              },
+              {
+                "group": "Nómina — Procesos",
+                "pages": [
+                  "api-reference/v2/payroll/runs"
+                ]
+              },
+              {
+                "group": "Nómina — Liquidaciones",
+                "pages": [
+                  "api-reference/v2/payroll/payslips"
+                ]
+              },
+              {
+                "group": "Nómina — Indicadores",
+                "pages": [
+                  "api-reference/v2/payroll/indicators"
+                ]
+              }
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": []
-    }
+    ]
   },
   "openapi": [
     "api-reference/openapi-combined.json",
