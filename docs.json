@@ -51,12 +51,6 @@
                 ]
               },
               {
-                "group": "Errores",
-                "pages": [
-                  "api-reference/v2/errors"
-                ]
-              },
-              {
                 "group": "Documentos",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
@@ -111,6 +105,12 @@
                   "GET /api/v2/webhooks/",
                   "POST /api/v2/webhooks/"
                 ]
+              },
+              {
+                "group": "Errores",
+                "pages": [
+                  "api-reference/v2/errors"
+                ]
               }
             ]
           },
@@ -131,6 +131,12 @@
                   "GET /api/v2/cessions/{id}/",
                   "POST /api/v2/cessions/batch/",
                   "GET /api/v2/cessions/batch/{batch_id}/"
+                ]
+              },
+              {
+                "group": "Errores",
+                "pages": [
+                  "api-reference/v2/errors"
                 ]
               }
             ]
@@ -185,6 +191,12 @@
                 "pages": [
                   "api-reference/payment-requests/reference"
                 ]
+              },
+              {
+                "group": "Errores",
+                "pages": [
+                  "api-reference/v2/errors"
+                ]
               }
             ]
           },
@@ -201,6 +213,12 @@
                   "POST /api/v2/sync-requests/",
                   "GET /api/v2/sync-requests/{id}/"
                 ]
+              },
+              {
+                "group": "Errores",
+                "pages": [
+                  "api-reference/v2/errors"
+                ]
               }
             ]
           },
@@ -213,6 +231,12 @@
                 "pages": [
                   "GET /api/v2/honorary/authorized-users/",
                   "GET /api/v2/honorary/master-entities/{master_entity_id}/authorized-users/"
+                ]
+              },
+              {
+                "group": "Errores",
+                "pages": [
+                  "api-reference/v2/errors"
                 ]
               }
             ]

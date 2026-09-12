@@ -1,66 +1,100 @@
 ---
-title: 'API v2 — Introducción'
-description: 'API v2 de Tupana: IDs limpios, sin tokens opacos'
+title: 'Facturación'
+description: 'API de Facturación v2 - Emisión masiva de documentos electrónicos'
 ---
 
-# API v2
+# Introducción a la API de Facturación
 
-Cada recurso tiene un **public ID**: un string con prefijo de tipo y número
-aleatorio (`ment_4829301923847`, `prun_7291048302917`) almacenado en la base
-de datos. No es una codificación del ID interno — es un identificador propio,
-imposible de enumerar.
+La API de Facturación está integrada directamente al **facturador gratuito del SII** y permite emitir documentos de forma masiva usando Batch Documents. El sistema **emite por ti** y además **recibe automáticamente el PDF y XML final** de cada factura a través de webhooks. La integración se apoya en un flujo simple:
 
-## Principios de diseño
+1. **obtener tu API Key**
+2. **partir en modo Sandbox** (recomendado)
+3. **enrolar empresas y crear credenciales**
+4. **crear batches para emitir documentos**
+5. **configurar webhooks por empresa para recibir los resultados**
+6. **(opcional) usar campos avanzados** como direcciones y actividades económicas personalizadas
+7. **monitorear todo desde la plataforma**
 
-| Versión | ID | Ejemplo |
-|---------|-----|---------|
-| v1 | entero incremental | `1234` |
-| **v2** | public ID (prefijo + aleatorio) | `ment_4829301923847` |
+<Note>
+En **v2** todo identificador de recurso es un **public ID**: un string con prefijo
+de tipo y número aleatorio (`ment_4829301923847` para una entidad, `docu_…` para
+un documento). No es una codificación del ID interno ni un entero incremental —
+es un identificador propio, imposible de enumerar. Ese `id` es el que usas en las
+rutas y en el cuerpo de las peticiones.
+</Note>
 
-- El prefijo identifica el tipo de recurso sin ambigüedad: `ment_` es una
-  empresa, `docu_` un documento, `prun_` un proceso de liquidación, `slip_`
-  una liquidación, `empl_` un trabajador.
-- El número es **aleatorio de 62 bits** — no revela volumen ni orden de
-  creación, y no se puede adivinar el siguiente.
+## 1) API Key (por usuario)
 
-## Base URL
+La API Key es por usuario y sirve para operar sobre todas las empresas enroladas bajo ese usuario.
 
-```
-https://api.tupana.ai/api/v2/
-```
+Existe operación en **Sandbox** y en **Producción**.
 
-## Autenticación
+Se recomienda comenzar en Sandbox para validar el flujo completo sin riesgos.
 
-Idéntica a v1: API Key en el header `Authorization`.
+## 2) Enrolamiento y credenciales
 
-```bash
-Authorization: Api-Key TU_API_KEY
-```
+Antes de emitir, cada empresa debe estar enrolada y contar con su credencial.
 
-## v1 y v2 conviven
+Puedes hacerlo de dos maneras:
 
-- **v1** sigue funcionando con enteros incrementales, sin cambios: los
-  clientes actuales con API key no se tocan.
-- **v2** usa exclusivamente el public ID, en entrada y salida.
+- **Desde la plataforma**, o
+- **Desde la API** (automatizado): busca la entidad por RUT para obtener su
+  `id` (`ment_…`) y crea la credencial.
 
-El mismo recurso es accesible por ambas versiones — `1234` en v1 y
-`ment_4829301923847` en v2 apuntan a la misma empresa.
+Este paso deja a la empresa lista para emitir documentos.
 
-## Recursos disponibles
+## 3) Emisión: crear el Batch Document
 
-| Recurso | Prefijo | Endpoints |
-|---------|---------|-----------|
-| Entidades | `ment_` | `GET /api/v2/master-entities/` |
-| Documentos | `docu_` | `GET /api/v2/documents/`, `GET /api/v2/documents/{id}/` |
-| Credenciales | — | `GET /api/v2/credentials/` |
-| Cesiones | `doce_` | `GET /api/v2/cessions/`, `GET /api/v2/cessions/{id}/` |
-| Webhooks | — | `GET/POST /api/v2/webhooks/` |
-| Libros SII | — | `GET /api/v2/book-summaries/` |
-| Sincronización | — | `GET/POST /api/v2/sync-requests/`, `GET /api/v2/sync-status/` |
-| Folios | — | `GET/POST /api/v2/folio-requests/`, `GET /api/v2/folios/` |
-| Recaudación | — | `GET/POST /api/v2/payment-requests/` |
-| Boleta honorarios | — | `GET /api/v2/honorary/authorized-users/` |
-| Trabajadores | `empl_` | `GET /api/v2/payroll/employees/` |
-| Procesos liquidación | `prun_` | `GET /api/v2/payroll/runs/` |
-| Liquidaciones | `slip_` | `GET /api/v2/payroll/payslips/{id}/` |
-| Indicadores | — | `GET /api/v2/payroll/indicators/` |
+Una vez que la empresa está lista, basta con:
+
+- Crear un **Batch Document** con el detalle de las facturas a emitir.
+- Usar el flag `use_default` (o equivalente) para que el sistema utilice la configuración/credencial por defecto de esa empresa.
+
+Con eso, el batch queda procesándose y la emisión ocurre de forma automática.
+
+## 4) Webhooks: un webhook por empresa
+
+Para recibir el resultado de cada emisión, debes configurar un webhook por empresa.
+
+También puedes hacerlo:
+
+- **Desde la plataforma**, o
+- **Desde la API**: crea un webhook para la empresa.
+
+El webhook es clave porque es el canal donde se envía el estado final y los archivos asociados.
+
+## 5) Recepción de resultados (XML y PDF)
+
+Una vez configurado el webhook, el sistema **recibe automáticamente del SII** el PDF y XML final de cada factura emitida. Vas a recibir las notificaciones del procesamiento del batch, incluyendo:
+
+- Estado / respuesta de emisión desde el SII
+- **XML final** generado por el SII
+- **PDF final** generado por el SII
+
+## 6) Opciones avanzadas (direcciones y actividades económicas personalizadas)
+
+Si necesitas direcciones o actividades económicas personalizadas, el flujo es:
+
+1. Pedir la entidad (master entity) por RUT para obtener los datos disponibles
+   (direcciones/actividades), cada una con su `id` (`addr_…`, `acti_…`).
+2. Incluir esos identificadores en el Batch Document al crear el batch.
+
+Esto te permite controlar con precisión qué dirección/actividad se usa al emitir.
+
+## 7) Monitoreo y trazabilidad en la plataforma
+
+Además de operar por API, puedes revisar todo en la plataforma:
+
+- Vista detallada de empresas enroladas, credenciales, batches y estados.
+- **Modo Sandbox** en la plataforma para ver exclusivamente lo que entra por Sandbox.
+- **Modo Producción** para ver lo que está en operación real.
+
+Puedes activar/usar Sandbox o Producción según el entorno que estés integrando.
+
+## Endpoints relacionados
+
+- **Listar Credenciales** — Ver credenciales configuradas
+- **Listar Documentos** — Consultar documentos emitidos
+- **Obtener Documento Específico** — Ver detalles de un documento
+- **Consultar Estados de Documento** — Ver historial de estados
+- **Registrar Estado de Documento** — Registrar eventos manualmente
