@@ -1,0 +1,242 @@
+---
+title: 'Errores'
+description: 'Taxonomía de errores de la API v2 — estructura estable, tipos y catálogo de códigos'
+---
+
+# Errores
+
+La API v2 devuelve **un solo formato de error** en toda respuesta ≥ 400. Está
+diseñado para que puedas manejar errores con código estable y sin parsear texto.
+
+## Estructura del error
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "parameter_missing",
+    "message": "Falta el parámetro requerido 'master_entity_id'.",
+    "param": "master_entity_id",
+    "resource": "ment_4829301923847",
+    "doc_url": "https://docs.tupana.ai/v2/errors#parameter_missing",
+    "request_id": "req_8f3a9c2b1e7d4"
+  }
+}
+```
+
+| Campo | Siempre | Descripción |
+|-------|:------:|-------------|
+| `type` | ✓ | Categoría amplia y **estable**. Mapea 1:1 al status HTTP (tabla abajo). |
+| `code` | ✓ | Código específico, **estable, machine-readable**. Hacé tu `switch` sobre esto. |
+| `message` | ✓ | Texto para humanos (es-CL). **Puede cambiar — nunca lo parsees.** |
+| `param` | — | Campo que causó el error (para formularios). |
+| `resource` | — | **Public ID** del recurso involucrado (`docu_…`, `ment_…`, `cred_…`). |
+| `doc_url` | ✓ | Link directo a la explicación de este `code`. |
+| `request_id` | ✓ | ID de correlación (`req_…`). Inclúyelo al contactar soporte. |
+
+<Warning>
+Manejá los errores por **`code`** (estable), no por `message` (puede cambiar) ni
+por el status HTTP solo (varios `code` comparten status).
+</Warning>
+
+## Tipos de error y status HTTP
+
+| `type` | HTTP | Cuándo ocurre | ¿Reintentar? |
+|--------|:----:|---------------|:------------:|
+| `invalid_request_error` | 400 | Request mal formado o parámetro inválido | No — corregí el request |
+| `authentication_error` | 401 | Falta la API Key o es inválida | No |
+| `permission_error` | 403 | La API Key no tiene acceso a ese recurso | No |
+| `not_found_error` | 404 | El recurso (public ID) no existe | No |
+| `validation_error` | 422 | El documento no cumple una regla de negocio o del SII | No — corregí los datos |
+| `conflict_error` | 409 | Estado conflictivo (folio/RUT duplicado) | No |
+| `idempotency_error` | 409 | Reusaste una `Idempotency-Key` con un body distinto | No |
+| `credential_error` | 400 | Credencial SII/certificado inválida, incompleta o bloqueada | Solo tras corregir la credencial |
+| `sii_error` | 400 / 503 | El SII rechazó el documento o no está disponible | Sí si es `sii_unavailable` |
+| `payment_error` | 400 | Problema al generar el cobro (pasarela / datos bancarios) | No |
+| `rate_limit_error` | 429 | Superaste el límite de solicitudes | Sí — con backoff (ver `Retry-After`) |
+| `api_error` | 500 / 502 / 503 | Error interno o de un servicio upstream | Sí — con backoff |
+
+### Ejemplo de manejo (pseudo)
+
+```python
+resp = tupana.documents.create(batch)
+if resp.status_code >= 400:
+    err = resp.json()["error"]
+    if err["code"] == "folios_exhausted":
+        alertar_contador("Solicita más CAF en el SII")
+    elif err["type"] == "rate_limit_error":
+        reintentar_con_backoff(resp.headers["Retry-After"])
+    elif err["type"] == "sii_error" and err["code"] == "sii_unavailable":
+        reintentar_mas_tarde()
+    else:
+        log(err["request_id"], err["message"])
+```
+
+---
+
+## Catálogo de códigos
+
+### Comunes (todas las APIs)
+
+| `code` | `type` | HTTP | Significado |
+|--------|--------|:----:|-------------|
+| `parameter_missing` | invalid_request_error | 400 | Falta un parámetro requerido (ver `param`). |
+| `parameter_invalid` | invalid_request_error | 400 | Un parámetro tiene formato inválido (ej. RUT, fecha, email). |
+| `authentication_required` | authentication_error | 401 | No se envió `Authorization: Api-Key …`. |
+| `api_key_invalid` | authentication_error | 401 | La API Key no existe o fue revocada. |
+| `permission_denied` | permission_error | 403 | La API Key no tiene acceso a ese recurso. |
+| `resource_missing` | not_found_error | 404 | El public ID no existe (ver `resource`). |
+| `idempotency_key_reused` | idempotency_error | 409 | Misma `Idempotency-Key`, distinto body. |
+| `rate_limited` | rate_limit_error | 429 | Demasiadas solicitudes. Respetá `Retry-After`. |
+| `internal_error` | api_error | 500 | Error interno. Reintentá; si persiste, reportá el `request_id`. |
+| `service_unavailable` | api_error | 503 | Servicio saturado. Reintentá con backoff. |
+
+### Facturación — Emisión de documentos
+
+| `code` | `type` | HTTP | Significado |
+|--------|--------|:----:|-------------|
+| `no_documents` | invalid_request_error | 400 | La lista `documents` está vacía. |
+| `too_many_documents` | invalid_request_error | 413 | Máximo 200 documentos por batch. |
+| `issuer_rut_missing` | invalid_request_error | 400 | Falta el RUT del emisor en el documento. |
+| `issuer_not_found` | not_found_error | 404 | No existe una empresa con ese RUT emisor. |
+| `issuer_forbidden` | permission_error | 403 | La API Key no puede emitir por esa empresa. |
+| `no_active_credentials` | credential_error | 400 | La empresa emisora no tiene credenciales de emisión activas. |
+| `certificate_password_required` | credential_error | 400 | Ese tipo de DTE requiere clave del certificado digital. |
+| `receiver_required` | validation_error | 422 | Este tipo de documento exige receptor. |
+| `receiver_data_incomplete` | validation_error | 422 | Faltan datos del receptor (dirección, giro, comuna). Ver `param`. |
+| `dte_field_required` | validation_error | 422 | Falta un campo obligatorio para ese tipo de DTE. Ver `param`. |
+| `detail_line_limit` | validation_error | 422 | El facturador gratuito del SII permite máximo 10 líneas por documento. |
+| `negative_amount` | validation_error | 422 | Montos negativos solo se permiten en boletas (39/41). |
+| `folio_duplicate` | conflict_error | 409 | Ya existe ese folio para el tipo de DTE en el período. |
+
+### Facturación — Boleta de Honorarios (DTE 80/90)
+
+| `code` | `type` | HTTP | Significado |
+|--------|--------|:----:|-------------|
+| `authorized_user_rut_not_allowed` | validation_error | 422 | `authorized_user_rut` solo aplica a boletas de honorarios (80/90). |
+| `authorized_user_credential_missing` | credential_error | 400 | No hay credencial `sii_company` activa del usuario autorizado. |
+| `retention_type_invalid` | invalid_request_error | 400 | `retention_type` debe ser `RETRECEPTOR`, `RETEMISOR` o `RETTERCERO`. |
+
+### Credenciales
+
+| `code` | `type` | HTTP | Significado |
+|--------|--------|:----:|-------------|
+| `credential_password_required` | invalid_request_error | 400 | Falta `user_rut` y/o `password`. |
+| `certificate_invalid` | credential_error | 400 | El certificado (.pfx) es inválido o la clave es incorrecta. |
+| `sii_credentials_invalid` | credential_error | 400 | El SII rechazó el RUT/clave ("Usuario no autorizado"). |
+| `credential_locked` | conflict_error | 409 | La credencial está en uso por otra operación. Reintentá en unos segundos. |
+
+### SII (emisión y consultas)
+
+| `code` | `type` | HTTP | Significado |
+|--------|--------|:----:|-------------|
+| `folios_exhausted` | sii_error | 400 | No quedan folios (CAF). Solicitá más en el SII. |
+| `sii_rejected` | sii_error | 400 | El SII rechazó el documento. Revisá los datos. |
+| `sii_unauthorized` | sii_error | 400 | El usuario no está autorizado en el SII para esta operación. |
+| `sii_session_expired` | sii_error | 400 | La sesión del SII expiró. Revalidá la credencial. |
+| `sii_unavailable` | sii_error | 503 | El SII no está disponible. Reintentá en unos minutos. |
+
+### Recaudación (cobros / payment requests)
+
+| `code` | `type` | HTTP | Significado |
+|--------|--------|:----:|-------------|
+| `document_ids_empty` | invalid_request_error | 400 | `document_ids` debe tener al menos un documento. |
+| `mixed_payers` | invalid_request_error | 400 | Todos los documentos deben ser del mismo receptor/pagador. |
+| `banking_info_missing` | payment_error | 400 | El receptor no tiene información bancaria configurada. |
+| `payment_gateway_not_configured` | payment_error | 400 | La pasarela de pago no está configurada para este receptor. |
+
+### Cesiones
+
+| `code` | `type` | HTTP | Significado |
+|--------|--------|:----:|-------------|
+| `assignee_rut_invalid` | invalid_request_error | 400 | El RUT del cesionario es inválido. |
+| `assignee_email_invalid` | invalid_request_error | 400 | El email del cesionario es inválido. |
+| `document_not_cessionable` | validation_error | 422 | El documento no puede cederse en su estado actual. |
+
+### Documentos Programados
+
+| `code` | `type` | HTTP | Significado |
+|--------|--------|:----:|-------------|
+| `next_issue_date_in_past` | invalid_request_error | 400 | La próxima fecha de emisión debe ser futura. |
+| `frequency_invalid` | invalid_request_error | 400 | Frecuencia inválida (`monthly`, `quarterly`, `yearly`). |
+
+### Webhooks
+
+| `code` | `type` | HTTP | Significado |
+|--------|--------|:----:|-------------|
+| `webhook_url_invalid` | invalid_request_error | 400 | La `webhook_url` es inválida o no es HTTPS. |
+| `event_type_invalid` | invalid_request_error | 400 | El `event_type` no está soportado. |
+
+---
+
+## Ejemplos por escenario
+
+### Falta un campo del receptor (validación)
+
+```json
+{
+  "error": {
+    "type": "validation_error",
+    "code": "receiver_data_incomplete",
+    "message": "El receptor requiere dirección para una factura afecta (DTE 33).",
+    "param": "document_receiver.address",
+    "resource": "ment_4829301923847",
+    "doc_url": "https://docs.tupana.ai/v2/errors#receiver_data_incomplete",
+    "request_id": "req_2b7e1c9a4f0"
+  }
+}
+```
+
+### El SII se quedó sin folios
+
+```json
+{
+  "error": {
+    "type": "sii_error",
+    "code": "folios_exhausted",
+    "message": "No quedan folios disponibles para factura electrónica (33). Solicita más folios (CAF) en el SII.",
+    "resource": "ment_4829301923847",
+    "doc_url": "https://docs.tupana.ai/v2/errors#folios_exhausted",
+    "request_id": "req_5a1d8f3b2c6"
+  }
+}
+```
+
+### Recurso no encontrado (public ID inexistente)
+
+```json
+{
+  "error": {
+    "type": "not_found_error",
+    "code": "resource_missing",
+    "message": "No existe un documento con id 'docu_0000000000000'.",
+    "resource": "docu_0000000000000",
+    "doc_url": "https://docs.tupana.ai/v2/errors#resource_missing",
+    "request_id": "req_9c4e2a7f1b8"
+  }
+}
+```
+
+### Límite de solicitudes
+
+```json
+{
+  "error": {
+    "type": "rate_limit_error",
+    "code": "rate_limited",
+    "message": "Demasiadas solicitudes. Reintenta después de 5 segundos.",
+    "doc_url": "https://docs.tupana.ai/v2/errors#rate_limited",
+    "request_id": "req_1f6b3d9e0a2"
+  }
+}
+```
+Respuesta incluye el header `Retry-After: 5`.
+
+---
+
+## Idempotencia y errores
+
+Los endpoints de escritura (emisión, cobros) aceptan el header `Idempotency-Key`.
+Si reintentás **con la misma key y el mismo body**, la API devuelve la respuesta
+original **sin repetir la operación** (no se re-emite al SII). Si reutilizás la
+misma key con un **body distinto**, obtenés `idempotency_key_reused` (409).

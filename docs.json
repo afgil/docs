@@ -257,6 +257,12 @@
                 ]
               },
               {
+                "group": "Errores",
+                "pages": [
+                  "api-reference/v2/errors"
+                ]
+              },
+              {
                 "group": "Facturación — Entidades",
                 "pages": [
                   "api-reference/v2/documents/master-entities"
