@@ -1,0 +1,35 @@
+---
+title: 'Cesiones — Introducción'
+description: 'Cesión electrónica de facturas (factoring) — API v2'
+---
+
+# Cesiones
+
+Una **cesión** transfiere los derechos de crédito de una factura electrónica a
+un tercero (el **cesionario**, por ejemplo una empresa de factoring). Es el
+mecanismo con el que financias tus facturas por cobrar antes de su vencimiento.
+
+En Chile la cesión se formaliza con un **AEC** (Archivo Electrónico de Cesión)
+que se envía al SII y queda en el Registro de Cesiones.
+
+## Qué puedes hacer con esta API
+
+- **Listar cesiones** emitidas o recibidas por una entidad
+  (`document_type=issued` | `received`).
+- **Obtener una cesión** puntual con su estado en el SII y la URL del AEC.
+- **Ceder facturas en lote** (`POST /cessions/batch/`) y **consultar el estado**
+  del lote (`GET /cessions/batch/{batch_id}/`).
+
+<Note>
+Todos los identificadores son **public IDs** con prefijo: la cesión es
+`doce_…`, el documento cedido `docu_…` y las entidades (emisor, receptor,
+cesionario) `ment_…`.
+</Note>
+
+## Emitidas vs. recibidas
+
+- **Emitidas** (`document_type=issued`, por defecto): cesiones de facturas que
+  **tú emitiste** y cediste a un cesionario.
+- **Recibidas** (`document_type=received`): facturas de **tus proveedores** que
+  ellos cedieron a un tercero — útil para saber a quién pagarle en vez del
+  proveedor original.

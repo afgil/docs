@@ -118,6 +118,12 @@
             "tab": "API Cesiones",
             "groups": [
               {
+                "group": "Introducción",
+                "pages": [
+                  "api-reference/v2/cessions/introduction"
+                ]
+              },
+              {
                 "group": "Cesiones",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
@@ -190,7 +196,10 @@
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "GET /api/v2/book-summaries/",
-                  "GET /api/v2/sync-status/"
+                  "GET /api/v2/sync-status/",
+                  "GET /api/v2/sync-requests/",
+                  "POST /api/v2/sync-requests/",
+                  "GET /api/v2/sync-requests/{id}/"
                 ]
               }
             ]
@@ -204,35 +213,6 @@
                 "pages": [
                   "GET /api/v2/honorary/authorized-users/",
                   "GET /api/v2/honorary/master-entities/{master_entity_id}/authorized-users/"
-                ]
-              }
-            ]
-          },
-          {
-            "tab": "API Nómina",
-            "groups": [
-              {
-                "group": "Nómina — Trabajadores",
-                "pages": [
-                  "api-reference/v2/payroll/employees"
-                ]
-              },
-              {
-                "group": "Nómina — Procesos",
-                "pages": [
-                  "api-reference/v2/payroll/runs"
-                ]
-              },
-              {
-                "group": "Nómina — Liquidaciones",
-                "pages": [
-                  "api-reference/v2/payroll/payslips"
-                ]
-              },
-              {
-                "group": "Nómina — Indicadores",
-                "pages": [
-                  "api-reference/v2/payroll/indicators"
                 ]
               }
             ]
