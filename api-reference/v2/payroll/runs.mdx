@@ -1,0 +1,95 @@
+---
+title: 'Procesos de liquidación'
+description: 'Listar y obtener procesos de liquidación (PayrollRun) — IDs prefijados v2'
+---
+
+## Listar procesos de liquidación
+
+`GET /api/v2/payroll/runs/`
+
+### Query params
+
+| Parámetro | Tipo | Requerido | Descripción |
+|-----------|------|-----------|-------------|
+| `master_entity_id` | string | ✓ | Public ID de la empresa (`ment_...`) |
+| `period` | string | — | Filtrar por período `YYYYMM` (ej. `202408`) |
+| `page` | int | — | Página (default: 1) |
+| `page_size` | int | — | Resultados por página (máx 200, default 50) |
+
+### Respuesta
+
+```json
+{
+  "count": 6,
+  "page": 1,
+  "page_size": 50,
+  "results": [
+    {
+      "id": "prun_4829301923847",
+      "period": "202408",
+      "status": "closed",
+      "closed_at": "2024-08-31T23:59:00Z",
+      "paid_at": "2024-09-05T12:00:00Z",
+      "totals": {
+        "workers": 12,
+        "total_earnings": 10200000,
+        "total_deductions": 1530000,
+        "net_pay": 8670000,
+        "employer_cost": 11220000
+      }
+    }
+  ]
+}
+```
+
+---
+
+## Obtener proceso de liquidación
+
+`GET /api/v2/payroll/runs/{id}/`
+
+### Ejemplo cURL
+
+```bash
+curl -H "Authorization: Api-Key TU_API_KEY" \
+  "https://app.tupana.ai/api/v2/payroll/runs/prun_4829301923847/"
+```
+
+---
+
+## Listar liquidaciones del proceso
+
+`GET /api/v2/payroll/runs/{id}/payslips/`
+
+Retorna todas las liquidaciones individuales de un proceso.
+
+### Respuesta
+
+```json
+{
+  "count": 12,
+  "page": 1,
+  "page_size": 50,
+  "results": [
+    {
+      "id": "slip_7291048302917",
+      "employee_rut": "12345678-9",
+      "employee_name": "Ana González Rojas",
+      "worked_days": 30,
+      "total_earnings": 850000,
+      "total_taxable": 780000,
+      "total_deductions": 127500,
+      "net_pay": 722500,
+      "employer_cost": 935000,
+      "availability": "2024-09-05"
+    }
+  ]
+}
+```
+
+### Ejemplo cURL
+
+```bash
+curl -H "Authorization: Api-Key TU_API_KEY" \
+  "https://app.tupana.ai/api/v2/payroll/runs/prun_4829301923847/payslips/"
+```

@@ -1,0 +1,74 @@
+---
+title: 'Cesiones'
+description: 'Listar y obtener cesiones — API v2 (public IDs con prefijo)'
+---
+
+## Listar cesiones
+
+`GET /api/v2/cessions/`
+
+### Query params
+
+| Parámetro | Tipo | Requerido | Descripción |
+|-----------|------|-----------|-------------|
+| `master_entity_id` | string | ✓ | Public ID de la empresa (`ment_...`) |
+| `page` | int | — | Página (default: 1) |
+| `page_size` | int | — | Resultados por página |
+
+### Respuesta
+
+```json
+{
+  "count": 30,
+  "results": [
+    {
+      "id": "cess_6193827465012",
+      "document_id": "docu_8371029384756",
+      "folio": 1842,
+      "dte_type": 33,
+      "amount": 1190000,
+      "receiver_rut": "76.555.666-7",
+      "receiver_name": "Factor SpA",
+      "cession_date": "2024-08-16",
+      "status": "accepted"
+    }
+  ]
+}
+```
+
+### Ejemplo cURL
+
+```bash
+curl -H "Authorization: Api-Key TU_API_KEY" \
+  "https://app.tupana.ai/api/v2/cessions/?master_entity_id=ment_4829301923847"
+```
+
+---
+
+## Obtener cesión
+
+`GET /api/v2/cessions/{id}/`
+
+### Ejemplo cURL
+
+```bash
+curl -H "Authorization: Api-Key TU_API_KEY" \
+  "https://app.tupana.ai/api/v2/cessions/cess_6193827465012/"
+```
+
+### Respuesta
+
+```json
+{
+  "id": "cess_6193827465012",
+  "document_id": "docu_8371029384756",
+  "folio": 1842,
+  "dte_type": 33,
+  "amount": 1190000,
+  "receiver_rut": "76.555.666-7",
+  "receiver_name": "Factor SpA",
+  "cession_date": "2024-08-16",
+  "status": "accepted",
+  "certificate_url": "https://..."
+}
+```

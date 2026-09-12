@@ -1,0 +1,42 @@
+---
+title: 'Entidades'
+description: 'Buscar entidades por RUT — API v2'
+---
+
+## Buscar entidad por RUT
+
+`GET /api/v2/master-entities/`
+
+En v2 el `id` es el public ID de la empresa (`ment_...`).
+
+### Query params
+
+| Parámetro | Tipo | Requerido | Descripción |
+|-----------|------|-----------|-------------|
+| `rut` | string | ✓ | RUT de la empresa (con o sin puntos y guion) |
+
+### Respuesta
+
+```json
+{
+  "id": "ment_4829301923847",
+  "name": "Mi Empresa SpA",
+  "tax_id": "76.111.222-3",
+  "business_activity": "Servicios de tecnología",
+  "address": "Av. Providencia 123, Santiago",
+  "municipality": "Providencia",
+  "region": "Metropolitana"
+}
+```
+
+### Ejemplo cURL
+
+```bash
+curl -H "Authorization: Api-Key TU_API_KEY" \
+  "https://app.tupana.ai/api/v2/master-entities/?rut=76111222-3"
+```
+
+<Tip>
+El `id` que obtienes aquí (`ment_...`) es el `master_entity_id` que debes
+pasar en todos los demás endpoints v2.
+</Tip>
