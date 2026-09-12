@@ -76,22 +76,28 @@ if resp.status_code >= 400:
 
 ## Catálogo de códigos
 
+<Note>
+Los códigos de **Comunes**, **Cesiones** y **Recaudación** ya se emiten en
+producción. Las secciones marcadas con **⏳** están en implementación: hoy esos
+endpoints devuelven `parameter_missing`/`parameter_invalid` en errores de campo
+(con `param`) y `validation_error` con mensaje en reglas de negocio; los códigos
+específicos listados se están desplegando.
+</Note>
+
 ### Comunes (todas las APIs)
 
 | `code` | `type` | HTTP | Significado |
 |--------|--------|:----:|-------------|
 | `parameter_missing` | invalid_request_error | 400 | Falta un parámetro requerido (ver `param`). |
-| `parameter_invalid` | invalid_request_error | 400 | Un parámetro tiene formato inválido (ej. RUT, fecha, email). |
-| `authentication_required` | authentication_error | 401 | No se envió `Authorization: Api-Key …`. |
-| `api_key_invalid` | authentication_error | 401 | La API Key no existe o fue revocada. |
-| `permission_denied` | permission_error | 403 | La API Key no tiene acceso a ese recurso. |
+| `parameter_invalid` | invalid_request_error | 400 | Un parámetro tiene formato o valor inválido (ver `param`). |
+| `unauthenticated` | authentication_error | 401 | Falta la API Key o es inválida/revocada. |
+| `forbidden` | permission_error | 403 | La API Key no tiene acceso a ese recurso. |
 | `resource_missing` | not_found_error | 404 | El public ID no existe (ver `resource`). |
-| `idempotency_key_reused` | idempotency_error | 409 | Misma `Idempotency-Key`, distinto body. |
-| `rate_limited` | rate_limit_error | 429 | Demasiadas solicitudes. Respetá `Retry-After`. |
+| `conflict` | conflict_error | 409 | Conflicto con datos existentes. |
+| `rate_limited` | rate_limit_error | 429 | Demasiadas solicitudes. Respeta `Retry-After`. |
 | `internal_error` | api_error | 500 | Error interno. Reintenta; si persiste, reporta el `request_id`. |
-| `service_unavailable` | api_error | 503 | Servicio saturado. Reintenta con backoff. |
 
-### Facturación — Emisión de documentos
+### ⏳ Facturación — Emisión de documentos
 
 | `code` | `type` | HTTP | Significado |
 |--------|--------|:----:|-------------|
@@ -109,7 +115,7 @@ if resp.status_code >= 400:
 | `negative_amount` | validation_error | 422 | Montos negativos solo se permiten en boletas (39/41). |
 | `folio_duplicate` | conflict_error | 409 | Ya existe ese folio para el tipo de DTE en el período. |
 
-### Facturación — Boleta de Honorarios (DTE 80/90)
+### ⏳ Facturación — Boleta de Honorarios (DTE 80/90)
 
 | `code` | `type` | HTTP | Significado |
 |--------|--------|:----:|-------------|
@@ -117,7 +123,7 @@ if resp.status_code >= 400:
 | `authorized_user_credential_missing` | credential_error | 400 | No hay credencial `sii_company` activa del usuario autorizado. |
 | `retention_type_invalid` | invalid_request_error | 400 | `retention_type` debe ser `RETRECEPTOR`, `RETEMISOR` o `RETTERCERO`. |
 
-### Credenciales
+### ⏳ Credenciales
 
 | `code` | `type` | HTTP | Significado |
 |--------|--------|:----:|-------------|
@@ -126,14 +132,14 @@ if resp.status_code >= 400:
 | `sii_credentials_invalid` | credential_error | 400 | El SII rechazó el RUT/clave ("Usuario no autorizado"). |
 | `credential_locked` | conflict_error | 409 | La credencial está en uso por otra operación. Reintenta en unos segundos. |
 
-### SII (emisión y consultas)
+### ⏳ SII (emisión y consultas)
 
 | `code` | `type` | HTTP | Significado |
 |--------|--------|:----:|-------------|
 | `folios_exhausted` | sii_error | 400 | No quedan folios (CAF). Solicita más en el SII. |
 | `sii_rejected` | sii_error | 400 | El SII rechazó el documento. Revisa los datos. |
 | `sii_unauthorized` | sii_error | 400 | El usuario no está autorizado en el SII para esta operación. |
-| `sii_session_expired` | sii_error | 400 | La sesión del SII expiró. Revalidá la credencial. |
+| `sii_session_expired` | sii_error | 400 | La sesión del SII expiró. Revalida la credencial. |
 | `sii_unavailable` | sii_error | 503 | El SII no está disponible. Reintenta en unos minutos. |
 
 ### Recaudación (cobros / payment requests)
@@ -142,25 +148,33 @@ if resp.status_code >= 400:
 |--------|--------|:----:|-------------|
 | `document_ids_empty` | invalid_request_error | 400 | `document_ids` debe tener al menos un documento. |
 | `mixed_payers` | invalid_request_error | 400 | Todos los documentos deben ser del mismo receptor/pagador. |
+| `cannot_mix_modes` | invalid_request_error | 400 | `document_ids` no se combina con campos de emisión (`items`, `amount`, etc.). |
+| `document_not_owned` | invalid_request_error | 400 | Un documento no pertenece al receptor indicado. |
+| `document_not_payable` | invalid_request_error | 400 | El tipo de documento no es cobrable. |
+| `document_already_paid` | invalid_request_error | 400 | El documento ya está pagado. |
+| `sandbox_document_required` | invalid_request_error | 400 | Con API Key sandbox, los documentos deben ser sandbox. |
 | `banking_info_missing` | payment_error | 400 | El receptor no tiene información bancaria configurada. |
-| `payment_gateway_not_configured` | payment_error | 400 | La pasarela de pago no está configurada para este receptor. |
+| `resource_missing` | not_found_error | 404 | El documento o el receptor no existe. |
 
 ### Cesiones
 
 | `code` | `type` | HTTP | Significado |
 |--------|--------|:----:|-------------|
-| `assignee_rut_invalid` | invalid_request_error | 400 | El RUT del cesionario es inválido. |
-| `assignee_email_invalid` | invalid_request_error | 400 | El email del cesionario es inválido. |
-| `document_not_cessionable` | validation_error | 422 | El documento no puede cederse en su estado actual. |
+| `document_ids_empty` | invalid_request_error | 400 | `document_ids` debe tener al menos un documento. |
+| `assignee_data_incomplete` | invalid_request_error | 400 | Faltan datos del cesionario (`assignee_rut`, `assignee_dv`, `assignee_email`, razón social o dirección). |
+| `assignor_email_missing` | invalid_request_error | 400 | Falta `assignor_email` (o email de la empresa cedente). |
+| `document_not_cessionable` | invalid_request_error | 400 | Solo facturas electrónicas DTE 33/34 pueden cederse. |
+| `no_active_credentials` | credential_error | 400 | La entidad no tiene credencial SII válida para ceder. |
+| `resource_missing` | not_found_error | 404 | Alguno de los documentos no existe o no pertenece a esta entidad. |
 
-### Documentos Programados
+### ⏳ Documentos Programados
 
 | `code` | `type` | HTTP | Significado |
 |--------|--------|:----:|-------------|
 | `next_issue_date_in_past` | invalid_request_error | 400 | La próxima fecha de emisión debe ser futura. |
 | `frequency_invalid` | invalid_request_error | 400 | Frecuencia inválida (`monthly`, `quarterly`, `yearly`). |
 
-### Webhooks
+### ⏳ Webhooks
 
 | `code` | `type` | HTTP | Significado |
 |--------|--------|:----:|-------------|
