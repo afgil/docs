@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Tupana API — v2",
-    "description": "API v2 de Tupana: facturación electrónica, cesiones, recaudación, consultas, boleta de honorarios y nómina. Los identificadores de recursos son public IDs opacos con prefijo (docu_, ment_, cred_, cess_, empl_…).",
+    "description": "API v2 de Tupana: facturación electrónica, cesiones, recaudación, consultas, boleta de honorarios y nómina. Los identificadores de recursos son public IDs opacos con prefijo (docu_, ment_, cred_, doce_, empl_…).",
     "version": "2.0.0"
   },
   "servers": [
@@ -746,7 +746,7 @@
                     "total": {
                       "type": "integer"
                     },
-                    "success_count": {
+                    "sucdoce_count": {
                       "type": "integer"
                     },
                     "failed_count": {
@@ -807,7 +807,7 @@
                   "id": "e7877303-1a03-424d-a024-48c1de218611",
                   "status": "failed",
                   "total": 1,
-                  "success_count": 0,
+                  "sucdoce_count": 0,
                   "failed_count": 1,
                   "assignee_business_name": "CAPITAL EXPRESS SERVICIOS FINANCIEROS SA.",
                   "assignee_rut": "76083507-2",
@@ -4868,7 +4868,7 @@
           }
         ],
         "summary": "Estado de sincronización de una entidad",
-        "description": "Devuelve la frecuencia de sincronización contratada para la entidad (`sync_frequency_hours`: 24, 12 o 3) y la última actualización por tipo de scrape. Cada fila de `types` indica cuándo fue la última carga exitosa (`last_success_at`) y el estado de la última ejecución (`last_status`). Solo aparecen los tipos que se han sincronizado al menos una vez para la entidad.",
+        "description": "Devuelve la frecuencia de sincronización contratada para la entidad (`sync_frequency_hours`: 24, 12 o 3) y la última actualización por tipo de scrape. Cada fila de `types` indica cuándo fue la última carga exitosa (`last_sucdoce_at`) y el estado de la última ejecución (`last_status`). Solo aparecen los tipos que se han sincronizado al menos una vez para la entidad.",
         "parameters": [
           {
             "name": "master_entity_id",
@@ -4919,17 +4919,17 @@
                   "types": [
                     {
                       "scrape_type": "ISSUED_DOCS",
-                      "last_success_at": "2026-07-20T06:12:41Z",
+                      "last_sucdoce_at": "2026-07-20T06:12:41Z",
                       "last_status": "completed"
                     },
                     {
                       "scrape_type": "RECEIVED_DOCS",
-                      "last_success_at": "2026-07-20T06:15:03Z",
+                      "last_sucdoce_at": "2026-07-20T06:15:03Z",
                       "last_status": "completed"
                     },
                     {
                       "scrape_type": "PURCHASE_BOOK",
-                      "last_success_at": "2026-07-19T06:14:10Z",
+                      "last_sucdoce_at": "2026-07-19T06:14:10Z",
                       "last_status": "failed"
                     }
                   ]
@@ -5040,7 +5040,7 @@
                     "is_active": true,
                     "last_status_code": 200,
                     "last_sent_at": "2025-01-13T10:30:00Z",
-                    "success_rate": 95.5,
+                    "sucdoce_rate": 95.5,
                     "last_delivery": {
                       "id": 123,
                       "event": "document.issued",
@@ -5136,7 +5136,7 @@
                   "is_active": true,
                   "last_status_code": null,
                   "last_sent_at": null,
-                  "success_rate": 0,
+                  "sucdoce_rate": 0,
                   "last_delivery": null,
                   "created_at": "2025-01-13T11:00:00Z",
                   "updated_at": "2025-01-13T11:00:00Z"
@@ -5184,8 +5184,9 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "description": "ID de la fila de resumen"
+            "type": "string",
+            "description": "ID de la fila de resumen",
+            "example": "bosu_5e8d2c9b7a1f4"
           },
           "period": {
             "type": "string",
@@ -5239,11 +5240,13 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "description": "ID de la cesión"
+            "type": "string",
+            "description": "ID de la cesión",
+            "example": "doce_7c3e9a1f5b2d8"
           },
           "document_id": {
-            "type": "integer"
+            "type": "string",
+            "example": "docu_9f2a7c1b8e4d0"
           },
           "document_folio": {
             "type": "string"
@@ -5256,7 +5259,8 @@
             "type": "number"
           },
           "supplier_id": {
-            "type": "integer"
+            "type": "string",
+            "example": "ment_4829301923847"
           },
           "supplier_name": {
             "type": "string"
@@ -5265,8 +5269,9 @@
             "type": "string"
           },
           "receiver_id": {
-            "type": "integer",
-            "nullable": true
+            "type": "string",
+            "nullable": true,
+            "example": "ment_4829301923847"
           },
           "receiver_name": {
             "type": "string",
@@ -5283,8 +5288,9 @@
             "type": "string"
           },
           "assignee_entity_id": {
-            "type": "integer",
-            "nullable": true
+            "type": "string",
+            "nullable": true,
+            "example": "ment_4829301923847"
           },
           "assignee_entity_name": {
             "type": "string",
@@ -5369,9 +5375,9 @@
             "example": true
           },
           "document_id": {
-            "type": "integer",
+            "type": "string",
             "description": "ID del documento",
-            "example": 12345
+            "example": "docu_9f2a7c1b8e4d0"
           },
           "folio": {
             "type": "string",
@@ -5521,8 +5527,8 @@
         "description": "Pedido de timbraje de folios ante el SII.",
         "properties": {
           "id": {
-            "type": "integer",
-            "example": 8821
+            "type": "string",
+            "example": "fir_8d4a2f7c1e9b5"
           },
           "dte_type": {
             "type": "integer",
@@ -5732,7 +5738,8 @@
         "description": "Consulta de folios al SII. Es un recurso para que puedas seguirla: antes esto era una acción que respondía 202 sin nada que consultar.",
         "properties": {
           "id": {
-            "type": "integer"
+            "type": "string",
+            "example": "foqu_3b7f1e9d5c2a8"
           },
           "dte_type": {
             "type": "integer",
@@ -5820,9 +5827,9 @@
         ],
         "properties": {
           "master_entity_id": {
-            "type": "integer",
+            "type": "string",
             "description": "ID de la entidad maestra para la cual se crea el webhook",
-            "example": 123
+            "example": "ment_4829301923847"
           },
           "url": {
             "type": "string",
@@ -5862,8 +5869,9 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "description": "ID único del webhook"
+            "type": "string",
+            "description": "ID único del webhook",
+            "example": "dowe_2c9e5a1b7f3d0"
           },
           "url": {
             "type": "string",
@@ -5918,7 +5926,7 @@
             "description": "Fecha de último envío",
             "nullable": true
           },
-          "success_rate": {
+          "sucdoce_rate": {
             "type": "number",
             "format": "float",
             "description": "Tasa de éxito de entregas (0-100)",
@@ -6631,8 +6639,9 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "description": "ID único del documento"
+            "type": "string",
+            "description": "ID único del documento",
+            "example": "docu_9f2a7c1b8e4d0"
           },
           "folio": {
             "type": "string",
@@ -7015,9 +7024,9 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
+            "type": "string",
             "description": "ID entero de la entidad maestra (contrato v1). Para integraciones nuevas prefiere `opaque_id`.",
-            "example": 371
+            "example": "ment_4829301923847"
           },
           "opaque_id": {
             "type": "string",
@@ -7132,9 +7141,9 @@
         "description": "Referencia a un documento (ej. para notas de crédito). Máximo 3 referencias por documento programado.",
         "properties": {
           "id": {
-            "type": "integer",
+            "type": "string",
             "description": "ID de la referencia (solo en respuesta)",
-            "example": 1
+            "example": "scdo_6f1d8b3a9e2c7"
           },
           "dte_type_code": {
             "type": "string",
@@ -7192,9 +7201,9 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
+            "type": "string",
             "description": "ID único del documento programado",
-            "example": 789
+            "example": "scdo_6f1d8b3a9e2c7"
           },
           "sender": {
             "type": "object",
@@ -7655,9 +7664,9 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
+            "type": "string",
             "description": "ID único del detalle",
-            "example": 1
+            "example": "scdo_6f1d8b3a9e2c7"
           },
           "item_name": {
             "type": "string",
@@ -7928,7 +7937,7 @@
             "description": "Tipo de scrape: ISSUED_DOCS (facturas emitidas), RECEIVED_DOCS (facturas recibidas), RECEIVED_HONORARY_BILLS (boletas de honorarios recibidas), THIRD_PARTY_HONORARY (boletas de honorarios de terceros), EMITTED_HONORARY_BILLS (boletas de honorarios emitidas), PURCHASE_BOOK (libro de compras), SALE_BOOK (libro de ventas), BOOK_SUMMARY (resumen de libro de compras/ventas).",
             "example": "ISSUED_DOCS"
           },
-          "last_success_at": {
+          "last_sucdoce_at": {
             "type": "string",
             "format": "date-time",
             "nullable": true,
