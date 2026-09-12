@@ -157,7 +157,7 @@
           {
             "name": "json_param__{key}",
             "in": "query",
-            "description": "Filtra por cualquier key del objeto `json_param` que guardaste al crear el documento (ver `json_param` en el endpoint de creación). Reemplaza `{key}` por el nombre real de tu campo, ej. `json_param__external_order_id=PED-123`. Coincidencia exacta (no búsqueda parcial); podés repetir el parámetro con distintas keys en la misma request y se combinan con AND. La key solo acepta `[a-zA-Z0-9_]` (máx. 64 caracteres) — otro caracter devuelve 400. El valor de la query siempre se compara como string, así que solo sirve para keys cuyo valor en `json_param` también sea un string; valores booleanos o numéricos no son filtrables por esta vía todavía.",
+            "description": "Filtra por cualquier key del objeto `json_param` que guardaste al crear el documento (ver `json_param` en el endpoint de creación). Reemplaza `{key}` por el nombre real de tu campo, ej. `json_param__external_order_id=PED-123`. Coincidencia exacta (no búsqueda parcial); puedes repetir el parámetro con distintas keys en la misma request y se combinan con AND. La key solo acepta `[a-zA-Z0-9_]` (máx. 64 caracteres) — otro caracter devuelve 400. El valor de la query siempre se compara como string, así que solo sirve para keys cuyo valor en `json_param` también sea un string; valores booleanos o numéricos no son filtrables por esta vía todavía.",
             "required": false,
             "schema": {
               "type": "string"

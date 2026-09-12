@@ -27,7 +27,7 @@ diseñado para que puedas manejar errores con código estable y sin parsear text
 | Campo | Siempre | Descripción |
 |-------|:------:|-------------|
 | `type` | ✓ | Categoría amplia y **estable**. Mapea 1:1 al status HTTP (tabla abajo). |
-| `code` | ✓ | Código específico, **estable, machine-readable**. Hacé tu `switch` sobre esto. |
+| `code` | ✓ | Código específico, **estable, machine-readable**. Haz tu `switch` sobre esto. |
 | `message` | ✓ | Texto para humanos (es-CL). **Puede cambiar — nunca lo parsees.** |
 | `param` | — | Campo que causó el error (para formularios). |
 | `resource` | — | **Public ID** del recurso involucrado (`docu_…`, `ment_…`, `cred_…`). |
@@ -35,7 +35,7 @@ diseñado para que puedas manejar errores con código estable y sin parsear text
 | `request_id` | ✓ | ID de correlación (`req_…`). Inclúyelo al contactar soporte. |
 
 <Warning>
-Manejá los errores por **`code`** (estable), no por `message` (puede cambiar) ni
+Maneja los errores por **`code`** (estable), no por `message` (puede cambiar) ni
 por el status HTTP solo (varios `code` comparten status).
 </Warning>
 
@@ -43,11 +43,11 @@ por el status HTTP solo (varios `code` comparten status).
 
 | `type` | HTTP | Cuándo ocurre | ¿Reintentar? |
 |--------|:----:|---------------|:------------:|
-| `invalid_request_error` | 400 | Request mal formado o parámetro inválido | No — corregí el request |
+| `invalid_request_error` | 400 | Request mal formado o parámetro inválido | No — corrige el request |
 | `authentication_error` | 401 | Falta la API Key o es inválida | No |
 | `permission_error` | 403 | La API Key no tiene acceso a ese recurso | No |
 | `not_found_error` | 404 | El recurso (public ID) no existe | No |
-| `validation_error` | 422 | El documento no cumple una regla de negocio o del SII | No — corregí los datos |
+| `validation_error` | 422 | El documento no cumple una regla de negocio o del SII | No — corrige los datos |
 | `conflict_error` | 409 | Estado conflictivo (folio/RUT duplicado) | No |
 | `idempotency_error` | 409 | Reusaste una `Idempotency-Key` con un body distinto | No |
 | `credential_error` | 400 | Credencial SII/certificado inválida, incompleta o bloqueada | Solo tras corregir la credencial |
@@ -88,8 +88,8 @@ if resp.status_code >= 400:
 | `resource_missing` | not_found_error | 404 | El public ID no existe (ver `resource`). |
 | `idempotency_key_reused` | idempotency_error | 409 | Misma `Idempotency-Key`, distinto body. |
 | `rate_limited` | rate_limit_error | 429 | Demasiadas solicitudes. Respetá `Retry-After`. |
-| `internal_error` | api_error | 500 | Error interno. Reintentá; si persiste, reportá el `request_id`. |
-| `service_unavailable` | api_error | 503 | Servicio saturado. Reintentá con backoff. |
+| `internal_error` | api_error | 500 | Error interno. Reintenta; si persiste, reporta el `request_id`. |
+| `service_unavailable` | api_error | 503 | Servicio saturado. Reintenta con backoff. |
 
 ### Facturación — Emisión de documentos
 
@@ -124,17 +124,17 @@ if resp.status_code >= 400:
 | `credential_password_required` | invalid_request_error | 400 | Falta `user_rut` y/o `password`. |
 | `certificate_invalid` | credential_error | 400 | El certificado (.pfx) es inválido o la clave es incorrecta. |
 | `sii_credentials_invalid` | credential_error | 400 | El SII rechazó el RUT/clave ("Usuario no autorizado"). |
-| `credential_locked` | conflict_error | 409 | La credencial está en uso por otra operación. Reintentá en unos segundos. |
+| `credential_locked` | conflict_error | 409 | La credencial está en uso por otra operación. Reintenta en unos segundos. |
 
 ### SII (emisión y consultas)
 
 | `code` | `type` | HTTP | Significado |
 |--------|--------|:----:|-------------|
-| `folios_exhausted` | sii_error | 400 | No quedan folios (CAF). Solicitá más en el SII. |
-| `sii_rejected` | sii_error | 400 | El SII rechazó el documento. Revisá los datos. |
+| `folios_exhausted` | sii_error | 400 | No quedan folios (CAF). Solicita más en el SII. |
+| `sii_rejected` | sii_error | 400 | El SII rechazó el documento. Revisa los datos. |
 | `sii_unauthorized` | sii_error | 400 | El usuario no está autorizado en el SII para esta operación. |
 | `sii_session_expired` | sii_error | 400 | La sesión del SII expiró. Revalidá la credencial. |
-| `sii_unavailable` | sii_error | 503 | El SII no está disponible. Reintentá en unos minutos. |
+| `sii_unavailable` | sii_error | 503 | El SII no está disponible. Reintenta en unos minutos. |
 
 ### Recaudación (cobros / payment requests)
 
@@ -237,6 +237,6 @@ Respuesta incluye el header `Retry-After: 5`.
 ## Idempotencia y errores
 
 Los endpoints de escritura (emisión, cobros) aceptan el header `Idempotency-Key`.
-Si reintentás **con la misma key y el mismo body**, la API devuelve la respuesta
-original **sin repetir la operación** (no se re-emite al SII). Si reutilizás la
-misma key con un **body distinto**, obtenés `idempotency_key_reused` (409).
+Si reintentas **con la misma key y el mismo body**, la API devuelve la respuesta
+original **sin repetir la operación** (no se re-emite al SII). Si reutilizas la
+misma key con un **body distinto**, obtienes `idempotency_key_reused` (409).
