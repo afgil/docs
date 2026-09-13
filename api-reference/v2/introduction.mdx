@@ -91,6 +91,40 @@ Además de operar por API, puedes revisar todo en la plataforma:
 
 Puedes activar/usar Sandbox o Producción según el entorno que estés integrando.
 
+## Convenciones v2
+
+Estas convenciones aplican a **todos** los endpoints v2, de forma uniforme.
+
+### Listas y paginación
+
+Toda respuesta de lista tiene la misma forma:
+
+```json
+{
+  "data": [ { "id": "docu_…", "…": "…" } ],
+  "meta": { "page": 1, "page_size": 25, "total": 128, "total_pages": 6 },
+  "links": { "next": "…", "prev": null }
+}
+```
+
+- Controla el tamaño de página con `?page_size=` (**máximo 200**; si pides más se
+  recorta a 200).
+
+### Selección de campos (sparse fieldsets)
+
+Pide solo los campos que necesitas con `?fields=`, separados por coma. El `id`
+siempre viene incluido. Sirve para respuestas más livianas:
+
+```bash
+GET /api/v2/documents/?fields=folio,amount,status
+```
+
+### Errores
+
+Formato único `{ "error": { "type", "code", "message", … } }` — ver
+[Errores](/api-reference/v2/errors). Los errores internos (≥500) devuelven un
+mensaje genérico + `request_id` (nunca detalle crudo del servidor).
+
 ## Endpoints relacionados
 
 - **Listar Credenciales** — Ver credenciales configuradas
