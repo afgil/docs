@@ -73,18 +73,43 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "count": {
-                      "type": "integer",
-                      "description": "Total de filas en results"
-                    },
-                    "is_enabled": {
-                      "type": "boolean",
-                      "description": "true si la entidad tiene habilitado el scrape de resumen de libros (BOOK_SUMMARY). Si es false, results estará vacío aunque el período sea válido."
-                    },
-                    "results": {
+                    "data": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/BookSummaryItem"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "page_size": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer",
+                          "nullable": true
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "next": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "prev": {
+                          "type": "string",
+                          "nullable": true
+                        }
                       }
                     }
                   }
@@ -641,17 +666,43 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "count": {
-                      "type": "integer",
-                      "description": "Total de resultados"
-                    },
-                    "total_pages": {
-                      "type": "integer"
-                    },
-                    "results": {
+                    "data": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/CessionListItem"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "page_size": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer",
+                          "nullable": true
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "next": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "prev": {
+                          "type": "string",
+                          "nullable": true
+                        }
                       }
                     }
                   }
@@ -1127,74 +1178,112 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "integer",
-                        "description": "ID único de la credencial",
-                        "example": 245
-                      },
-                      "user": {
-                        "type": "string",
-                        "description": "RUT del usuario de la credencial",
-                        "example": "16659618-1"
-                      },
-                      "credential_type": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
                         "type": "object",
-                        "description": "Tipo de credencial",
                         "properties": {
                           "id": {
                             "type": "integer",
-                            "description": "ID del tipo de credencial",
-                            "example": 70
+                            "description": "ID único de la credencial",
+                            "example": 245
                           },
-                          "name": {
+                          "user": {
                             "type": "string",
-                            "description": "Nombre del tipo de credencial",
-                            "example": "SII"
-                          }
-                        }
-                      },
-                      "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "description": "Fecha de creación de la credencial",
-                        "example": "2025-08-06T01:24:45.422918Z"
-                      },
-                      "status": {
-                        "type": "string",
-                        "description": "Estado de la credencial",
-                        "enum": [
-                          "VALID",
-                          "INVALID",
-                          "EXPIRED"
-                        ],
-                        "example": "VALID"
-                      },
-                      "master_entities": {
-                        "type": "array",
-                        "description": "Lista de entidades maestras asociadas a la credencial",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "integer",
-                              "description": "ID de la entidad maestra",
-                              "example": 4355
-                            },
-                            "name": {
-                              "type": "string",
-                              "description": "Nombre de la entidad maestra",
-                              "example": "HIDDEN CORE SPA"
-                            },
-                            "tax_id": {
-                              "type": "string",
-                              "description": "RUT de la entidad maestra",
-                              "example": "78.121.555-4"
+                            "description": "RUT del usuario de la credencial",
+                            "example": "16659618-1"
+                          },
+                          "credential_type": {
+                            "type": "object",
+                            "description": "Tipo de credencial",
+                            "properties": {
+                              "id": {
+                                "type": "integer",
+                                "description": "ID del tipo de credencial",
+                                "example": 70
+                              },
+                              "name": {
+                                "type": "string",
+                                "description": "Nombre del tipo de credencial",
+                                "example": "SII"
+                              }
+                            }
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "Fecha de creación de la credencial",
+                            "example": "2025-08-06T01:24:45.422918Z"
+                          },
+                          "status": {
+                            "type": "string",
+                            "description": "Estado de la credencial",
+                            "enum": [
+                              "VALID",
+                              "INVALID",
+                              "EXPIRED"
+                            ],
+                            "example": "VALID"
+                          },
+                          "master_entities": {
+                            "type": "array",
+                            "description": "Lista de entidades maestras asociadas a la credencial",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "integer",
+                                  "description": "ID de la entidad maestra",
+                                  "example": 4355
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "description": "Nombre de la entidad maestra",
+                                  "example": "HIDDEN CORE SPA"
+                                },
+                                "tax_id": {
+                                  "type": "string",
+                                  "description": "RUT de la entidad maestra",
+                                  "example": "78.121.555-4"
+                                }
+                              }
                             }
                           }
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "page_size": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer",
+                          "nullable": true
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "next": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "prev": {
+                          "type": "string",
+                          "nullable": true
                         }
                       }
                     }
@@ -2302,10 +2391,43 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "results": {
+                    "data": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/FolioQuery"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "page_size": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer",
+                          "nullable": true
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "next": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "prev": {
+                          "type": "string",
+                          "nullable": true
+                        }
                       }
                     }
                   }
@@ -2715,10 +2837,43 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "results": {
+                    "data": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/FolioRequest"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "page_size": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer",
+                          "nullable": true
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "next": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "prev": {
+                          "type": "string",
+                          "nullable": true
+                        }
                       }
                     }
                   }
@@ -2786,16 +2941,49 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "results": {
+                    "data": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/FolioAvailability"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "page_size": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer",
+                          "nullable": true
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "next": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "prev": {
+                          "type": "string",
+                          "nullable": true
+                        }
                       }
                     }
                   }
                 },
                 "example": {
-                  "results": [
+                  "data": [
                     {
                       "dte_type": 33,
                       "available": 120,
@@ -2812,7 +3000,17 @@
                       ],
                       "as_of": "2026-08-27T14:05:00Z"
                     }
-                  ]
+                  ],
+                  "meta": {
+                    "page": null,
+                    "page_size": null,
+                    "total": 1,
+                    "total_pages": null
+                  },
+                  "links": {
+                    "next": null,
+                    "prev": null
+                  }
                 }
               }
             }
@@ -4549,31 +4747,49 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "count": {
-                      "type": "integer",
-                      "description": "Total de solicitudes dentro de la ventana de horas"
-                    },
-                    "page": {
-                      "type": "integer",
-                      "description": "Página actual"
-                    },
-                    "page_size": {
-                      "type": "integer",
-                      "description": "Tamaño de página usado"
-                    },
-                    "results": {
+                    "data": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/SyncRequest"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "page_size": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer",
+                          "nullable": true
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "next": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "prev": {
+                          "type": "string",
+                          "nullable": true
+                        }
                       }
                     }
                   }
                 },
                 "example": {
-                  "count": 2,
-                  "page": 1,
-                  "page_size": 50,
-                  "results": [
+                  "data": [
                     {
                       "id": "syre_5b6c7d8e9f0a1",
                       "master_entity_id": "ment_4829301923847",
@@ -4606,7 +4822,17 @@
                       "completed_at": null,
                       "created_at": "2026-07-20T11:02:44Z"
                     }
-                  ]
+                  ],
+                  "meta": {
+                    "page": 1,
+                    "page_size": 50,
+                    "total": 2,
+                    "total_pages": null
+                  },
+                  "links": {
+                    "next": null,
+                    "prev": null
+                  }
                 }
               }
             }
@@ -5019,40 +5245,90 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Webhook"
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Webhook"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "page_size": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer",
+                          "nullable": true
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "next": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "prev": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      }
+                    }
                   }
                 },
-                "example": [
-                  {
-                    "id": "dowe_2c9e5a1b7f3d0",
-                    "url": "https://mi-sistema.com/webhook",
-                    "events": [
-                      "document.issued",
-                      "document.delivered"
-                    ],
-                    "events_display": [
-                      "Emitido",
-                      "Entregado"
-                    ],
-                    "secret": "mi-clave-secreta",
-                    "is_active": true,
-                    "last_status_code": 200,
-                    "last_sent_at": "2025-01-13T10:30:00Z",
-                    "success_rate": 95.5,
-                    "last_delivery": {
+                "example": {
+                  "data": [
+                    {
                       "id": "dowe_2c9e5a1b7f3d0",
-                      "event": "document.issued",
-                      "is_success": true,
-                      "status_code": 200,
-                      "sent_at": "2025-01-13T10:30:00Z",
-                      "document_id": "docu_9f2a7c1b8e4d0"
-                    },
-                    "created_at": "2025-01-01T09:00:00Z",
-                    "updated_at": "2025-01-13T10:30:00Z"
+                      "url": "https://mi-sistema.com/webhook",
+                      "events": [
+                        "document.issued",
+                        "document.delivered"
+                      ],
+                      "events_display": [
+                        "Emitido",
+                        "Entregado"
+                      ],
+                      "secret": "mi-clave-secreta",
+                      "is_active": true,
+                      "last_status_code": 200,
+                      "last_sent_at": "2025-01-13T10:30:00Z",
+                      "success_rate": 95.5,
+                      "last_delivery": {
+                        "id": "dowe_2c9e5a1b7f3d0",
+                        "event": "document.issued",
+                        "is_success": true,
+                        "status_code": 200,
+                        "sent_at": "2025-01-13T10:30:00Z",
+                        "document_id": "docu_9f2a7c1b8e4d0"
+                      },
+                      "created_at": "2025-01-01T09:00:00Z",
+                      "updated_at": "2025-01-13T10:30:00Z"
+                    }
+                  ],
+                  "meta": {
+                    "page": null,
+                    "page_size": null,
+                    "total": 1,
+                    "total_pages": null
+                  },
+                  "links": {
+                    "next": null,
+                    "prev": null
                   }
-                ]
+                }
               }
             }
           },
@@ -6613,24 +6889,43 @@
       "DocumentListResponse": {
         "type": "object",
         "properties": {
-          "count": {
-            "type": "integer",
-            "description": "Número total de documentos"
-          },
-          "next": {
-            "type": "string",
-            "nullable": true,
-            "description": "URL de la siguiente página"
-          },
-          "previous": {
-            "type": "string",
-            "nullable": true,
-            "description": "URL de la página anterior"
-          },
-          "results": {
+          "data": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DocumentDetail"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "nullable": true
+              },
+              "page_size": {
+                "type": "integer",
+                "nullable": true
+              },
+              "total": {
+                "type": "integer"
+              },
+              "total_pages": {
+                "type": "integer",
+                "nullable": true
+              }
+            }
+          },
+          "links": {
+            "type": "object",
+            "properties": {
+              "next": {
+                "type": "string",
+                "nullable": true
+              },
+              "prev": {
+                "type": "string",
+                "nullable": true
+              }
             }
           }
         }
