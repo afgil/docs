@@ -105,17 +105,6 @@
                 ]
               },
               {
-                "group": "Folios",
-                "openapi": "api-reference/openapi-v2.json",
-                "pages": [
-                  "GET /api/v2/folios/",
-                  "GET /api/v2/folio-queries/",
-                  "POST /api/v2/folio-queries/",
-                  "GET /api/v2/folio-requests/",
-                  "POST /api/v2/folio-requests/"
-                ]
-              },
-              {
                 "group": "Errores",
                 "pages": [
                   "api-reference/v2/errors"
@@ -133,7 +122,7 @@
                 ]
               },
               {
-                "group": "Cesiones",
+                "group": "Referencia",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "GET /api/v2/cessions/",
@@ -213,14 +202,39 @@
             "tab": "API Consultas",
             "groups": [
               {
-                "group": "Consultas",
+                "group": "Introducción",
+                "pages": [
+                  "api-reference/v2/consultas/introduction"
+                ]
+              },
+              {
+                "group": "Resumen de Libros",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /api/v2/book-summaries/",
+                  "GET /api/v2/book-summaries/"
+                ]
+              },
+              {
+                "group": "Sincronización",
+                "openapi": "api-reference/openapi-v2.json",
+                "pages": [
                   "GET /api/v2/sync-status/",
                   "GET /api/v2/sync-requests/",
                   "POST /api/v2/sync-requests/",
                   "GET /api/v2/sync-requests/{id}/"
+                ]
+              },
+              {
+                "group": "Folios",
+                "openapi": "api-reference/openapi-v2.json",
+                "pages": [
+                  "GET /api/v2/folios/",
+                  "GET /api/v2/folio-requests/",
+                  "POST /api/v2/folio-requests/",
+                  "GET /api/v2/folio-requests/{id}/",
+                  "GET /api/v2/folio-queries/",
+                  "POST /api/v2/folio-queries/",
+                  "GET /api/v2/folio-queries/{id}/"
                 ]
               },
               {
@@ -235,11 +249,20 @@
             "tab": "API Boleta de Honorarios",
             "groups": [
               {
-                "group": "Boleta de Honorarios",
+                "group": "Introducción",
+                "pages": [
+                  "api-reference/v2/honorary/introduction"
+                ]
+              },
+              {
+                "group": "Usuarios Autorizados",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "GET /api/v2/honorary/authorized-users/",
-                  "GET /api/v2/honorary/master-entities/{master_entity_id}/authorized-users/"
+                  "PATCH /api/v2/honorary/authorized-users/",
+                  "GET /api/v2/honorary/master-entities/{master_entity_id}/authorized-users/",
+                  "POST /api/v2/honorary/master-entities/{master_entity_id}/authorized-users/sync/",
+                  "PATCH /api/v2/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/"
                 ]
               },
               {

@@ -1,0 +1,22 @@
+---
+title: 'Consultas — Introducción'
+description: 'Consulta el estado tributario: libros SII, sincronización y folios (CAF) — API v2'
+---
+
+# Consultas
+
+Los endpoints de **Consultas** te dan lectura del estado tributario de una
+entidad, sin emitir nada:
+
+- **Resumen de Libros** — el resumen del Registro de Compras y Ventas (RCV) del
+  SII por período (`book-summaries`).
+- **Sincronización** — dispara y consulta la sincronización de datos con el SII
+  (`sync-requests`, `sync-status`).
+- **Folios** — disponibilidad y solicitudes de folios (CAF), y consultas de
+  folios ya usados.
+
+<Note>
+Todos los identificadores son **public IDs** con prefijo (`ment_…`, `docu_…`,
+`syre_…`, `fir_…`, `foqu_…`). Las respuestas de lista usan el envelope único
+`{ data, meta, links }`.
+</Note>
