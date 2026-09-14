@@ -51,17 +51,6 @@
                 ]
               },
               {
-                "group": "Documentos",
-                "openapi": "api-reference/openapi-v2.json",
-                "pages": [
-                  "GET /api/v2/documents/",
-                  "GET /api/v2/documents/{document_id}/",
-                  "POST /api/v2/documents/batch/",
-                  "GET /api/v2/documents/{document_id}/states/",
-                  "POST /api/v2/documents/{document_id}/states/"
-                ]
-              },
-              {
                 "group": "Entidades",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
@@ -79,14 +68,20 @@
                 ]
               },
               {
-                "group": "Folios",
+                "group": "Documentos",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /api/v2/folios/",
-                  "GET /api/v2/folio-queries/",
-                  "POST /api/v2/folio-queries/",
-                  "GET /api/v2/folio-requests/",
-                  "POST /api/v2/folio-requests/"
+                  "GET /api/v2/documents/",
+                  "POST /api/v2/documents/batch/",
+                  "GET /api/v2/documents/{document_id}/"
+                ]
+              },
+              {
+                "group": "Estados de Documentos",
+                "openapi": "api-reference/openapi-v2.json",
+                "pages": [
+                  "GET /api/v2/documents/{document_id}/states/",
+                  "POST /api/v2/documents/{document_id}/states/"
                 ]
               },
               {
@@ -95,7 +90,10 @@
                 "pages": [
                   "GET /api/v2/scheduled-documents/",
                   "POST /api/v2/scheduled-documents/",
-                  "GET /api/v2/scheduled-documents/{id}/"
+                  "GET /api/v2/scheduled-documents/{id}/",
+                  "PATCH /api/v2/scheduled-documents/{id}/",
+                  "GET /api/v2/scheduled-documents/{id}/preview/",
+                  "DELETE /api/v2/scheduled-documents/{id}/"
                 ]
               },
               {
@@ -104,6 +102,17 @@
                 "pages": [
                   "GET /api/v2/webhooks/",
                   "POST /api/v2/webhooks/"
+                ]
+              },
+              {
+                "group": "Folios",
+                "openapi": "api-reference/openapi-v2.json",
+                "pages": [
+                  "GET /api/v2/folios/",
+                  "GET /api/v2/folio-queries/",
+                  "POST /api/v2/folio-queries/",
+                  "GET /api/v2/folio-requests/",
+                  "POST /api/v2/folio-requests/"
                 ]
               },
               {
