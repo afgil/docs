@@ -1,0 +1,20 @@
+---
+title: 'Boleta de Honorarios — Introducción'
+description: 'Gestión de usuarios autorizados para emitir boletas de honorarios (DTE 80/90) — API v2'
+---
+
+# Boleta de Honorarios
+
+Para emitir **boletas de honorarios electrónicas** (DTE 80/90) por cuenta de un
+tercero, ese tercero debe estar **autorizado** en el SII para la empresa. Estos
+endpoints gestionan esos **usuarios autorizados**:
+
+- Listar y consultar los usuarios autorizados de una empresa.
+- Disparar la **sincronización** con el SII para refrescar la lista.
+- Habilitar/actualizar la autorización de un usuario por RUT.
+
+<Note>
+Los identificadores son **public IDs** con prefijo (`ment_…`). Una vez que el
+usuario está autorizado, la emisión de la boleta se hace por el flujo de
+**Facturación** (`documents/batch`) con el tipo de DTE 80/90.
+</Note>
