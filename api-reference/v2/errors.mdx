@@ -140,8 +140,9 @@ identifica el campo por su ruta.
 | `dispatch_type` con `transport_type` `"5"` (traslado interno) | 422 |
 | Sólo uno de `driver_rut` / `driver_name` | 422 |
 | `destination_address` > 70, `destination_district` > 20 o `destination_city` > 20 caracteres | 422 |
-| Datos de Aduana (`departure_port_code`, `arrival_port_code`, `gross_weight`, `gross_weight_unit_code`, `total_packages`, `package_type_code`) con `transport_type` distinto de `"8"`/`"9"` | 422 |
-| Traslado `"8"`/`"9"` sin puertos, peso bruto o unidad, con emisor del facturador de mercado | 422 |
+| `transfer_issuer_code` o datos de Aduana (`departure_port_code`, `arrival_port_code`, `gross_weight`, `gross_weight_unit_code`, `total_packages`, `package_type_code`) con `transport_type` distinto de `"8"`/`"9"` | 422 |
+| Traslado `"8"`/`"9"` sin `transfer_issuer_code`, puertos, peso bruto o unidad, con emisor del facturador de mercado | 422 |
+| `transfer_issuer_code` `"4"` sin `authorization_resolution_number` / `authorization_resolution_date`, o esos campos con otro código | 422 |
 | Puerto, unidad o tipo de bulto fuera de las tablas de Aduana; `gross_weight` o `total_packages` ≤ 0; `total_packages` sin `package_type_code` | 422 |
 | `details[].is_exempt` en un documento que no es DTE 52 | 422 |
 | `dispatch_type`, `destination_*`, datos de Aduana o `details[].is_exempt` con emisor del **facturador gratuito del SII**: *"no disponible para emisores del facturador gratuito del SII"* | 422 |

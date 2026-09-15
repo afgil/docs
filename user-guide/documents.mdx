@@ -229,10 +229,11 @@ En los **traslados internos** (tipo de traslado 5) no se informa tipo de despach
 
 #### Datos de Aduana en traslados de exportación
 
-Cuando el tipo de traslado es **8** o **9**, la guía puede llevar los datos de Aduana de la carga. En el facturador de mercado el SII exige **puertos y peso bruto** en estas guías.
+Cuando el tipo de traslado es **8** o **9**, la guía puede llevar los datos de Aduana de la carga. En el facturador de mercado el SII exige **quién realiza el traslado, puertos y peso bruto** en estas guías.
 
 | Dato | Obligatorio con traslado 8 o 9 | Ejemplo |
 |---|---|---|
+| Emisor del traslado | Sí | `1` (Exportador), `2` (Agente de Aduana), `3` (Vendedor), `4` (Contribuyente autorizado por el SII, con número y fecha de la resolución) |
 | Puerto de embarque | Sí | `992` (Aerop. A. M. Benítez), `906` (San Antonio), `905` (Valparaíso) |
 | Puerto de desembarque | Sí | `134` (New York), `292` (Santos) |
 | Peso bruto y su unidad | Sí | `1414.00` en unidad `6` (KN) |

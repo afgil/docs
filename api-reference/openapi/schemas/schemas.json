@@ -1901,6 +1901,27 @@
             "description": "Ciudad de destino (Transporte/CiudadDest). No disponible para emisores del facturador gratuito del SII (422).",
             "example": "Santiago"
           },
+          "transfer_issuer_code": {
+            "type": "string",
+            "nullable": true,
+            "enum": ["1", "2", "3", "4"],
+            "description": "Quién realiza el traslado de exportación (Emisor/GuiaExport/CdgTraslado): 1=Exportador, 2=Agente de Aduana, 3=Vendedor, 4=Contribuyente autorizado expresamente por el SII. Sólo con transport_type 8 o 9 (422 en otro caso); obligatorio con 8 o 9 en el facturador de mercado (sin él el SII acepta la guía con reparo HED-2-804). No disponible para emisores del facturador gratuito del SII (422).",
+            "example": "1"
+          },
+          "authorization_resolution_number": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 1,
+            "description": "Número de la resolución del SII que autoriza al contribuyente a emitir la guía de exportación (Emisor/GuiaExport/FolioAut). Obligatorio con transfer_issuer_code 4 y no permitido con otro código (422).",
+            "example": 1234
+          },
+          "authorization_resolution_date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Fecha de la resolución del SII que autoriza al contribuyente (Emisor/GuiaExport/FchAut), formato YYYY-MM-DD. Obligatoria con transfer_issuer_code 4 y no permitida con otro código (422).",
+            "example": "2024-03-01"
+          },
           "departure_port_code": {
             "type": "string",
             "nullable": true,

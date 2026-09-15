@@ -260,6 +260,7 @@ Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en l
   - `dispatch_type` (String): Tipo de despacho (`TipoDespacho`), `"1"` a `"3"`. Si no se envía, se emite `3`. No se permite con `transport_type` `"5"`
   - `transport_rut`, `transport_plate`, `driver_rut`, `driver_name` (String): Transportista, patente y chofer
   - `destination_address`, `destination_district`, `destination_city` (String): Destino, cuando es distinto de la dirección del receptor
+  - `transfer_issuer_code` (String): Quién realiza el traslado de exportación (`CdgTraslado`), `"1"` a `"4"`, **sólo con `transport_type` `"8"` o `"9"`**. Con `"4"` van también `authorization_resolution_number` y `authorization_resolution_date`
   - `departure_port_code`, `arrival_port_code`, `gross_weight`, `gross_weight_unit_code`, `total_packages`, `package_type_code`: Datos de Aduana, **sólo con `transport_type` `"8"` o `"9"`**
 
 **details (Obligatorio)**
@@ -882,6 +883,7 @@ Traslado de mercadería de exportación desde la fábrica al aeropuerto. La vent
       "transport_data": {
         "transport_type": "8",
         "dispatch_type": "3",
+        "transfer_issuer_code": "1",
         "transport_rut": "76234567-6",
         "transport_plate": "PJRL69",
         "driver_rut": "12345678-5",
@@ -1115,6 +1117,9 @@ Todos los campos son opcionales salvo lo que se indica. Los mismos campos se ace
 | `destination_address` | String | No | Máximo 70 caracteres | `Transporte/DirDest` |
 | `destination_district` | String | No | Máximo 20 caracteres | `Transporte/CmnaDest` |
 | `destination_city` | String | No | Máximo 20 caracteres | `Transporte/CiudadDest` |
+| `transfer_issuer_code` | String `"1"`–`"4"` | Con traslado `"8"`/`"9"` (facturador de mercado) | Ver [Emisor del traslado](#emisor-del-traslado-transfer-issuer-code). Sólo con `transport_type` `"8"` o `"9"` | `Emisor/GuiaExport/CdgTraslado` |
+| `authorization_resolution_number` | Integer | Con `transfer_issuer_code` `"4"` | Mayor a 0; no se permite con otro código | `Emisor/GuiaExport/FolioAut` |
+| `authorization_resolution_date` | String `YYYY-MM-DD` | Con `transfer_issuer_code` `"4"` | No se permite con otro código | `Emisor/GuiaExport/FchAut` |
 | `departure_port_code` | String | Con traslado `"8"`/`"9"` (facturador de mercado) | Código o nombre exacto de la tabla de puertos de Aduana | `Aduana/CodPtoEmbarque` |
 | `arrival_port_code` | String | Con traslado `"8"`/`"9"` (facturador de mercado) | Código o nombre exacto de la tabla de puertos de Aduana | `Aduana/CodPtoDesemb` |
 | `gross_weight` | String decimal | Con traslado `"8"`/`"9"` (facturador de mercado) | Mayor a 0, hasta 2 decimales | `Aduana/PesoBruto` |
@@ -1123,7 +1128,7 @@ Todos los campos son opcionales salvo lo que se indica. Los mismos campos se ace
 | `package_type_code` | String | Si se envía `total_packages` | Tabla de tipos de bulto de Aduana | `Aduana/TipoBultos/CodTpoBultos` |
 | `timber_enabled`, `comuna_rol`, `manzana_rol`, `predio_rol`, `geo_ref_system`, `latitude`, `longitude`, `conaf_plan_code` | — | No | Sin cambios | `ManejoMadera` (CONAF) |
 
-Los campos de transporte y destino también se aceptan en otros tipos de documento; los de Aduana, sólo con `transport_type` `"8"` o `"9"`.
+Los campos de transporte y destino también se aceptan en otros tipos de documento; los de Aduana y el emisor del traslado, sólo con `transport_type` `"8"` o `"9"`.
 
 ### Tipo de traslado (`transport_type`)
 
@@ -1145,7 +1150,7 @@ Los campos de transporte y destino también se aceptan en otros tipos de documen
 
 ### Datos de Aduana (traslados `"8"` y `"9"`)
 
-- El SII los exige en guías con tipo de traslado 8 y 9: con el **facturador de mercado**, `departure_port_code`, `arrival_port_code`, `gross_weight` y `gross_weight_unit_code` son obligatorios.
+- El SII los exige en guías con tipo de traslado 8 y 9: con el **facturador de mercado**, `transfer_issuer_code`, `departure_port_code`, `arrival_port_code`, `gross_weight` y `gross_weight_unit_code` son obligatorios.
 - Mismos nombres que en `export_data` de la factura de exportación, para usar las mismas llaves en la guía y en la factura.
 - Los puertos aceptan el **código o el nombre exacto** de la tabla de Aduana del SII (`"992"` o `"AEROP.A.M.BENITEZ"`, indistintamente). Ejemplos: `"906"` = SAN ANTONIO, `"905"` = VALPARAISO, `"992"` = AEROP.A.M.BENITEZ, `"134"` = NEW YORK, `"292"` = SANTOS.
 - `gross_weight_unit_code` usa la tabla de unidades de Aduana (ej: `"6"` = KN). `package_type_code` usa la tabla de tipos de bulto (ej: `"22"` = CAJA DE CARTON).
@@ -1155,6 +1160,7 @@ Los campos de transporte y destino también se aceptan en otros tipos de documen
   ```json
   "transport_data": {
     "transport_type": "8",
+    "transfer_issuer_code": "1",
     "departure_port_code": "AEROP.A.M.BENITEZ",
     "arrival_port_code": "134",
     "gross_weight": "1414.00",
@@ -1163,6 +1169,17 @@ Los campos de transporte y destino también se aceptan en otros tipos de documen
     "package_type_code": "22"
   }
   ```
+
+### Emisor del traslado (`transfer_issuer_code`)
+
+En guías de traslado 8 y 9 el SII exige indicar en qué calidad se emite la guía (`Emisor/GuiaExport/CdgTraslado`). Sin este dato el SII acepta la guía con reparo (HED-2-804), por eso con el facturador de mercado es obligatorio.
+
+| Código | Emisor del traslado |
+|---|---|
+| `"1"` | Exportador |
+| `"2"` | Agente de Aduana |
+| `"3"` | Vendedor |
+| `"4"` | Contribuyente autorizado expresamente por el SII: requiere `authorization_resolution_number` y `authorization_resolution_date` |
 
 ### Líneas exentas (`details[].is_exempt`)
 
