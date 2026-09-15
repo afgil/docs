@@ -115,6 +115,85 @@ específicos listados se están desplegando.
 | `negative_amount` | validation_error | 422 | Montos negativos solo se permiten en boletas (39/41). |
 | `folio_duplicate` | conflict_error | 409 | Ya existe ese folio para el tipo de DTE en el período. |
 
+### ⏳ Facturación — Guía de despacho (DTE 52) y líneas exentas
+
+El batch responde **422** con el **mismo cuerpo que v1**, no con el sobre de
+errores v2: los errores van bajo `documents`, con la posición del documento como
+llave (`"0"`, `"1"`...) y la ruta del campo adentro. No tienen un `code` propio:
+identifica el campo por su ruta.
+
+```json
+{
+  "documents": {
+    "0": {
+      "transport_data": {
+        "gross_weight": ["Requerido en guías de traslado de exportación (transport_type 8 o 9): el SII lo exige en Transporte/Aduana."]
+      }
+    }
+  }
+}
+```
+
+| Caso | HTTP |
+|------|:----:|
+| `transport_data.transport_type` fuera de `"1"`–`"9"` o `dispatch_type` fuera de `"1"`–`"3"` | 422 |
+| `dispatch_type` con `transport_type` `"5"` (traslado interno) | 422 |
+| Sólo uno de `driver_rut` / `driver_name` | 422 |
+| `destination_address` > 70, `destination_district` > 20 o `destination_city` > 20 caracteres | 422 |
+| `transfer_issuer_code` o datos de Aduana (`departure_port_code`, `arrival_port_code`, `gross_weight`, `gross_weight_unit_code`, `total_packages`, `package_type_code`) con `transport_type` distinto de `"8"`/`"9"` | 422 |
+| Traslado `"8"`/`"9"` sin `transfer_issuer_code`, puertos, peso bruto o unidad, con emisor del facturador de mercado | 422 |
+| `transfer_issuer_code` `"4"` sin `authorization_resolution_number` / `authorization_resolution_date`, o esos campos con otro código | 422 |
+| Puerto, unidad o tipo de bulto fuera de las tablas de Aduana; `gross_weight` o `total_packages` ≤ 0; `total_packages` sin `package_type_code` | 422 |
+| `details[].is_exempt` en un documento que no es DTE 52 | 422 |
+| `dispatch_type`, `destination_*`, datos de Aduana o `details[].is_exempt` con emisor del **facturador gratuito del SII**: *"no disponible para emisores del facturador gratuito del SII"* | 422 |
+
+Detalle de cada campo en [Emisión masiva de documentos (v1)](/api-reference/documents/batch), bloque "Guía de Despacho (DTE 52)".
+
+### ⏳ Facturación — Campos desconocidos
+
+Un campo que no existe en el documento (por ejemplo `header.transfer_indicator`)
+**no se usa al emitir**. Según la API key:
+
+- **Modo aviso** (integraciones existentes): el documento se crea sin ese campo
+  y la respuesta del batch trae un arreglo `warnings`. No es un error: el status
+  es el de un batch aceptado.
+- **Modo estricto** (API keys nuevas): la API responde **422** con el campo bajo
+  `documents` → posición → ruta (mismo formato que v1) y no crea el batch.
+
+```json
+{
+  "warnings": [
+    {
+      "document_index": 0,
+      "field": "header.transfer_indicator",
+      "code": "unknown_field",
+      "message": "Campo desconocido: se ignoró.",
+      "suggestion": "transport_data.transport_type"
+    }
+  ]
+}
+```
+
+| Campo | Descripción |
+|-------|-------------|
+| `document_index` | Posición del documento en `documents` (desde 0). |
+| `field` | Ruta del campo dentro del documento. |
+| `code` | Tipo de aviso: `unknown_field` (campo desconocido) o `invalid_rut` (RUT de transportista o chofer con dígito verificador inválido: el documento se emite igual y el aviso nunca pasa a 422, ni con validación estricta). |
+| `message` | Texto para humanos. **Puede cambiar — nunca lo parsees.** |
+| `suggestion` | Campo correcto si se reconoce el error, o `null`. |
+
+| Campo enviado | `suggestion` |
+|---------------|--------------|
+| `header.transfer_indicator` | `transport_data.transport_type` |
+| `export_data.export_clause` | `export_data.sale_clause_code` |
+| `export_data.destination_country` | `export_data.destination_country_code` |
+
+<Warning>
+Un aviso significa que el dato **no llegó al documento**: con
+`header.transfer_indicator` la guía sale como venta (`transport_type` `"1"`) y con
+`export_data.export_clause` la factura de exportación sale sin cláusula de venta.
+</Warning>
+
 ### ⏳ Facturación — Boleta de Honorarios (DTE 80/90)
 
 | `code` | `type` | HTTP | Significado |

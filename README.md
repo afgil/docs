@@ -40,6 +40,16 @@ Install our Github App to auto propagate changes from your repo to your deployme
 
 The OpenAPI combination script runs automatically during the build process in production.
 
+### Contrato de la API con el backend
+
+`scripts/check_api_contract.py` compara `transport_data`, `details` y `export_data` de las especificaciones OpenAPI (`api-reference/openapi-combined.json` y `api-reference/openapi-v2.json`) con el contrato de payload del backend (`apps/documents/contracts/document_payload_contract.json` en `pana-backend`). Lista los campos que faltan en cada lado y termina con código 1 si no coinciden. Córrelo en cada PR que cambie el payload de la API:
+
+```
+python3 scripts/check_api_contract.py ../pana-backend/apps/documents/contracts/document_payload_contract.json
+```
+
+Sin argumento, usa `../pana-backend/...` relativo a la raíz de este repositorio.
+
 #### Troubleshooting
 
 - Mintlify dev isn't running - Run `mintlify install` it'll re-install dependencies.

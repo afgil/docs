@@ -125,6 +125,22 @@ Formato único `{ "error": { "type", "code", "message", … } }` — ver
 [Errores](/api-reference/v2/errors). Los errores internos (≥500) devuelven un
 mensaje genérico + `request_id` (nunca detalle crudo del servidor).
 
+### Campos desconocidos y validación estricta
+
+Los documentos del batch se comparan con los campos que acepta la API. Un campo
+desconocido nunca se usa al emitir:
+
+- **Modo aviso:** el documento se crea sin ese campo y la respuesta trae un
+  arreglo `warnings` con `document_index`, `field`, `code` (`unknown_field`),
+  `message` y `suggestion` (el campo correcto, si se reconoce).
+- **Validación estricta (por API key):** la API responde `422` con el error bajo
+  `documents` → posición del documento → ruta del campo (el mismo cuerpo que v1) y
+  no crea el batch. Está activada en las **API keys
+  nuevas**; las integraciones existentes reciben primero `warnings` para corregir
+  sus campos.
+
+Ver [Errores](/api-reference/v2/errors).
+
 ## Endpoints relacionados
 
 - **Listar Credenciales** — Ver credenciales configuradas

@@ -1,86 +1,31 @@
-# Tupana API
+# Tupana
 
-Tupana is a Chilean fintech platform for electronic invoicing (Facturación Electrónica). It automates the issuance of electronic tax documents (DTEs) integrated with the Chilean Tax Authority (SII - Servicio de Impuestos Internos).
+> Tupana es una plataforma chilena de facturación electrónica y contabilidad. Emite documentos tributarios electrónicos (DTE) integrada con el SII (Servicio de Impuestos Internos), sincroniza libros de compra y venta, concilia el banco y lleva la contabilidad.
 
-## Authentication
+Desde un asistente de IA (Claude, Cursor, ChatGPT u otro cliente MCP) se usa Tupana conectándose a su **servidor MCP**. Este archivo explica cómo conectarse; no describe la API REST campo por campo.
 
-All requests require an API Key in the Authorization header:
-`Authorization: Api-Key YOUR_API_KEY`
+## Conexión al MCP
 
-API Keys are generated in the Tupana dashboard under Settings > API Keys. Each key provides access to all companies enrolled under that user. Keys work in both Sandbox (testing) and Production environments.
+- URL del servidor: `https://mcp.tupana.ai/mcp` (transporte Streamable HTTP).
+- Autenticación: OAuth 2.1 con PKCE y registro dinámico de clientes. No se necesita API key ni client ID: el usuario inicia sesión con su cuenta Tupana (email y clave, o Google).
+- Sin configuración adicional. El acceso queda limitado a las empresas a las que pertenece el usuario.
+- Las acciones que emiten o envían documentos piden confirmación explícita en la conversación.
+- Claude Code: `claude mcp add --transport http tupana https://mcp.tupana.ai/mcp`
+- Para ver qué puede hacer el servidor en cada momento, llama a las herramientas `list_capabilities` y `how_to`.
 
-## Base URL
+`mcp.tupana.ai` es el servidor de Tupana (datos y operaciones de tus empresas). No es el buscador de documentación que Mintlify puede exponer en el dominio de la documentación.
 
-```
-https://api.tupana.ai/v1
-```
+## Documentación
 
-## Core Concepts
+- [Guía de conexión al MCP](https://docs.tupana.ai/user-guide/mcp): pasos por cliente, capacidades y límites.
+- [Guía completa para LLMs](https://docs.tupana.ai/llms-full.txt): el mismo contenido en texto plano.
+- [API REST v2 (por defecto)](https://docs.tupana.ai/api-reference/v2/introduction): para integraciones de sistema a sistema con API key.
+- [API REST v1](https://docs.tupana.ai/api-reference/introduction)
+- [Tipos de documentos](https://docs.tupana.ai/user-guide/documents)
 
-**Master Entity:** A company registered in Tupana. Each has an ID (also available as an opaque `eid_...` ID via `opaque_id`), RUT (Chilean tax ID), name, addresses, economic activities, and SII credentials.
+## Especificación legible por máquina
 
-**DTE (Documento Tributario Electrónico):** An electronic tax document. Supported types:
-- 33: Factura Electrónica (standard invoice, with IVA)
-- 34: Factura Exenta (tax-exempt invoice)
-- 39: Boleta Electrónica (not created via API; valid for payment state events)
-- 41: Boleta Exenta Electrónica (not created via API; valid for payment state events)
-- 46: Factura de Compra (purchase invoice)
-- 61: Nota de Crédito (credit note)
-- 80: Boleta de Honorarios (honorary receipt)
-- 90: Boleta de Honorarios a Terceros (third-party honorary receipt)
-- 110: Factura de Exportación (export invoice)
+Para integrar por API REST, la única fuente legible por máquina son las especificaciones OpenAPI, que se actualizan con cada cambio de contrato:
 
-**Folio:** Sequential document number assigned by SII after successful emission.
-
-**Sandbox vs Production:** New API Keys start in Sandbox mode for testing. Must be activated for production.
-
-## Key Endpoints
-
-- `GET /master-entities?rut={rut}` — Look up a company by RUT
-- `GET /credentials` — List SII credentials
-- `POST /credentials` — Create and validate SII credential
-- `POST /credentials/batch` — Create up to 200 SII credentials (async, webhook-notified)
-- `DELETE /credentials/{master_entity_id}` — Unenroll an entity
-- `GET /documents?master_entity_id={id}` — List documents (issued or received)
-- `GET /documents/{id}` — Get document details with PDF/XML URLs
-- `POST /documents/batch` — Create up to 200 documents (async, returns 202)
-- `GET /documents/{id}/states` — Get document status history
-- `POST /documents/{id}/states` — Register payment or SII event
-- `GET /scheduled-documents?master_entity_id={id}` — List recurring documents
-- `POST /scheduled-documents` — Create a recurring document template
-- `GET /cessions?master_entity_id={id}` — List invoice factoring transfers (add `document_type=received` for cessions received from suppliers)
-- `POST /cessions/batch` — Create cessions (AECs) for multiple invoices (async, returns 202 + cession_batch_id)
-- `GET /cessions/batch/{batch_id}` — Get the status of a cession batch (success/failed/partial, per-document detail with real SII error message)
-- `GET /webhooks?master_entity_id={id}` — List webhooks
-- `POST /webhooks` — Create a webhook (document.issued, document.delivered, document.rejected, document.trace_updated, document.paid, document.unpaid, document.cancelled)
-- `GET /honorary/authorized-users/?master_entity_id={id}` — List SII-authorized honorary-receipt users (cached; sync first)
-- `POST /honorary/master-entities/{id}/authorized-users/sync/` — Refresh the authorized-users cache from SII (async)
-- `GET /sync-status?master_entity_id={id}` — Get an entity's sync frequency and last scrape status per type
-- `POST /sync-requests` — Request an on-demand SII sync (24h-plan entities only; async)
-- `GET /book-summaries?master_entity_id={id}&period={YYYYMM}` — Get the SII purchase/sale book summary
-
-## Document Creation
-
-Documents are created via `POST /documents/batch` with up to 200 documents per request. Processing is asynchronous — the API returns 202 immediately and delivers results via webhook.
-
-Use the `X-Use-Defaults: true` header to auto-populate optional fields (date, payment method, issuer data, folio) from your platform configuration.
-
-Use `Idempotency-Key` header to prevent duplicate submissions (expires after 24 hours).
-
-## Pagination
-
-All list endpoints return: `count`, `total_pages`, `next`, `previous`, `results`. Default page size is 20, maximum is 100. Use `page` and `page_size` query params.
-
-## Error Format
-
-```json
-{ "error": "Human-readable message", "code": "ERROR_CODE", "details": {} }
-```
-
-Common codes: 400 (invalid params), 401 (bad API key), 403 (no permission), 404 (not found), 422 (SII validation error), 502 (SII gateway error).
-
-## Full Documentation
-
-- API Reference: https://docs.tupana.ai/api-reference
-- Quickstart: https://docs.tupana.ai/quickstart
-- Full context: https://docs.tupana.ai/llms-full.txt
+- [OpenAPI v2](https://docs.tupana.ai/api-reference/openapi-v2.json)
+- [OpenAPI v1](https://docs.tupana.ai/api-reference/openapi-combined.json)
