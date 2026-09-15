@@ -523,6 +523,72 @@ Incluye todos los campos de las Facturas Electrónicas con:
 
 </details>
 
+<a id="validacion-de-campos-desconocidos"></a>
+
+## Validación de campos desconocidos
+
+La API compara cada documento con los campos que acepta. Un campo que no existe (por ejemplo, un nombre mal escrito o de una versión antigua de la documentación) **no se usa al emitir**: antes se descartaba sin aviso; ahora se informa.
+
+### Modo aviso: `warnings`
+
+La respuesta del batch (v1 y v2) puede incluir un arreglo `warnings` en el primer nivel, con un elemento por campo desconocido. El documento **se crea igual**, sin ese campo.
+
+```json
+{
+  "batch_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "processing",
+  "warnings": [
+    {
+      "document_index": 0,
+      "field": "header.transfer_indicator",
+      "code": "unknown_field",
+      "message": "Campo desconocido: se ignoró.",
+      "suggestion": "transport_data.transport_type"
+    }
+  ]
+}
+```
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `document_index` | Integer | Posición del documento en el arreglo `documents` (desde 0) |
+| `field` | String | Ruta del campo dentro del documento |
+| `code` | String | Tipo de aviso. Hoy siempre `"unknown_field"` |
+| `message` | String | Texto para personas; puede cambiar, no lo parsees |
+| `suggestion` | String o `null` | Campo correcto, si se reconoce el error; `null` si no hay sugerencia |
+
+Sugerencias conocidas:
+
+| Campo enviado | Campo correcto |
+|---|---|
+| `header.transfer_indicator` | `transport_data.transport_type` |
+| `export_data.export_clause` | `export_data.sale_clause_code` |
+| `export_data.destination_country` | `export_data.destination_country_code` |
+
+<Warning>
+Un aviso significa que **el dato no llegó al documento**. Por ejemplo, con `header.transfer_indicator` la guía se emite con el tipo de traslado por defecto (`"1"`, venta), y con `export_data.export_clause` la factura de exportación sale sin cláusula de venta. Revisa los `warnings` en cada respuesta y corrige tu integración.
+</Warning>
+
+### Modo estricto: `422`
+
+Las API keys con **validación estricta** reciben `422` en vez del aviso, y el documento no se crea. El error va en la posición del documento y en la ruta del campo:
+
+```json
+{
+  "documents": [
+    {
+      "header": {
+        "transfer_indicator": ["Campo desconocido. ¿Quisiste decir transport_data.transport_type?"]
+      }
+    }
+  ]
+}
+```
+
+- Las **API keys nuevas** tienen la validación estricta activada.
+- Las **integraciones existentes** reciben primero los `warnings`, para que puedan corregir sus campos sin que se rompa la emisión. El paso a modo estricto de una API key existente se coordina con Tupana.
+- El texto del mensaje puede cambiar: usa la ruta del campo para identificar el error.
+
 ## Respuesta
 
 ### Respuesta Inmediata de la API
@@ -534,6 +600,7 @@ Incluye todos los campos de las Facturas Electrónicas con:
   - `status` (String): Estado del procesamiento (`"processing"`)
   - `total_documents` (Integer): Número total de documentos en el lote
   - `message` (String): Mensaje descriptivo del estado
+  - `warnings` (Array, opcional): Avisos sobre campos desconocidos que se ignoraron. Ver [Validación de campos desconocidos](#validacion-de-campos-desconocidos)
 
 #### 413 - Límite excedido
 - **Descripción:** Más de 200 documentos en el array
