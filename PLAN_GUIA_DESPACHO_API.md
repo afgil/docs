@@ -1,6 +1,6 @@
 # Plan: Guía de Despacho (DTE 52) completa vía API + documentación y MCP
 
-**Estado:** propuesta
+**Estado:** propuesta — fase 0 cerrada el 2026-09-14 (§7, §12)
 **Fecha:** 2026-09-14
 **Branch:** `feat/delivery-note-api` (mismo nombre en `pana-backend`, `docs` y `pana-electronic-invoice`)
 **Origen:** SOCIEDAD INDUSTRIAS DE BALATAS SOINBAL SPA (92.656.000-K), integrado por API con el
@@ -66,10 +66,11 @@ La tabla del SII dice textual *"En Guías: obligatorio sólo para Indicador tipo
 Opcionales en la guía: `TotBultos` / `TipoBultos{CodTpoBultos, CantBultos, Marcas...}`,
 `PesoNeto`/`CodUnidPesoNeto`, `NombreTransp`, `Booking`, etc.
 
-> ⚠️ **Ambigüedad.** La nota general del sub-área Aduana dice que la información se registra
-> *"sólo si se dispone de ella al momento de confeccionar el documento; en caso contrario
-> bastará que vaya escrita en la representación impresa"*. Hay que confirmarlo en
-> certificación (§12) antes de decidir si la API los exige con 8/9.
+> **Decisión (2026-09-14): se sigue la tabla del SII sin pruebas en certificación.** La nota
+> general del sub-área dice que la información se registra *"sólo si se dispone de ella al
+> momento de confeccionar el documento; en caso contrario bastará que vaya escrita en la
+> representación impresa"*, pero la tabla de campos dice **obligatorio** para traslado 8/9. Se
+> toma lo más estricto: con 8/9 la API exige puertos, peso bruto y unidad.
 
 **Orden dentro de `Aduana` según el XSD** (importa, ver §6.2): `CodModVenta, CodClauVenta,
 TotClauVenta, CodViaTransp, NombreTransp, RUTCiaTransp, NomCiaTransp, IdAdicTransp, Booking,
@@ -167,7 +168,7 @@ Cadena: `StrategyIssueMarketBilling._build_dte_data` → `DocumentFacturadorAdap
 - `NormalizeGuiaDespachoJob` parte de `MntNeto: 0, TasaIVA: 19, IVA: 0`. Con todas las líneas
   exentas el XML sale con `MntNeto 0, MntExe X, TasaIVA 19, IVA 0, MntTotal X`. La nota de
   crédito sí quita `TasaIVA` cuando no hay neto (`NormalizeNotaCreditoJob.php:93-96`); la guía
-  no. Hay que ver en certificación si el SII lo repara.
+  no. Se corrige en lib-core (§6.3).
 - Los validadores y sanitizadores específicos de la guía están vacíos: `Transporte` y `Aduana`
   pasan sin chequeo.
 
@@ -207,7 +208,7 @@ Pasa de `JSONField` a un serializer anidado real, `TransportDataInputSerializer`
 | `destination_address` | string ≤ 70 | **sí** | No | | `Transporte/DirDest` |
 | `destination_district` | string ≤ 20 | **sí** | No | | `Transporte/CmnaDest` |
 | `destination_city` | string ≤ 20 | **sí** | No | | `Transporte/CiudadDest` |
-| `departure_port_code` | string | **sí** | Con traslado 8/9 (a confirmar, §2.2) | Código o nombre de la tabla de puertos | `Aduana/CodPtoEmbarque` |
+| `departure_port_code` | string | **sí** | **Sí con traslado 8/9** (§2.2) | Código o nombre de la tabla de puertos | `Aduana/CodPtoEmbarque` |
 | `arrival_port_code` | string | **sí** | Ídem | Ídem | `Aduana/CodPtoDesemb` |
 | `gross_weight` | decimal (10,2) | **sí** | Ídem | > 0 | `Aduana/PesoBruto` |
 | `gross_weight_unit_code` | string | **sí** | Ídem | Tabla de unidades de Aduana | `Aduana/CodUnidPesoBruto` |
@@ -360,8 +361,8 @@ modalidad de venta, y relajarlo afectaría la validación de la 110.
 }
 ```
 
-XML esperado en `Totales`: `MntExe 4050000, MntTotal 4050000`, sin IVA. Con el lib-core actual
-saldrían además `MntNeto 0` y `TasaIVA 19` (§6.3).
+XML esperado en `Totales`: `MntExe 4050000, MntTotal 4050000`, sin `MntNeto`, `TasaIVA` ni
+`IVA` (tras el cambio de §6.3).
 
 ### 6.2 Cambios en `pana-backend`
 
@@ -375,10 +376,12 @@ saldrían además `MntNeto 0` y `TasaIVA 19` (§6.3).
 | **Nuevo** `components/customs.py` → `CustomsBlockBuilder` | Sale de `ExportAduanaBuilder._build_aduana/_apply_bultos/_apply_pesos` y **emite en orden de XSD**. `ExportAduanaBuilder` pasa a usarlo, conservando lo propio de exportación (receptor extranjero, `OtraMoneda`, `FmaPagExp`). Así no hay lógica duplicada y la 110 queda en orden de esquema aunque PHP ya la reordene |
 | `document_builder/__init__.py` | Pasa los kwargs nuevos por la fachada `build_document_data` |
 
-### 6.3 Cambios en `pana-electronic-invoice` (condicional)
+### 6.3 Cambios en `pana-electronic-invoice`
 
-Si la certificación (§12) muestra que el SII repara la guía toda exenta con `TasaIVA 19` y
-`MntNeto 0`, en `NormalizeGuiaDespachoJob`:
+**Decisión (2026-09-14): se aplica sin prueba previa**, siguiendo el formato del SII (`MntNeto`
+es la suma de ítems afectos y la tasa e IVA se refieren a ese neto) y el precedente de la nota de
+crédito, que el SII ya acepta. En `NormalizeGuiaDespachoJob`, después de
+`normalizeIvaMntTotal`:
 
 ```php
 if (!$data['Encabezado']['Totales']['MntNeto']) {
@@ -415,19 +418,48 @@ plataforma y el XML muestran lo mismo. Se agrega `exempt_amount` al retorno de
 Allí el XML lo arma el SII con lo que llenamos en su formulario, así que sólo se puede enviar
 lo que el formulario tenga.
 
-**Fase 0 (bloqueante para decidir):** abrir el formulario de emisión de guía del portal con la
-sesión de un cliente MiPyme que ya emite guías (p. ej. Maderas AGP o Templiner), **sólo GET, sin
-emitir**, y listar los `name` de sus inputs. Se hace en horario valle y con un solo request
-(bloqueo por RUT ante 429). El HTML queda como fixture en `apps/scrapers/mipyme/tests/fixtures/`.
+### 7.1 Prueba realizada (2026-09-14, sin emitir ni quemar folios)
 
-| Si el formulario tiene… | Entonces |
-|---|---|
-| Tipo de despacho / destino / Aduana / exento por línea | Se mapea a `EFXP_*` en `_process_transport_data` / `_process_items`, con tests |
-| No lo tiene | La API responde **422** a ese campo cuando el emisor emite por MiPyme: *"no disponible para emisores del facturador gratuito del SII"*. Nunca se descarta en silencio |
+Con IMPREGNADORA YUKON SPA (78.041.752-8, emite guías por MiPyme, clave SII), usando el mismo
+`locked_sii_session` y los mismos requests que el preview de producción. Un guard en la sesión
+abortaba cualquier URL del portal distinta de `mipeLaunchPage`, `mipeSelEmpresa`,
+`mipeDisplayPreView`, `mipePreView` y `PreViewFrame`; en particular `mipeGenXMLFirma.cgi`, que es
+donde MiPyme asigna el folio. Las previsualizaciones salieron con **"FOLIO NO ASIGNADO"**.
 
-Para saber el camino al validar se usa la misma política que ya elige la estrategia de emisión
-(`MarketBillingPolicy` / `EnrolledCompany`). La decisión se toma en el serializer, que conoce el
-emisor.
+1. **Inventario del formulario** (`GET mipeGenFacEx.cgi?PTDC_CODIGO=52`): 45 campos. De
+   transporte sólo hay `EFXP_IND_VENTA` (select con los 9 tipos de traslado, **incluido el 8**),
+   `EFXP_RUT_TRANSPORTE/DV`, `EFXP_PATENTE`, `EFXP_RUT_CHOFER/DV`, `EFXP_NOMBRE_CHOFER`,
+   `EFXP_RUT_SOLICITA/DV` y el bloque de madera. **No hay tipo de despacho, destino, Aduana ni
+   exención por línea.** Para la 52 el formulario rotula "Monto Neto" e "IVA 19%" fijos.
+2. **Previsualización A (traslado 8, sin extras) vs B (A + campos candidatos):** en B se agregaron
+   los campos de Aduana del formulario de exportación (`EDFE_PTO_EMBAR`, `EDFE_PTO_DESEM`,
+   `EDFE_TOT_BOLT`) y nombres probables de destino, despacho y exención (`EFXP_DIR_DEST`,
+   `EFXP_CMNA_DEST`, `EFXP_CIUDAD_DEST`, `EFXP_TIPO_DESPACHO`, `EFXP_IND_EXE_01`...). **El texto
+   de ambos PDFs es idéntico: el portal los ignora.**
+3. **El portal le calcula IVA 19% a una guía de traslado 8** (neto $1.080.000 → IVA $205.200). No
+   hay forma de evitarlo desde el formulario.
+
+### 7.2 Decisión
+
+| Campo | Facturador de mercado | Facturador gratuito (MiPyme) |
+|---|---|---|
+| `transport_type` (incl. 8 y 9) | Sí | Sí (ya mapeado a `EFXP_IND_VENTA`) |
+| `dispatch_type` | Sí | **422**: *"no disponible para emisores del facturador gratuito del SII"* |
+| `destination_*` | Sí | **422** |
+| Aduana (`departure_port_code`...) | Sí | **422** |
+| `details[].is_exempt` | Sí | **422** |
+
+- Con traslado 8/9 la regla de §4.1 (Aduana obligatoria) aplica **sólo al facturador de
+  mercado**: el portal no tiene dónde recibirla, así que exigirla dejaría a los emisores MiPyme
+  sin poder emitir guías de exportación.
+- Documentación: advertir que en el facturador gratuito una guía con precio **siempre lleva
+  IVA 19%**. Para un traslado de exportación con valor, la opción es el facturador de mercado.
+- Para saber el camino al validar se usa la misma política que ya elige la estrategia de emisión
+  (`MarketBillingPolicy` / `EnrolledCompany`). Así el serializer puede responder 422 antes de
+  crear el documento.
+- El HTML del formulario queda como fixture (`apps/scrapers/mipyme/tests/fixtures/guia_52_form.html`)
+  con un test que falla si el SII agrega campos nuevos de despacho, destino o exención.
+- La PR 5 del §9 pasa a ser sólo la validación 422 por camino (no hay mapeo `EFXP_*` que hacer).
 
 ---
 
@@ -489,13 +521,13 @@ zip. En modo aviso, los `warnings` se guardan en el batch y se devuelven en
 
 | PR | Repo | Contenido | Depende de |
 |---|---|---|---|
-| **0** | — | Verificaciones sin código: formulario MiPyme (§7), certificación de la guía 8 (§12), permisos de escritura del MCP (§11.2) | — |
+| **0** | — | ✅ Cerrada: formulario MiPyme probado (§7); sin certificación por decisión (§12); MCP sin configuración adicional (§11.2) | — |
 | **A** | docs | `llms.txt` / `llms-full.txt` → MCP + página `mcp.mdx` (§11.2) | — (puede ir primero) |
 | **1** | backend | Bugs sin cambio de contrato: `_save_transport_data`, `TransportService` sin tragarse excepciones, `GET`/batch devuelven `transport_data`, PDF (`CodPtoEmbarque`, rótulo EX) | — |
 | **2** | backend + docs | `transport_data` con serializer, `dispatch_type`, destino, Aduana de la guía (modelo, serializer, adapter, builder, `CustomsBlockBuilder`, PDF, respuestas v1/v2) + docs §11.1 | 0, 1 |
 | **3** | backend + lib-core + docs | `details[].is_exempt`, totales con exento, `IndExe` en el adapter, PDF, fix condicional de lib-core + docs | 0, 1 |
 | **4** | backend + docs | Contrato único, modo aviso, `APIKey.strict_payload_validation`, Lambda gateway, hints + docs de errores v1/v2 | 1 |
-| **5** | backend | Mapeo MiPyme o 422 según el resultado de la fase 0 | 0, 2, 3 |
+| **5** | backend | 422 para emisores MiPyme que manden despacho, destino, Aduana o exención (§7.2), con el fixture del formulario | 2, 3 |
 
 **2 y 3 son las que destraban a SOINBAL.** La 4 es la raíz de las idas y vueltas, pero su salida
 en estricto depende del contacto con clientes, por eso su activación va al final aunque el
@@ -532,7 +564,10 @@ Registrados en `tests/config.yml`, en las secciones de sus pares.
 | `test_frontend_jwt_request_not_strict` | El frontend no se ve afectado |
 | `test_gateway_lambda_applies_contract` | Lambda con el mismo contrato |
 | `test_pdf_shows_destination_and_loading_port` / `test_pdf_exempt_line_label` | PDF |
-| lib-core: fixture `052_006_traslado_exportacion_exento.yaml` | Totales sin `TasaIVA` con neto 0 (si aplica) |
+| lib-core: fixture `052_006_traslado_exportacion_exento.yaml` | Totales sin `MntNeto`/`TasaIVA`/`IVA` cuando todo es exento |
+| `test_mipyme_sender_rejects_delivery_note_customs` | Emisor MiPyme + Aduana/destino/despacho/exento → 422 |
+| `test_mipyme_export_transfer_without_customs_is_valid` | Emisor MiPyme + traslado 8 sin Aduana → válido |
+| `test_mipyme_delivery_note_form_has_no_new_fields` | El fixture del formulario no tiene campos de despacho/destino/exención |
 
 Notas del plan anterior que siguen vigentes: los tests HTTP necesitan el parche de
 `connection.close` de `test_batch_api_export_sale_clause`; no usar `TransactionTestCase`; crear
@@ -588,7 +623,9 @@ solas al conectarse.
    - Claude Code: `claude mcp add --transport http tupana https://mcp.tupana.ai/mcp`.
    - Cursor: `mcp.json` con `{"mcpServers": {"tupana": {"url": "https://mcp.tupana.ai/mcp"}}}`.
    - ChatGPT y otros clientes MCP remotos (**verificar los pasos antes de publicar**).
-2. Autenticación y permisos: lectura vs escritura, empresas visibles, cómo revocar.
+2. Autenticación: inicio de sesión con la cuenta Tupana (email/clave o Google), sin API key ni
+   configuración adicional. Acceso a las empresas del usuario. Las acciones que emiten o envían
+   piden confirmación explícita en la conversación.
 3. Capacidades por categoría (documentos, clientes, libros SII/F29, banco y conciliación,
    contabilidad, gráficos), **sin copiar la lista de herramientas**. Se indica pedir
    `list_capabilities` / `how_to`, que salen del propio servidor.
@@ -621,32 +658,28 @@ contenido. Es la fuente canónica y los `.txt` la resumen.
 
 ---
 
-## 12. Certificación en el SII (antes de producción)
+## 12. Certificación en el SII
 
-**Requiere autorización explícita**: implica emitir documentos.
+**Decisión (2026-09-14): no se hacen pruebas en certificación.** Se implementa según el formato
+oficial del SII (§2) y el esquema `DTE_v10.xsd`:
+- Aduana obligatoria con traslado 8/9 en el facturador de mercado (§2.2).
+- Orden de `Aduana` según el XSD (§6.2).
+- Guía toda exenta sin `MntNeto`/`TasaIVA`/`IVA` (§6.3).
+- `TipoDespacho` omitido con traslado 5, como ya se hace.
 
-Con un emisor en etapa de certificación del facturador de mercado (no SOINBAL, que está en
-producción), emitir a maullin:
-
-| Caso | Qué se quiere saber |
-|---|---|
-| 52, traslado 8, **sin** Aduana | ¿Rechazo o reparo? Decide si Aduana es obligatoria en la API (§2.2) |
-| 52, traslado 8, con Aduana en orden de XSD | Aceptado |
-| 52, traslado 8, todas las líneas exentas con monto | ¿Repara `TasaIVA 19` / `MntNeto 0`? Decide §6.3 |
-| 52, traslado 1, líneas mixtas (afecta + exenta) | Totales correctos |
-| 52, traslado 1, `TipoDespacho 2` con destino | Aceptado |
-| 52, traslado 5 | Sigue sin `TipoDespacho` y aceptado (regresión) |
+Riesgo asumido: un reparo del SII en la primera guía real de exportación. Mitigación: revisar la
+respuesta del SII de las primeras guías de SOINBAL después del deploy, antes de avisar a otros
+clientes.
 
 ---
 
 ## 13. A confirmar antes de implementar
 
-- **Aduana obligatoria con 8/9** (§2.2): depende de §12.
 - **Largos existentes** (patente > 8, chofer > 30, chofer incompleto): medirlo sobre
   `input_payload` de 52 antes de decidir entre rechazar o normalizar.
-- **Formulario MiPyme** (§7).
-- **Scope de escritura del MCP:** el default es sólo lectura. Confirmar cómo obtiene un usuario
-  `tupana:write` antes de documentarlo.
+- **Seguridad del MCP (fuera de este plan, anotado):** el servidor declara `tupana:read` y
+  `tupana:write`, pero las herramientas que emiten no verifican el scope del token
+  (`apps/mcp_server/tools*.py`). Hoy un token de sólo lectura puede emitir.
 - **Alias de nombres viejos de `export_data`** (§8.4).
 - **`document_receiver.email` y otras llaves con alto uso:** confirmar en la auditoría §8.1 si
   se leen en algún lado antes de clasificarlas como desconocidas.
