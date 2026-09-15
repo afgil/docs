@@ -301,6 +301,83 @@
           "item_type_code": {
             "type": "integer",
             "description": "Código de tipo de ítem"
+          },
+          "line_number": {
+            "type": "integer",
+            "description": "Número de línea del ítem. Opcional: si no viene, se usa el orden del arreglo.",
+            "example": 1
+          },
+          "item_total": {
+            "type": "number",
+            "description": "Total de la línea. La API lo recalcula a partir de quantity, unit_price y discount_percent; el valor enviado no se usa para emitir.",
+            "example": 4050000
+          },
+          "show_item_type": {
+            "type": "string",
+            "enum": [
+              "01",
+              "02"
+            ],
+            "description": "Sólo boletas (39/41) de espectáculos emitidas por cuenta de terceros (ItemEspectaculo): \"01\" si la línea es la entrada, \"02\" si es el valor por servicio que cobra el emisor. Obligatorio en todas las líneas en ese caso.",
+            "nullable": true
+          },
+          "ticket": {
+            "type": "object",
+            "nullable": true,
+            "description": "Datos del ticket de la entrada (línea con show_item_type \"01\"). El SII exige imprimirlos en la boleta.",
+            "properties": {
+              "ticket_folio": {
+                "type": "integer",
+                "description": "Folio del ticket, único para el evento (máximo 6 dígitos)."
+              },
+              "generated_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Fecha y hora de generación del ticket."
+              },
+              "event_name": {
+                "type": "string",
+                "maxLength": 80,
+                "description": "Nombre del espectáculo."
+              },
+              "ticket_type": {
+                "type": "string",
+                "maxLength": 10,
+                "description": "Tipo de ticket."
+              },
+              "event_code": {
+                "type": "string",
+                "maxLength": 5,
+                "description": "Código asociado al evento."
+              },
+              "event_datetime": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Fecha y hora de realización del evento."
+              },
+              "event_place": {
+                "type": "string",
+                "maxLength": 80,
+                "description": "Dirección o recinto donde se realiza el evento."
+              },
+              "event_location": {
+                "type": "string",
+                "maxLength": 20,
+                "description": "Sector o sección de la ubicación en el evento."
+              },
+              "row": {
+                "type": "string",
+                "maxLength": 3,
+                "nullable": true,
+                "description": "Fila de la ubicación."
+              },
+              "seat": {
+                "type": "string",
+                "maxLength": 3,
+                "nullable": true,
+                "description": "Asiento de la ubicación."
+              }
+            }
           }
         }
       },
