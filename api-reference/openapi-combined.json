@@ -6716,9 +6716,10 @@
           },
           "code": {
             "type": "string",
-            "description": "Tipo de aviso.",
+            "description": "unknown_field: campo desconocido (se ignoró). invalid_rut: RUT de transportista o chofer con dígito verificador inválido (se emitió igual).",
             "enum": [
-              "unknown_field"
+              "unknown_field",
+              "invalid_rut"
             ],
             "example": "unknown_field"
           },
@@ -7904,7 +7905,7 @@
           "transport_rut": {
             "type": "string",
             "nullable": true,
-            "description": "RUT de la empresa de transporte (Transporte/RUTTrans), formato 12345678-9. Se valida el dígito verificador.",
+            "description": "RUT de la empresa de transporte (Transporte/RUTTrans), formato 12345678-9. Si el dígito verificador es inválido se emite igual y la respuesta trae un aviso invalid_rut.",
             "example": "76234567-6"
           },
           "transport_plate": {
@@ -7916,7 +7917,7 @@
           "driver_rut": {
             "type": "string",
             "nullable": true,
-            "description": "RUT del chofer (Transporte/Chofer/RUTChofer). Se valida el dígito verificador. Se envía junto con driver_name, o ninguno de los dos (422 si falta uno).",
+            "description": "RUT del chofer (Transporte/Chofer/RUTChofer). Si el dígito verificador es inválido se emite igual y la respuesta trae un aviso invalid_rut. Se envía junto con driver_name, o ninguno de los dos (422 si falta uno).",
             "example": "12345678-5"
           },
           "driver_name": {

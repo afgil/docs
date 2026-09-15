@@ -1108,9 +1108,9 @@ Todos los campos son opcionales salvo lo que se indica. Los mismos campos se ace
 |---|---|---|---|---|
 | `transport_type` | String `"1"`–`"9"` | No (por defecto `"1"`) | Tabla de tipos de traslado | `IdDoc/IndTraslado` |
 | `dispatch_type` | String `"1"`–`"3"` | No (si no se envía, se emite `3`) | No se permite con `transport_type` `"5"` | `IdDoc/TipoDespacho` |
-| `transport_rut` | String | No | RUT válido | `Transporte/RUTTrans` |
+| `transport_rut` | String | No | Si el dígito verificador es inválido se emite igual y la respuesta trae un aviso `invalid_rut` | `Transporte/RUTTrans` |
 | `transport_plate` | String | No | Se normaliza a mayúsculas sin guion ni espacios; máximo 8 caracteres | `Transporte/Patente` |
-| `driver_rut` | String | Con `driver_name` | RUT válido | `Transporte/Chofer/RUTChofer` |
+| `driver_rut` | String | Con `driver_name` | Si el dígito verificador es inválido se emite igual y la respuesta trae un aviso `invalid_rut` | `Transporte/Chofer/RUTChofer` |
 | `driver_name` | String | Con `driver_rut` | Se trunca a 30 caracteres en el DTE | `Transporte/Chofer/NombreChofer` |
 | `destination_address` | String | No | Máximo 70 caracteres | `Transporte/DirDest` |
 | `destination_district` | String | No | Máximo 20 caracteres | `Transporte/CmnaDest` |
@@ -1196,7 +1196,6 @@ La guía se valida al recibir el batch, antes de emitir, para no quemar folios c
 |---|---|
 | `transport_type` fuera de `"1"`–`"9"` o `dispatch_type` fuera de `"1"`–`"3"` | `422` con las opciones válidas |
 | `dispatch_type` con `transport_type` `"5"` | `422` |
-| `transport_rut` o `driver_rut` con RUT inválido | `422` |
 | Sólo `driver_rut` o sólo `driver_name` | `422`: se envían los dos o ninguno |
 | `destination_address` > 70, `destination_district` > 20 o `destination_city` > 20 caracteres | `422` |
 | Datos de Aduana con un `transport_type` distinto de `"8"`/`"9"` | `422` |

@@ -138,7 +138,7 @@ identifica el campo por su ruta.
 |------|:----:|
 | `transport_data.transport_type` fuera de `"1"`–`"9"` o `dispatch_type` fuera de `"1"`–`"3"` | 422 |
 | `dispatch_type` con `transport_type` `"5"` (traslado interno) | 422 |
-| `transport_rut` o `driver_rut` inválido, o sólo uno de `driver_rut` / `driver_name` | 422 |
+| Sólo uno de `driver_rut` / `driver_name` | 422 |
 | `destination_address` > 70, `destination_district` > 20 o `destination_city` > 20 caracteres | 422 |
 | Datos de Aduana (`departure_port_code`, `arrival_port_code`, `gross_weight`, `gross_weight_unit_code`, `total_packages`, `package_type_code`) con `transport_type` distinto de `"8"`/`"9"` | 422 |
 | Traslado `"8"`/`"9"` sin puertos, peso bruto o unidad, con emisor del facturador de mercado | 422 |
@@ -177,7 +177,7 @@ Un campo que no existe en el documento (por ejemplo `header.transfer_indicator`)
 |-------|-------------|
 | `document_index` | Posición del documento en `documents` (desde 0). |
 | `field` | Ruta del campo dentro del documento. |
-| `code` | Tipo de aviso. Hoy siempre `unknown_field`. |
+| `code` | Tipo de aviso: `unknown_field` (campo desconocido) o `invalid_rut` (RUT de transportista o chofer con dígito verificador inválido: el documento se emite igual y el aviso nunca pasa a 422, ni con validación estricta). |
 | `message` | Texto para humanos. **Puede cambiar — nunca lo parsees.** |
 | `suggestion` | Campo correcto si se reconoce el error, o `null`. |
 
