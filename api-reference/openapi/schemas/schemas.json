@@ -271,6 +271,11 @@
             "format": "float",
             "description": "Precio unitario bruto, con IVA incluido. Solo válido para boletas electrónicas (dte_type 39 y 41); en cualquier otro tipo de documento la API responde 422. No se puede combinar con unit_price en el mismo documento: todas las líneas deben usar uno u otro. Si se envía, se usa como unit_price para calcular item_total, y el neto/IVA del documento se derivan a partir del bruto."
           },
+          "is_exempt": {
+            "type": "boolean",
+            "default": false,
+            "description": "Marca la línea como no afecta o exenta de IVA (Detalle/IndExe = 1): su monto va a exempt_amount y no genera IVA. Por ahora sólo en guía de despacho (DTE 52); en otro tipo de documento la API responde 422. No disponible para emisores del facturador gratuito del SII (422)."
+          },
           "item_description": {
             "type": "string",
             "description": "Descripción del ítem"
@@ -493,6 +498,10 @@
                           "other_tax": {
                             "type": "number",
                             "nullable": true
+                          },
+                          "is_exempt": {
+                            "type": "boolean",
+                            "description": "true si la línea es no afecta o exenta de IVA (IndExe = 1)."
                           }
                         }
                       }
@@ -512,6 +521,11 @@
                         "iva_amount": {
                           "type": "number",
                           "nullable": true
+                        },
+                        "exempt_amount": {
+                          "type": "number",
+                          "nullable": true,
+                          "description": "Monto exento: suma de las líneas con is_exempt en true. total_amount = net_amount + iva_amount + exempt_amount."
                         },
                         "total_amount": {
                           "type": "number",
@@ -553,6 +567,48 @@
                 }
               }
             }
+          },
+          "warnings": {
+            "type": "array",
+            "description": "Avisos sobre campos desconocidos que se ignoraron (modo aviso). Sólo aparece si hay avisos. Con validación estricta, la API responde 422 en vez de avisar.",
+            "items": {
+              "$ref": "#/components/schemas/BatchWarning"
+            }
+          }
+        }
+      },
+      "BatchWarning": {
+        "type": "object",
+        "description": "Aviso sobre un campo desconocido del documento: se ignoró al crear el documento. Las API keys con validación estricta reciben 422 en vez del aviso.",
+        "properties": {
+          "document_index": {
+            "type": "integer",
+            "description": "Posición del documento en el arreglo documents (desde 0).",
+            "example": 0
+          },
+          "field": {
+            "type": "string",
+            "description": "Ruta del campo dentro del documento.",
+            "example": "header.transfer_indicator"
+          },
+          "code": {
+            "type": "string",
+            "description": "Tipo de aviso.",
+            "enum": [
+              "unknown_field"
+            ],
+            "example": "unknown_field"
+          },
+          "message": {
+            "type": "string",
+            "description": "Texto para personas. Puede cambiar: no lo parsees.",
+            "example": "Campo desconocido: se ignoró."
+          },
+          "suggestion": {
+            "type": "string",
+            "nullable": true,
+            "description": "Campo correcto, si se reconoce el error (ej: header.transfer_indicator → transport_data.transport_type, export_data.export_clause → export_data.sale_clause_code, export_data.destination_country → export_data.destination_country_code). null si no hay sugerencia.",
+            "example": "transport_data.transport_type"
           }
         }
       },
@@ -832,6 +888,43 @@
               "document_receiver": {
                 "$ref": "#/components/schemas/DocumentReceiver",
                 "description": "Información completa del receptor del documento",
+                "nullable": true
+              },
+              "document_total": {
+                "type": "object",
+                "nullable": true,
+                "description": "Totales del documento",
+                "properties": {
+                  "net_amount": {
+                    "type": "number",
+                    "nullable": true,
+                    "description": "Monto neto afecto (sin IVA)"
+                  },
+                  "iva_rate": {
+                    "type": "number",
+                    "nullable": true,
+                    "description": "Tasa de IVA aplicada"
+                  },
+                  "iva_amount": {
+                    "type": "number",
+                    "nullable": true,
+                    "description": "Monto del IVA"
+                  },
+                  "exempt_amount": {
+                    "type": "number",
+                    "nullable": true,
+                    "description": "Monto exento: suma de las líneas con is_exempt en true. total_amount = net_amount + iva_amount + exempt_amount."
+                  },
+                  "total_amount": {
+                    "type": "number",
+                    "nullable": true,
+                    "description": "Monto total"
+                  }
+                }
+              },
+              "transport_data": {
+                "$ref": "#/components/schemas/TransportData",
+                "description": "Datos de transporte del documento (guía de despacho DTE 52 y otros documentos con transporte), con todos los campos de TransportData",
                 "nullable": true
               }
             }
@@ -1655,14 +1748,11 @@
       },
       "TransportData": {
         "type": "object",
-        "description": "Transport details for electronic dispatch guides (DTE 52) and related flows. When `timber_enabled` is true, include CONAF timber origin fields as required by SII for wood products.",
-        "required": [
-          "transport_type"
-        ],
+        "description": "Datos de transporte de la guía de despacho (DTE 52): tipo de traslado, tipo de despacho, transportista, chofer, destino y datos de Aduana. Los campos de transporte y destino también se aceptan en otros tipos de documento; los de Aduana, sólo con transport_type 8 o 9. Con timber_enabled en true se incluyen los datos de origen de la madera que exige el SII (CONAF). Con emisores del facturador gratuito del SII (MiPyme), dispatch_type, destination_* y los datos de Aduana no están disponibles: la API responde 422.",
         "properties": {
           "transport_type": {
             "type": "string",
-            "description": "Transfer type code per SII (1–9).",
+            "description": "Tipo de traslado (IdDoc/IndTraslado). 1=Operación constituye venta, 2=Ventas por efectuar, 3=Consignaciones, 4=Entrega gratuita, 5=Traslados internos, 6=Otros traslados no venta, 7=Guía de devolución, 8=Traslado para exportación (no venta), 9=Venta para exportación. Si no se envía, se usa 1.",
             "enum": [
               "1",
               "2",
@@ -1674,78 +1764,150 @@
               "8",
               "9"
             ],
+            "default": "1",
             "example": "1"
+          },
+          "dispatch_type": {
+            "type": "string",
+            "nullable": true,
+            "description": "Tipo de despacho (IdDoc/TipoDespacho). 1=Por cuenta del receptor (el cliente retira), 2=Por cuenta del emisor a instalaciones del cliente, 3=Por cuenta del emisor a otras instalaciones. Si no se envía, se emite 3. No se permite con transport_type 5 (422). No disponible para emisores del facturador gratuito del SII (422).",
+            "enum": [
+              "1",
+              "2",
+              "3"
+            ],
+            "example": "2"
           },
           "transport_rut": {
             "type": "string",
             "nullable": true,
-            "description": "Tax ID (RUT) of the transport company, format 12345678-9.",
-            "example": "76123456-7"
+            "description": "RUT de la empresa de transporte (Transporte/RUTTrans), formato 12345678-9. Se valida el dígito verificador.",
+            "example": "76234567-6"
           },
           "transport_plate": {
             "type": "string",
             "nullable": true,
-            "description": "Vehicle license plate.",
-            "example": "ABCD12"
+            "description": "Patente del vehículo (Transporte/Patente). Se normaliza a mayúsculas sin guion ni espacios y queda en máximo 8 caracteres.",
+            "example": "PJRL69"
           },
           "driver_rut": {
             "type": "string",
             "nullable": true,
-            "description": "Driver tax ID (RUT).",
-            "example": "12345678-9"
+            "description": "RUT del chofer (Transporte/Chofer/RUTChofer). Se valida el dígito verificador. Se envía junto con driver_name, o ninguno de los dos (422 si falta uno).",
+            "example": "12345678-5"
           },
           "driver_name": {
             "type": "string",
             "nullable": true,
-            "description": "Driver full name.",
+            "description": "Nombre completo del chofer (Transporte/Chofer/NombreChofer). Se trunca a 30 caracteres en el DTE. Se envía junto con driver_rut, o ninguno de los dos (422 si falta uno).",
             "example": "Juan Pérez"
+          },
+          "destination_address": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 70,
+            "description": "Dirección de destino (Transporte/DirDest). Se informa cuando el destino es distinto de la dirección del receptor. No disponible para emisores del facturador gratuito del SII (422).",
+            "example": "Aeropuerto Arturo Merino Benitez"
+          },
+          "destination_district": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 20,
+            "description": "Comuna de destino (Transporte/CmnaDest). No disponible para emisores del facturador gratuito del SII (422).",
+            "example": "Pudahuel"
+          },
+          "destination_city": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 20,
+            "description": "Ciudad de destino (Transporte/CiudadDest). No disponible para emisores del facturador gratuito del SII (422).",
+            "example": "Santiago"
+          },
+          "departure_port_code": {
+            "type": "string",
+            "nullable": true,
+            "description": "Puerto de embarque (Aduana/CodPtoEmbarque). Código o nombre exacto de la tabla de puertos de Aduana del SII (ej: 992 o AEROP.A.M.BENITEZ; 906=SAN ANTONIO, 905=VALPARAISO). Sólo con transport_type 8 o 9 (422 en otro caso); obligatorio con 8 o 9 en el facturador de mercado. No disponible para emisores del facturador gratuito del SII (422).",
+            "example": "992"
+          },
+          "arrival_port_code": {
+            "type": "string",
+            "nullable": true,
+            "description": "Puerto de desembarque (Aduana/CodPtoDesemb). Código o nombre exacto de la tabla de puertos de Aduana del SII (ej: 134=NEW YORK, 292=SANTOS). Sólo con transport_type 8 o 9 (422 en otro caso); obligatorio con 8 o 9 en el facturador de mercado. No disponible para emisores del facturador gratuito del SII (422).",
+            "example": "134"
+          },
+          "gross_weight": {
+            "type": "string",
+            "format": "decimal",
+            "nullable": true,
+            "pattern": "^\\d{1,10}(\\.\\d{1,2})?$",
+            "description": "Peso bruto de la carga (Aduana/PesoBruto), mayor a 0 y con hasta 2 decimales. Sólo con transport_type 8 o 9 (422 en otro caso); obligatorio con 8 o 9 en el facturador de mercado. No disponible para emisores del facturador gratuito del SII (422).",
+            "example": "1414.00"
+          },
+          "gross_weight_unit_code": {
+            "type": "string",
+            "nullable": true,
+            "description": "Unidad del peso bruto (Aduana/CodUnidPesoBruto), según la tabla de unidades de medida de Aduana del SII (ej: 6=KN). Sólo con transport_type 8 o 9 (422 en otro caso); obligatorio con 8 o 9 en el facturador de mercado. No disponible para emisores del facturador gratuito del SII (422).",
+            "example": "6"
+          },
+          "total_packages": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 1,
+            "description": "Total de bultos (Aduana/TotBultos), mayor a 0. Si se envía, package_type_code es obligatorio. Sólo con transport_type 8 o 9 (422 en otro caso). No disponible para emisores del facturador gratuito del SII (422).",
+            "example": 3
+          },
+          "package_type_code": {
+            "type": "string",
+            "nullable": true,
+            "description": "Tipo de bulto (Aduana/TipoBultos/CodTpoBultos), según la tabla de tipos de bulto de Aduana del SII (ej: 22=CAJA DE CARTON). Obligatorio si se envía total_packages. Sólo con transport_type 8 o 9 (422 en otro caso). No disponible para emisores del facturador gratuito del SII (422).",
+            "example": "22"
           },
           "timber_enabled": {
             "type": "boolean",
-            "description": "When true, the dispatch includes timber origin data for CONAF.",
+            "description": "Si es true, la guía incluye los datos de origen de la madera para CONAF.",
             "default": false,
             "example": false
           },
           "comuna_rol": {
             "type": "string",
             "nullable": true,
-            "description": "SII commune code for the origin property roll (rol de origen).",
+            "description": "Código de comuna del SII del rol del predio de origen.",
             "example": "13101"
           },
           "manzana_rol": {
             "type": "string",
             "nullable": true,
-            "description": "Block (manzana) of the origin property roll.",
+            "description": "Manzana del rol del predio de origen.",
             "example": "12"
           },
           "predio_rol": {
             "type": "string",
             "nullable": true,
-            "description": "Lot (predio) of the origin property roll.",
+            "description": "Predio del rol del predio de origen.",
             "example": "345"
           },
           "geo_ref_system": {
             "type": "string",
             "nullable": true,
-            "description": "Geographic reference system code (e.g. 1 = WGS84).",
+            "description": "Código del sistema de referencia geográfica (ej: 1 = WGS84).",
             "example": "1"
           },
           "latitude": {
             "type": "string",
             "nullable": true,
-            "description": "Timber origin latitude as string (typically two decimal places per SII).",
+            "description": "Latitud del origen de la madera, como string (normalmente con dos decimales, según el SII).",
             "example": "-33.45"
           },
           "longitude": {
             "type": "string",
             "nullable": true,
-            "description": "Timber origin longitude as string (typically two decimal places per SII).",
+            "description": "Longitud del origen de la madera, como string (normalmente con dos decimales, según el SII).",
             "example": "-70.65"
           },
           "conaf_plan_code": {
             "type": "string",
             "nullable": true,
-            "description": "CONAF forest management plan code.",
+            "description": "Código del plan de manejo forestal de CONAF.",
             "example": "PM-2024-001"
           }
         }
