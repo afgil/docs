@@ -1,6 +1,6 @@
 # Plan: Guía de Despacho (DTE 52) completa vía API + documentación y MCP
 
-**Estado:** propuesta — fase 0 cerrada el 2026-09-14 (§7, §12)
+**Estado:** implementado (en revisión) — afgil/pana-backend#4616, afgil/docs#61, Tu-Pana/pana-electronic-invoice#9
 **Fecha:** 2026-09-14
 **Branch:** `feat/delivery-note-api` (mismo nombre en `pana-backend`, `docs` y `pana-electronic-invoice`)
 **Origen:** SOCIEDAD INDUSTRIAS DE BALATAS SOINBAL SPA (92.656.000-K), integrado por API con el
@@ -726,3 +726,17 @@ clientes.
 | Payload MiPyme | `apps/scrapers/mipyme/inputs/base_payload_builder_input.py:579-599, 618-745` |
 | Servidor MCP | `apps/mcp_server/server.py`, `server_core.py`, `oauth_provider.py`, `consent.py` |
 | llms actuales | `docs/llms.txt`, `docs/llms-full.txt` (raíz del repo `docs`) |
+
+---
+
+## 16. Implementación: desvíos respecto del plan
+
+- **Una PR por repo** en vez de las PRs 1-5 separadas del §9, con commits atómicos (tests antes de cada cambio).
+- **Formato de los 422 del batch:** DRF indexa los errores por posición (`{"documents": {"0": {...}}}`), no en lista, y v2 devuelve el mismo cuerpo que v1 (el sobre de errores v2 no aplica a esta vista). La documentación quedó con el formato real.
+- **Contrato:** `exchange_rate_source` quedó fuera (lo calcula `ExportService`, no lo manda el cliente). `check_api_contract.py` detectó cuatro campos de `details` aceptados y no documentados (`line_number`, `item_total`, `show_item_type`, `ticket`), que se agregaron a OpenAPI v1 y v2.
+- **Totales con líneas exentas:** la separación exento/neto sólo aplica al cálculo normal de documentos afectos; los exentos por tipo y las facturas de compra no cambian.
+- **Chofer:** se exige RUT y nombre juntos (0 casos incompletos en 90 días); el nombre se trunca a 30 al emitir (37 guías recientes lo superan).
+- **Gateway:** la Lambda aplica el mismo contrato con copias idénticas del módulo y del JSON (test de sincronía) y lee `strict_payload_validation` del caché de DynamoDB. Después del deploy hay que correr `manage.py backfill_api_key_cache`.
+- **`test_openapi_documentation_validation.py`** no se tocó: no lee el JSON de docs, sólo lo menciona en el docstring.
+- **lib-core:** la condición también exige `MntExe` no vacío, para que una guía sin montos (traslado interno) conserve su salida actual.
+- **Plantilla de PR** del backend con el checklist de documentación (§11.3).
