@@ -1,0 +1,118 @@
+---
+title: 'Conectar un asistente de IA (MCP)'
+description: 'Conecta Claude, Cursor, ChatGPT u otro cliente MCP a Tupana con tu cuenta, sin API key'
+---
+
+# Conectar un asistente de IA (MCP)
+
+Tupana tiene un **servidor MCP** (Model Context Protocol) para que un asistente de IA consulte y opere sobre tus empresas en tu nombre: buscar documentos, emitir facturas, revisar libros del SII, conciliar el banco o armar reportes, todo desde la conversación.
+
+## Datos de conexión
+
+| Dato | Valor |
+|---|---|
+| URL del servidor | `https://mcp.tupana.ai/mcp` |
+| Transporte | Streamable HTTP (MCP remoto) |
+| Autenticación | OAuth 2.1 con PKCE y registro dinámico de clientes |
+| API key o client ID | No se necesitan |
+| Inicio de sesión | Tu cuenta Tupana: email y clave, o Google |
+| Configuración adicional | Ninguna |
+
+<Note>
+No tienes que generar una API key ni registrar una aplicación. Al conectar, el cliente abre el inicio de sesión de Tupana en el navegador; después guarda el token y lo renueva solo.
+</Note>
+
+## Cómo conectarse
+
+<Tabs>
+  <Tab title="Claude">
+    En **claude.ai** o **Claude Desktop**:
+
+    1. Abre **Configuración → Conectores**.
+    2. Elige **Agregar conector personalizado**.
+    3. Pega la URL `https://mcp.tupana.ai/mcp` y guarda.
+    4. Al conectar, inicia sesión con tu cuenta Tupana.
+  </Tab>
+  <Tab title="Claude Code">
+    ```bash
+    claude mcp add --transport http tupana https://mcp.tupana.ai/mcp
+    ```
+
+    Luego, dentro de Claude Code, ejecuta `/mcp` y elige `tupana` para iniciar sesión.
+  </Tab>
+  <Tab title="Cursor">
+    Agrega el servidor en `mcp.json` (global en `~/.cursor/mcp.json` o por proyecto en `.cursor/mcp.json`):
+
+    ```json
+    {
+      "mcpServers": {
+        "tupana": {
+          "url": "https://mcp.tupana.ai/mcp"
+        }
+      }
+    }
+    ```
+
+    Cursor pedirá iniciar sesión con tu cuenta Tupana la primera vez que use el servidor.
+  </Tab>
+  <Tab title="ChatGPT y otros">
+    Sirve cualquier cliente que soporte servidores MCP remotos con OAuth:
+
+    1. Busca en la configuración del cliente la opción para agregar un servidor MCP remoto (a veces se llama conector o integración).
+    2. Indica la URL `https://mcp.tupana.ai/mcp`.
+    3. Si pregunta por el tipo de autenticación, elige **OAuth**. No hay client ID ni secreto que ingresar: el registro es automático.
+    4. Inicia sesión con tu cuenta Tupana cuando el cliente lo pida.
+
+    Los nombres de los menús cambian según el cliente y su versión; revisa su documentación si no encuentras la opción.
+  </Tab>
+</Tabs>
+
+## Permisos y seguridad
+
+- El asistente actúa con **tus permisos**: sólo ve y opera sobre las empresas a las que perteneces en Tupana.
+- Las acciones que **emiten documentos al SII o envían correos** piden **confirmación explícita** en la conversación antes de ejecutarse. Sin confirmación, el documento queda como borrador.
+- Para revocar el acceso, desconecta el servidor en el cliente.
+
+## Qué puedes hacer
+
+Las herramientas se describen solas al conectarse, así que la lista siempre está al día. Pídele al asistente que use:
+
+- **`list_capabilities`**: lo que el servidor puede hacer, por categoría.
+- **`how_to`**: el paso a paso de una tarea (por ejemplo, emitir una factura o una nota de crédito).
+
+| Categoría | Ejemplos |
+|---|---|
+| **Documentos** | Consultar y buscar emitidos y recibidos; emitir facturas afectas (33) y exentas (34), notas de crédito (61), facturas de compra (46) y facturas de exportación (110); crear facturas programadas; obtener el PDF |
+| **Clientes y proveedores** | Datos de una empresa por RUT; cuentas por cobrar y por pagar |
+| **Libros del SII y F29** | Libros de compra y venta; resumen de IVA y del F29 |
+| **Banco y conciliación** | Movimientos bancarios; sugerencias de conciliación; conciliar movimientos |
+| **Contabilidad** | Asientos, libro mayor, balance y estado de resultados |
+| **Gráficos** | Reportes y gráficos de ventas, compras y otros indicadores |
+
+## Qué no hace
+
+- **No emite guías de despacho (DTE 52).** Puede consultarlas, pero para emitirlas usa la plataforma o la [API de emisión masiva](/api-reference/documents/batch).
+- No reemplaza tareas que sólo existen en pantalla, como cargas masivas o configurar credenciales del SII: en esos casos el asistente te entrega el link a la plataforma.
+- No es una integración de sistema a sistema: necesita un usuario que inicie sesión y confirme las acciones.
+
+## ¿MCP o API REST?
+
+| Usa el MCP si... | Usa la API REST si... |
+|---|---|
+| Trabajas desde un asistente de IA, con una persona en la conversación | Integras un sistema (ERP, e-commerce, backoffice) que emite sin intervención humana |
+| Quieres consultar, analizar o emitir documentos puntuales | Emites en volumen (hasta 200 documentos por llamada) y recibes el resultado por webhook |
+| Te basta con iniciar sesión con tu cuenta | Necesitas tipos o campos que el MCP no cubre, como la guía de despacho con transporte y Aduana |
+
+La API usa API key (`Authorization: Api-Key TU_API_KEY`), no la sesión del usuario:
+
+- [API de Facturación v2](/api-reference/v2/introduction) (por defecto)
+- [API de Facturación v1](/api-reference/introduction)
+- Especificaciones OpenAPI, la fuente legible por máquina para agentes de código que integran la API: [`openapi-v2.json`](/api-reference/openapi-v2.json) y [`openapi-combined.json`](/api-reference/openapi-combined.json) (v1).
+
+<Warning>
+`mcp.tupana.ai` es el servidor de Tupana: da acceso a los datos y operaciones de tus empresas, con inicio de sesión. **No es** el buscador de documentación que Mintlify puede exponer en el dominio de esta documentación, que sólo lee páginas públicas.
+</Warning>
+
+## Guía para asistentes
+
+Si eres un asistente de IA, la misma información está en texto plano en [`/llms.txt`](/llms.txt) (índice) y [`/llms-full.txt`](/llms-full.txt) (guía completa).

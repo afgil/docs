@@ -25,7 +25,8 @@
                 "pages": [
                   "index",
                   "user-guide/getting-started",
-                  "user-guide/authentication"
+                  "user-guide/authentication",
+                  "user-guide/mcp"
                 ]
               },
               {
@@ -286,7 +287,8 @@
                 "pages": [
                   "index",
                   "user-guide/getting-started",
-                  "user-guide/authentication"
+                  "user-guide/authentication",
+                  "user-guide/mcp"
                 ]
               },
               {
