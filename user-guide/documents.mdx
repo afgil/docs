@@ -18,7 +18,7 @@ Tupana soporta la emisión completa de documentos tributarios electrónicos (DTE
 | **39** | Boleta Electrónica | Venta | ✅ 19% | Ventas B2C con IVA |
 | **41** | Boleta Exenta | Venta | ❌ Exenta | Ventas B2C exentas |
 | **46** | Factura de Compra | Compra | ✅ 19% | Registro de compras |
-| **52** | Guía de Despacho | Traslado | ❌ Sin valor | Transporte mercaderías |
+| **52** | Guía de Despacho | Traslado | ⚠️ Opcional | Transporte mercaderías |
 | **56** | Nota de Débito | Corrección | ✅ Variable | Aumentos de valor |
 | **61** | Nota de Crédito | Corrección | ✅ Variable | Anulaciones, devoluciones |
 | **80** | Boleta de Honorarios | Servicios | ❌ Sin IVA | Profesionales independientes |
@@ -176,25 +176,96 @@ La **Factura de Compra** se utiliza para registrar compras realizadas a proveedo
 
 ### Guía de Despacho Electrónica (DTE 52)
 
-La **Guía de Despacho** documenta el traslado de mercaderías sin transferir la propiedad.
+La **Guía de Despacho** ampara el traslado de mercaderías. Puede acompañar una venta, o documentar un traslado que no es venta (entre bodegas, en consignación, a un puerto para exportar).
 
 #### Características principales
-- **Sin valor comercial:** No representa una venta
-- **Traslado de mercaderías:** Documenta movimiento físico de productos
-- **Control logístico:** Facilita el seguimiento de envíos
-- **Respaldo legal:** Justifica la tenencia de mercaderías en tránsito
+- **Traslado de mercaderías:** Documenta el movimiento físico de productos y justifica su tenencia en tránsito
+- **Valor opcional:** Puede ir con o sin precios. Si lleva precios, sus líneas afectas llevan IVA
+- **Tipo de traslado:** Indica si el traslado es venta, consignación, traslado interno, exportación, etc.
+- **Control logístico:** Registra transportista, patente, chofer y destino
 
 #### ¿Cuándo usar DTE 52?
 - **Envíos a clientes:** Despacho de productos vendidos
 - **Traslados entre bodegas:** Movimiento interno de inventario
 - **Consignaciones:** Envío de productos en consignación
+- **Exportaciones:** Traslado de la mercadería desde la fábrica al puerto, aeropuerto o aduana de embarque
 - **Muestras comerciales:** Envío de muestras sin venta
 
+#### Tipos de traslado
+
+Cada guía declara por qué se trasladan las mercaderías (el `IndTraslado` del SII). Si no se indica, se usa **1 — Operación constituye venta**.
+
+| Código | Tipo de traslado | Cuándo usarlo |
+|---|---|---|
+| **1** | Operación constituye venta | La guía acompaña una venta ya realizada |
+| **2** | Ventas por efectuar | La mercadería sale para venderse después (por ejemplo, venta en ruta) |
+| **3** | Consignaciones | Envío en consignación a un tercero |
+| **4** | Entrega gratuita | Muestras, regalos o donaciones |
+| **5** | Traslados internos | Movimiento entre bodegas o sucursales de la misma empresa |
+| **6** | Otros traslados no venta | Reparaciones, préstamos u otros traslados que no son venta |
+| **7** | Guía de devolución | Devolución de mercaderías |
+| **8** | Traslado para exportación (no venta) | Llevar al puerto o aeropuerto mercadería de exportación cuya venta va en la factura de exportación |
+| **9** | Venta para exportación | Traslado al puerto o aeropuerto que constituye la venta de exportación |
+
+#### Tipo de despacho
+
+Indica quién realiza el transporte (el `TipoDespacho` del SII). Si no se indica, la guía sale como **3**, igual que hasta ahora.
+
+| Código | Tipo de despacho |
+|---|---|
+| **1** | Por cuenta del receptor: el cliente retira |
+| **2** | Por cuenta del emisor, a instalaciones del cliente |
+| **3** | Por cuenta del emisor, a otras instalaciones |
+
+<Note>
+En los **traslados internos** (tipo de traslado 5) no se informa tipo de despacho: el SII no lo admite y la emisión se rechaza antes de enviarse.
+</Note>
+
+#### Transporte y destino
+
+- **Transportista:** RUT de la empresa de transporte y patente del vehículo (se guarda en mayúsculas, sin guion ni espacios, hasta 8 caracteres).
+- **Chofer:** RUT y nombre. Se informan los dos o ninguno; el nombre se imprime hasta 30 caracteres.
+- **Destino:** dirección (hasta 70 caracteres), comuna y ciudad (hasta 20 cada una). Infórmalo sólo cuando el destino es **distinto de la dirección del receptor**, por ejemplo cuando la agencia de aduanas es el receptor pero la carga va al aeropuerto.
+
+#### Datos de Aduana en traslados de exportación
+
+Cuando el tipo de traslado es **8** o **9**, la guía puede llevar los datos de Aduana de la carga. En el facturador de mercado el SII exige **puertos y peso bruto** en estas guías.
+
+| Dato | Obligatorio con traslado 8 o 9 | Ejemplo |
+|---|---|---|
+| Puerto de embarque | Sí | `992` (Aerop. A. M. Benítez), `906` (San Antonio), `905` (Valparaíso) |
+| Puerto de desembarque | Sí | `134` (New York), `292` (Santos) |
+| Peso bruto y su unidad | Sí | `1414.00` en unidad `6` (KN) |
+| Total de bultos y tipo de bulto | No (si informas bultos, indica el tipo) | `3` bultos tipo `22` (caja de cartón) |
+
+Los puertos, unidades y tipos de bulto usan las tablas de Aduana del SII; los puertos se pueden indicar por código o por nombre exacto. Estos datos **sólo corresponden a traslados 8 y 9**: en cualquier otro tipo de traslado la emisión se rechaza.
+
+Si la exportación tiene un DUS, agrégalo como referencia del documento (tipo `807`).
+
+#### Líneas exentas
+
+Cada línea de la guía puede marcarse como **exenta** (no afecta a IVA). Su monto va al total exento y no genera IVA. Es útil, por ejemplo, para informar el valor de la mercadería en un traslado para exportación sin que se le calcule IVA.
+
+- Si todas las líneas son exentas, la guía sale con IVA 0 y el total igual al monto exento.
+- Si mezclas líneas afectas y exentas, sólo las afectas llevan IVA.
+- Por ahora la marca de línea exenta está disponible sólo para la guía de despacho.
+
+#### Facturador gratuito del SII (MiPyme)
+
+Si tu empresa emite con el **facturador gratuito del SII**, el formulario del SII sólo admite el tipo de traslado, el transportista, la patente, el chofer y los datos de madera. **No admite** tipo de despacho, destino, datos de Aduana ni líneas exentas: Tupana rechaza la guía antes de emitirla si los incluyes.
+
+<Warning>
+En el facturador gratuito del SII, una guía con precios **siempre lleva IVA 19%**: no hay forma de marcar líneas exentas. Para un traslado de exportación con valor sin IVA, necesitas emitir con el **facturador de mercado**. En el facturador gratuito los datos de Aduana no son obligatorios con traslado 8 o 9.
+</Warning>
+
 #### Casos de uso específicos
-- **E-commerce:** Despacho de productos vendidos online
+- **E-commerce:** Despacho de productos vendidos online (traslado 1, despacho 2)
 - **Distribución:** Traslado de productos a puntos de venta
-- **Logística interna:** Movimiento entre sucursales o bodegas
+- **Logística interna:** Movimiento entre sucursales o bodegas (traslado 5)
+- **Exportación:** Traslado de la carga al aeropuerto con puertos, peso y bultos (traslado 8)
 - **Ferias y eventos:** Traslado de productos para exhibición
+
+Para enviar estos datos por API, ver [Emisión masiva de documentos](/api-reference/documents/batch), bloque "Guía de Despacho (DTE 52)".
 
 ---
 
