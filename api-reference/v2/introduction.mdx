@@ -133,8 +133,9 @@ desconocido nunca se usa al emitir:
 - **Modo aviso:** el documento se crea sin ese campo y la respuesta trae un
   arreglo `warnings` con `document_index`, `field`, `code` (`unknown_field`),
   `message` y `suggestion` (el campo correcto, si se reconoce).
-- **Validación estricta (por API key):** la API responde `422`
-  `validation_error` y no crea el documento. Está activada en las **API keys
+- **Validación estricta (por API key):** la API responde `422` con el error bajo
+  `documents` → posición del documento → ruta del campo (el mismo cuerpo que v1) y
+  no crea el batch. Está activada en las **API keys
   nuevas**; las integraciones existentes reciben primero `warnings` para corregir
   sus campos.
 

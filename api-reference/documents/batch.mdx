@@ -571,23 +571,29 @@ Un aviso significa que **el dato no llegó al documento**. Por ejemplo, con `hea
 
 ### Modo estricto: `422`
 
-Las API keys con **validación estricta** reciben `422` en vez del aviso, y el documento no se crea. El error va en la posición del documento y en la ruta del campo:
+Las API keys con **validación estricta** reciben `422` en vez del aviso, y no se crea ningún documento del batch. El error va bajo la posición del documento (como string, desde `"0"`) y la ruta del campo; en las listas (`details`, `references`, `payments`) la posición de la línea también es una llave:
 
 ```json
 {
-  "documents": [
-    {
+  "documents": {
+    "0": {
       "header": {
         "transfer_indicator": ["Campo desconocido. ¿Quisiste decir transport_data.transport_type?"]
+      },
+      "details": {
+        "1": {"exento": ["Campo desconocido."]}
       }
     }
-  ]
+  }
 }
 ```
+
+Es el mismo formato que el resto de los errores de validación del batch, en v1 y en v2.
 
 - Las **API keys nuevas** tienen la validación estricta activada.
 - Las **integraciones existentes** reciben primero los `warnings`, para que puedan corregir sus campos sin que se rompa la emisión. El paso a modo estricto de una API key existente se coordina con Tupana.
 - El texto del mensaje puede cambiar: usa la ruta del campo para identificar el error.
+- **API keys del flujo diferido** (prefijo `gw_`): el aviso llega en el `202` junto a `batch_id`, y con validación estricta el `422` trae el mismo objeto dentro de `errors` (`{"errors": {"documents": {...}}, "request": {...}}`).
 
 ## Respuesta
 
@@ -615,9 +621,20 @@ Las API keys con **validación estricta** reciben `422` en vez del aviso, y el d
 
 #### 422 - Error de validación
 - **Descripción:** Cuerpo malformado o fallo de validación
-- **Campos:**
-  - `error` (String): Descripción del error
-  - `details` (Array): Detalles específicos de los errores de validación
+- **Cuerpo malformado** (por ejemplo `documents` no es una lista): `{"error": "..."}`.
+- **Validación de documentos:** los errores van bajo `documents`, con la posición del documento como llave y la ruta del campo adentro. Ejemplo con una guía de traslado de exportación sin datos de Aduana:
+
+```json
+{
+  "documents": {
+    "0": {
+      "transport_data": {
+        "gross_weight": ["Requerido en guías de traslado de exportación (transport_type 8 o 9): el SII lo exige en Transporte/Aduana."]
+      }
+    }
+  }
+}
+```
 
 ### Respuesta del Webhook
 

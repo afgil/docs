@@ -117,9 +117,22 @@ específicos listados se están desplegando.
 
 ### ⏳ Facturación — Guía de despacho (DTE 52) y líneas exentas
 
-Estas validaciones responden **422** con `type` `validation_error`. No tienen un
-`code` propio: usa `type` y `param` (o el mensaje, sólo para mostrarlo) para
-identificar el campo.
+El batch responde **422** con el **mismo cuerpo que v1**, no con el sobre de
+errores v2: los errores van bajo `documents`, con la posición del documento como
+llave (`"0"`, `"1"`...) y la ruta del campo adentro. No tienen un `code` propio:
+identifica el campo por su ruta.
+
+```json
+{
+  "documents": {
+    "0": {
+      "transport_data": {
+        "gross_weight": ["Requerido en guías de traslado de exportación (transport_type 8 o 9): el SII lo exige en Transporte/Aduana."]
+      }
+    }
+  }
+}
+```
 
 | Caso | HTTP |
 |------|:----:|
@@ -143,8 +156,8 @@ Un campo que no existe en el documento (por ejemplo `header.transfer_indicator`)
 - **Modo aviso** (integraciones existentes): el documento se crea sin ese campo
   y la respuesta del batch trae un arreglo `warnings`. No es un error: el status
   es el de un batch aceptado.
-- **Modo estricto** (API keys nuevas): la API responde **422** `validation_error`
-  y el documento no se crea.
+- **Modo estricto** (API keys nuevas): la API responde **422** con el campo bajo
+  `documents` → posición → ruta (mismo formato que v1) y no crea el batch.
 
 ```json
 {
