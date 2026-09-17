@@ -324,6 +324,7 @@
                 "pages": [
                   "api-reference/credentials/list",
                   "api-reference/credentials/create",
+              "api-reference/credentials/enrollment-status",
                   "api-reference/credentials/batch",
                   "api-reference/credentials/unenroll"
                 ]
