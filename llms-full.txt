@@ -99,7 +99,7 @@ Categorías principales:
 
 ## 5. Qué no hace el MCP
 
-- No emite guías de despacho (DTE 52). Se pueden consultar, pero para emitirlas usa la plataforma o la API REST (`POST /api/v2/documents/batch/` o `POST /v1/documents/batch/`).
+- No emite guías de despacho (DTE 52). Se pueden consultar, pero para emitirlas usa la plataforma o la API REST (`POST /v2/documents/batch/` o `POST /v1/documents/batch/`).
 - No reemplaza las tareas que sólo existen en pantalla, como subir archivos masivos o configurar credenciales del SII; en esos casos el asistente entrega el link a la plataforma.
 - No es una integración de sistema a sistema: requiere un usuario que inicie sesión y confirme las acciones.
 

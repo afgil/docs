@@ -1104,7 +1104,7 @@ Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y 
 
 ### Campos de transport_data
 
-Todos los campos son opcionales salvo lo que se indica. Los mismos campos se aceptan en `POST /v1/documents/batch/` y en `POST /api/v2/documents/batch/`.
+Todos los campos son opcionales salvo lo que se indica. Los mismos campos se aceptan en `POST /v1/documents/batch/` y en `POST /v2/documents/batch/`.
 
 | Campo | Tipo | Obligatorio | Validación | Campo del DTE |
 |---|---|---|---|---|
@@ -1241,7 +1241,7 @@ En v2 el error usa el formato de [errores v2](/api-reference/v2/errors) con `typ
 
 ### Respuesta
 
-`GET /v1/documents/{id}` y `GET /api/v2/documents/{id}/` devuelven `transport_data` con todos los campos anteriores, `details[].is_exempt` y `document_total.exempt_amount`.
+`GET /v1/documents/{id}` y `GET /v2/documents/{id}/` devuelven `transport_data` con todos los campos anteriores, `details[].is_exempt` y `document_total.exempt_amount`.
 
 
 ## ✈️ **Factura de Exportación (DTE 110)**

@@ -5,7 +5,7 @@ description: 'Listar y obtener procesos de liquidación (PayrollRun) — IDs pre
 
 ## Listar procesos de liquidación
 
-`GET /api/v2/payroll/runs/`
+`GET /v2/payroll/runs/`
 
 ### Query params
 
@@ -46,20 +46,20 @@ description: 'Listar y obtener procesos de liquidación (PayrollRun) — IDs pre
 
 ## Obtener proceso de liquidación
 
-`GET /api/v2/payroll/runs/{id}/`
+`GET /v2/payroll/runs/{id}/`
 
 ### Ejemplo cURL
 
 ```bash
 curl -H "Authorization: Api-Key TU_API_KEY" \
-  "https://api.tupana.ai/api/v2/payroll/runs/prun_4829301923847/"
+  "https://api.tupana.ai/v2/payroll/runs/prun_4829301923847/"
 ```
 
 ---
 
 ## Listar liquidaciones del proceso
 
-`GET /api/v2/payroll/runs/{id}/payslips/`
+`GET /v2/payroll/runs/{id}/payslips/`
 
 Retorna todas las liquidaciones individuales de un proceso.
 
@@ -91,5 +91,5 @@ Retorna todas las liquidaciones individuales de un proceso.
 
 ```bash
 curl -H "Authorization: Api-Key TU_API_KEY" \
-  "https://api.tupana.ai/api/v2/payroll/runs/prun_4829301923847/payslips/"
+  "https://api.tupana.ai/v2/payroll/runs/prun_4829301923847/payslips/"
 ```

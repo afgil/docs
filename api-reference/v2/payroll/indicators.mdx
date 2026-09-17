@@ -5,7 +5,7 @@ description: 'Indicadores legales del período (UF, UTM, AFP, tasas) — v2'
 
 ## Obtener indicadores del período
 
-`GET /api/v2/payroll/indicators/`
+`GET /v2/payroll/indicators/`
 
 Retorna los indicadores legales vigentes para el período indicado.
 No devuelve IDs de recursos propios, por lo que el comportamiento
@@ -44,5 +44,5 @@ es idéntico a v1.
 
 ```bash
 curl -H "Authorization: Api-Key TU_API_KEY" \
-  "https://api.tupana.ai/api/v2/payroll/indicators/?master_entity_id=ment_4829301923847&period=202408"
+  "https://api.tupana.ai/v2/payroll/indicators/?master_entity_id=ment_4829301923847&period=202408"
 ```
