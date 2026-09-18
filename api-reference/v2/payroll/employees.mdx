@@ -5,7 +5,7 @@ description: 'Listar y obtener trabajadores — IDs prefijados v2'
 
 ## Listar trabajadores
 
-`GET /api/v2/payroll/employees/`
+`GET /v2/payroll/employees/`
 
 ### Query params
 
@@ -44,7 +44,7 @@ description: 'Listar y obtener trabajadores — IDs prefijados v2'
 
 ## Obtener trabajador
 
-`GET /api/v2/payroll/employees/{id}/`
+`GET /v2/payroll/employees/{id}/`
 
 El path es el public ID (`empl_...`).
 
@@ -70,5 +70,5 @@ El path es el public ID (`empl_...`).
 
 ```bash
 curl -H "Authorization: Api-Key TU_API_KEY" \
-  "https://api.tupana.ai/api/v2/payroll/employees/empl_4829301923847/"
+  "https://api.tupana.ai/v2/payroll/employees/empl_4829301923847/"
 ```

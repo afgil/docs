@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://api.tupana.ai",
+      "url": "https://api.tupana.ai/v2",
       "description": "Producción (v2)"
     }
   ],
@@ -17,7 +17,7 @@
     }
   ],
   "paths": {
-    "/api/v2/book-summaries/": {
+    "/book-summaries/": {
       "get": {
         "operationId": "listBookSummaries_v2",
         "tags": [
@@ -152,7 +152,7 @@
         }
       }
     },
-    "/api/v2/cessions/{id}/": {
+    "/cessions/{id}/": {
       "get": {
         "operationId": "getCession_v2",
         "tags": [
@@ -304,7 +304,7 @@
         }
       }
     },
-    "/api/v2/cessions/batch/": {
+    "/cessions/batch/": {
       "post": {
         "operationId": "createCessionBatch_v2",
         "tags": [
@@ -556,7 +556,7 @@
         }
       }
     },
-    "/api/v2/cessions/": {
+    "/cessions/": {
       "get": {
         "operationId": "listCessions_v2",
         "tags": [
@@ -746,7 +746,7 @@
         }
       }
     },
-    "/api/v2/cessions/batch/{batch_id}/": {
+    "/cessions/batch/{batch_id}/": {
       "get": {
         "operationId": "getCessionBatchStatus_v2",
         "tags": [
@@ -910,7 +910,7 @@
         }
       }
     },
-    "/api/v2/credentials/{master_entity_id}/": {
+    "/credentials/{master_entity_id}/": {
       "delete": {
         "operationId": "unenrollCredential_v2",
         "tags": [
@@ -972,7 +972,7 @@
         }
       }
     },
-    "/api/v2/credentials/": {
+    "/credentials/": {
       "post": {
         "operationId": "createCredential_v2",
         "summary": "Crear credencial",
@@ -1315,7 +1315,7 @@
         }
       }
     },
-    "/api/v2/credentials/batch/": {
+    "/credentials/batch/": {
       "post": {
         "operationId": "createCredentialsBatch_v2",
         "tags": [
@@ -1511,7 +1511,7 @@
         }
       }
     },
-    "/api/v2/documents/{document_id}/states/": {
+    "/documents/{document_id}/states/": {
       "get": {
         "operationId": "listDocumentStates_v2",
         "tags": [
@@ -1774,7 +1774,7 @@
         ]
       }
     },
-    "/api/v2/documents/{document_id}/": {
+    "/documents/{document_id}/": {
       "get": {
         "operationId": "getDocument_v2",
         "tags": [
@@ -1858,7 +1858,7 @@
         ]
       }
     },
-    "/api/v2/documents/batch/": {
+    "/documents/batch/": {
       "post": {
         "operationId": "createDocumentsBatch_v2",
         "summary": "Envío de documentos en lote",
@@ -2027,7 +2027,7 @@
         ]
       }
     },
-    "/api/v2/documents/": {
+    "/documents/": {
       "get": {
         "operationId": "listDocuments_v2",
         "tags": [
@@ -2236,7 +2236,7 @@
         }
       }
     },
-    "/api/v2/folio-queries/": {
+    "/folio-queries/": {
       "post": {
         "operationId": "createFolioQuery_v2",
         "tags": [
@@ -2438,7 +2438,7 @@
         }
       }
     },
-    "/api/v2/folio-queries/{id}/": {
+    "/folio-queries/{id}/": {
       "get": {
         "operationId": "getFolioQuery_v2",
         "tags": [
@@ -2480,7 +2480,7 @@
         }
       }
     },
-    "/api/v2/folio-requests/{id}/": {
+    "/folio-requests/{id}/": {
       "get": {
         "operationId": "getFolioRequest_v2",
         "tags": [
@@ -2565,7 +2565,7 @@
         }
       }
     },
-    "/api/v2/folio-requests/": {
+    "/folio-requests/": {
       "post": {
         "operationId": "createFolioRequest_v2",
         "tags": [
@@ -2884,7 +2884,7 @@
         }
       }
     },
-    "/api/v2/folios/": {
+    "/folios/": {
       "get": {
         "operationId": "listFolioAvailability_v2",
         "tags": [
@@ -3034,7 +3034,7 @@
         }
       }
     },
-    "/api/v2/honorary/authorized-users/": {
+    "/honorary/authorized-users/": {
       "get": {
         "summary": "Listar usuarios autorizados",
         "description": "Obtiene la lista de usuarios autorizados para emitir boletas de honorarios, leída desde un caché local. Nunca consulta el SII en el momento del request — para refrescarla contra el SII, usa POST /honorary/master-entities/{master_entity_id}/authorized-users/sync/. El master_entity_id se proporciona como query parameter.",
@@ -3438,7 +3438,7 @@
         }
       }
     },
-    "/api/v2/honorary/master-entities/{master_entity_id}/authorized-users/": {
+    "/honorary/master-entities/{master_entity_id}/authorized-users/": {
       "get": {
         "summary": "Listar usuarios autorizados",
         "description": "Obtiene la lista de usuarios autorizados para emitir boletas de honorarios, leída desde un caché local. Nunca consulta el SII en el momento del request — para refrescarla contra el SII, usa POST /honorary/master-entities/{master_entity_id}/authorized-users/sync/.",
@@ -3598,7 +3598,7 @@
         }
       }
     },
-    "/api/v2/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/": {
+    "/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/": {
       "patch": {
         "summary": "Enrolar usuario autorizado",
         "description": "Enrola un usuario autorizado del SII para emitir boletas de honorarios. El RUT se valida contra el caché local (poblado por POST .../authorized-users/sync/), no contra el SII en vivo — sincroniza primero si la entidad nunca fue sincronizada. Para desenrolar, usa el endpoint de desenrolar.",
@@ -3824,7 +3824,7 @@
         }
       }
     },
-    "/api/v2/honorary/master-entities/{master_entity_id}/authorized-users/sync/": {
+    "/honorary/master-entities/{master_entity_id}/authorized-users/sync/": {
       "post": {
         "summary": "Sincronizar usuarios autorizados con el SII",
         "description": "Encola de forma asíncrona (no bloquea la respuesta) una consulta al SII para refrescar el caché local de usuarios autorizados de la entidad. Responde de inmediato con un job_id. El caché nunca queda vacío ni se corrompe por un sync fallido: solo un sync exitoso puede actualizar o desactivar usuarios (nunca los borra). Para saber cuándo terminó, haz polling de GET /honorary/master-entities/{master_entity_id}/authorized-users/ hasta que last_sync_status sea 'done' o 'error' — el canal WebSocket que expone el avance en tiempo real solo acepta autenticación de sesión (JWT), no API key.",
@@ -3918,7 +3918,7 @@
         }
       }
     },
-    "/api/v2/master-entities/": {
+    "/master-entities/": {
       "get": {
         "summary": "Buscar entidad por RUT",
         "description": "Busca una entidad maestra específica por su RUT. Requiere autenticación por API Key.\n\n**Permisos requeridos:** Este endpoint actualmente no requiere permisos específicos (`AllowAny`), pero requiere autenticación válida por API Key.\n\n**Respuesta:** Retorna información completa de la entidad incluyendo direcciones y actividades económicas. Si la entidad no existe en la base de datos, el sistema intentará buscarla y crearla automáticamente usando el scraper del SII.",
@@ -4037,7 +4037,7 @@
         ]
       }
     },
-    "/api/v2/scheduled-documents/{id}/": {
+    "/scheduled-documents/{id}/": {
       "patch": {
         "operationId": "updateScheduledDocument_v2",
         "tags": [
@@ -4303,7 +4303,7 @@
         }
       }
     },
-    "/api/v2/scheduled-documents/": {
+    "/scheduled-documents/": {
       "post": {
         "operationId": "createScheduledDocument_v2",
         "tags": [
@@ -4587,7 +4587,7 @@
         }
       }
     },
-    "/api/v2/scheduled-documents/{id}/preview/": {
+    "/scheduled-documents/{id}/preview/": {
       "get": {
         "tags": [
           "Documentos Programados"
@@ -4682,7 +4682,7 @@
         }
       }
     },
-    "/api/v2/sync-requests/": {
+    "/sync-requests/": {
       "get": {
         "operationId": "listSyncRequests_v2",
         "tags": [
@@ -4989,7 +4989,7 @@
         }
       }
     },
-    "/api/v2/sync-requests/{id}/": {
+    "/sync-requests/{id}/": {
       "get": {
         "operationId": "getSyncRequest_v2",
         "tags": [
@@ -5082,7 +5082,7 @@
         }
       }
     },
-    "/api/v2/sync-status/": {
+    "/sync-status/": {
       "get": {
         "operationId": "getSyncStatus_v2",
         "tags": [
@@ -5214,7 +5214,7 @@
         }
       }
     },
-    "/api/v2/webhooks/": {
+    "/webhooks/": {
       "get": {
         "operationId": "listWebhooks_v2",
         "tags": [
@@ -8210,7 +8210,12 @@
           "transfer_issuer_code": {
             "type": "string",
             "nullable": true,
-            "enum": ["1", "2", "3", "4"],
+            "enum": [
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
             "description": "Quién realiza el traslado de exportación (Emisor/GuiaExport/CdgTraslado): 1=Exportador, 2=Agente de Aduana, 3=Vendedor, 4=Contribuyente autorizado expresamente por el SII. Sólo con transport_type 8 o 9 (422 en otro caso); obligatorio con 8 o 9 en el facturador de mercado (sin él el SII acepta la guía con reparo HED-2-804). No disponible para emisores del facturador gratuito del SII (422).",
             "example": "1"
           },
