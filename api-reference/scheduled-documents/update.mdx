@@ -3,26 +3,6 @@ title: 'Actualizar documento programado'
 openapi: 'PATCH /scheduled-documents/{id}'
 ---
 
-## Qué hace
+import ScheduledUpdateBody from '/snippets/api/scheduled-update.mdx';
 
-- Actualiza parcialmente un documento programado existente
-- Permite modificar solo los campos que se desean cambiar (PATCH)
-- Actualiza la configuración de frecuencia, estado, montos o detalles
-- Recalcula automáticamente la próxima ejecución si se cambia la frecuencia
-- Mantiene la integridad del documento programado
-
-## Ejemplos de uso
-
-- Cambiar la frecuencia de ejecución de un documento programado
-- Pausar o reactivar un documento programado (cambiar estado)
-- Actualizar montos o productos/servicios del documento
-- Modificar el día de ejecución (día del mes o día de la semana)
-- Cambiar el número máximo de ejecuciones permitidas
-
-## Endpoints relacionados
-
-- [Listar Documentos Programados](/api-reference/scheduled-documents/list) - Ver todos los documentos programados
-- [Obtener Documento Programado](/api-reference/scheduled-documents/get) - Ver detalles del documento antes de actualizar
-- [Crear Documento Programado](/api-reference/scheduled-documents/create) - Crear un nuevo documento programado
-- [Preview de Documento Programado](/api-reference/scheduled-documents/preview) - Ver preview del documento actualizado
-- [Listar Documentos](/api-reference/documents/list) - Consultar documentos ya emitidos
+<ScheduledUpdateBody />

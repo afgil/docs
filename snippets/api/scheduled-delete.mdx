@@ -1,0 +1,29 @@
+
+## Qué hace
+
+- Elimina un documento programado existente de forma permanente
+- Remueve el documento programado del sistema
+- No afecta los documentos ya emitidos que fueron generados por este documento programado
+- Esta acción no se puede deshacer
+- Requiere que el documento programado pertenezca a tu entidad
+
+## Ejemplos de uso
+
+- Eliminar un documento programado que ya no se necesita
+- Remover documentos programados obsoletos o con errores de configuración
+- Limpiar documentos programados que han completado todas sus ejecuciones
+- Eliminar documentos programados de prueba o desarrollo
+- Remover documentos programados que se crearon por error
+
+### Notas importantes
+
+- ⚠️ **Esta acción es permanente**: Una vez eliminado, el documento programado no podrá ser recuperado
+- Solo puedes eliminar documentos programados que pertenezcan a tu entidad
+- La eliminación no afecta los documentos ya emitidos que fueron generados por este documento programado
+
+## Endpoints relacionados
+
+- [Listar Documentos Programados](/api-reference/scheduled-documents/list) - Ver todos los documentos programados
+- [Obtener Documento Programado](/api-reference/scheduled-documents/get) - Ver detalles antes de eliminar
+- [Crear Documento Programado](/api-reference/scheduled-documents/create) - Crear un nuevo documento programado
+- [Listar Documentos](/api-reference/documents/list) - Consultar documentos ya emitidos por este documento programado

@@ -55,54 +55,54 @@
                 "group": "Entidades",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /master-entities/"
+                  "api-reference/v2/entities/master-entity"
                 ]
               },
               {
                 "group": "Credenciales",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /credentials/",
-                  "POST /credentials/",
-                  "POST /credentials/batch/",
-                  "DELETE /credentials/{master_entity_id}/"
+                  "api-reference/v2/credentials/list",
+                  "api-reference/v2/credentials/create",
+                  "api-reference/v2/credentials/batch",
+                  "api-reference/v2/credentials/unenroll"
                 ]
               },
               {
                 "group": "Documentos",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /documents/",
-                  "POST /documents/batch/",
-                  "GET /documents/{document_id}/"
+                  "api-reference/v2/documents/list",
+                  "api-reference/v2/documents/batch",
+                  "api-reference/v2/documents/get"
                 ]
               },
               {
                 "group": "Estados de Documentos",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /documents/{document_id}/states/",
-                  "POST /documents/{document_id}/states/"
+                  "api-reference/v2/document-states/list",
+                  "api-reference/v2/document-states/create"
                 ]
               },
               {
                 "group": "Documentos Programados",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /scheduled-documents/",
-                  "POST /scheduled-documents/",
-                  "GET /scheduled-documents/{id}/",
-                  "PATCH /scheduled-documents/{id}/",
-                  "GET /scheduled-documents/{id}/preview/",
-                  "DELETE /scheduled-documents/{id}/"
+                  "api-reference/v2/scheduled-documents/list",
+                  "api-reference/v2/scheduled-documents/create",
+                  "api-reference/v2/scheduled-documents/get",
+                  "api-reference/v2/scheduled-documents/update",
+                  "api-reference/v2/scheduled-documents/preview",
+                  "api-reference/v2/scheduled-documents/delete"
                 ]
               },
               {
                 "group": "Webhooks",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /webhooks/",
-                  "POST /webhooks/"
+                  "api-reference/v2/webhooks-pages/list",
+                  "api-reference/v2/webhooks-pages/create"
                 ]
               },
               {
@@ -126,10 +126,10 @@
                 "group": "Referencia",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /cessions/",
-                  "GET /cessions/{id}/",
-                  "POST /cessions/batch/",
-                  "GET /cessions/batch/{batch_id}/"
+                  "api-reference/v2/cessions/list",
+                  "api-reference/v2/cessions/get",
+                  "api-reference/v2/cessions/batch",
+                  "api-reference/v2/cessions/batch-status"
                 ]
               },
               {
@@ -324,7 +324,7 @@
                 "pages": [
                   "api-reference/credentials/list",
                   "api-reference/credentials/create",
-              "api-reference/credentials/enrollment-status",
+                  "api-reference/credentials/enrollment-status",
                   "api-reference/credentials/batch",
                   "api-reference/credentials/unenroll"
                 ]

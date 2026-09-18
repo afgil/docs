@@ -1,0 +1,27 @@
+---
+title: 'Emisión masiva de documentos'
+openapi: 'api-reference/openapi-v2.json POST /documents/batch/'
+---
+
+import DocumentsBatchBody1 from '/snippets/api/documents-batch-1.mdx';
+import DocumentsBatchBody2 from '/snippets/api/documents-batch-2.mdx';
+
+<DocumentsBatchBody1 />
+
+```json
+{
+  "batch_id": "doba_4829301923847561203",
+  "status": "processing",
+  "warnings": [
+    {
+      "document_index": 0,
+      "field": "header.transfer_indicator",
+      "code": "unknown_field",
+      "message": "Campo desconocido: se ignoró.",
+      "suggestion": "transport_data.transport_type"
+    }
+  ]
+}
+```
+
+<DocumentsBatchBody2 />
