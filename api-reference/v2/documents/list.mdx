@@ -1,0 +1,14 @@
+---
+title: 'Listar documentos'
+openapi: 'api-reference/openapi-v2.json GET /documents/'
+---
+
+import DocumentsListBody from '/snippets/api/documents-list.mdx';
+
+<DocumentsListBody
+  exTraceEvents="GET /v2/documents/?master_entity_id=ment_4829301923847&include_trace_events=true"
+  exDetailPath="GET /v2/documents/{document_id}/"
+  exBookMetadata="GET /v2/documents/?master_entity_id=ment_4829301923847&document_type=received&include_book_metadata=true"
+  exJsonParam="GET /v2/documents/?master_entity_id=ment_4829301923847&json_param__external_order_id=PED-123"
+  exJsonParamAnd="GET /v2/documents/?master_entity_id=ment_4829301923847&json_param__external_order_id=PED-123&json_param__priority=high"
+/>

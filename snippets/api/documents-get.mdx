@@ -1,0 +1,18 @@
+
+## Qué hace
+
+Obtiene toda la información completa de un documento tributario específico, incluyendo PDF, XML, productos, información del emisor y receptor, header, y referencias. Este endpoint es útil para consultar detalles completos de un documento ya emitido o recibido.
+
+## Ejemplos de uso
+
+- Consultar detalles completos de un documento ya emitido
+- Descargar el PDF de un documento específico
+- Obtener el XML para procesos de integración
+- Verificar información de un documento recibido
+- Auditar documentos antes de procesarlos
+
+## Trazabilidad SII
+
+La respuesta incluye siempre el array `traces` con cada traza del documento en el SII y, dentro de cada una, la lista `events` con los eventos registrados (acuse de recibo, reclamos, notas de crédito asociadas, etc.). Revisa los schemas `Trace` y `TraceEvent` en la referencia para el detalle de cada campo.
+
+A diferencia del endpoint de listado — donde estos eventos son opt-in vía `include_trace_events=true` — aquí no necesitas ningún flag adicional.

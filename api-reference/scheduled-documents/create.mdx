@@ -3,26 +3,6 @@ title: 'Crear documento programado'
 openapi: 'POST /scheduled-documents'
 ---
 
-## Qué hace
+import ScheduledCreateBody from '/snippets/api/scheduled-create.mdx';
 
-- Crea un nuevo documento programado que se ejecutará automáticamente según la frecuencia especificada
-- Permite definir la frecuencia de ejecución (diaria, semanal, mensual, trimestral)
-- Configura automáticamente la próxima ejecución según la frecuencia
-- Busca o crea automáticamente el receptor si no existe
-- Establece el estado inicial del documento programado (activo o inactivo)
-
-## Ejemplos de uso
-
-- Crear facturas recurrentes mensuales a clientes específicos
-- Programar servicios de suscripción que se facturen automáticamente
-- Automatizar facturación de servicios periódicos (consulta, mantenimiento, etc.)
-- Configurar facturas trimestrales para reportes o servicios continuos
-- Establecer documentos programados que se ejecuten diariamente
-
-## Endpoints relacionados
-
-- [Listar Documentos Programados](/api-reference/scheduled-documents/list) - Ver todos los documentos programados
-- [Obtener Documento Programado](/api-reference/scheduled-documents/get) - Ver detalles de un documento específico
-- [Actualizar Documento Programado](/api-reference/scheduled-documents/update) - Modificar un documento programado existente
-- [Preview de Documento Programado](/api-reference/scheduled-documents/preview) - Ver preview del próximo documento a emitir
-- [Listar Documentos](/api-reference/documents/list) - Consultar documentos ya emitidos
+<ScheduledCreateBody />

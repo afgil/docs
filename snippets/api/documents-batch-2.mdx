@@ -1,0 +1,840 @@
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `document_index` | Integer | Posición del documento en el arreglo `documents` (desde 0) |
+| `field` | String | Ruta del campo dentro del documento |
+| `code` | String | Tipo de aviso. Hoy siempre `"unknown_field"` |
+| `message` | String | Texto para personas; puede cambiar, no lo parsees |
+| `suggestion` | String o `null` | Campo correcto, si se reconoce el error; `null` si no hay sugerencia |
+
+Sugerencias conocidas:
+
+| Campo enviado | Campo correcto |
+|---|---|
+| `header.transfer_indicator` | `transport_data.transport_type` |
+| `export_data.export_clause` | `export_data.sale_clause_code` |
+| `export_data.destination_country` | `export_data.destination_country_code` |
+
+<Warning>
+Un aviso significa que **el dato no llegó al documento**. Por ejemplo, con `header.transfer_indicator` la guía se emite con el tipo de traslado por defecto (`"1"`, venta), y con `export_data.export_clause` la factura de exportación sale sin cláusula de venta. Revisa los `warnings` en cada respuesta y corrige tu integración.
+</Warning>
+
+### Modo estricto: `422`
+
+Las API keys con **validación estricta** reciben `422` en vez del aviso, y no se crea ningún documento del batch. El error va bajo la posición del documento (como string, desde `"0"`) y la ruta del campo; en las listas (`details`, `references`, `payments`) la posición de la línea también es una llave:
+
+```json
+{
+  "documents": {
+    "0": {
+      "header": {
+        "transfer_indicator": ["Campo desconocido. ¿Quisiste decir transport_data.transport_type?"]
+      },
+      "details": {
+        "1": {"exento": ["Campo desconocido."]}
+      }
+    }
+  }
+}
+```
+
+Es el mismo formato que el resto de los errores de validación del batch, en v1 y en v2.
+
+- Las **API keys nuevas** tienen la validación estricta activada.
+- Las **integraciones existentes** reciben primero los `warnings`, para que puedan corregir sus campos sin que se rompa la emisión. El paso a modo estricto de una API key existente se coordina con Tupana.
+- El texto del mensaje puede cambiar: usa la ruta del campo para identificar el error.
+- **API keys del flujo diferido** (prefijo `gw_`): el aviso llega en el `202` junto a `batch_id`, y con validación estricta el `422` trae el mismo objeto dentro de `errors` (`{"errors": {"documents": {...}}, "request": {...}}`).
+
+## Respuesta
+
+### Respuesta Inmediata de la API
+
+#### 201 - Documentos creados exitosamente
+- **Tipo:** Object
+- **Campos:**
+  - `batch_id` (String): Identificador único del lote
+  - `status` (String): Estado del procesamiento (`"processing"`)
+  - `total_documents` (Integer): Número total de documentos en el lote
+  - `message` (String): Mensaje descriptivo del estado
+  - `warnings` (Array, opcional): Avisos sobre campos desconocidos que se ignoraron. Ver [Validación de campos desconocidos](#validacion-de-campos-desconocidos)
+
+#### 413 - Límite excedido
+- **Descripción:** Más de 200 documentos en el array
+- **Campos:**
+  - `error` (String): Descripción del error
+  - `code` (String): Código de error
+
+#### 400 - Credenciales no activas
+- **Descripción:** La empresa emisora no tiene credenciales SII activas configuradas
+- **Campos:**
+  - `error` (String): Mensaje descriptivo indicando que no hay credenciales activas para el RUT especificado
+
+#### 422 - Error de validación
+- **Descripción:** Cuerpo malformado o fallo de validación
+- **Cuerpo malformado** (por ejemplo `documents` no es una lista): `{"error": "..."}`.
+- **Validación de documentos:** los errores van bajo `documents`, con la posición del documento como llave y la ruta del campo adentro. Ejemplo con una guía de traslado de exportación sin datos de Aduana:
+
+```json
+{
+  "documents": {
+    "0": {
+      "transport_data": {
+        "gross_weight": ["Requerido en guías de traslado de exportación (transport_type 8 o 9): el SII lo exige en Transporte/Aduana."]
+      }
+    }
+  }
+}
+```
+
+### Respuesta del Webhook
+
+Cuando un documento se emite exitosamente, Tupana envía un webhook con la siguiente estructura:
+
+**event (Obligatorio)**
+- **Tipo:** String
+- **Valor:** `"document.issued"`
+- **Descripción:** Tipo de evento del webhook
+
+**created_at (Obligatorio)**
+- **Tipo:** String (ISO 8601)
+- **Descripción:** Timestamp de cuando se generó el webhook
+
+**data (Obligatorio)**
+- **Tipo:** Object
+- **Descripción:** Datos completos del documento emitido
+
+#### Campos del objeto data
+
+**Información básica del documento:**
+- `id` (Integer): ID único del documento en Tupana
+- `folio` (String): Folio asignado por el SII
+- `date_issued` (String): Fecha de emisión (formato YYYY-MM-DD)
+- `amount_with_iva` (Number): Monto total con IVA incluido
+- `is_sandbox` (Boolean): Indica si es un documento de prueba
+
+**dte_type (Object):**
+- `code` (String): Código del tipo de documento
+- `description` (String): Descripción del tipo de documento
+
+**sender (Object):**
+- `id` (Integer): ID del emisor en Tupana
+- `name` (String): Nombre/razón social del emisor
+- `tax_id` (String): RUT del emisor (formato con puntos y guión)
+- `email` (String): Email del emisor
+
+**receiver (Object):**
+- `id` (Integer): ID del receptor en Tupana
+- `name` (String): Nombre/razón social del receptor
+- `tax_id` (String): RUT del receptor (formato con puntos y guión)
+- `email` (String): Email del receptor
+
+**header (Object):**
+- `purchase_transaction_type` (Integer): Tipo de transacción de compra
+- `sale_transaction_type` (Integer): Tipo de transacción de venta
+- `payment_method` (String): Método de pago
+- `due_date` (String): Fecha de vencimiento (formato YYYY-MM-DD)
+- `retention_type` (String): Tipo de retención (solo para boletas de honorarios)
+
+**document_issuer (Object):**
+- `rut` (String): RUT del emisor
+- `business_name` (String): Razón social
+- `business_activity` (String): Giro o actividad económica
+- `phone_number` (String): Teléfono
+- `email` (String): Email
+- `activity_code` (Integer): Código de actividad económica
+- `sii_branch_code` (String): Código de sucursal SII
+- `address` (String): Dirección
+- `district` (String): Comuna
+- `city` (String): Ciudad
+
+**document_receiver (Object):**
+- `rut` (String): RUT del receptor
+- `business_name` (String): Razón social
+- `business_activity` (String): Giro o actividad económica
+- `contact` (String): Contacto
+- `address` (String): Dirección
+- `district` (String): Comuna
+- `city` (String): Ciudad
+
+**document_total (Object):**
+- `net_amount` (Number): Monto neto (sin IVA)
+- `iva_rate` (Number): Tasa de IVA aplicada
+- `iva_amount` (Number): Monto del IVA
+- `total_amount` (Number): Monto total
+
+**details (Array):**
+Lista de productos/servicios del documento. Cada elemento contiene:
+- `item_name` (String): Nombre del producto/servicio
+- `item_description` (String): Descripción del producto/servicio
+- `quantity` (Number): Cantidad
+- `unit_price` (Number): Precio unitario neto, sin IVA. Si el documento se emitió en bruto (boletas 39/41 con `gross_unit_price`), este campo refleja el monto bruto de la línea — `gross_unit_price` es solo de entrada y no se retorna en la respuesta.
+- `item_code` (String): Código del producto/servicio
+- `item_type_code` (String): Código del tipo de ítem
+- `unit` (String): Unidad de medida
+- `discount_percent` (Number): Porcentaje de descuento
+- `other_tax` (Number): Otros impuestos
+
+**references (Array):**
+Referencias a otros documentos (solo para notas de crédito). Cada elemento contiene:
+- `dte_type_code` (String): Código del tipo de DTE de referencia
+- `reference_folio` (String): Folio del documento referenciado
+- `reference_date` (String): Fecha del documento referenciado
+- `reference_reason` (String): Razón de la referencia
+
+**Archivos generados:**
+- `pdf_file` (String): URL temporal para descargar el PDF del documento
+- `xml_file` (String): URL temporal para descargar el XML del documento
+
+**json_param (Object):**
+- **Descripción:** Campos personalizados adicionales que se pueden incluir en el documento
+- **Estructura:** Objeto flexible que puede contener cualquier información adicional
+
+
+
+## Consideraciones Especiales por Tipo de Documento
+
+### Ejemplos de Uso por Tipo de Documento
+
+#### Factura Electrónica (DTE 33)
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": {
+        "code": "33"
+      },
+      "date_issued": "2024-01-15",
+      "document_issuer": {
+        "rut": "12345678-9",
+        "business_name": "Mi Empresa SpA"
+      },
+      "document_receiver": {
+        "rut": "98765432-1",
+        "business_name": "Cliente Importante Ltda"
+      },
+      "details": [
+        {
+          "item_name": "Servicio de Consultoría",
+          "quantity": 1,
+          "unit_price": 100000
+        }
+      ]
+    }
+  ]
+}
+```
+
+
+
+#### Factura de Compra (DTE 46)
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": {
+        "code": "46"
+      },
+      "date_issued": "2024-01-15",
+      "document_issuer": {
+        "rut": "98765432-1",
+        "business_name": "Proveedor SpA"
+      },
+      "document_receiver": {
+        "rut": "12345678-9",
+        "business_name": "Mi Empresa SpA"
+      },
+      "header": {
+        "purchase_transaction_type": 1,
+        "payment_method": "2"
+      },
+      "details": [
+        {
+          "item_name": "Equipo de Oficina",
+          "quantity": 2,
+          "unit_price": 50000
+        }
+      ]
+    }
+  ]
+}
+```
+
+
+
+#### Guía de Despacho de venta (DTE 52)
+
+Guía que acompaña una venta, despachada por el emisor a una bodega del cliente distinta de su dirección. Las líneas son afectas: la guía lleva IVA.
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": {
+        "code": "52"
+      },
+      "date_issued": "2026-09-15",
+      "document_issuer": {
+        "rut": "12345678-9"
+      },
+      "document_receiver": {
+        "rut": "98765432-1",
+        "business_name": "Cliente Importante Ltda"
+      },
+      "transport_data": {
+        "transport_type": "1",
+        "dispatch_type": "2",
+        "transport_rut": "76234567-6",
+        "transport_plate": "ABCD12",
+        "driver_rut": "12345678-5",
+        "driver_name": "Juan Pérez",
+        "destination_address": "Camino Lo Boza 120, Bodega 4",
+        "destination_district": "Pudahuel",
+        "destination_city": "Santiago"
+      },
+      "details": [
+        {
+          "item_name": "Pastillas de freno",
+          "quantity": 40,
+          "unit_price": 12500
+        },
+        {
+          "item_name": "Discos de freno",
+          "quantity": 10,
+          "unit_price": 38000
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### Guía de Despacho de traslado para exportación (DTE 52)
+
+Traslado de mercadería de exportación desde la fábrica al aeropuerto. La venta va en la factura de exportación; la guía declara el tipo de traslado `"8"`, los datos de Aduana, el valor de la carga como línea exenta y el DUS como referencia.
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": {
+        "code": "52"
+      },
+      "date_issued": "2026-09-15",
+      "document_issuer": {
+        "rut": "12345678-9"
+      },
+      "document_receiver": {
+        "rut": "76123456-0",
+        "business_name": "Agencia de Aduanas Ejemplo Ltda"
+      },
+      "transport_data": {
+        "transport_type": "8",
+        "dispatch_type": "3",
+        "transfer_issuer_code": "1",
+        "transport_rut": "76234567-6",
+        "transport_plate": "PJRL69",
+        "driver_rut": "12345678-5",
+        "driver_name": "Juan Pérez",
+        "destination_address": "Aeropuerto Arturo Merino Benitez",
+        "destination_district": "Pudahuel",
+        "destination_city": "Santiago",
+        "departure_port_code": "992",
+        "arrival_port_code": "134",
+        "gross_weight": "1414.00",
+        "gross_weight_unit_code": "6",
+        "total_packages": 3,
+        "package_type_code": "22"
+      },
+      "details": [
+        {
+          "item_name": "Balatas de freno",
+          "item_description": "Partida arancelaria 6813.81.00",
+          "quantity": 3,
+          "unit_price": 1350000,
+          "is_exempt": true
+        }
+      ],
+      "references": [
+        {
+          "dte_type_code": "807",
+          "reference_folio": "13717477-4",
+          "reference_date": "2026-09-15",
+          "reference_reason": "DUS 13717477-4"
+        }
+      ]
+    }
+  ]
+}
+```
+
+La guía queda con `exempt_amount` 4.050.000, IVA 0 y total 4.050.000.
+
+#### Factura de Exportación (DTE 110)
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": {
+        "code": "110"
+      },
+      "date_issued": "2024-01-15",
+      "document_issuer": {
+        "rut": "12345678-9",
+        "business_name": "Exportadora SpA"
+      },
+      "document_receiver": {
+        "rut": "99999999-9",
+        "business_name": "Importador Internacional Inc",
+        "address": "123 Main Street",
+        "city": "New York",
+        "country": "USA"
+      },
+      "header": {
+        "sale_transaction_type": 1,
+        "currency": "USD"
+      },
+      "export_data": {
+        "destination_country_code": "225",
+        "currency_code": "13",
+        "sale_mode_code": "1",
+        "sale_clause_code": "5",
+        "export_payment_method_code": "11",
+        "exchange_rate": "965.40"
+      },
+      "details": [
+        {
+          "item_name": "Producto Exportado",
+          "quantity": 100,
+          "unit_price": 50
+        }
+      ]
+    }
+  ]
+}
+```
+
+
+
+#### Nota de Crédito (DTE 61)
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": {
+        "code": "61"
+      },
+      "date_issued": "2024-01-16",
+      "document_issuer": {
+        "rut": "12345678-9",
+        "business_name": "Mi Empresa SpA"
+      },
+      "document_receiver": {
+        "rut": "98765432-1",
+        "business_name": "Cliente Importante Ltda"
+      },
+      "references": [
+        {
+          "dte_type_code": "33",
+          "reference_folio": 12345,
+          "reference_date": "2024-01-15",
+          "reference_reason": "Corrección de precio"
+        }
+      ],
+      "details": [
+        {
+          "item_name": "Ajuste por Corrección",
+          "quantity": -1,
+          "unit_price": 5000
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### Boleta de Honorarios por usuario autorizado (DTE 80)
+
+El emisor de la boleta es `document_issuer.rut`, pero la emite un **usuario autorizado** por el SII (dueño de una credencial `sii_company`). `header.authorized_user_rut` indica cuál credencial usar cuando hay varias accesibles.
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": {
+        "code": "80"
+      },
+      "document_issuer": {
+        "rut": "76543210-3"
+      },
+      "document_receiver": {
+        "rut": "12345678-9"
+      },
+      "header": {
+        "retention_type": "RETRECEPTOR",
+        "authorized_user_rut": "19615893-6"
+      },
+      "details": [
+        {
+          "item_name": "Asesoría profesional",
+          "quantity": 1,
+          "unit_price": 50000
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### Boleta de Honorarios de Terceros (DTE 90)
+
+Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y receptor el backend completa `business_name` y el resto si existen en Tupana; usa fecha actual si se omite `date_issued`.
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": {
+        "code": "90"
+      },
+      "document_issuer": {
+        "rut": "76543210-3"
+      },
+      "document_receiver": {
+        "rut": "12345678-9"
+      },
+      "header": {
+        "retention_type": "RETRECEPTOR"
+      },
+      "details": [
+        {
+          "item_name": "Servicio de reparto de pedidos",
+          "quantity": 1,
+          "unit_price": 15000
+        }
+      ]
+    }
+  ]
+}
+```
+
+## 🧾 **Factura de Compra (DTE 46)**
+
+### Campos específicos del header:
+- **`purchase_transaction_type`** (Integer, Obligatorio):
+  - `1`: Compras del giro - Productos/servicios relacionados con tu actividad principal
+  - `2`: Compras fuera del giro - Productos/servicios no relacionados con tu actividad principal
+  - `3`: Activo fijo - Bienes que se incorporan al patrimonio de la empresa (maquinaria, muebles, etc.)
+
+- **`payment_method`** (String, Opcional):
+  - `"1"`: Contado - Pago inmediato
+  - `"2"`: Crédito - Pago diferido
+  - `"3"`: Sin costo - Producto/servicio recibido gratuitamente
+
+### Validaciones importantes:
+- **Registro contable**: Este documento genera asiento automático en tu contabilidad
+- **IVA recuperable**: El IVA pagado puede ser recuperado según el tipo de compra
+- **Proveedor extranjero**: Si el proveedor es extranjero, usar RUT genérico `55555555-5`
+- **Fecha límite**: Las compras deben registrarse dentro del mes siguiente a la recepción
+
+### Casos de uso comunes:
+- Registro de compras a proveedores locales
+- Incorporación de activos fijos
+- Servicios profesionales recibidos
+- Compras de materias primas o insumos
+
+
+## 🚚 **Guía de Despacho (DTE 52)**
+
+<a id="guia-de-despacho-dte-52-transport-data"></a>
+
+### Campos de transport_data
+
+Todos los campos son opcionales salvo lo que se indica. Los mismos campos se aceptan en `POST /v1/documents/batch/` y en `POST /v2/documents/batch/`.
+
+| Campo | Tipo | Obligatorio | Validación | Campo del DTE |
+|---|---|---|---|---|
+| `transport_type` | String `"1"`–`"9"` | No (por defecto `"1"`) | Tabla de tipos de traslado | `IdDoc/IndTraslado` |
+| `dispatch_type` | String `"1"`–`"3"` | No (si no se envía, se emite `3`) | No se permite con `transport_type` `"5"` | `IdDoc/TipoDespacho` |
+| `transport_rut` | String | No | Si el dígito verificador es inválido se emite igual y la respuesta trae un aviso `invalid_rut` | `Transporte/RUTTrans` |
+| `transport_plate` | String | No | Se normaliza a mayúsculas sin guion ni espacios; máximo 8 caracteres | `Transporte/Patente` |
+| `driver_rut` | String | Con `driver_name` | Si el dígito verificador es inválido se emite igual y la respuesta trae un aviso `invalid_rut` | `Transporte/Chofer/RUTChofer` |
+| `driver_name` | String | Con `driver_rut` | Se trunca a 30 caracteres en el DTE | `Transporte/Chofer/NombreChofer` |
+| `destination_address` | String | No | Máximo 70 caracteres | `Transporte/DirDest` |
+| `destination_district` | String | No | Máximo 20 caracteres | `Transporte/CmnaDest` |
+| `destination_city` | String | No | Máximo 20 caracteres | `Transporte/CiudadDest` |
+| `transfer_issuer_code` | String `"1"`–`"4"` | Con traslado `"8"`/`"9"` (facturador de mercado) | Ver [Emisor del traslado](#emisor-del-traslado-transfer-issuer-code). Sólo con `transport_type` `"8"` o `"9"` | `Emisor/GuiaExport/CdgTraslado` |
+| `authorization_resolution_number` | Integer | Con `transfer_issuer_code` `"4"` | Mayor a 0; no se permite con otro código | `Emisor/GuiaExport/FolioAut` |
+| `authorization_resolution_date` | String `YYYY-MM-DD` | Con `transfer_issuer_code` `"4"` | No se permite con otro código | `Emisor/GuiaExport/FchAut` |
+| `departure_port_code` | String | Con traslado `"8"`/`"9"` (facturador de mercado) | Código o nombre exacto de la tabla de puertos de Aduana | `Aduana/CodPtoEmbarque` |
+| `arrival_port_code` | String | Con traslado `"8"`/`"9"` (facturador de mercado) | Código o nombre exacto de la tabla de puertos de Aduana | `Aduana/CodPtoDesemb` |
+| `gross_weight` | String decimal | Con traslado `"8"`/`"9"` (facturador de mercado) | Mayor a 0, hasta 2 decimales | `Aduana/PesoBruto` |
+| `gross_weight_unit_code` | String | Con traslado `"8"`/`"9"` (facturador de mercado) | Tabla de unidades de medida de Aduana | `Aduana/CodUnidPesoBruto` |
+| `total_packages` | Integer | No | Mayor a 0 | `Aduana/TotBultos` |
+| `package_type_code` | String | Si se envía `total_packages` | Tabla de tipos de bulto de Aduana | `Aduana/TipoBultos/CodTpoBultos` |
+| `timber_enabled`, `comuna_rol`, `manzana_rol`, `predio_rol`, `geo_ref_system`, `latitude`, `longitude`, `conaf_plan_code` | — | No | Sin cambios | `ManejoMadera` (CONAF) |
+
+Los campos de transporte y destino también se aceptan en otros tipos de documento; los de Aduana y el emisor del traslado, sólo con `transport_type` `"8"` o `"9"`.
+
+### Tipo de traslado (`transport_type`)
+
+| Código | Tipo de traslado | Código | Tipo de traslado |
+|---|---|---|---|
+| `"1"` | Operación constituye venta | `"6"` | Otros traslados no venta |
+| `"2"` | Ventas por efectuar | `"7"` | Guía de devolución |
+| `"3"` | Consignaciones | `"8"` | Traslado para exportación (no venta) |
+| `"4"` | Entrega gratuita | `"9"` | Venta para exportación |
+| `"5"` | Traslados internos | | |
+
+### Tipo de despacho (`dispatch_type`)
+
+| Código | Tipo de despacho |
+|---|---|
+| `"1"` | Por cuenta del receptor (el cliente retira) |
+| `"2"` | Por cuenta del emisor, a instalaciones del cliente |
+| `"3"` | Por cuenta del emisor, a otras instalaciones |
+
+### Datos de Aduana (traslados `"8"` y `"9"`)
+
+- El SII los exige en guías con tipo de traslado 8 y 9: con el **facturador de mercado**, `transfer_issuer_code`, `departure_port_code`, `arrival_port_code`, `gross_weight` y `gross_weight_unit_code` son obligatorios.
+- Mismos nombres que en `export_data` de la factura de exportación, para usar las mismas llaves en la guía y en la factura.
+- Los puertos aceptan el **código o el nombre exacto** de la tabla de Aduana del SII (`"992"` o `"AEROP.A.M.BENITEZ"`, indistintamente). Ejemplos: `"906"` = SAN ANTONIO, `"905"` = VALPARAISO, `"992"` = AEROP.A.M.BENITEZ, `"134"` = NEW YORK, `"292"` = SANTOS.
+- `gross_weight_unit_code` usa la tabla de unidades de Aduana (ej: `"6"` = KN). `package_type_code` usa la tabla de tipos de bulto (ej: `"22"` = CAJA DE CARTON).
+
+  Ejemplo:
+
+  ```json
+  "transport_data": {
+    "transport_type": "8",
+    "transfer_issuer_code": "1",
+    "departure_port_code": "AEROP.A.M.BENITEZ",
+    "arrival_port_code": "134",
+    "gross_weight": "1414.00",
+    "gross_weight_unit_code": "6",
+    "total_packages": 3,
+    "package_type_code": "22"
+  }
+  ```
+
+### Emisor del traslado (`transfer_issuer_code`)
+
+En guías de traslado 8 y 9 el SII exige indicar en qué calidad se emite la guía (`Emisor/GuiaExport/CdgTraslado`). Sin este dato el SII acepta la guía con reparo (HED-2-804), por eso con el facturador de mercado es obligatorio.
+
+| Código | Emisor del traslado |
+|---|---|
+| `"1"` | Exportador |
+| `"2"` | Agente de Aduana |
+| `"3"` | Vendedor |
+| `"4"` | Contribuyente autorizado expresamente por el SII: requiere `authorization_resolution_number` y `authorization_resolution_date` |
+
+### Líneas exentas (`details[].is_exempt`)
+
+- `is_exempt: true` marca la línea como no afecta o exenta (`IndExe = 1` en el DTE).
+- Las líneas exentas suman a `document_total.exempt_amount` y no generan IVA; las afectas suman al neto y llevan IVA 19%. `total_amount = net_amount + iva_amount + exempt_amount`.
+- Para una guía toda exenta, marca todas las líneas. No hay marca a nivel de documento.
+- Por ahora sólo en DTE 52: en otros tipos de documento la API responde `422`.
+
+### Facturador gratuito del SII (MiPyme)
+
+| Campo | Facturador de mercado | Facturador gratuito |
+|---|---|---|
+| `transport_type` (incluidos `"8"` y `"9"`) | ✅ | ✅ |
+| `transport_rut`, `transport_plate`, `driver_rut`, `driver_name`, madera | ✅ | ✅ |
+| `dispatch_type` | ✅ | ❌ `422` |
+| `destination_address`, `destination_district`, `destination_city` | ✅ | ❌ `422` |
+| Datos de Aduana | ✅ (obligatorios con `"8"`/`"9"`) | ❌ `422` (no se exigen con `"8"`/`"9"`) |
+| `details[].is_exempt` | ✅ | ❌ `422` |
+
+El mensaje de error indica que el campo está *"no disponible para emisores del facturador gratuito del SII"*.
+
+<Warning>
+En el facturador gratuito del SII **una guía con precios siempre lleva IVA 19%**: el formulario del SII no permite líneas exentas. Para un traslado de exportación con valor sin IVA, el emisor necesita el facturador de mercado.
+</Warning>
+
+### Errores de validación (422)
+
+La guía se valida al recibir el batch, antes de emitir, para no quemar folios con rechazos del SII. Cada error indica el documento y la ruta del campo:
+
+| Caso | Respuesta |
+|---|---|
+| `transport_type` fuera de `"1"`–`"9"` o `dispatch_type` fuera de `"1"`–`"3"` | `422` con las opciones válidas |
+| `dispatch_type` con `transport_type` `"5"` | `422` |
+| Sólo `driver_rut` o sólo `driver_name` | `422`: se envían los dos o ninguno |
+| `destination_address` > 70, `destination_district` > 20 o `destination_city` > 20 caracteres | `422` |
+| Datos de Aduana con un `transport_type` distinto de `"8"`/`"9"` | `422` |
+| Traslado `"8"`/`"9"` sin puertos, peso bruto o unidad (facturador de mercado) | `422` |
+| Puerto, unidad o tipo de bulto fuera de la tabla de Aduana | `422` |
+| `gross_weight` o `total_packages` menor o igual a 0 | `422` |
+| `total_packages` sin `package_type_code` | `422` |
+| `details[].is_exempt` en un documento que no es DTE 52 | `422`: no soportado para este tipo de documento |
+| `dispatch_type`, destino, Aduana o `is_exempt` con emisor del facturador gratuito | `422`: no disponible para emisores del facturador gratuito del SII |
+
+Ejemplo de respuesta v1 (el error va en la posición del documento dentro de `documents`):
+
+```json
+{
+  "documents": [
+    {
+      "transport_data": {
+        "dispatch_type": ["Valor inválido. Opciones: 1, 2, 3."]
+      }
+    }
+  ]
+}
+```
+
+En v2 el error usa el formato de [errores v2](/api-reference/v2/errors) con `type` `validation_error`.
+
+### Respuesta
+
+`GET /v1/documents/{id}` y `GET /v2/documents/{id}/` devuelven `transport_data` con todos los campos anteriores, `details[].is_exempt` y `document_total.exempt_amount`.
+
+
+## ✈️ **Factura de Exportación (DTE 110)**
+
+### Campos requeridos en export_data:
+
+- **`destination_country_code`** (String, Obligatorio):
+  - **No es código ISO 3166-1.** Es el código de país del SII (ej: `"225"` = U.S.A., `"220"` = Brasil, `"224"` = Argentina). Ver [Países de exportación](/user-guide/export-countries) para la tabla completa.
+  - Debe coincidir con el país del receptor
+
+- **`currency_code`** (String, Obligatorio):
+  - Código de moneda del SII (ej: `"13"` = Dólar USA). No es ISO 4217.
+
+- **`sale_mode_code`** (String, Obligatorio):
+  - Código de modalidad de venta del SII (no una cláusula Incoterm). Ver [Modalidades de venta de exportación](/user-guide/export-sale-modes) para la tabla completa.
+
+### Cláusula de venta (Incoterm)
+
+- **`sale_clause_code`** (String, Opcional):
+  - Es el **Incoterm** de la operación (`CodClauVenta` del DTE): FOB, EXW, CIF, etc.
+  - **No confundir con `sale_mode_code`**: ése es la *modalidad* de venta (a firme, en consignación...). Son dos campos distintos del DTE.
+  - Se acepta el código o el nombre: `"5"` y `"FOB"` son equivalentes.
+
+  | Código | Cláusula | Código | Cláusula |
+  |---|---|---|---|
+  | `"1"` | CIF | `"8"` | OTROS |
+  | `"2"` | CFR | `"9"` | DDP |
+  | `"3"` | EXW | `"10"` | FCA |
+  | `"4"` | FAS | `"11"` | CPT |
+  | `"5"` | FOB | `"12"` | CIP |
+  | `"6"` | S/CL | `"17"` | DAT |
+  | | | `"18"` | DAP |
+
+  Ejemplo — pasar de Ex Works a FOB:
+
+  ```json
+  "export_data": {
+    "destination_country_code": "225",
+    "currency_code": "13",
+    "sale_mode_code": "1",
+    "sale_clause_code": "FOB"
+  }
+  ```
+
+### Forma de pago de exportación
+
+- **`export_payment_method_code`** (String, Opcional, por defecto `"21"`):
+  - Es la **forma de pago** de la operación de exportación (`FmaPagExp` del DTE).
+  - **`header.payment_method` no aplica a exportación**: el DTE de exportación no lleva la forma de pago nacional (contado / crédito), así que ese campo se ignora en los tipos 110, 111 y 112.
+  - Se acepta el código o el nombre: `"11"` y `"ACRED"` son equivalentes.
+
+  | Código | Forma de pago | Código | Forma de pago |
+  |---|---|---|---|
+  | `"1"` | COB1 | `"32"` | ANTICIPO |
+  | `"2"` | COBRANZA | `"50"` | ANT/COB |
+  | `"11"` | ACRED | `"60"` | ANT/CRED |
+  | `"12"` | CBOF | `"80"` | S/PAGO/COB |
+  | `"21"` | S/PAGO | | |
+
+  - Sin el campo el documento sale como **sin pago** (`"21"`): el SII exige entonces que el total en pesos (`MntTotOtrMnda`) vaya en cero.
+  - Con **ANTICIPO** (`"32"`) el DTE declara como fecha de pago la fecha de emisión.
+  - La forma de pago se muestra en el PDF, en el recuadro de exportación.
+
+### Campos específicos del header:
+
+- **`sale_transaction_type`** (Integer, Obligatorio):
+  - `1`: Operación constituye venta - Venta normal
+  - `2`: Ventas por acto o contrato - Contratos especiales
+  - `3`: Boleto de pasaje - Para agencias de viajes
+
+- **`currency`** (String, Obligatorio):
+  - `"USD"`: Dólares americanos
+  - `"EUR"`: Euros
+  - `"CLP"`: Pesos chilenos
+  - `"UF"`: Unidades de Fomento
+
+### Información del receptor extranjero:
+- **RUT**: Puede usar identificadores especiales como `99999999-9` para extranjeros
+- **Dirección**: Dirección completa en el extranjero
+- **País**: País de destino (debe coincidir con `destination_country`)
+
+### Precios y cálculos:
+- **FOB (Free on Board)**: Los precios deben incluir costos hasta la entrega al transportista
+- **Moneda**: Debe coincidir con `header.currency`
+- **Sin IVA**: Las exportaciones están exentas de IVA chileno
+
+### Requisitos legales:
+- **Registro de exportación**: Debe estar registrado en el sistema aduanero
+- **Certificado de origen**: Puede requerirse según acuerdos comerciales
+- **Documentos aduaneros**: Factura comercial, certificado de origen, etc.
+
+
+## 💼 **Boletas de Honorarios (DTE 80, 90)**
+
+### Campos específicos del header:
+
+- **`retention_type`** (String, Obligatorio):
+  - `"RETRECEPTOR"`: La retención la realiza el receptor (99% de los casos)
+  - `"RETCONTRIBUYENTE"`: La retención la realiza el contribuyente emisor (casos excepcionales)
+- **`authorized_user_rut`** (String, Opcional): RUT del usuario autorizado por el SII (dueño de la credencial `sii_company`) que emite en representación del emisor. Selecciona determinísticamente la credencial cuando hay varias accesibles. Solo válido para DTE 80 y 90.
+
+### Retención automática del 14.5%:
+- **Cálculo**: Se aplica sobre el monto bruto antes de IVA
+- **Responsable**: Normalmente el pagador retiene y declara el impuesto
+- **Pago al profesional**: Se paga el 85.5% restante (bruto menos retención)
+
+### Información del receptor (profesional):
+- **Campos opcionales**: A diferencia de facturas, no todos los datos son obligatorios
+- **RUT obligatorio**: Siempre se requiere el RUT del profesional
+- **Actividad económica**: Debe corresponder a servicios profesionales
+
+### Diferencias entre DTE 80 y 90:
+
+**DTE 80 - Boleta de Honorarios:**
+- Emisión directa por el pagador al profesional
+- Relación directa pagador-profesional
+- **document_issuer**: Quien paga (empresa o persona que contrata)
+
+**DTE 90 - Boleta de Honorarios de Terceros:**
+- Emisión por intermediario (plataformas, marketplaces)
+- **document_issuer**: Contribuyente real (quien paga — restaurante, empresa cliente)
+- **document_receiver**: Profesional que recibe (repartidor, freelancer, instructor)
+- Requiere enrolamiento de usuarios autorizados para emisión por terceros
+- Misma estructura de request que DTE 80; solo cambia `dte_type.code: "90"`
+
+### Validaciones específicas:
+- **Tope mensual**: Límite de emisión sin retención ampliada
+- **Tipo de servicio**: Debe corresponder a honorarios profesionales
+- **Declaración**: El retenedor debe declarar y pagar el impuesto retenido
+
+### Casos de uso:
+- **DTE 80**: Honorarios de abogados, contadores, médicos; servicios de consultoría; pagos directos a freelancers
+- **DTE 90**: Apps de delivery (Rappi, Uber Eats); plataformas freelance; marketplaces de servicios; plataformas educativas
+
+
+## 🔒 **Seguridad y URLs temporales**
+
+### URLs de archivos temporales:
+- **PDF y XML**: URLs válidas por 1 hora aproximadamente
+- **Autenticación**: Incluyen tokens de acceso automático
+- **Recomendación**: Descargar inmediatamente al recibir el webhook
+
+### Medidas de seguridad:
+- **Encriptación**: Archivos transmitidos de forma segura
+- **Validación**: Solo el emisor puede acceder a sus documentos
+- **Auditoría**: Todas las descargas quedan registradas
+

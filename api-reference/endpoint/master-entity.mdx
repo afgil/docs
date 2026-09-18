@@ -3,26 +3,6 @@ title: 'Buscar Entidad por RUT'
 openapi: 'GET /master-entities'
 ---
 
-## Qué hace
+import MasterEntityBody from '/snippets/api/master-entity.mdx';
 
-- Busca una entidad maestra específica por su RUT
-- Obtiene todos los detalles completos de la entidad, incluyendo direcciones y actividades económicas
-- Proporciona información esencial para determinar el tipo de documento a emitir
-- Permite consultar direcciones y actividades económicas registradas de la entidad
-
-## Ejemplos de uso
-
-- Buscar información de un cliente antes de crear un documento
-- Obtener el ID de una entidad para usar en otros endpoints (como crear credenciales)
-- Consultar las direcciones disponibles de una entidad
-- Verificar las actividades económicas para determinar el tipo de DTE a emitir
-- Validar que una entidad existe en el sistema antes de emitir documentos
-
-### Información importante sobre tipos de documento
-
-La información de actividades económicas es fundamental para decidir qué tipo de documento debes emitir:
-
-- **Si la entidad tiene actividad económica**: Debes emitir una **Factura Electrónica** (DTE 33) o **Factura Exenta** (DTE 34)
-- **Si la entidad NO tiene actividad económica**: Debes emitir una **Boleta** (DTE 39)
-
-Esta información es esencial para validar que estás emitiendo el tipo correcto de documento tributario según las características de la entidad receptora.
+<MasterEntityBody />

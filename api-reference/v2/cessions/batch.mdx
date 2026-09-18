@@ -1,0 +1,22 @@
+---
+title: 'Crear cesiones en lote'
+openapi: 'api-reference/openapi-v2.json POST /cessions/batch/'
+---
+
+import CessionsBatchBody1 from '/snippets/api/cessions-batch-1.mdx';
+import CessionsBatchBody2 from '/snippets/api/cessions-batch-2.mdx';
+
+<CessionsBatchBody1 />
+
+```json
+{
+    "success": true,
+    "status": "processing",
+    "ws_channel": "cessions-70193",
+    "total": 2,
+    "message": "Generando las cesiones y enviándolas al SII…",
+    "cession_batch_id": "ceba_4829301923847561203"
+}
+```
+
+<CessionsBatchBody2 />

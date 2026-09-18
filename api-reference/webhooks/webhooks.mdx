@@ -3,32 +3,6 @@ title: 'Listar webhooks'
 openapi: 'GET /webhooks'
 ---
 
-Este endpoint permite obtener la lista de webhooks configurados para las entidades accesibles del usuario autenticado. Si se proporciona `master_entity_id`, filtra solo los webhooks de esa entidad específica.
+import WebhooksListBody from '/snippets/api/webhooks-list.mdx';
 
-## ¿Para qué se usa?
-
-Permite obtener la lista de webhooks configurados para las entidades accesibles del usuario. Útil para:
-- Ver todos los webhooks configurados
-- Verificar la configuración de notificaciones
-- Revisar el estado y métricas de entrega de webhooks
-
-## Qué hace
-
-- Retorna todos los webhooks de las entidades accesibles del usuario
-- Si se proporciona `master_entity_id`, filtra solo los webhooks de esa entidad específica
-- Incluye información de eventos configurados, URLs de callback, estado activo/inactivo y métricas de entrega
-- Solo retorna webhooks de entidades a las que el usuario tiene acceso
-
-## Ejemplos de uso
-
-- **Listar todos los webhooks:** Consultar todos los webhooks configurados para todas las entidades accesibles
-- **Filtrar por entidad:** Obtener solo los webhooks de una entidad específica usando `master_entity_id`
-- **Monitorear estado:** Revisar el estado de entrega y tasas de éxito de los webhooks configurados
-
-## Consideraciones Importantes
-
-### Acceso a Entidades
-Solo se pueden consultar webhooks de entidades a las que el usuario tiene acceso. Si el usuario no tiene entidades accesibles, se retorna una lista vacía.
-
-### Métricas de Entrega
-Cada webhook incluye métricas de entrega como tasa de éxito, último código de estado HTTP, fecha del último envío e información de la última entrega. Esto permite monitorear la salud y confiabilidad de tus webhooks.
+<WebhooksListBody />

@@ -1,0 +1,48 @@
+## Qué hace
+
+- Obtiene una lista paginada de documentos emitidos o recibidos por una entidad específica
+- Soporta búsqueda por folio, nombre del receptor y filtros avanzados
+- Permite paginar los resultados para manejar grandes volúmenes
+- Filtra documentos por estado, tipo, fecha y otros criterios
+
+## Ejemplos de uso
+
+- Listar todos los documentos de una entidad
+- Buscar un documento específico por folio
+- Filtrar documentos por fecha de emisión
+- Consultar documentos por tipo (factura, boleta, etc.)
+- Obtener documentos recibidos o emitidos por separado
+
+## Eventos de la traza (opt-in)
+
+Por defecto la respuesta solo incluye `latest_trace_info` (un resumen liviano: `has_acknowledgments`, `has_claims`, `is_rejected`, `events_count`, etc.) para mantener el payload de la lista pequeño.
+
+Si necesitas la trazabilidad completa de cada documento — los eventos del SII como `ACD` (acuse de recibo), `RCD` / `RFP` / `RFT` (reclamos), `NCA` (nota de crédito asociada), etc. — agrega `include_trace_events=true` al query string:
+
+<pre><code className="language-bash">{props.exTraceEvents}</code></pre>
+
+Con la flag activa, cada documento de la respuesta incluye un array `traces`, y cada traza un array `events` (ver el schema `Trace` y `TraceEvent` en la referencia). El endpoint de detalle (<code>{props.exDetailPath}</code>) ya retorna estos eventos de forma permanente, sin necesidad de la flag.
+
+## Datos del libro RCV del SII (opt-in)
+
+Si necesitas los datos del **Registro de Compras y Ventas (RCV)** de cada documento — por ejemplo para reconstruir los libros de compras y ventas completos de un período — agrega `include_book_metadata=true`:
+
+<pre><code className="language-bash">{props.exBookMetadata}</code></pre>
+
+Cada documento incluye entonces el objeto `book_metadata` (o `null` si aún no aparece en el RCV) con los montos según el libro (`net_amount`, `vat_amount`, `total_amount`, `exempt_amount`), IVA no recuperable / uso común / retenido, fechas de recepción y acuse, los flags `in_sii_compra_book` / `in_sii_venta_book` y los períodos de carga `compra_loading_period` / `venta_loading_period` (YYYYMM).
+
+Para armar el **libro de compras** de un período filtra por `in_sii_compra_book=true` y `compra_loading_period == "YYYYMM"` usando `document_type=received`; para el **libro de ventas**, `in_sii_venta_book=true` y `venta_loading_period` con `document_type=issued`. Usa el período de carga y no la fecha de emisión: un documento emitido a fin de mes puede caer en el período siguiente del libro de compras del receptor.
+
+## Filtrar por json_param (campos personalizados)
+
+Si al crear el documento guardaste datos propios en `json_param` (ver el campo `json_param` en [Crear documentos](/api-reference/documents/batch)), puedes filtrar el listado por cualquier key de ese objeto con `json_param__<key>=<valor>`:
+
+<pre><code className="language-bash">{props.exJsonParam}</code></pre>
+
+Esto devuelve solo los documentos donde `json_param` contiene esa key con exactamente ese valor (coincidencia exacta, no búsqueda parcial). Puedes combinar varias keys en la misma request — se aplican con AND:
+
+<pre><code className="language-bash">{props.exJsonParamAnd}</code></pre>
+
+- La key es abierta (es tu propio campo, no algo predefinido por Pana), pero solo acepta letras, números y `_` (`^[a-zA-Z0-9_]{1,64}$`). Una key con otros caracteres devuelve `400`.
+- El valor de la query siempre se compara como string, así que hoy este filtro solo funciona para keys cuyo valor en `json_param` también sea un string (ej. `{"external_order_id": "PED-123"}`). Si guardaste un booleano o número (ej. `{"active": true}`), esa key no es filtrable todavía por esta vía — no hay coincidencia de tipo entre el string de la query y el booleano/número guardado.
+- Documentos sin `json_param`, o cuyo `json_param` no tiene esa key, quedan fuera del resultado.
