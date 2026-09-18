@@ -55,54 +55,54 @@
                 "group": "Entidades",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /v2/master-entities/"
+                  "GET /master-entities/"
                 ]
               },
               {
                 "group": "Credenciales",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /v2/credentials/",
-                  "POST /v2/credentials/",
-                  "POST /v2/credentials/batch/",
-                  "DELETE /v2/credentials/{master_entity_id}/"
+                  "GET /credentials/",
+                  "POST /credentials/",
+                  "POST /credentials/batch/",
+                  "DELETE /credentials/{master_entity_id}/"
                 ]
               },
               {
                 "group": "Documentos",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /v2/documents/",
-                  "POST /v2/documents/batch/",
-                  "GET /v2/documents/{document_id}/"
+                  "GET /documents/",
+                  "POST /documents/batch/",
+                  "GET /documents/{document_id}/"
                 ]
               },
               {
                 "group": "Estados de Documentos",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /v2/documents/{document_id}/states/",
-                  "POST /v2/documents/{document_id}/states/"
+                  "GET /documents/{document_id}/states/",
+                  "POST /documents/{document_id}/states/"
                 ]
               },
               {
                 "group": "Documentos Programados",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /v2/scheduled-documents/",
-                  "POST /v2/scheduled-documents/",
-                  "GET /v2/scheduled-documents/{id}/",
-                  "PATCH /v2/scheduled-documents/{id}/",
-                  "GET /v2/scheduled-documents/{id}/preview/",
-                  "DELETE /v2/scheduled-documents/{id}/"
+                  "GET /scheduled-documents/",
+                  "POST /scheduled-documents/",
+                  "GET /scheduled-documents/{id}/",
+                  "PATCH /scheduled-documents/{id}/",
+                  "GET /scheduled-documents/{id}/preview/",
+                  "DELETE /scheduled-documents/{id}/"
                 ]
               },
               {
                 "group": "Webhooks",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /v2/webhooks/",
-                  "POST /v2/webhooks/"
+                  "GET /webhooks/",
+                  "POST /webhooks/"
                 ]
               },
               {
@@ -126,10 +126,10 @@
                 "group": "Referencia",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /v2/cessions/",
-                  "GET /v2/cessions/{id}/",
-                  "POST /v2/cessions/batch/",
-                  "GET /v2/cessions/batch/{batch_id}/"
+                  "GET /cessions/",
+                  "GET /cessions/{id}/",
+                  "POST /cessions/batch/",
+                  "GET /cessions/batch/{batch_id}/"
                 ]
               },
               {
@@ -212,30 +212,30 @@
                 "group": "Resumen de Libros",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /v2/book-summaries/"
+                  "GET /book-summaries/"
                 ]
               },
               {
                 "group": "Sincronización",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /v2/sync-status/",
-                  "GET /v2/sync-requests/",
-                  "POST /v2/sync-requests/",
-                  "GET /v2/sync-requests/{id}/"
+                  "GET /sync-status/",
+                  "GET /sync-requests/",
+                  "POST /sync-requests/",
+                  "GET /sync-requests/{id}/"
                 ]
               },
               {
                 "group": "Folios",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /v2/folios/",
-                  "GET /v2/folio-requests/",
-                  "POST /v2/folio-requests/",
-                  "GET /v2/folio-requests/{id}/",
-                  "GET /v2/folio-queries/",
-                  "POST /v2/folio-queries/",
-                  "GET /v2/folio-queries/{id}/"
+                  "GET /folios/",
+                  "GET /folio-requests/",
+                  "POST /folio-requests/",
+                  "GET /folio-requests/{id}/",
+                  "GET /folio-queries/",
+                  "POST /folio-queries/",
+                  "GET /folio-queries/{id}/"
                 ]
               },
               {
@@ -259,11 +259,11 @@
                 "group": "Usuarios Autorizados",
                 "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /v2/honorary/authorized-users/",
-                  "PATCH /v2/honorary/authorized-users/",
-                  "GET /v2/honorary/master-entities/{master_entity_id}/authorized-users/",
-                  "POST /v2/honorary/master-entities/{master_entity_id}/authorized-users/sync/",
-                  "PATCH /v2/honorary/master-entities/{master_entity_id}/authorized-users/{rut}/"
+                  "GET /honorary/authorized-users/",
+                  "PATCH /honorary/authorized-users/",
+                  "GET /honorary/master-entities/{master_entity_id}/authorized-users/",
+                  "POST /honorary/master-entities/{master_entity_id}/authorized-users/sync/",
+                  "PATCH /honorary/master-entities/{master_entity_id}/authorized-users/{rut}/"
                 ]
               },
               {
