@@ -1,0 +1,205 @@
+---
+title: 'Códigos de transporte y Aduana'
+description: 'Puertos, unidades de peso y tipos de bulto del SII para guías de despacho de exportación y facturas de exportación'
+---
+
+Los traslados de exportación declaran puertos, peso y bultos con los **códigos de las tablas de Aduana del SII**. Las mismas tablas se usan en dos lugares:
+
+- **Guía de despacho (DTE 52)** con `transport_type` `"8"` o `"9"`: dentro de `transport_data`, en los campos `departure_port_code`, `arrival_port_code`, `gross_weight_unit_code` y `package_type_code`.
+- **Factura de exportación (DTE 110), nota de débito (111) y nota de crédito (112)**: dentro de `export_data`, con los mismos nombres de campo.
+
+<Warning>
+  Estos códigos son los de la **tabla de Aduana del SII**, y no coinciden con ninguna otra numeración de puertos (por ejemplo, la del SAG). El puerto `906` es SAN ANTONIO en esta tabla. Usa siempre los códigos de esta página.
+</Warning>
+
+Todos los códigos se envían como *string*: `"906"`, no `906`.
+
+## Puertos
+
+`departure_port_code` (embarque, `Aduana/CodPtoEmbarque`) y `arrival_port_code` (desembarque, `Aduana/CodPtoDesemb`). Con `transport_type` `"8"` o `"9"` ambos son obligatorios para emisores del facturador de mercado.
+
+Se acepta el código o el nombre **exacto** tal como aparece en la tabla, que usa abreviaturas sin espacios (`AEROP.A.M.BENITEZ`). Recomendamos enviar el código: si el valor no existe en la tabla, la API responde `422` y no emite el documento.
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `644` | AALBORG | `641` | AARHUS | `960` | ABRA DE NAPA |
+| `218` | ACAPULCO | `814` | ADELAIDA | `992` | AEROP.A.M.BENITEZ |
+| `991` | AEROP.C.I.DEL CAMPO | `989` | AEROP.CERRO MORENO | `987` | AEROP.CHACALLUTA |
+| `988` | AEROP.DIEGO ARACENA | `990` | AEROP.EL TEPUAL | `951` | AGUAS NEGRAS |
+| `220` | ALTAMIRA | `601` | AMBERES | `621` | AMSTERDAM |
+| `931` | ANCUD | `903` | ANTOFAGASTA | `974` | APPELEG |
+| `901` | ARICA | `995` | ARICA-LA PAZ | `994` | ARICA-TACNA |
+| `546` | AUGUSTA | `266` | BAHIA BLANCA | `978` | BAKER |
+| `222` | BALBOA | `136` | BALTIMORE | `563` | BARCELONA |
+| `233` | BARRANQUILLA | `146` | BATON ROUGE | `118` | BAYSIDE |
+| `533` | BELGRADO | `564` | BILBAO | `131` | BOSTON |
+| `591` | BREMEN | `557` | BREST | `133` | BRIDGEPORT |
+| `158` | BROWSVILLE | `232` | BUENAVENTURA | `262` | BUENOS AIRES |
+| `555` | BURDEOS | `422` | BUSAN CY (PUSAN) | `942` | CABO NEGRO |
+| `562` | CADIZ | `556` | CALAIS | `205` | CALBUCO |
+| `471` | CALCUTA | `918` | CALDERA | `919` | CALDERILLA |
+| `950` | CALETA COLOSO | `252` | CALLAO | `993` | CAP HUACHIPATO |
+| `967` | CARDENAL SAMORE | `980` | CASAS VIEJAS | `932` | CASTRO |
+| `911` | CHACABUCO/PTO.AYSEN | `957` | CHACALLUTA | `934` | CHAITEN |
+| `481` | CHALNA | `917` | CHANARAL/BARQUITO | `139` | CHARLESTON |
+| `977` | CHILE CHICO | `958` | CHUNGARA | `712` | CIUDAD DEL CABO |
+| `940` | CLARENCIA | `214` | COATZACOALCOS | `959` | COLCHANE |
+| `223` | COLON | `147` | COLUMBRES | `267` | COMODORO RIVADAVIA |
+| `511` | CONSTANZA | `923` | CONSTUTUCION | `642` | COPENHAGEN |
+| `904` | COQUIMBO | `265` | CORDOBA | `926` | CORONEL |
+| `157` | CORPUS CRISTI | `930` | CORRAL | `121` | COSTA DEL ATLANTICO, OTROS NO |
+| `112` | COSTA DEL PACIFICO, OTROS NO E | `123` | COSTA DEL PACIFICO, OTROS NO E | `212` | COSTA DEL PACIFICO, OTROS PUER |
+| `983` | COYHAIQUE ALTO | `221` | CRISTOBAL | `302` | CURAZAO |
+| `938` | CUTTER COVE | `597` | CUXHAVEN | `412` | DAIREN |
+| `815` | DARWIN | `979` | DOROTEA | `577` | DOVER |
+| `149` | DULUTH | `711` | DURBAM | `595` | DUSSELDORF |
+| `717` | EAST-LONDON | `574` | ETEN SALVERRY | `142` | EVERGLADES |
+| `135` | FILADELFIA | `594` | FRANKFURT | `812` | FREMANTLE |
+| `449` | FUKUYAMA | `969` | FUTALEUFU | `156` | GALVESTON |
+| `542` | GENOVA | `816` | GERALDTON | `604` | GHENT |
+| `219` | GOLFO DE MEXICO, OTROS NO ESPE | `631` | GOTEMBURGO | `941` | GREGORIO |
+| `937` | GUARELLO | `946` | GUAYACAN | `242` | GUAYAQUIL |
+| `215` | GUAYMAS | `113` | HALIFAX | `592` | HAMBURGO |
+| `126` | HAMILTON | `583` | HANKO | `634` | HELSIMBORG |
+| `581` | HELSINSKI | `492` | HONG KONG | `159` | HOUSTON |
+| `972` | HUAHUM | `920` | HUASCO/GUACOLDA | `565` | HUELVA |
+| `976` | HUEMULES | `985` | IBANEZ PALAVICINI | `253` | ILO |
+| `902` | IQUIQUE | `254` | IQUITOS | `929` | ISLA DE PASCUA |
+| `143` | JACKSONVILLE | `922` | JUAN FERNANDEZ | `635` | KALMAR |
+| `451` | KAOHSIUNG | `461` | KARHG ISLAND | `452` | KEELUNG |
+| `584` | KEMI | `443` | KOBE | `585` | KOKKOLA |
+| `586` | KOTKA | `282` | LA GUAIRA | `552` | LA PALLICE |
+| `973` | LAGO VERDE | `553` | LE HAVRE | `928` | LEBU |
+| `543` | LIORNA, LIVORNO | `909` | LIRQUEN | `611` | LISBOA |
+| `571` | LIVERPOOL | `572` | LONDRES | `175` | LONG BEACH |
+| `174` | LOS ANGELES | `965` | LOS LIBERTADORES | `199` | LOS VILOS |
+| `927` | LOTA | `966` | MAHUIL MALAL | `633` | MALMO |
+| `431` | MANILA | `217` | MANZANILLO | `269` | MAR DEL PLATA |
+| `285` | MARACAIBO | `554` | MARSELLA | `216` | MAZATLAN |
+| `915` | MEJILLONES | `264` | MENDOZA | `141` | MIAMI |
+| `206` | MICHILLA | `150` | MILWAUKEE | `153` | MOBILE |
+| `447` | MOJI | `981` | MONTE AYMOND | `272` | MONTEVIDEO |
+| `111` | MONTREAL | `716` | MOSSEL-BAY | `445` | NAGOYA |
+| `421` | NANPO | `544` | NAPOLES | `936` | NATALES |
+| `263` | NECOCHEA | `132` | NEW HAVEN | `154` | NEW ORLEANS |
+| `134` | NEW YORK | `137` | NORFOLK | `593` | NUREMBERG |
+| `160` | OAKLAND | `645` | ODENSE | `599` | OLDENBURG |
+| `961` | OLLAGUE | `605` | OOSTENDE | `442` | OSAKA |
+| `651` | OSLO | `997` | OTROS PTOS. CHILENOS | `499` | OTROS PUERTOS ASIATICOS NO ESP |
+| `799` | OTROS PUERTOS DE AFRICA NO ESP | `596` | OTROS PUERTOS DE ALEMANIA NO E | `399` | OTROS PUERTOS DE AMERICA NO ES |
+| `261` | OTROS PUERTOS DE ARGENTINA NO | `813` | OTROS PUERTOS DE AUSTRALIA NO | `482` | OTROS PUERTOS DE BANGLADESH NO |
+| `602` | OTROS PUERTOS DE BELGICA NO ES | `291` | OTROS PUERTOS DE BRASIL NO ESP | `522` | OTROS PUERTOS DE BULGARIA NO E |
+| `117` | OTROS PUERTOS DE CANADA NO IDE | `413` | OTROS PUERTOS DE CHINA NO ESPE | `231` | OTROS PUERTOS DE COLOMBIA NO E |
+| `423` | OTROS PUERTOS DE COREA | `537` | OTROS PUERTOS DE CRO | `643` | OTROS PUERTOS DE DINAMARCA NO |
+| `241` | OTROS PUERTOS DE ECUADOR NO ES | `561` | OTROS PUERTOS DE ESPANA NO ESP | `180` | OTROS PUERTOS DE ESTADOS UNIDO |
+| `699` | OTROS PUERTOS DE EUROPA NO ESP | `432` | OTROS PUERTOS DE FILIPINAS NO | `582` | OTROS PUERTOS DE FINLANDIA NO |
+| `551` | OTROS PUERTOS DE FRANCIA NO ES | `623` | OTROS PUERTOS DE HOLANDA NO ES | `472` | OTROS PUERTOS DE INDIA NO E |
+| `576` | OTROS PUERTOS DE INGLATERRA NO | `462` | OTROS PUERTOS DE IRAN NO ESPEC | `541` | OTROS PUERTOS DE ITALIA NO ESP |
+| `441` | OTROS PUERTOS DE JAPON NO ESPE | `301` | OTROS PUERTOS DE LAS ANTILLAS | `210` | OTROS PUERTOS DE MEXICO NO ESP |
+| `536` | OTROS PUERTOS DE MON | `652` | OTROS PUERTOS DE NORUEGA NO ES | `899` | OTROS PUERTOS DE OCEANIA NO |
+| `224` | OTROS PUERTOS DE PANAMA NO ESP | `251` | OTROS PUERTOS DE PERU NO ESPEC | `612` | OTROS PUERTOS DE PORTUGAL NO E |
+| `512` | OTROS PUERTOS DE RUMANIA NO ES | `534` | OTROS PUERTOS DE SER | `491` | OTROS PUERTOS DE SINGAPURE NO |
+| `713` | OTROS PUERTOS DE SUDAFRICA NO | `632` | OTROS PUERTOS DE SUECIA NO ESP | `453` | OTROS PUERTOS DE TAIWAN NO ESP |
+| `271` | OTROS PUERTOS DE URUGUAY NO ES | `281` | OTROS PUERTOS DE VENEZUELA NO | `532` | OTROS PUERTOS DE YUGOESLAVIA N |
+| `587` | OULO | `202` | OXIQUIM | `970` | PALENA-CARRENLEUFU |
+| `145` | PALM BEACH | `975` | PAMPA ALTA | `971` | PANGUIPULLI |
+| `295` | PARANAGUA | `998` | PASO JAMA | `204` | PATACHE |
+| `913` | PATILLOS | `925` | PENCO | `152` | PENSACOLA |
+| `939` | PERCY | `968` | PEREZ ROSALES | `588` | PIETARSAARI |
+| `949` | PINO HACHADO(LIUCURA | `148` | PITTSBURGH | `578` | PLYMOUTH |
+| `535` | PODGORITSA | `589` | PORI | `155` | PORT ARTHUR |
+| `120` | PORT CARTIES | `715` | PORT-ELIZABETH | `172` | PORTLAND |
+| `208` | POSEIDON | `125` | PRINCE RUPERT | `201` | PUCHOCO |
+| `207` | PUERTO ANGAMOS | `268` | PUERTO MADRYN | `910` | PUERTO MONTT |
+| `943` | PUERTO WILLIAMS | `122` | PUERTOS DEL GOLFO DE MEXICO, O | `912` | PUNTA ARENAS |
+| `947` | PUNTA DELGADA | `124` | QUEBEC | `933` | QUELLON |
+| `921` | QUINTERO | `900` | RANCHO DE NAVES Y AERONAVES DE | `531` | RIJEKA |
+| `538` | RIJEKA | `294` | RIO GRANDE DEL SUR | `293` | RIO JANEIRO |
+| `954` | RIO MAYER | `955` | RIO MOSCO | `573` | ROCHESTER |
+| `270` | ROSARIO | `598` | ROSTOCK | `622` | ROTTERDAM |
+| `558` | RUAN | `115` | SAINT JOHN | `714` | SALDANHA |
+| `545` | SALERNO | `945` | SALINAS | `297` | SALVADOR |
+| `906` | SAN ANTONIO | `176` | SAN DIEGO | `173` | SAN FRANCISCO |
+| `964` | SAN FRANCISCO | `962` | SAN PEDRO DE ATACAMA | `982` | SAN SEBASTIAN |
+| `908` | SAN VICENTE | `292` | SANTOS | `296` | SAO PAULO |
+| `140` | SAVANAH | `547` | SAVONA | `171` | SEATLE |
+| `613` | SETUBAL | `566` | SEVILLA | `411` | SHANGAI |
+| `446` | SHIMIZUI | `811` | SIDNEY | `963` | SOCOMPA |
+| `653` | STAVANGER | `161` | STOCKTON | `203` | T. GASERO ABASTIBLE |
+| `907` | TALCAHUANO | `916` | TALTAL | `151` | TAMPA |
+| `211` | TAMPICO | `567` | TARRAGONA | `996` | TERM. PETROLERO ENAP |
+| `944` | TERRITORIO ANTARTICO CHILENO | `914` | TOCOPILLA | `924` | TOME |
+| `116` | TORONTO | `935` | TORTEL | `209` | TRES PUENTES |
+| `984` | TRIANA | `905` | VALPARAISO | `114` | VANCOUVER |
+| `521` | VARNA | `948` | VENTANAS | `213` | VERACRUZ |
+| `986` | VILLA OHIGGINS | `956` | VISVIRI | `138` | WILMINGTON |
+| `448` | YAWATA | `444` | YOKOHAMA | `603` | ZEEBRUGGE |
+| `952` | ZONA FRANCA IQUIQUE | `953` | ZONA FRANCA PUNTA ARENAS |  |  |
+
+## Unidades de peso
+
+`gross_weight_unit_code` (`Aduana/CodUnidPesoBruto`), la unidad en que va `gross_weight` (`Aduana/PesoBruto`).
+
+<Info>
+  Para peso bruto **en kilos**, el código es `6` (KN). La tabla no tiene un código aparte de "kilo bruto": la distinción entre peso bruto y neto la da el campo, no la unidad. Para toneladas brutas, usa `1` (TMB).
+</Info>
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `1` | TMB | `2` | QMB | `3` | MKWH |
+| `4` | TMN | `5` | KLT | `6` | KN |
+| `7` | GN | `8` | HL | `9` | LT |
+| `10` | U | `11` | DOC | `12` | U(JGO) |
+| `13` | MU | `14` | MT | `15` | MT2 |
+| `16` | MCUB | `17` | PAR | `18` | KNFC |
+| `19` | CARTON | `20` | KWH | `23` | BAR |
+| `24` | M2/1MM | `99` | S.U.M |  |  |
+
+## Tipos de bulto
+
+`package_type_code` (`Aduana/TipoBultos/CodTpoBultos`), obligatorio cuando se informa `total_packages` (`Aduana/TotBultos`).
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `26` | ARMAZON | `90` | ATADO | `86` | ATAUD |
+| `85` | AUTOMOTOR | `65` | BALA | `27` | BANDEJA |
+| `16` | BARRA | `44` | BARRIL | `37` | BARRILETE |
+| `24` | BAUL | `34` | BIDON | `19` | BLOQUE |
+| `91` | BOBINA | `64` | BOLSA | `32` | BOTELLA |
+| `31` | BOTELLAGAS | `93` | BULTONOESP | `22` | CAJA DE CARTON |
+| `29` | CAJALATA | `28` | CAJAMADERA | `40` | CAJANOESP |
+| `21` | CAJON | `83` | CARRETE | `36` | CESTA |
+| `12` | CILINDRO | `25` | COFRE | `73` | CONT20 |
+| `74` | CONT40 | `75` | CONTENEDOR REFRIGERADO | `78` | CONTNOESP |
+| `51` | CUBO | `46` | CUNETE | `43` | DAMAJUANA |
+| `77` | ESTANQUE | `23` | FARDO | `42` | FRASCO |
+| `5` | GAS | `2` | GRANOS | `35` | JABA |
+| `41` | JARRO | `33` | JAULA | `82` | LAMINA |
+| `17` | LINGOTE | `4` | LIQUIDO | `63` | MALETA |
+| `88` | MAQUINARIA | `3` | NODULOS | `80` | PALLETS |
+| `61` | PAQUETE | `10` | PIEZA | `39` | PIPA |
+| `89` | PLANCHAS | `1` | POLVO | `66` | RED |
+| `76` | REEFER40 | `20` | ROLLIZO | `13` | ROLLOS |
+| `99` | S/EMBALAR | `62` | SACO | `98` | SIN BULTO |
+| `67` | SOBRE | `81` | TABLERO | `45` | TAMBOR |
+| `47` | TARRO | `38` | TONEL | `18` | TRONCOS |
+| `11` | TUBO |  |  |  |  |
+
+## Ejemplo
+
+12 pallets, 9.305 kilos brutos, de San Antonio a Houston:
+
+```json
+"transport_data": {
+  "transport_type": "8",
+  "transfer_issuer_code": "1",
+  "departure_port_code": "906",
+  "arrival_port_code": "159",
+  "gross_weight": "9305.00",
+  "gross_weight_unit_code": "6",
+  "total_packages": 12,
+  "package_type_code": "80"
+}
+```
+
+Los campos de `transport_data` están detallados en [Emisión masiva de documentos](/api-reference/documents/batch), sección "Guía de Despacho (DTE 52)".

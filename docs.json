@@ -37,6 +37,7 @@
                   "user-guide/export-currencies",
                   "user-guide/export-countries",
                   "user-guide/export-sale-modes",
+                  "user-guide/transport-codes",
                   "user-guide/webhooks"
                 ]
               }
@@ -299,6 +300,7 @@
                   "user-guide/export-currencies",
                   "user-guide/export-countries",
                   "user-guide/export-sale-modes",
+                  "user-guide/transport-codes",
                   "user-guide/webhooks"
                 ]
               }
