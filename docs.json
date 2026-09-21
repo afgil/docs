@@ -54,14 +54,12 @@
               },
               {
                 "group": "Entidades",
-                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "api-reference/v2/entities/master-entity"
                 ]
               },
               {
                 "group": "Credenciales",
-                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "api-reference/v2/credentials/list",
                   "api-reference/v2/credentials/create",
@@ -71,7 +69,6 @@
               },
               {
                 "group": "Documentos",
-                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "api-reference/v2/documents/list",
                   "api-reference/v2/documents/batch",
@@ -80,7 +77,6 @@
               },
               {
                 "group": "Estados de Documentos",
-                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "api-reference/v2/document-states/list",
                   "api-reference/v2/document-states/create"
@@ -88,7 +84,6 @@
               },
               {
                 "group": "Documentos Programados",
-                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "api-reference/v2/scheduled-documents/list",
                   "api-reference/v2/scheduled-documents/create",
@@ -100,7 +95,6 @@
               },
               {
                 "group": "Webhooks",
-                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "api-reference/v2/webhooks-pages/list",
                   "api-reference/v2/webhooks-pages/create"
@@ -125,7 +119,6 @@
               },
               {
                 "group": "Referencia",
-                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
                   "api-reference/v2/cessions/list",
                   "api-reference/v2/cessions/get",
@@ -211,32 +204,29 @@
               },
               {
                 "group": "Resumen de Libros",
-                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /book-summaries/"
+                  "api-reference/v2/book-summaries/list"
                 ]
               },
               {
                 "group": "Sincronización",
-                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /sync-status/",
-                  "GET /sync-requests/",
-                  "POST /sync-requests/",
-                  "GET /sync-requests/{id}/"
+                  "api-reference/v2/sync/status",
+                  "api-reference/v2/sync/request-list",
+                  "api-reference/v2/sync/request-create",
+                  "api-reference/v2/sync/request-get"
                 ]
               },
               {
                 "group": "Folios",
-                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /folios/",
-                  "GET /folio-requests/",
-                  "POST /folio-requests/",
-                  "GET /folio-requests/{id}/",
-                  "GET /folio-queries/",
-                  "POST /folio-queries/",
-                  "GET /folio-queries/{id}/"
+                  "api-reference/v2/folios/availability",
+                  "api-reference/v2/folios/request-list",
+                  "api-reference/v2/folios/request-create",
+                  "api-reference/v2/folios/request-get",
+                  "api-reference/v2/folios/query-list",
+                  "api-reference/v2/folios/query-create",
+                  "api-reference/v2/folios/query-get"
                 ]
               },
               {
@@ -258,13 +248,12 @@
               },
               {
                 "group": "Usuarios Autorizados",
-                "openapi": "api-reference/openapi-v2.json",
                 "pages": [
-                  "GET /honorary/authorized-users/",
-                  "PATCH /honorary/authorized-users/",
-                  "GET /honorary/master-entities/{master_entity_id}/authorized-users/",
-                  "POST /honorary/master-entities/{master_entity_id}/authorized-users/sync/",
-                  "PATCH /honorary/master-entities/{master_entity_id}/authorized-users/{rut}/"
+                  "api-reference/v2/honorary/authorized-users",
+                  "api-reference/v2/honorary/enroll",
+                  "api-reference/v2/honorary/entity-authorized-users",
+                  "api-reference/v2/honorary/authorized-users-sync",
+                  "api-reference/v2/honorary/entity-enroll"
                 ]
               },
               {
