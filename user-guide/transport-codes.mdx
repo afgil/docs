@@ -9,7 +9,7 @@ Los traslados de exportación declaran puertos, peso y bultos con los **códigos
 - **Factura de exportación (DTE 110), nota de débito (111) y nota de crédito (112)**: dentro de `export_data`, con los mismos nombres de campo.
 
 <Warning>
-  Estos códigos son los de la **tabla de Aduana del SII**, y no coinciden con ninguna otra numeración de puertos (por ejemplo, la del SAG). El puerto `906` es SAN ANTONIO en esta tabla. Usa siempre los códigos de esta página.
+  Estos códigos son los del **Anexo 51-11 del Compendio de Normas Aduaneras**, y no coinciden con ninguna otra numeración de puertos. En particular, **no son los códigos del SAG**: el `262` es BUENOS AIRES en esta tabla y MIAMI en la del SAG. Todos los códigos de puerto tienen **tres dígitos**, entre 111 y 999: si tienes uno de uno o dos dígitos, no es de esta tabla.
 </Warning>
 
 Todos los códigos se envían como *string*: `"906"`, no `906`.
@@ -18,123 +18,348 @@ Todos los códigos se envían como *string*: `"906"`, no `906`.
 
 `departure_port_code` (embarque, `Aduana/CodPtoEmbarque`) y `arrival_port_code` (desembarque, `Aduana/CodPtoDesemb`). Con `transport_type` `"8"` o `"9"` ambos son obligatorios para emisores del facturador de mercado.
 
-Se acepta el código o el nombre **exacto** tal como aparece en la tabla, que usa abreviaturas sin espacios (`AEROP.A.M.BENITEZ`). Recomendamos enviar el código: si el valor no existe en la tabla, la API responde `422` y no emite el documento.
+Se acepta el código o el nombre **exacto** tal como aparece en la tabla. Recomendamos enviar el código: el nombre depende de la ortografía del anexo.
+
+### Chile
+
+**Aeropuertos**
 
 | Código | Nombre | Código | Nombre | Código | Nombre |
 |---|---|---|---|---|---|
-| `644` | AALBORG | `641` | AARHUS | `960` | ABRA DE NAPA |
-| `218` | ACAPULCO | `814` | ADELAIDA | `992` | AEROP.A.M.BENITEZ |
-| `991` | AEROP.C.I.DEL CAMPO | `989` | AEROP.CERRO MORENO | `987` | AEROP.CHACALLUTA |
-| `988` | AEROP.DIEGO ARACENA | `990` | AEROP.EL TEPUAL | `951` | AGUAS NEGRAS |
-| `220` | ALTAMIRA | `601` | AMBERES | `621` | AMSTERDAM |
-| `931` | ANCUD | `903` | ANTOFAGASTA | `974` | APPELEG |
-| `901` | ARICA | `995` | ARICA-LA PAZ | `994` | ARICA-TACNA |
-| `546` | AUGUSTA | `266` | BAHIA BLANCA | `978` | BAKER |
-| `222` | BALBOA | `136` | BALTIMORE | `563` | BARCELONA |
-| `233` | BARRANQUILLA | `146` | BATON ROUGE | `118` | BAYSIDE |
-| `533` | BELGRADO | `564` | BILBAO | `131` | BOSTON |
-| `591` | BREMEN | `557` | BREST | `133` | BRIDGEPORT |
-| `158` | BROWSVILLE | `232` | BUENAVENTURA | `262` | BUENOS AIRES |
-| `555` | BURDEOS | `422` | BUSAN CY (PUSAN) | `942` | CABO NEGRO |
-| `562` | CADIZ | `556` | CALAIS | `205` | CALBUCO |
-| `471` | CALCUTA | `918` | CALDERA | `919` | CALDERILLA |
-| `950` | CALETA COLOSO | `252` | CALLAO | `993` | CAP HUACHIPATO |
-| `967` | CARDENAL SAMORE | `980` | CASAS VIEJAS | `932` | CASTRO |
-| `911` | CHACABUCO/PTO.AYSEN | `957` | CHACALLUTA | `934` | CHAITEN |
-| `481` | CHALNA | `917` | CHANARAL/BARQUITO | `139` | CHARLESTON |
-| `977` | CHILE CHICO | `958` | CHUNGARA | `712` | CIUDAD DEL CABO |
-| `940` | CLARENCIA | `214` | COATZACOALCOS | `959` | COLCHANE |
-| `223` | COLON | `147` | COLUMBRES | `267` | COMODORO RIVADAVIA |
-| `511` | CONSTANZA | `923` | CONSTUTUCION | `642` | COPENHAGEN |
-| `904` | COQUIMBO | `265` | CORDOBA | `926` | CORONEL |
-| `157` | CORPUS CRISTI | `930` | CORRAL | `121` | COSTA DEL ATLANTICO, OTROS NO |
-| `112` | COSTA DEL PACIFICO, OTROS NO E | `123` | COSTA DEL PACIFICO, OTROS NO E | `212` | COSTA DEL PACIFICO, OTROS PUER |
-| `983` | COYHAIQUE ALTO | `221` | CRISTOBAL | `302` | CURAZAO |
-| `938` | CUTTER COVE | `597` | CUXHAVEN | `412` | DAIREN |
-| `815` | DARWIN | `979` | DOROTEA | `577` | DOVER |
-| `149` | DULUTH | `711` | DURBAM | `595` | DUSSELDORF |
-| `717` | EAST-LONDON | `574` | ETEN SALVERRY | `142` | EVERGLADES |
-| `135` | FILADELFIA | `594` | FRANKFURT | `812` | FREMANTLE |
-| `449` | FUKUYAMA | `969` | FUTALEUFU | `156` | GALVESTON |
-| `542` | GENOVA | `816` | GERALDTON | `604` | GHENT |
-| `219` | GOLFO DE MEXICO, OTROS NO ESPE | `631` | GOTEMBURGO | `941` | GREGORIO |
-| `937` | GUARELLO | `946` | GUAYACAN | `242` | GUAYAQUIL |
-| `215` | GUAYMAS | `113` | HALIFAX | `592` | HAMBURGO |
-| `126` | HAMILTON | `583` | HANKO | `634` | HELSIMBORG |
-| `581` | HELSINSKI | `492` | HONG KONG | `159` | HOUSTON |
-| `972` | HUAHUM | `920` | HUASCO/GUACOLDA | `565` | HUELVA |
-| `976` | HUEMULES | `985` | IBANEZ PALAVICINI | `253` | ILO |
-| `902` | IQUIQUE | `254` | IQUITOS | `929` | ISLA DE PASCUA |
-| `143` | JACKSONVILLE | `922` | JUAN FERNANDEZ | `635` | KALMAR |
-| `451` | KAOHSIUNG | `461` | KARHG ISLAND | `452` | KEELUNG |
-| `584` | KEMI | `443` | KOBE | `585` | KOKKOLA |
-| `586` | KOTKA | `282` | LA GUAIRA | `552` | LA PALLICE |
-| `973` | LAGO VERDE | `553` | LE HAVRE | `928` | LEBU |
-| `543` | LIORNA, LIVORNO | `909` | LIRQUEN | `611` | LISBOA |
-| `571` | LIVERPOOL | `572` | LONDRES | `175` | LONG BEACH |
-| `174` | LOS ANGELES | `965` | LOS LIBERTADORES | `199` | LOS VILOS |
-| `927` | LOTA | `966` | MAHUIL MALAL | `633` | MALMO |
-| `431` | MANILA | `217` | MANZANILLO | `269` | MAR DEL PLATA |
-| `285` | MARACAIBO | `554` | MARSELLA | `216` | MAZATLAN |
-| `915` | MEJILLONES | `264` | MENDOZA | `141` | MIAMI |
-| `206` | MICHILLA | `150` | MILWAUKEE | `153` | MOBILE |
-| `447` | MOJI | `981` | MONTE AYMOND | `272` | MONTEVIDEO |
-| `111` | MONTREAL | `716` | MOSSEL-BAY | `445` | NAGOYA |
-| `421` | NANPO | `544` | NAPOLES | `936` | NATALES |
-| `263` | NECOCHEA | `132` | NEW HAVEN | `154` | NEW ORLEANS |
-| `134` | NEW YORK | `137` | NORFOLK | `593` | NUREMBERG |
-| `160` | OAKLAND | `645` | ODENSE | `599` | OLDENBURG |
-| `961` | OLLAGUE | `605` | OOSTENDE | `442` | OSAKA |
-| `651` | OSLO | `997` | OTROS PTOS. CHILENOS | `499` | OTROS PUERTOS ASIATICOS NO ESP |
-| `799` | OTROS PUERTOS DE AFRICA NO ESP | `596` | OTROS PUERTOS DE ALEMANIA NO E | `399` | OTROS PUERTOS DE AMERICA NO ES |
-| `261` | OTROS PUERTOS DE ARGENTINA NO | `813` | OTROS PUERTOS DE AUSTRALIA NO | `482` | OTROS PUERTOS DE BANGLADESH NO |
-| `602` | OTROS PUERTOS DE BELGICA NO ES | `291` | OTROS PUERTOS DE BRASIL NO ESP | `522` | OTROS PUERTOS DE BULGARIA NO E |
-| `117` | OTROS PUERTOS DE CANADA NO IDE | `413` | OTROS PUERTOS DE CHINA NO ESPE | `231` | OTROS PUERTOS DE COLOMBIA NO E |
-| `423` | OTROS PUERTOS DE COREA | `537` | OTROS PUERTOS DE CRO | `643` | OTROS PUERTOS DE DINAMARCA NO |
-| `241` | OTROS PUERTOS DE ECUADOR NO ES | `561` | OTROS PUERTOS DE ESPANA NO ESP | `180` | OTROS PUERTOS DE ESTADOS UNIDO |
-| `699` | OTROS PUERTOS DE EUROPA NO ESP | `432` | OTROS PUERTOS DE FILIPINAS NO | `582` | OTROS PUERTOS DE FINLANDIA NO |
-| `551` | OTROS PUERTOS DE FRANCIA NO ES | `623` | OTROS PUERTOS DE HOLANDA NO ES | `472` | OTROS PUERTOS DE INDIA NO E |
-| `576` | OTROS PUERTOS DE INGLATERRA NO | `462` | OTROS PUERTOS DE IRAN NO ESPEC | `541` | OTROS PUERTOS DE ITALIA NO ESP |
-| `441` | OTROS PUERTOS DE JAPON NO ESPE | `301` | OTROS PUERTOS DE LAS ANTILLAS | `210` | OTROS PUERTOS DE MEXICO NO ESP |
-| `536` | OTROS PUERTOS DE MON | `652` | OTROS PUERTOS DE NORUEGA NO ES | `899` | OTROS PUERTOS DE OCEANIA NO |
-| `224` | OTROS PUERTOS DE PANAMA NO ESP | `251` | OTROS PUERTOS DE PERU NO ESPEC | `612` | OTROS PUERTOS DE PORTUGAL NO E |
-| `512` | OTROS PUERTOS DE RUMANIA NO ES | `534` | OTROS PUERTOS DE SER | `491` | OTROS PUERTOS DE SINGAPURE NO |
-| `713` | OTROS PUERTOS DE SUDAFRICA NO | `632` | OTROS PUERTOS DE SUECIA NO ESP | `453` | OTROS PUERTOS DE TAIWAN NO ESP |
-| `271` | OTROS PUERTOS DE URUGUAY NO ES | `281` | OTROS PUERTOS DE VENEZUELA NO | `532` | OTROS PUERTOS DE YUGOESLAVIA N |
-| `587` | OULO | `202` | OXIQUIM | `970` | PALENA-CARRENLEUFU |
-| `145` | PALM BEACH | `975` | PAMPA ALTA | `971` | PANGUIPULLI |
-| `295` | PARANAGUA | `998` | PASO JAMA | `204` | PATACHE |
-| `913` | PATILLOS | `925` | PENCO | `152` | PENSACOLA |
-| `939` | PERCY | `968` | PEREZ ROSALES | `588` | PIETARSAARI |
-| `949` | PINO HACHADO(LIUCURA | `148` | PITTSBURGH | `578` | PLYMOUTH |
-| `535` | PODGORITSA | `589` | PORI | `155` | PORT ARTHUR |
-| `120` | PORT CARTIES | `715` | PORT-ELIZABETH | `172` | PORTLAND |
-| `208` | POSEIDON | `125` | PRINCE RUPERT | `201` | PUCHOCO |
-| `207` | PUERTO ANGAMOS | `268` | PUERTO MADRYN | `910` | PUERTO MONTT |
-| `943` | PUERTO WILLIAMS | `122` | PUERTOS DEL GOLFO DE MEXICO, O | `912` | PUNTA ARENAS |
-| `947` | PUNTA DELGADA | `124` | QUEBEC | `933` | QUELLON |
-| `921` | QUINTERO | `900` | RANCHO DE NAVES Y AERONAVES DE | `531` | RIJEKA |
-| `538` | RIJEKA | `294` | RIO GRANDE DEL SUR | `293` | RIO JANEIRO |
-| `954` | RIO MAYER | `955` | RIO MOSCO | `573` | ROCHESTER |
-| `270` | ROSARIO | `598` | ROSTOCK | `622` | ROTTERDAM |
-| `558` | RUAN | `115` | SAINT JOHN | `714` | SALDANHA |
-| `545` | SALERNO | `945` | SALINAS | `297` | SALVADOR |
-| `906` | SAN ANTONIO | `176` | SAN DIEGO | `173` | SAN FRANCISCO |
-| `964` | SAN FRANCISCO | `962` | SAN PEDRO DE ATACAMA | `982` | SAN SEBASTIAN |
-| `908` | SAN VICENTE | `292` | SANTOS | `296` | SAO PAULO |
-| `140` | SAVANAH | `547` | SAVONA | `171` | SEATLE |
-| `613` | SETUBAL | `566` | SEVILLA | `411` | SHANGAI |
-| `446` | SHIMIZUI | `811` | SIDNEY | `963` | SOCOMPA |
-| `653` | STAVANGER | `161` | STOCKTON | `203` | T. GASERO ABASTIBLE |
-| `907` | TALCAHUANO | `916` | TALTAL | `151` | TAMPA |
-| `211` | TAMPICO | `567` | TARRAGONA | `996` | TERM. PETROLERO ENAP |
-| `944` | TERRITORIO ANTARTICO CHILENO | `914` | TOCOPILLA | `924` | TOME |
-| `116` | TORONTO | `935` | TORTEL | `209` | TRES PUENTES |
-| `984` | TRIANA | `905` | VALPARAISO | `114` | VANCOUVER |
-| `521` | VARNA | `948` | VENTANAS | `213` | VERACRUZ |
-| `986` | VILLA OHIGGINS | `956` | VISVIRI | `138` | WILMINGTON |
-| `448` | YAWATA | `444` | YOKOHAMA | `603` | ZEEBRUGGE |
-| `952` | ZONA FRANCA IQUIQUE | `953` | ZONA FRANCA PUNTA ARENAS |  |  |
+| `993` | AERODROMO EL LOA | `825` | AERODROMO LA ARAUCANIA | `831` | AERODROMO PICHOY |
+| `992` | AEROP. A.M. BENITEZ | `991` | AEROP. C.I. DEL CAMPO | `989` | AEROP. CERRO MORENO |
+| `987` | AEROP. CHACALLUTA | `988` | AEROP. DIEGO ARACENA | `990` | AEROP. EL TEPUAL |
+
+**Avanzadas o Pasos Fronterizos**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `960` | ABRA DE NAPA | `951` | AGUAS NEGRAS | `974` | APPELEG |
+| `978` | BAKER | `967` | CARDENAL SAMORE | `980` | CASAS VIEJAS |
+| `957` | CHACALLUTA | `977` | CHILE CHICO | `958` | CHUNGARA |
+| `959` | COLCHANE | `983` | COYHAIQUE ALTO | `979` | DOROTEA |
+| `969` | FUTALEUFU | `972` | HUAHUM | `976` | HUEMULES |
+| `985` | IBANEZ PALAVICINI | `973` | LAGO VERDE | `965` | LOS LIBERTADORES |
+| `966` | MAHUIL MALAL | `981` | MONTE AYMOND | `961` | OLLAGUE |
+| `970` | PALENA CARRENLEUFU | `975` | PAMPA ALTA | `971` | PANGUIPULLI |
+| `824` | PASO BUTA MALLIN | `225` | PASO GUANACO SONSO | `998` | PASO JAMA |
+| `947` | PASO PEHUENCHE | `968` | PEREZ ROSALES | `949` | PINO HACHADO (LIUCURA) |
+| `954` | RIO MAYER | `955` | RIO MOSCO | `964` | SAN FRANCISCO |
+| `962` | SAN PEDRO DE ATACAMA | `982` | SAN SEBASTIAN | `963` | SOCOMPA |
+| `984` | TRIANA | `986` | VILLA O'HIGGINS | `956` | VISVIRI |
+
+**Estacion de Ferrocarril**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `995` | ARICA-LA PAZ | `994` | ARICA-TACNA |  |  |
+
+**Puertos Maritimos**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `945` | AEROPUERTO CARRIEL SUR | `931` | ANCUD | `903` | ANTOFAGASTA |
+| `901` | ARICA | `942` | CABO NEGRO | `205` | CALBUCO |
+| `918` | CALDERA | `919` | CALDERILLA | `950` | CALETA COLOSO |
+| `932` | CASTRO | `911` | CHACABUCO PUERTO AYSEN | `934` | CHAITEN |
+| `917` | CHANARAL BARQUITO | `940` | CLARENCIA | `900` | COMBUSTIBLES Y LUBRICANTES DESTINADOS AL CONSUMO DE NAVES Y AERONAVES DE TRANSPORTE INTERNACIONAL |
+| `923` | CONSTITUCION | `904` | COQUIMBO | `926` | CORONEL |
+| `930` | CORRAL | `826` | ESTACION DE MEDICION RECINTO | `999` | GNL MEJILLONES |
+| `941` | GREGORIO | `937` | GUARELLO | `946` | GUAYACAN |
+| `920` | HUASCO GUACOLDA | `902` | IQUIQUE | `929` | ISLA DE PASCUA |
+| `922` | JUAN FERNANDEZ | `928` | LEBU | `909` | LIRQUEN |
+| `199` | LOS VILOS | `927` | LOTA | `915` | MEJILLONES |
+| `206` | MICHILLA | `818` | MUELLE HUACHIPATO | `828` | MUELLE INTERACID TRADING (CHILE) S.A. |
+| `936` | NATALES | `997` | OTROS PUERTOS CHILENOS | `204` | PATACHE |
+| `913` | PATILLOS | `925` | PENCO | `939` | PERCY |
+| `208` | POSEIDON | `938` | PUERTO ANDINO | `207` | PUERTO ANGAMOS |
+| `817` | PUERTO CABO FROWARD | `910` | PUERTO MONTT | `943` | PUERTO WILLIAMS |
+| `912` | PUNTA ARENAS | `190` | PUNTA CHUNGO | `933` | QUELLON |
+| `921` | QUINTERO | `906` | SAN ANTONIO | `908` | SAN VICENTE |
+| `907` | TALCAHUANO | `916` | TALTAL | `827` | TERMINAL GRANELES DEL NORTE |
+| `829` | TERMINAL MARITIMO ABASTIBLE | `822` | TERMINAL MARITIMO ENAEX | `830` | TERMINAL MARITIMO ENAP |
+| `819` | TERMINAL MARITIMO ESCUADRON | `823` | TERMINAL MARITIMO OXIQUIM | `821` | TERMINAL MUELLE MECANIZADO ESPERANZA |
+| `820` | TERMINAL PORTUARIO TERQUIM | `944` | TERRITORIO ANTARTICO CHILENO | `914` | TOCOPILLA |
+| `924` | TOME | `935` | TORTEL | `209` | TRES PUENTES |
+| `905` | VALPARAISO | `948` | VENTANAS |  |  |
+
+### Resto del mundo
+
+**Alemania**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `591` | BREMEN | `597` | CUXHAVEN | `595` | DUSSELDORF |
+| `594` | FRANKFURT | `592` | HAMBURGO | `593` | NUREMBERG |
+| `599` | OLDENBURG | `596` | OTROS PUERTOS DE ALEMANIA NO ESPECIFICADOS | `598` | ROSTOCK |
+
+**Antillas Holandesas**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `302` | CURAZAO | `399` | OTROS PUERTOS DE AMERICA NO ESPECIFICADOS | `301` | OTROS PUERTOS DE LAS ANTILLAS HOLANDESAS NO ESPECIFICADOS |
+
+**Argentina**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `266` | BAHIA BLANCA | `262` | BUENOS AIRES | `267` | COMODORO RIVADAVIA |
+| `265` | CORDOBA | `269` | MAR DEL PLATA | `264` | MENDOZA |
+| `263` | NECOCHEA | `261` | OTROS PUERTOS DE ARGENTINA NO ESPECIFICADOS | `268` | PUERTO MADRYN |
+| `270` | ROSARIO |  |  |  |  |
+
+**Australia**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `814` | ADELAIDA | `815` | DARWIN | `812` | FREMANTLE |
+| `816` | GERALDTON | `813` | OTROS PUERTOS DE AUSTRALIA NO ESPECIFICADOS | `899` | OTROS PUERTOS DE OCEANIA NO ESPECIFICADOS |
+| `811` | SIDNEY | `952` | ZONA FRANCA IQUIQUE | `953` | ZONA FRANCA PUNTA ARENAS |
+
+**Bangladesh**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `481` | CHALNA | `482` | OTROS PUERTOS DE BANGLADESH NO ESPECIFICADOS |  |  |
+
+**Belgica**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `601` | AMBERES | `604` | GHENT | `605` | OOSTENDE |
+| `602` | OTROS PUERTOS DE BELGICA NO ESPECIFICADOS | `603` | ZEEBRUGGE |  |  |
+
+**Brasil**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `291` | OTROS PUERTOS DE BRASIL NO ESPECIFICADOS | `295` | PARANAGUA | `293` | RIO DE JANEIRO |
+| `294` | RIO GRANDE DEL SUR | `297` | SALVADOR | `292` | SANTOS |
+| `296` | SAO PAULO |  |  |  |  |
+
+**Bulgaria**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `522` | OTROS PUERTOS DE BULGARIA NO ESPECIFICADOS | `521` | VARNA |  |  |
+
+**Canada**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `118` | BAYSIDE | `112` | COSTA DEL PACIFICO, OTROS NO ESPECIFICADOS | `113` | HALIFAX |
+| `126` | HAMILTON | `111` | MONTREAL | `117` | OTROS PUERTOS DE CANADA NO IDENTIFICADOS |
+| `120` | PORT CARTIES | `125` | PRINCE RUPERT | `124` | QUEBEC |
+| `115` | SAINT JOHN | `116` | TORONTO | `114` | VANCOUVER |
+
+**China**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `422` | BUSAN | `412` | DAIREN | `421` | NAMPO |
+| `413` | OTROS PUERTOS DE CHINA NO ESPECIFICADOS | `420` | OTROS PUERTOS DE COREA DEL NORTE NO ESPECIFICADOS | `423` | OTROS PUERTOS DE COREA DEL SUR NO ESPECIFICADOS |
+| `411` | SHANGAI |  |  |  |  |
+
+**Colombia**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `233` | BARRANQUILLA | `232` | BUENAVENTURA | `231` | OTROS PUERTOS DE COLOMBIA NO ESPECIFICADOS |
+
+**Dinamarca**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `644` | AALBORG | `641` | AARHUS | `642` | COPENHAGEN |
+| `645` | ODENSE | `643` | OTROS PUERTOS DE DINAMARCA NO ESPECIFICADOS |  |  |
+
+**Ecuador**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `242` | GUAYAQUIL | `241` | OTROS PUERTOS DE ECUADOR NO ESPECIFICADOS |  |  |
+
+**Espana**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `568` | ALGECIRAS | `563` | BARCELONA | `564` | BILBAO |
+| `562` | CADIZ | `565` | HUELVA | `561` | OTROS PUERTOS DE ESPANA NO ESPECIFICADOS |
+| `566` | SEVILLA | `567` | TARRAGONA | `569` | VALENCIA |
+
+**Estados Unidos**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `136` | BALTIMORE | `146` | BATON ROUGE | `131` | BOSTON |
+| `133` | BRIDGEPORT | `158` | BROWNSVILLE | `139` | CHARLESTON |
+| `147` | COLUMBRES | `157` | CORPUS CRISTI | `121` | COSTA DEL ATLANTICO, OTROS NO ESPECIFICADOS COMPRENDIDOS ENTRE MAINE Y KEY WEST |
+| `123` | COSTA DEL PACIFICO, OTROS NO ESPECIFICADOS | `149` | DULUTH | `142` | EVERGLADES |
+| `135` | FILADELFIA | `156` | GALVESTON | `159` | HOUSTON |
+| `143` | JACKSONVILLE | `175` | LONG BEACH | `174` | LOS ANGELES |
+| `141` | MIAMI | `150` | MILWAUKEE | `153` | MOBILE |
+| `132` | NEW HAVEN | `154` | NEW ORLEANS | `134` | NEW YORK |
+| `137` | NORFOLK | `160` | OAKLAND | `180` | OTROS PUERTOS DE ESTADOS UNIDOS NO ESPECIFICADOS |
+| `145` | PALM BEACH | `152` | PENSACOLA | `148` | PITTSBURGH |
+| `155` | PORT ARTHUR | `172` | PORTLAND | `122` | PUERTOS DEL GOLFO DE MEXICO, OTROS NO ESPECIFICADOS COMPRENDIDOS ENTRE KEY WEST Y BROWNSVILLE |
+| `176` | SAN DIEGO | `173` | SAN FRANCISCO | `140` | SAVANAH |
+| `171` | SEATTLE | `161` | STOCKTON | `151` | TAMPA |
+
+**Filipinas**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `431` | MANILA | `432` | OTROS PUERTOS DE FILIPINAS NO ESPECIFICADOS |  |  |
+
+**Finlandia**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `583` | HANKO | `581` | HELSINSKI | `584` | KEMI |
+| `585` | KOKKOLA | `586` | KOTKA | `582` | OTROS PUERTOS DE FINLANDIA NO ESPECIFICADOS |
+| `587` | OULO | `588` | PIETARSAARI | `589` | PORI |
+
+**Francia**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `557` | BREST | `555` | BURDEOS | `556` | CALAIS |
+| `552` | LA PALLICE | `553` | LE HAVRE | `554` | MARSELLA |
+| `551` | OTROS PUERTOS DE FRANCIA NO ESPECIFICADOS | `558` | RUAN |  |  |
+
+**India**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `471` | CALCUTA | `472` | OTROS PUERTOS DE INDIA NO ESPECIFICADOS |  |  |
+
+**Inglaterra**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `577` | DOVER | `574` | ETEN SALVERRY | `571` | LIVERPOOL |
+| `572` | LONDRES | `576` | OTROS PUERTOS DE INGLATERRA NO ESPECIFICADOS | `578` | PLYMOUTH |
+| `573` | ROCHESTER |  |  |  |  |
+
+**Iran**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `461` | KARHG ISLAND | `462` | OTROS PUERTOS DE IRAN NO ESPECIFICADOS |  |  |
+
+**Italia**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `546` | AUGUSTA | `542` | GENOVA | `543` | LIORNA, LIVORNO |
+| `544` | NAPOLES | `541` | OTROS PUERTOS DE ITALIA NO ESPECIFICADOS | `545` | SALERNO |
+| `547` | SAVONA |  |  |  |  |
+
+**Japon**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `449` | FUKUYAMA | `443` | KOBE | `447` | MOJI |
+| `445` | NAGOYA | `442` | OSAKA | `441` | OTROS PUERTOS DE JAPON NO ESPECIFICADOS |
+| `446` | SHIMIZUI | `448` | YAWATA | `444` | YOKOHAMA |
+
+**Mexico**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `218` | ACAPULCO | `220` | ALTAMIRA | `214` | COATZACOALCOS |
+| `212` | COSTA DEL PACIFICO, OTROS PUERTOS | `219` | GOLFO DE MEXICO, OTROS NO ESPECIFICADOS | `215` | GUAYMAS |
+| `217` | MANZANILLO | `216` | MAZATLAN | `210` | OTROS PUERTOS DE MEXICO NO ESPECIFICADOS |
+| `211` | TAMPICO | `213` | VERACRUZ |  |  |
+
+**Montenegro**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `699` | OTROS PUERTOS DE EUROPA NO ESPECIFICADOS | `536` | OTROS PUERTOS DE MONTENEGRO NO ESPECIFICADOS | `535` | PODGORITSA |
+
+**Noruega**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `651` | OSLO | `652` | OTROS PUERTOS DE NORUEGA NO ESPECIFICADOS | `653` | STAVANGER |
+
+**Paises Bajos**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `621` | AMSTERDAM | `623` | OTROS PUERTOS DE PAISES BAJOS NO ESPECIFICADOS | `622` | ROTTERDAM |
+
+**Panama**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `222` | BALBOA | `223` | COLON | `221` | CRISTOBAL |
+| `224` | OTROS PUERTOS DE PANAMA NO ESPECIFICADOS |  |  |  |  |
+
+**Peru**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `252` | CALLAO | `253` | ILO | `254` | IQUITOS |
+| `251` | OTROS PUERTOS DE PERU NO ESPECIFICADOS |  |  |  |  |
+
+**Portugal**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `611` | LISBOA | `612` | OTROS PUERTOS DE PORTUGAL NO ESPECIFICADOS | `613` | SETUBAL |
+
+**Republica de Serbia**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `533` | BELGRADO | `534` | OTROS PUERTOS DE SERBIA NO ESPECIFICADOS |  |  |
+
+**Rumania**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `511` | CONSTANZA | `512` | OTROS PUERTOS DE RUMANIA NO ESPECIFICADOS |  |  |
+
+**Singapur**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `492` | HONG KONG | `499` | OTROS PUERTOS ASIATICOS NO ESPECIFICADOS | `491` | OTROS PUERTOS DE SINGAPUR NO ESPECIFICADOS |
+
+**Sudafrica**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `712` | CIUDAD DEL CABO | `711` | DURBAM | `717` | EAST-LONDON |
+| `716` | MOSSEL-BAY | `799` | OTROS PUERTOS DE AFRICA NO ESPECIFICADOS | `713` | OTROS PUERTOS DE SUDAFRICA NO ESPECIFICADOS |
+| `715` | PORT-ELIZABETH | `714` | SALDANHA |  |  |
+
+**Suecia**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `631` | GOTEMBURGO | `634` | HELSIMBORG | `635` | KALMAR |
+| `633` | MALMO | `632` | OTROS PUERTOS DE SUECIA NO ESPECIFICADOS |  |  |
+
+**Taiwan**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `451` | KAOHSIUNG | `452` | KEELUNG | `453` | OTROS PUERTOS DE TAIWAN NO ESPECIFICADOS |
+
+**Uruguay**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `272` | MONTEVIDEO | `271` | OTROS PUERTOS DE URUGUAY NO ESPECIFICADOS |  |  |
+
+**Venezuela**
+
+| Código | Nombre | Código | Nombre | Código | Nombre |
+|---|---|---|---|---|---|
+| `282` | LA GUAIRA | `285` | MARACAIBO | `281` | OTROS PUERTOS DE VENEZUELA NO ESPECIFICADOS |
 
 ## Unidades de peso
 
