@@ -6394,6 +6394,15 @@
           },
           "transport_data": {
             "$ref": "#/components/schemas/TransportData"
+          },
+          "json_param": {
+            "type": "object",
+            "additionalProperties": true,
+            "nullable": true,
+            "description": "Campos propios del cliente (objeto JSON libre, ej. `{\"external_order_id\": \"PED-123\"}`). Se guarda tal cual con el documento, vuelve en `GET /documents/{document_id}/` y en el listado, y permite buscar el documento con `json_param__<key>=<valor>` en `GET /documents/`. Úsalo para guardar tu propio identificador (ej. el `Idempotency-Key` o el id de tu pedido) y así reencontrar el documento aunque pierdas la respuesta de creación.",
+            "example": {
+              "external_order_id": "PED-123"
+            }
           }
         }
       },
@@ -7099,6 +7108,15 @@
           "has_trace": {
             "type": "boolean",
             "description": "true si el documento tiene al menos una traza registrada del SII."
+          },
+          "json_param": {
+            "type": "object",
+            "additionalProperties": true,
+            "nullable": true,
+            "description": "Campos propios del cliente enviados en `json_param` al crear el documento. `null` si no se envió.",
+            "example": {
+              "external_order_id": "PED-123"
+            }
           }
         }
       },
