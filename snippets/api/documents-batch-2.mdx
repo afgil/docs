@@ -189,7 +189,7 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
 - **Descripción:** Campos propios del cliente que se guardan tal cual junto con el documento. Se envía dentro de cada elemento de `documents` (mismo nivel que `header`, `details`, etc.).
 - **Estructura:** Objeto JSON libre, ej. `{"external_order_id": "PED-123", "idempotency_key": "..."}`. No se valida ni se transforma.
 - **Lectura:** vuelve en el detalle (`GET /documents/{document_id}/`) y en el listado.
-- **Búsqueda:** el listado permite `json_param__<key>=<valor>` (ver [Filtrar por json_param](/api-reference/v2/documents/list#filtrar-por-json-param-campos-personalizados)). Guarda ahí tu propio identificador (por ejemplo el `Idempotency-Key` con que creaste el batch) para reencontrar el documento aunque pierdas la respuesta de creación.
+- **Búsqueda:** el listado permite `json_param__<key>=<valor>` (ver [Filtrar por json_param](/api-reference/documents/list#filtrar-por-json-param-campos-personalizados)). Guarda ahí tu propio identificador (por ejemplo el `Idempotency-Key` con que creaste el batch) para reencontrar el documento aunque pierdas la respuesta de creación.
 
 ```json
 {
