@@ -15,6 +15,10 @@ Obtiene toda la información completa de un documento tributario específico, in
 
 Si al crear el documento enviaste `json_param`, la respuesta lo devuelve tal cual en el campo `json_param` (`null` si no se envió). Para buscar un documento por uno de esos valores usa `json_param__<key>=<valor>` en el listado.
 
+## Información adicional (`additional_info`)
+
+Si al crear el documento enviaste `additional_info`, la respuesta lo devuelve en el campo `additional_info` (`null` si no se envió). Es el texto que se imprime en el recuadro "Información adicional" del PDF; no forma parte del XML enviado al SII. Solo se imprime si tu empresa usa el PDF propio de Tu Pana o emite con el facturador de mercado; con el PDF oficial del SII el texto se guarda pero no aparece en el PDF.
+
 ## Trazabilidad SII
 
 La respuesta incluye siempre el array `traces` con cada traza del documento en el SII y, dentro de cada una, la lista `events` con los eventos registrados (acuse de recibo, reclamos, notas de crédito asociadas, etc.). Revisa los schemas `Trace` y `TraceEvent` en la referencia para el detalle de cada campo.

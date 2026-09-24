@@ -205,6 +205,33 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
 }
 ```
 
+**additional_info (String):**
+
+<Warning>
+Este campo solo tiene efecto si tu empresa usa el **PDF propio** (PDF personalizado de Tu Pana) o emite con el **facturador de mercado**. Si tu empresa usa el PDF oficial del SII, el texto se guarda y se devuelve en la API, pero **no aparece en el PDF**.
+</Warning>
+
+- **Descripción:** Texto libre que se imprime en un recuadro **"Información adicional"** al final del PDF, justo antes del timbre. Se envía dentro de cada elemento de `documents` (mismo nivel que `header`, `details`, etc.).
+- **Largo máximo:** 1000 caracteres. Los saltos de línea (`\n`) separan líneas dentro del recuadro.
+- **No se envía al SII:** no forma parte del XML del documento, solo del PDF.
+- **Dónde aparece:** solo en el PDF propio de Tu Pana o del facturador de mercado (ver aviso arriba).
+- **Edición:** se puede cambiar mientras el documento es borrador; una vez emitido no se puede modificar.
+- **Lectura:** vuelve en la respuesta del batch, en el detalle (`GET /documents/{document_id}/`), en el listado y en los webhooks (`null` si no se envió).
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": { "code": "33" },
+      "document_issuer": { "...": "..." },
+      "document_receiver": { "...": "..." },
+      "details": [ { "...": "..." } ],
+      "additional_info": "Orden de compra N° 4500123\nPago por transferencia a la cuenta corriente 00-123-45678-09"
+    }
+  ]
+}
+```
+
 
 
 ## Consideraciones Especiales por Tipo de Documento
