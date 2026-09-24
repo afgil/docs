@@ -6408,7 +6408,7 @@
             "type": "string",
             "maxLength": 1000,
             "nullable": true,
-            "description": "Texto libre (máximo 1000 caracteres) que se imprime en un recuadro \"Información adicional\" al final del PDF, justo antes del timbre. No se envía al SII: no forma parte del XML. Solo aparece en el PDF generado por Tu Pana; si tu empresa usa el PDF del SII, el texto se guarda pero no se imprime. Los saltos de línea se respetan. No se puede modificar una vez emitido el documento.",
+            "description": "Texto libre (máximo 1000 caracteres) que se imprime en un recuadro \"Información adicional\" al final del PDF, justo antes del timbre. No se envía al SII: no forma parte del XML. Solo se imprime si tu empresa usa el PDF propio (PDF personalizado de Tu Pana) o emite con el facturador de mercado; en cualquier otro caso (PDF oficial del SII) el texto se guarda y se devuelve en la API, pero no aparece en el PDF. Los saltos de línea se respetan. No se puede modificar una vez emitido el documento.",
             "example": "Orden de compra N° 4500123 - Centro de costo: Operaciones"
           }
         }
@@ -7128,7 +7128,7 @@
           "additional_info": {
             "type": "string",
             "nullable": true,
-            "description": "Texto enviado en `additional_info` al crear el documento. `null` si no se envió.",
+            "description": "Texto enviado en `additional_info` al crear el documento. `null` si no se envió. Solo se imprime en el PDF si la empresa usa el PDF propio de Tu Pana o el facturador de mercado.",
             "example": "Orden de compra N° 4500123 - Centro de costo: Operaciones"
           }
         }
