@@ -10,9 +10,9 @@ empresa. La clave del SII (o del facturador, o del banco) viaja a Tupana.
 Tu backend nunca la ve.
 
 En v2 **no existe** `POST /credentials`. Conectas con este widget y guardas
-un `connection_id` (`cred_…`).
+el `id` de la credencial (`cred_…`).
 
-<Frame caption="Esto ve tu usuario. Tú solo recibes el connection_id.">
+<Frame caption="Esto ve tu usuario. Tú solo recibes el cred_….">
   <img src="/images/connect/02-sii-gratuito.png" alt="Tupana Link — SII gratuito" />
 </Frame>
 
@@ -59,7 +59,7 @@ window.addEventListener('message', (event) => {
   if (event.data.source !== 'tupana-connect') return;
 
   if (event.data.event === 'success') {
-    // event.data.connection_id → "cred_…"
+    // event.data.connection_id → "cred_…" (es la credencial)
     closeModal();
   }
   if (event.data.event === 'exit') closeModal();
@@ -77,9 +77,10 @@ window.addEventListener('message', (event) => {
     `GET /api/v2/credentials/enrollments/{enrollment_id}/`.
     </Warning>
   </Step>
-  <Step title="Tu backend guarda el connection_id">
-    Cuando el SII valida la clave llega `connection.active`. Ahí tienes el
-    `cred_…`. Con eso emites.
+  <Step title="Tu backend guarda la credencial">
+    Cuando el SII valida la clave, el webhook trae el `cred_…`. Con eso emites.
+    También puedes listarlas con
+    [`GET /credentials/`](/api-reference/v2/credentials/list).
 
 ```json
 {
@@ -153,7 +154,7 @@ usuario va a conectar, no antes. Una API key de sandbox no abre producción.
         <img src="/images/connect/07-banco-clave.png" alt="Widget: clave del banco" />
       </Frame>
     </Columns>
-    <Frame caption="3. Cuentas y saldos. Tú solo guardas el connection_id.">
+    <Frame caption="3. Cuentas y saldos. Tú solo guardas el cred_….">
       <img src="/images/connect/08-cuentas.png" alt="Widget: cuentas conectadas" />
     </Frame>
   </Tab>
@@ -161,12 +162,11 @@ usuario va a conectar, no antes. Una API key de sandbox no abre producción.
 
 ## Mientras valida el SII
 
-El enrolamiento no es instantáneo. La respuesta de crear la conexión puede
-traer `connection_id: null` y un `enrollment_id`:
+El enrolamiento no es instantáneo. Mientras el SII valida, la credencial
+todavía no existe: te llega un `enrollment_id`.
 
 ```json
 {
-  "connection_id": null,
   "enrollment_id": "cenr_8420193847261",
   "company_id": "ment_4829301923847",
   "status": "connecting"
@@ -178,38 +178,19 @@ traer `connection_id: null` y un `enrollment_id`:
 
 | Evento | Cuándo |
 |--------|--------|
-| `connection.active` | Ya puedes emitir |
+| `connection.active` | La credencial está `VALID`. Ya puedes emitir |
 | `connection.requires_action` | La clave no sirvió: vuelve a abrir el widget |
 
 Responde 2xx al webhook y procesa después. Puede llegarte dos veces.
 
-## Listar conexiones
-
-`GET /api/v2/connections/`
-
-```json
-[
-  {
-    "connection_id": "cred_5028174639201",
-    "company_id": "ment_4829301923847",
-    "provider": "sii",
-    "type": "tax",
-    "name": "COMERCIAL EJEMPLO SPA",
-    "tax_id": "77.201.556-9",
-    "status": "active"
-  }
-]
-```
-
-| `status` | Qué hacer |
-|----------|-----------|
-| `active` | Puedes emitir |
-| `requires_action` | Reabre el widget |
+Para ver o quitar credenciales usa
+[`GET /credentials/`](/api-reference/v2/credentials/list) y
+[`DELETE /credentials/{id}/`](/api-reference/v2/credentials/unenroll).
 
 ## Qué viaja por tu app
 
 |  | Tu aplicación | Tupana |
 |--|---------------|--------|
 | Clave del SII / facturador / banco | Nunca | Cifrada |
-| `connection_id` | Sí | Sí |
+| Credencial (`cred_…`) | Sí | Sí |
 | Documentos, movimientos, registros | Sí | Sí |

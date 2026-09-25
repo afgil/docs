@@ -37,7 +37,7 @@ Antes de emitir, cada empresa tiene que estar conectada. En v2 **no existe**
 `POST /credentials`: abres el widget de
 [Tupana Link](/api-reference/v2/connect/tupana-link). Tu backend pide un
 `client_token`, el usuario entrega la clave adentro del widget, y tú guardas
-el `connection_id` (`cred_…`) cuando llega `connection.active`.
+el `cred_…` cuando la credencial queda `VALID`.
 
 Si ya conoces el RUT, mándalo como `tax_id` en la sesión o en la URL del
 widget y ese paso no se pide.
