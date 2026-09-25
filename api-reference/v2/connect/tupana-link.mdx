@@ -1,0 +1,215 @@
+---
+title: 'Tupana Link'
+description: 'El widget con el que tus usuarios conectan su empresa — API v2'
+---
+
+# Tupana Link
+
+El widget que abres en tu app para que **tu usuario final** conecte su
+empresa. La clave del SII (o del facturador, o del banco) viaja a Tupana.
+Tu backend nunca la ve.
+
+En v2 **no existe** `POST /credentials`. Conectas con este widget y guardas
+un `connection_id` (`cred_…`).
+
+<Frame caption="Esto ve tu usuario. Tú solo recibes el connection_id.">
+  <img src="/images/connect/02-sii-gratuito.png" alt="Tupana Link — SII gratuito" />
+</Frame>
+
+## Integra en tres llamadas
+
+<Steps>
+  <Step title="Tu backend abre una sesión">
+    `POST /api/v2/connect-sessions/` con tu API key. Te devuelve un
+    `client_token` de 30 minutos. Si ya conoces el RUT, mándalo como `tax_id`
+    y el widget no lo vuelve a pedir.
+
+```bash
+curl -X POST "https://app.tupana.ai/api/v2/connect-sessions/" \
+  -H "Authorization: Api-Key TU_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "capabilities": ["invoicing"],
+    "app_name": "Mi SaaS",
+    "tax_id": "78.152.641-K",
+    "external_customer_id": "cus_912"
+  }'
+```
+
+```json
+{
+  "connect_session_id": "cses_7391028471023",
+  "client_token": "cst_9f2b…",
+  "expires_at": "2026-09-25T18:30:00Z"
+}
+```
+  </Step>
+  <Step title="Tu frontend abre el widget">
+    Iframe o ventana. El `token` es el `client_token`. `tax_id` en la URL
+    gana sobre el de la sesión.
+
+```html
+<iframe src="https://developers.tupana.ai/connect?token=cst_9f2b…&tax_id=78.152.641-K"
+        width="460" height="660" frameborder="0"></iframe>
+```
+
+```js
+window.addEventListener('message', (event) => {
+  if (event.origin !== 'https://developers.tupana.ai') return;
+  if (event.data.source !== 'tupana-connect') return;
+
+  if (event.data.event === 'success') {
+    // event.data.connection_id → "cred_…"
+    closeModal();
+  }
+  if (event.data.event === 'exit') closeModal();
+});
+```
+
+    | `event` | Para qué |
+    |---------|----------|
+    | `open` | El widget cargó |
+    | `success` | Cierra el modal. **No** es la fuente de verdad |
+    | `exit` | El usuario cerró |
+
+    <Warning>
+    El estado real lo confirma tu backend: webhook `connection.active` o
+    `GET /api/v2/credentials/enrollments/{enrollment_id}/`.
+    </Warning>
+  </Step>
+  <Step title="Tu backend guarda el connection_id">
+    Cuando el SII valida la clave llega `connection.active`. Ahí tienes el
+    `cred_…`. Con eso emites.
+
+```json
+{
+  "event": "connection.active",
+  "data": {
+    "connection_id": "cred_5028174639201",
+    "company_id": "ment_4829301923847",
+    "external_customer_id": "cus_912"
+  }
+}
+```
+  </Step>
+</Steps>
+
+### Body de la sesión
+
+| Campo | Requerido | Qué hace |
+|-------|-----------|----------|
+| `capabilities` | | `invoicing`, `sii_data`, `banking`. Default `["invoicing"]` |
+| `tax_id` | | RUT de la empresa. El widget salta ese paso |
+| `app_name` | | El nombre que ve el usuario adentro |
+| `external_customer_id` | | Tu id de cliente. Vuelve en el webhook |
+| `environment` | | `sandbox` o `production`. Default: el de la API key |
+| `return_url` | | A dónde vuelve al terminar |
+
+### Query del widget
+
+| Parámetro | Requerido | Qué hace |
+|-----------|-----------|----------|
+| `token` | Sí | El `client_token` |
+| `tax_id` | | RUT. Si viene acá y en la sesión, gana la URL |
+| `rut` | | Alias de `tax_id` |
+
+<Warning>
+El `client_token` es de un solo uso y dura 30 minutos. Créalo cuando el
+usuario va a conectar, no antes. Una API key de sandbox no abre producción.
+</Warning>
+
+## Lo que ve tu usuario
+
+<Tabs>
+  <Tab title="SII gratuito">
+    <Columns cols={2}>
+      <Frame caption="1. RUT de la empresa — no aparece si mandaste tax_id.">
+        <img src="/images/connect/01-empresa.png" alt="Widget: RUT de la empresa" />
+      </Frame>
+      <Frame caption="2. Detectamos SII. El RUT del representante se formatea solo.">
+        <img src="/images/connect/02-sii-gratuito.png" alt="Widget: SII gratuito" />
+      </Frame>
+    </Columns>
+  </Tab>
+  <Tab title="Facturador de mercado">
+    <Columns cols={2}>
+      <Frame caption="1. Detectamos Haulmer, Bsale, Nubox…">
+        <img src="/images/connect/03-mercado-detectado.png" alt="Widget: facturador detectado" />
+      </Frame>
+      <Frame caption="2. Usuario y clave del facturador — no la del SII.">
+        <img src="/images/connect/04-mercado-usuario.png" alt="Widget: usuario de Haulmer" />
+      </Frame>
+    </Columns>
+    <Frame caption="3. Respaldo XML/PDF y migración a Tupana: 1 día hábil, aviso por correo.">
+      <img src="/images/connect/05-mercado-migrar.png" alt="Widget: respaldar y migrar" />
+    </Frame>
+  </Tab>
+  <Tab title="Banco">
+    <Columns cols={2}>
+      <Frame caption="1. Elige el banco.">
+        <img src="/images/connect/06-banco.png" alt="Widget: selector de banco" />
+      </Frame>
+      <Frame caption="2. RUT de la persona y clave.">
+        <img src="/images/connect/07-banco-clave.png" alt="Widget: clave del banco" />
+      </Frame>
+    </Columns>
+    <Frame caption="3. Cuentas y saldos. Tú solo guardas el connection_id.">
+      <img src="/images/connect/08-cuentas.png" alt="Widget: cuentas conectadas" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+## Mientras valida el SII
+
+El enrolamiento no es instantáneo. La respuesta de crear la conexión puede
+traer `connection_id: null` y un `enrollment_id`:
+
+```json
+{
+  "connection_id": null,
+  "enrollment_id": "cenr_8420193847261",
+  "company_id": "ment_4829301923847",
+  "status": "connecting"
+}
+```
+
+`GET /api/v2/credentials/enrollments/{enrollment_id}/` hasta que quede
+`VALID`. O espera el webhook.
+
+| Evento | Cuándo |
+|--------|--------|
+| `connection.active` | Ya puedes emitir |
+| `connection.requires_action` | La clave no sirvió: vuelve a abrir el widget |
+
+Responde 2xx al webhook y procesa después. Puede llegarte dos veces.
+
+## Listar conexiones
+
+`GET /api/v2/connections/`
+
+```json
+[
+  {
+    "connection_id": "cred_5028174639201",
+    "company_id": "ment_4829301923847",
+    "provider": "sii",
+    "type": "tax",
+    "name": "COMERCIAL EJEMPLO SPA",
+    "tax_id": "77.201.556-9",
+    "status": "active"
+  }
+]
+```
+
+| `status` | Qué hacer |
+|----------|-----------|
+| `active` | Puedes emitir |
+| `requires_action` | Reabre el widget |
+
+## Qué viaja por tu app
+
+|  | Tu aplicación | Tupana |
+|--|---------------|--------|
+| Clave del SII / facturador / banco | Nunca | Cifrada |
+| `connection_id` | Sí | Sí |
+| Documentos, movimientos, registros | Sí | Sí |

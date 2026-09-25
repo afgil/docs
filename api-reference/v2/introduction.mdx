@@ -9,7 +9,7 @@ La API de Facturación está integrada directamente al **facturador gratuito del
 
 1. **obtener tu API Key**
 2. **partir en modo Sandbox** (recomendado)
-3. **enrolar empresas y crear credenciales**
+3. **conectar la empresa con [Tupana Link](/api-reference/v2/connect/tupana-link)** (el widget; en v2 no se crean credenciales por API)
 4. **crear batches para emitir documentos**
 5. **configurar webhooks por empresa para recibir los resultados**
 6. **(opcional) usar campos avanzados** como direcciones y actividades económicas personalizadas
@@ -31,17 +31,16 @@ Existe operación en **Sandbox** y en **Producción**.
 
 Se recomienda comenzar en Sandbox para validar el flujo completo sin riesgos.
 
-## 2) Enrolamiento y credenciales
+## 2) Conectar la empresa con Tupana Link
 
-Antes de emitir, cada empresa debe estar enrolada y contar con su credencial.
+Antes de emitir, cada empresa tiene que estar conectada. En v2 **no existe**
+`POST /credentials`: abres el widget de
+[Tupana Link](/api-reference/v2/connect/tupana-link). Tu backend pide un
+`client_token`, el usuario entrega la clave adentro del widget, y tú guardas
+el `connection_id` (`cred_…`) cuando llega `connection.active`.
 
-Puedes hacerlo de dos maneras:
-
-- **Desde la plataforma**, o
-- **Desde la API** (automatizado): busca la entidad por RUT para obtener su
-  `id` (`ment_…`) y crea la credencial.
-
-Este paso deja a la empresa lista para emitir documentos.
+Si ya conoces el RUT, mándalo como `tax_id` en la sesión o en la URL del
+widget y ese paso no se pide.
 
 ## 3) Emisión: crear el Batch Document
 
@@ -143,7 +142,8 @@ Ver [Errores](/api-reference/v2/errors).
 
 ## Endpoints relacionados
 
-- **Listar Credenciales** — Ver credenciales configuradas
+- **[Tupana Link](/api-reference/v2/connect/tupana-link)** — Conectar una empresa (widget)
+- **Listar Credenciales** — Ver conexiones ya activas
 - **Listar Documentos** — Consultar documentos emitidos
 - **Obtener Documento Específico** — Ver detalles de un documento
 - **Consultar Estados de Documento** — Ver historial de estados
