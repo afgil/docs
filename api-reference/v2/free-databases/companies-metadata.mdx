@@ -1,0 +1,37 @@
+---
+title: 'Filtros disponibles'
+description: 'Años, tramos, regiones y rubros con los que se puede filtrar la nómina del SII'
+---
+
+# Filtros disponibles
+
+```
+GET https://api.tupana.ai/v2/sii-companies/metadata/
+```
+
+Devuelve los valores exactos con los que se puede filtrar. Consúltalo una vez
+y cachéalo: cambia solo cuando cargamos un año nuevo.
+
+```bash
+curl https://api.tupana.ai/v2/sii-companies/metadata/ \
+  -H "Authorization: Api-Key tk_sandbox_…"
+```
+
+```json
+{
+  "years": [2024, 2023, 2022, 2021, 2020],
+  "sizes": ["sin_informacion", "micro", "pequena", "mediana", "grande"],
+  "sales_tiers": [
+    { "tier": 1, "label": "Sin información" },
+    { "tier": 8, "label": "Mediana 1 (25.000,01 a 50.000 UF)" }
+  ],
+  "regions": ["I REGION DE TARAPACA", "XIII REGION METROPOLITANA"],
+  "sectors": ["CONSTRUCCION", "COMERCIO AL POR MAYOR Y AL POR MENOR"]
+}
+```
+
+<Note>
+Los nombres de región y rubro son los que usa el SII, en mayúsculas y sin
+tildes. Los filtros `region` y `sector` exigen coincidencia exacta, así que
+tómalos de acá en vez de escribirlos a mano.
+</Note>

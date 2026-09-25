@@ -1,0 +1,60 @@
+---
+title: 'Bases de Datos Gratuitas — Introducción'
+description: 'Datos públicos de empresas chilenas, consultables por API sin costo — API v2'
+---
+
+# Bases de datos gratuitas
+
+Hay información pública sobre las empresas chilenas que es muy útil y muy
+incómoda de usar: el SII la publica como archivos de texto de cientos de
+megas, una vez al año, sin buscador.
+
+Nosotros la cargamos, la normalizamos y la dejamos consultable por API.
+**Es gratis**: la consultas con cualquier API key, de sandbox o de producción,
+y no consume cupo.
+
+<Card title="Nómina de empresas del SII" icon="building" href="/api-reference/v2/free-databases/companies-search">
+  Todas las personas jurídicas clasificadas como empresa por el SII, con su
+  tramo de ventas, número de trabajadores, rubro y ubicación — por año
+  comercial, desde 2020.
+</Card>
+
+## Para qué sirve
+
+- **Armar una lista de prospectos**: "constructoras medianas de la Región
+  Metropolitana con más de 20 trabajadores".
+- **Precargar datos reales** en tu producto en vez de demostrarlo con datos
+  inventados.
+- **Detectar crecimiento**: como guardamos cada año, puedes pedir las empresas
+  que subieron de tramo entre dos años. Una foto de un solo año no puede
+  responder eso.
+- **Enriquecer tu base**: dado un RUT, obtener tamaño, rubro y comuna.
+
+## Lo que hay que saber antes de usarla
+
+<Warning>
+Los datos son **tributarios, no comerciales**, y los publica el SII con
+carácter preliminar: pueden variar por rectificaciones o fiscalizaciones. El
+SII no garantiza su exactitud ni vigencia, y nosotros los entregamos tal como
+los publica. No los uses como única fuente para una decisión de crédito.
+</Warning>
+
+- La nómina cubre **personas jurídicas**. No incluye personas naturales con
+  giro.
+- El tramo de ventas se calcula con un algoritmo del SII sobre los formularios
+  22 y 29; **no es la facturación real declarada**, es una estimación por rango.
+- El número de trabajadores se cuenta **por empleador** y se asocia a la casa
+  matriz, no a donde la persona efectivamente trabaja.
+- La clasificación se hace una vez al año, en el segundo semestre.
+
+## Autenticación
+
+Igual que el resto de la API v2:
+
+```bash
+curl https://api.tupana.ai/v2/sii-companies/?size=mediana \
+  -H "Authorization: Api-Key tk_sandbox_…"
+```
+
+Una key de **sandbox** sirve perfectamente: estos datos son públicos y no
+tocan información de tus clientes.

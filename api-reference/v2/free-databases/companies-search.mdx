@@ -1,0 +1,140 @@
+---
+title: 'Buscar empresas del SII'
+description: 'Busca en la nómina pública de empresas por tamaño, comuna, rubro o crecimiento'
+---
+
+# Buscar empresas
+
+```
+GET https://api.tupana.ai/v2/sii-companies/
+```
+
+Devuelve empresas de la nómina pública del SII. Sin parámetros responde el
+año más reciente cargado, ordenado por tramo de ventas.
+
+```bash
+curl "https://api.tupana.ai/v2/sii-companies/?size=mediana&district=LAS%20CONDES&active=true" \
+  -H "Authorization: Api-Key tk_sandbox_…"
+```
+
+```json
+{
+  "year": 2024,
+  "count": 1284,
+  "page": 1,
+  "page_size": 50,
+  "results": [
+    {
+      "tax_id": "76543210-3",
+      "name": "CONSTRUCTORA VEGA SPA",
+      "year": 2024,
+      "sales_tier": 8,
+      "sales_tier_label": "Mediana 1 (25.000,01 a 50.000 UF)",
+      "size": "mediana",
+      "employees": 40,
+      "activity_start_date": "2015-03-12",
+      "business_end_date": null,
+      "is_active": true,
+      "taxpayer_type": "PERSONA JURIDICA COMERCIAL",
+      "sector": "CONSTRUCCION",
+      "subsector": "OBRAS DE INGENIERIA",
+      "activity": "CONSTRUCCION DE EDIFICIOS",
+      "region": "XIII REGION METROPOLITANA",
+      "province": "Santiago",
+      "district": "LAS CONDES"
+    }
+  ]
+}
+```
+
+## Parámetros
+
+Todos son opcionales y se combinan entre sí.
+
+| Parámetro | Tipo | Qué hace |
+| --- | --- | --- |
+| `year` | entero | Año comercial. Por defecto, el más reciente cargado. |
+| `rut` | texto | RUT exacto con guión (`76543210-3`). |
+| `search` | texto | Busca en la razón social. |
+| `size` | texto | `micro`, `pequena`, `mediana` o `grande`. |
+| `tier_min` / `tier_max` | 1–13 | Rango de tramo de ventas (ver tabla abajo). |
+| `region` | texto | Nombre exacto de la región según el SII. |
+| `district` | texto | Nombre exacto de la comuna. |
+| `sector` | texto | Nombre exacto del rubro económico. |
+| `activity` | texto | Coincidencia parcial en la actividad económica. |
+| `employees_min` / `employees_max` | entero | Rango de trabajadores. |
+| `active` | `true` | Solo empresas sin término de giro. |
+| `grew_from` | año | Devuelve las que **subieron de tramo** entre ese año y `year`. |
+| `page` / `page_size` | entero | Paginación. `page_size` máximo: 200. |
+
+<Tip>
+Usa [`/sii-companies/metadata/`](/api-reference/v2/free-databases/companies-metadata)
+para obtener los valores exactos de regiones, rubros y años disponibles. La
+nomenclatura del SII tiene sorpresas (`XIII REGION METROPOLITANA`, no
+"Metropolitana").
+</Tip>
+
+## Empresas que crecieron
+
+Es la consulta que justifica guardar cada año por separado. Con `grew_from`
+comparamos las dos nóminas por RUT y devolvemos las que subieron de tramo:
+
+```bash
+curl "https://api.tupana.ai/v2/sii-companies/?grew_from=2023&year=2024&region=XIII%20REGION%20METROPOLITANA" \
+  -H "Authorization: Api-Key tk_sandbox_…"
+```
+
+Las empresas en tramo 1 (*sin información*) quedan fuera de la comparación:
+ese tramo no es un tamaño, es la ausencia del dato.
+
+## Tramos según ventas
+
+El SII clasifica el tamaño por las ventas anuales estimadas en UF. Es un
+rango, no un monto:
+
+| Tramo | Tamaño | Ventas anuales (UF) |
+| --- | --- | --- |
+| 1 | Sin información | No se puede estimar |
+| 2 | Micro 1 | 0,01 – 200 |
+| 3 | Micro 2 | 200,01 – 600 |
+| 4 | Micro 3 | 600,01 – 2.400 |
+| 5 | Pequeña 1 | 2.400,01 – 5.000 |
+| 6 | Pequeña 2 | 5.000,01 – 10.000 |
+| 7 | Pequeña 3 | 10.000,01 – 25.000 |
+| 8 | Mediana 1 | 25.000,01 – 50.000 |
+| 9 | Mediana 2 | 50.000,01 – 100.000 |
+| 10 | Grande 1 | 100.000,01 – 200.000 |
+| 11 | Grande 2 | 200.000,01 – 600.000 |
+| 12 | Grande 3 | 600.000,01 – 1.000.000 |
+| 13 | Grande 4 | Más de 1.000.000 |
+
+El campo `size` agrupa estos tramos en las cuatro categorías de las que habla
+todo el mundo, para que no tengas que memorizar la tabla.
+
+## Tramos de capital propio
+
+Los campos `equity_tier_positive` y `equity_tier_negative` usan otra escala,
+también en UF:
+
+| Tramo | Capital propio (UF) |
+| --- | --- |
+| 1 | 0 – 10 |
+| 2 | 10 – 25 |
+| 3 | 25 – 50 |
+| 4 | 50 – 100 |
+| 5 | 100 – 250 |
+| 6 | 250 – 500 |
+| 7 | 500 – 1.000 |
+| 8 | 1.000 – 2.000 |
+| 9 | 2.000 – 10.000 |
+| 10 | Más de 10.000 |
+
+## Desde tu asistente
+
+Los mismos datos están expuestos en el MCP de Tupana, así que puedes
+preguntarlo en español desde Claude, Cursor o ChatGPT:
+
+> *"¿Qué empresas de construcción en Santiago crecieron entre 2023 y 2024 y
+> tienen más de 20 trabajadores?"*
+
+Ver [Conectar tu asistente](/user-guide/mcp).

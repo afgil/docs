@@ -237,6 +237,30 @@
             ]
           },
           {
+            "tab": "Bases de Datos Gratuitas",
+            "groups": [
+              {
+                "group": "Introducción",
+                "pages": [
+                  "api-reference/v2/free-databases/introduction"
+                ]
+              },
+              {
+                "group": "Empresas del SII",
+                "pages": [
+                  "api-reference/v2/free-databases/companies-search",
+                  "api-reference/v2/free-databases/companies-metadata"
+                ]
+              },
+              {
+                "group": "Errores",
+                "pages": [
+                  "api-reference/v2/errors"
+                ]
+              }
+            ]
+          },
+          {
             "tab": "API Boleta de Honorarios",
             "groups": [
               {
@@ -463,6 +487,30 @@
                   "api-reference/folios/query-create",
                   "api-reference/folios/query-get",
                   "api-reference/folios/errors"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Bases de Datos Gratuitas",
+            "groups": [
+              {
+                "group": "Introducción",
+                "pages": [
+                  "api-reference/v2/free-databases/introduction"
+                ]
+              },
+              {
+                "group": "Empresas del SII",
+                "pages": [
+                  "api-reference/v2/free-databases/companies-search",
+                  "api-reference/v2/free-databases/companies-metadata"
+                ]
+              },
+              {
+                "group": "Errores",
+                "pages": [
+                  "api-reference/v2/errors"
                 ]
               }
             ]
