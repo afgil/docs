@@ -1,0 +1,63 @@
+---
+title: 'Trayectoria de una empresa'
+description: 'Todos los años de una empresa en la nómina del SII, con su lectura'
+---
+
+# Trayectoria de una empresa
+
+```
+GET https://api.tupana.ai/v2/sii-companies/{rut}/
+```
+
+Una fila de un año dice el tamaño de hoy. No dice si la empresa venía
+subiendo, si se cayó y se recuperó, ni si está contratando. Este endpoint
+devuelve todos los años que tiene cargados y un resumen del conjunto.
+
+Acepta el RUT con o sin puntos: `76.446.733-7` y `76446733-7` son lo mismo.
+
+```bash
+curl "https://api.tupana.ai/v2/sii-companies/76446733-7/" \
+  -H "Authorization: Api-Key tk_sandbox_…"
+```
+
+```json
+{
+  "tax_id": "76446733-7",
+  "name": "CCL AUDITORES CONSULTORES LTDA",
+  "known_client": false,
+  "years": [
+    { "year": 2020, "sales_tier": 5, "employees": 6,  "trend": null,    "tier_change": null },
+    { "year": 2021, "sales_tier": 6, "employees": 4,  "trend": "subio", "tier_change": 1 },
+    { "year": 2022, "sales_tier": 2, "employees": 0,  "trend": "bajo",  "tier_change": -4 },
+    { "year": 2023, "sales_tier": 7, "employees": 29, "trend": "subio", "tier_change": 5 },
+    { "year": 2024, "sales_tier": 8, "employees": 37, "trend": "subio", "tier_change": 1 }
+  ],
+  "summary": {
+    "first_year": 2020,
+    "last_year": 2024,
+    "years_in_registry": 5,
+    "tier_first": 5,
+    "tier_last": 8,
+    "tier_change_total": 3,
+    "employees_first": 6,
+    "employees_last": 37,
+    "employees_change_total": 31,
+    "non_declining_years": 2,
+    "is_active": true
+  }
+}
+```
+
+Cada año trae los mismos campos que el buscador. El resumen agrega la lectura
+del conjunto:
+
+| Campo | Qué dice |
+|---|---|
+| `tier_change_total` | Cuántos tramos subió (o bajó) entre el primer año y el último |
+| `employees_change_total` | Cuánta gente sumó o soltó en ese mismo período |
+| `non_declining_years` | Años seguidos sin bajar de tramo, contando el último |
+| `known_client` | Si la empresa ya existe en la plataforma |
+| `is_active` | `false` si tiene término de giro informado |
+
+Un RUT que no está en la nómina responde `200` con `years: []`, no un error:
+no estar no es una falla.

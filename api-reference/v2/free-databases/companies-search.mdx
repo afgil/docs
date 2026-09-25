@@ -64,8 +64,62 @@ Todos son opcionales y se combinan entre sí.
 | `activity` | texto | Coincidencia parcial en la actividad económica. |
 | `employees_min` / `employees_max` | entero | Rango de trabajadores. |
 | `active` | `true` | Solo empresas sin término de giro. |
+| `province` | texto | Nombre exacto de la provincia. |
+| `subsector` | texto | Nombre exacto del subrubro. |
+| `sales_min_clp` / `sales_max_clp` | pesos | **Facturación anual en pesos.** Se traduce sola a tramos con la UF del día. |
+| `growth` | texto | `sostenido`, `subio`, `bajo`, `igual`, `nueva`. |
+| `growth_years` | entero | Años sin caer que exige `sostenido`. Por defecto 3. |
+| `trend` | texto | Igual que `growth` pero sin la variante `sostenido`. |
+| `exclude_known` | `true` | Descarta las que ya existen como empresa en la plataforma. |
+| `taxpayer_type` / `taxpayer_subtype` | texto | Tipo de contribuyente. |
+| `regime` | texto | Coincidencia parcial en el régimen (`14A`, `14D`, …). |
+| `presumptive` | `true`/`false` | Renta presunta. |
+| `equity_min` / `equity_max` | 1–13 | Rango de tramo de capital propio positivo. |
+| `negative_equity` | `true` | Solo las que informan capital propio negativo. |
+| `started_after` / `started_before` | fecha | Inicio de actividades. |
+| `min_years` | entero | Antigüedad mínima en años. |
+| `closed` | `true` | Solo las que tienen término de giro. |
+| `end_type` | texto | Tipo de término de giro. |
 | `grew_from` | año | Devuelve las que **subieron de tramo** entre ese año y `year`. |
+| `order_by` | texto | `tramo` (por defecto), `tramo_asc`, `trabajadores`, `nombre`, `antiguedad`, `variacion`. |
 | `page` / `page_size` | entero | Paginación. `page_size` máximo: 200. |
+
+## Buscar por lo que factura, en pesos
+
+El SII publica tramos en UF y nadie piensa en UF. `sales_min_clp` y
+`sales_max_clp` reciben pesos y se traducen solos usando la UF del día:
+
+```bash
+# "contadores que facturen entre 10 y 100 millones al año"
+curl "https://api.tupana.ai/v2/sii-companies/?activity=CONTABILIDAD&sales_min_clp=10000000&sales_max_clp=100000000" \
+  -H "Authorization: Api-Key tk_sandbox_…"
+```
+
+Se incluye todo tramo que se **solape** con el rango, no solo los que caben
+enteros: una empresa del tramo 4 puede perfectamente facturar los 50 millones
+que estás buscando.
+
+## Crecimiento sostenido
+
+`growth=subio` devuelve a cualquiera que haya subido de tramo este año,
+incluida la que venía cayéndose y rebotó. `growth=sostenido` exige además no
+haberse caído en los últimos años — la diferencia entre una tendencia y un
+rebote.
+
+Cada fila lo justifica sola:
+
+| Campo | Qué dice |
+|---|---|
+| `previous_sales_tier` | En qué tramo estaba el año anterior |
+| `tier_change` | Cuántos tramos se movió |
+| `trend` | `subio`, `bajo`, `igual` o `nueva` |
+| `non_declining_years` | Años seguidos sin bajar de tramo |
+
+<Warning>
+Ordenar por `variacion` pone primero a la que más saltó, que a veces es una
+empresa que estaba dormida y se activó. Si buscas volumen real, ordena por
+`trabajadores`.
+</Warning>
 
 <Tip>
 Usa [`/sii-companies/metadata/`](/api-reference/v2/free-databases/companies-metadata)

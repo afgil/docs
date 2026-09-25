@@ -249,6 +249,8 @@
                 "group": "Empresas del SII",
                 "pages": [
                   "api-reference/v2/free-databases/companies-search",
+                  "api-reference/v2/free-databases/company-history",
+                  "api-reference/v2/free-databases/companies-summary",
                   "api-reference/v2/free-databases/companies-metadata"
                 ]
               },
@@ -504,6 +506,8 @@
                 "group": "Empresas del SII",
                 "pages": [
                   "api-reference/v2/free-databases/companies-search",
+                  "api-reference/v2/free-databases/company-history",
+                  "api-reference/v2/free-databases/companies-summary",
                   "api-reference/v2/free-databases/companies-metadata"
                 ]
               },

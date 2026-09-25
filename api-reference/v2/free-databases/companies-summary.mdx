@@ -1,0 +1,56 @@
+---
+title: 'Tamaño de un mercado'
+description: 'Cuántas empresas y cuántos trabajadores hay en cada grupo'
+---
+
+# Tamaño de un mercado
+
+```
+GET https://api.tupana.ai/v2/sii-companies/summary/
+```
+
+"Cuántas empresas agrícolas hay en la décima región y cuánta gente emplean"
+es una pregunta de conteo, no de listado. Este endpoint la responde agregando
+en la base, sin que haya que paginar miles de filas para contarlas.
+
+Acepta **los mismos filtros que el buscador**, así que el resumen y el listado
+no pueden contradecirse.
+
+```bash
+curl "https://api.tupana.ai/v2/sii-companies/summary/?group_by=size&sector=AGRICULTURA,%20GANADERIA,%20SILVICULTURA%20Y%20PESCA&region=X%20REGION%20LOS%20LAGOS" \
+  -H "Authorization: Api-Key tk_sandbox_…"
+```
+
+```json
+{
+  "year": 2024,
+  "group_by": "size",
+  "total_companies": 3993,
+  "total_employees": 64213,
+  "groups": [
+    { "name": "micro",           "companies": 1544, "employees": 1409 },
+    { "name": "pequena",         "companies": 1077, "employees": 10985 },
+    { "name": "sin_informacion", "companies": 923,  "employees": 165 },
+    { "name": "mediana",         "companies": 324,  "employees": 15242 },
+    { "name": "grande",          "companies": 125,  "employees": 36412 }
+  ]
+}
+```
+
+## Por qué se puede agrupar
+
+| `group_by` | Grupos |
+|---|---|
+| `region`, `province`, `district` | Geografía |
+| `sector`, `subsector`, `activity` | Rubro y actividad económica |
+| `size` | micro · pequena · mediana · grande |
+| `tier` | Los 13 tramos del SII, con su rango en UF |
+| `trend` | subio · bajo · igual · nueva |
+
+Un `group_by` que no existe responde `400` diciendo cuáles sí, en vez de
+devolver un agrupamiento cualquiera.
+
+<Tip>
+Úsalo **antes** de listar. Primero dimensiona el mercado, después lista solo
+el grupo que te interesa: es una consulta en vez de cincuenta páginas.
+</Tip>
