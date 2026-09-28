@@ -221,9 +221,10 @@ se leen como documentos tipo 100:
 
 Responde 2xx al webhook y procesa después. Puede llegarte dos veces.
 
-Para ver o quitar conexiones usa
+Para ver o cortar conexiones usa
 [`GET /connections/`](/api-reference/v2/connections/list) y
-[`DELETE /connections/{company_id}/`](/api-reference/v2/connections/delete).
+[`DELETE /connections/{connection_id}/`](/api-reference/v2/connections/delete),
+que la deja `inactive` y suelta la clave.
 
 ## Qué viaja por tu app
 

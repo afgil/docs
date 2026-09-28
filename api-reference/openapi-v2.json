@@ -4978,23 +4978,25 @@
         }
       }
     },
-    "/connections/{company_id}/": {
+    "/connections/{connection_id}/": {
       "delete": {
-        "operationId": "deleteConnection_v2",
-        "summary": "Desconectar una empresa",
-        "description": "Corta el acceso de tu integración a esa empresa. La empresa y sus documentos siguen existiendo; lo que se termina es tu conexión, y el usuario final tendría que volver a conectarla con Tupana Link.",
+        "operationId": "deactivateConnection_v2",
+        "summary": "Desactivar una conexión",
+        "description": "Corta una conexión: deja de servir para operar y Tupana suelta la clave que guardaba. No es un borrado — la conexión sigue en el listado con `status: inactive`, que es lo que explica por qué esa empresa dejó de sincronizar. La empresa y sus documentos no se tocan. Se identifica por `connection_id` (el `cred_…` del listado), no por la empresa. Es idempotente y no tiene vuelta atrás: volver a operar esa empresa significa conectarla de nuevo con Tupana Link.",
         "tags": [
           "Conexiones"
         ],
         "parameters": [
           {
-            "name": "company_id",
+            "name": "connection_id",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "cred_5028174639201"
             },
-            "example": "ment_3672486436546233854"
+            "example": "ment_3672486436546233854",
+            "description": "Id de la conexión (`cred_…`), el que devuelve GET /connections/."
           }
         ],
         "responses": {

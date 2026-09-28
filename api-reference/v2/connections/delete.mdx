@@ -1,15 +1,39 @@
 ---
-title: "Desconectar una empresa"
-openapi: "api-reference/openapi-v2.json DELETE /connections/{company_id}/"
+title: "Desactivar una conexión"
+openapi: "api-reference/openapi-v2.json DELETE /connections/{connection_id}/"
 ---
 
-Corta el acceso de tu integración a esa empresa.
+Corta una conexión: deja de servir para operar y Tupana suelta la clave que
+guardaba. Si era una empresa que sincronizaba su banco o su SII todos los días,
+deja de hacerlo.
 
-La empresa y sus documentos siguen existiendo: lo que termina es **tu**
-conexión. Para volver a operarla, el usuario final tiene que conectarla de
-nuevo con [Tupana Link](/api-reference/v2/connect/tupana-link).
+Se identifica por `connection_id` — el `cred_…` que devuelve
+[el listado](/api-reference/v2/connections/list) —, no por la empresa: una
+empresa puede tener más de una conexión y se desactiva la que indiques.
 
 ```bash
-curl -X DELETE https://api.tupana.ai/v2/connections/ment_3672486436546233854/ \
+curl -X DELETE https://api.tupana.ai/v2/connections/cred_5028174639201/ \
   -H "Authorization: Api-Key TU_API_KEY"
 ```
+
+Responde `204` sin cuerpo. Si esa conexión no es tuya o no existe, `404`.
+
+## No es un borrado
+
+La conexión sigue apareciendo en el listado con `status: inactive`. Es a
+propósito: así se entiende por qué esa empresa dejó de sincronizar, en vez de
+desaparecer sin explicación. La empresa y sus documentos no se tocan.
+
+<Info>
+`inactive` es una conexión que alguien cortó. No se confunde con
+`requires_action`, que es una clave que dejó de funcionar y hay que reconectar
+con [Tupana Link](/api-reference/v2/connect/tupana-link).
+</Info>
+
+Volver a operar esa empresa significa conectarla de nuevo con Tupana Link: la
+clave no se recupera.
+
+<Warning>
+Desactivar es idempotente —llamarlo dos veces responde `204` las dos— pero no
+tiene vuelta atrás por API.
+</Warning>
