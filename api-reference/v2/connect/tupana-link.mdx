@@ -69,12 +69,14 @@ window.addEventListener('message', (event) => {
     | `event` | Para qué |
     |---------|----------|
     | `open` | El widget cargó |
-    | `success` | Cierra el modal. **No** es la fuente de verdad |
-    | `exit` | El usuario cerró |
+    | `success` | El flujo terminó. Cierra el modal. **No** es la fuente de verdad |
+    | `exit` | El usuario cerró antes de terminar |
 
     <Warning>
-    El estado real lo confirma tu backend: webhook `connection.active` o
-    `GET /api/v2/connections/enrollments/{enrollment_id}/`.
+    Igual que el widget de Fintoc: `success` y `exit` solo mueven tu
+    interfaz. La conexión existe cuando tu backend recibe
+    `connection.active` o
+    `GET /api/v2/connections/enrollments/{enrollment_id}/` la muestra lista.
     </Warning>
   </Step>
   <Step title="Tu backend guarda la conexión">
@@ -154,16 +156,37 @@ usuario va a conectar, no antes. Una API key de sandbox no abre producción.
         <img src="/images/connect/07-banco-clave.png" alt="Widget: clave del banco" />
       </Frame>
     </Columns>
-    <Frame caption="3. Cuentas y saldos. Tú solo guardas el cred_….">
+    <Frame caption="3. El banco aceptó la clave: cuentas y saldos. Ahí sale success.">
       <img src="/images/connect/08-cuentas.png" alt="Widget: cuentas conectadas" />
     </Frame>
   </Tab>
 </Tabs>
 
-## Mientras valida el SII
+## Cuándo el enrolamiento es exitoso
 
-El enrolamiento no es instantáneo. Mientras el SII valida, la credencial
-todavía no existe: te llega un `enrollment_id`.
+El widget de Fintoc no avisa éxito al recibir la clave. Se queda en
+pantalla mientras el banco responde. Si la clave está mala, el error queda
+adentro y el usuario reintenta: no hay `onSuccess`. `onSuccess` sale cuando
+el flujo terminó (el banco aceptó y existe el Link). `onExit` sale solo si
+la persona cierra antes. Fintoc pide no usar esos callbacks para saber si el
+Link existe: eso lo confirma el webhook `link.created` en el `webhookUrl`,
+que trae el `link_token`.
+
+Tupana Link funciona igual. El `postMessage` mueve tu modal. El webhook
+dice si la credencial quedó.
+
+| Qué ves | Qué significa |
+|---------|----------------|
+| `success` | El flujo terminó. Cierra el modal y guarda el `connection_id` |
+| `exit` | Cerró antes de terminar. No hay conexión nueva |
+| `connection.active` | La institución aceptó la clave. Esta es la confirmación |
+| `connection.requires_action` | La clave no sirvió. El widget deja reintentar |
+
+### SII
+
+El login no termina en el request. La respuesta trae `status: "connecting"`
+y un `enrollment_id` (`cenr_…`). El widget espera en
+`ws/connect/{client_token}/` y manda `success` solo con `valid`.
 
 ```json
 {
@@ -173,13 +196,28 @@ todavía no existe: te llega un `enrollment_id`.
 }
 ```
 
-`GET /api/v2/connections/enrollments/{enrollment_id}/` hasta que quede
-`VALID`. O espera el webhook.
+Puedes esperar el webhook o consultar
+`GET /api/v2/connections/enrollments/{enrollment_id}/` hasta `valid`,
+`invalid` o `error`.
 
-| Evento | Cuándo |
-|--------|--------|
-| `connection.active` | La credencial está `VALID`. Ya puedes emitir |
-| `connection.requires_action` | La clave no sirvió: vuelve a abrir el widget |
+### Banco
+
+El widget no manda `success` cuando guarda la clave. Se queda en
+“estamos leyendo tus cuentas” hasta que el banco contesta.
+
+- El banco aceptó y hay cuentas: el widget las muestra y ahí manda
+  `success` con el `cred_…`. Tu backend recibe `connection.active`.
+- La clave es inválida: el error queda en el widget, el usuario puede
+  corregirla, y no hay `success`. Tu backend recibe
+  `connection.requires_action`.
+- El usuario cierra antes: `exit`. Eso no confirma la conexión. Si el banco igual acepta la clave, llega `connection.active`.
+
+Guardar la clave con estado interno `VALID` no es la confirmación. La
+confirmación es `connection.active`, cuando el banco ya listó las cuentas.
+
+Los movimientos no vienen en ese aviso. Cuando la cartola está sincronizada
+se leen como documentos tipo 100:
+`GET /api/v2/documents/?master_entity_id={empresa}&dte_type__code__in=100`.
 
 Responde 2xx al webhook y procesa después. Puede llegarte dos veces.
 
