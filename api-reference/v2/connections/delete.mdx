@@ -1,0 +1,15 @@
+---
+title: "Desconectar una empresa"
+openapi: "api-reference/openapi-v2.json DELETE /connections/{company_id}/"
+---
+
+Corta el acceso de tu integración a esa empresa.
+
+La empresa y sus documentos siguen existiendo: lo que termina es **tu**
+conexión. Para volver a operarla, el usuario final tiene que conectarla de
+nuevo con [Tupana Link](/api-reference/v2/connect/tupana-link).
+
+```bash
+curl -X DELETE https://api.tupana.ai/v2/connections/ment_3672486436546233854/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```

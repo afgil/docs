@@ -59,9 +59,11 @@
                 ]
               },
               {
-                "group": "Credenciales",
+                "group": "Conexiones",
                 "pages": [
                   "api-reference/v2/connect/tupana-link",
+                  "api-reference/v2/connections/list",
+                  "api-reference/v2/connections/delete",
                   "api-reference/v2/credentials/list",
                   "api-reference/v2/credentials/unenroll"
                 ]
