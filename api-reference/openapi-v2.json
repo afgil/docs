@@ -1186,104 +1186,56 @@
                         "type": "object",
                         "properties": {
                           "id": {
-                            "type": "integer",
-                            "description": "ID único de la credencial",
-                            "example": 245
+                            "type": "string",
+                            "description": "Id de la credencial. Los ids de la API son opacos: nunca asumas que son números.",
+                            "example": "cred_4153079431273569648"
                           },
                           "user": {
                             "type": "string",
-                            "description": "RUT del usuario de la credencial",
-                            "example": "16659618-1"
+                            "description": "RUT del usuario dueño de la credencial",
+                            "example": "12467494-8"
                           },
                           "credential_type": {
-                            "type": "object",
-                            "description": "Tipo de credencial",
-                            "properties": {
-                              "id": {
-                                "type": "integer",
-                                "description": "ID del tipo de credencial",
-                                "example": 70
-                              },
-                              "name": {
-                                "type": "string",
-                                "description": "Nombre del tipo de credencial",
-                                "example": "SII"
-                              }
-                            }
-                          },
-                          "created_at": {
                             "type": "string",
-                            "format": "date-time",
-                            "description": "Fecha de creación de la credencial",
-                            "example": "2025-08-06T01:24:45.422918Z"
+                            "description": "Tipo de credencial",
+                            "example": "SII"
                           },
                           "status": {
                             "type": "string",
-                            "description": "Estado de la credencial",
                             "enum": [
                               "VALID",
                               "INVALID",
                               "EXPIRED"
                             ],
+                            "description": "VALID: sirve. INVALID/EXPIRED: el usuario final tiene que reconectar.",
                             "example": "VALID"
+                          },
+                          "has_certificate_password": {
+                            "type": "boolean",
+                            "description": "Si la credencial trae la clave del certificado digital. La clave nunca se devuelve.",
+                            "example": true
                           },
                           "master_entities": {
                             "type": "array",
-                            "description": "Lista de entidades maestras asociadas a la credencial",
+                            "description": "Empresas que cubre la credencial",
                             "items": {
                               "type": "object",
                               "properties": {
                                 "id": {
-                                  "type": "integer",
-                                  "description": "ID de la entidad maestra",
-                                  "example": 4355
+                                  "type": "string",
+                                  "example": "ment_3299036609102179697"
                                 },
                                 "name": {
                                   "type": "string",
-                                  "description": "Nombre de la entidad maestra",
-                                  "example": "HIDDEN CORE SPA"
+                                  "example": "ASESORIAS VGA SPA"
                                 },
                                 "tax_id": {
                                   "type": "string",
-                                  "description": "RUT de la entidad maestra",
-                                  "example": "78.121.555-4"
+                                  "example": "76.677.315-K"
                                 }
                               }
                             }
                           }
-                        }
-                      }
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "page": {
-                          "type": "integer",
-                          "nullable": true
-                        },
-                        "page_size": {
-                          "type": "integer",
-                          "nullable": true
-                        },
-                        "total": {
-                          "type": "integer"
-                        },
-                        "total_pages": {
-                          "type": "integer",
-                          "nullable": true
-                        }
-                      }
-                    },
-                    "links": {
-                      "type": "object",
-                      "properties": {
-                        "next": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "prev": {
-                          "type": "string",
-                          "nullable": true
                         }
                       }
                     }
