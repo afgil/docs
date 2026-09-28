@@ -33,11 +33,13 @@ Se recomienda comenzar en Sandbox para validar el flujo completo sin riesgos.
 
 ## 2) Conectar la empresa con Tupana Link
 
-Antes de emitir, cada empresa tiene que estar conectada. En v2 **no existe**
-`POST /credentials`: abres el widget de
+Antes de emitir, cada empresa tiene que estar conectada, y en v2 la clave no
+viaja por API: abres el widget de
 [Tupana Link](/api-reference/v2/connect/tupana-link). Tu backend pide un
-`client_token`, el usuario entrega la clave adentro del widget, y tú guardas
-el `cred_…` cuando la credencial queda `VALID`.
+`client_token`, el usuario entrega la clave adentro del widget, y tú guardas el
+`connection_id` (`cred_…`) cuando la conexión queda activa. Las conexiones se
+listan y se quitan en
+[`/connections/`](/api-reference/v2/connections/list).
 
 Si ya conoces el RUT, mándalo como `tax_id` en la sesión o en la URL del
 widget y ese paso no se pide.

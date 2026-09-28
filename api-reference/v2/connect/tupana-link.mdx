@@ -9,8 +9,8 @@ El widget que abres en tu app para que **tu usuario final** conecte su
 empresa. La clave del SII (o del facturador, o del banco) viaja a Tupana.
 Tu backend nunca la ve.
 
-En v2 **no existe** `POST /credentials`. Conectas con este widget y guardas
-el `id` de la credencial (`cred_…`).
+En v2 la clave no se manda por API: conectas con este widget y guardas el
+`connection_id` (`cred_…`), que es lo único que tu SaaS conoce de la empresa.
 
 <Frame caption="Esto ve tu usuario. Tú solo recibes el cred_….">
   <img src="/images/connect/02-sii-gratuito.png" alt="Tupana Link — SII gratuito" />
@@ -74,13 +74,13 @@ window.addEventListener('message', (event) => {
 
     <Warning>
     El estado real lo confirma tu backend: webhook `connection.active` o
-    `GET /api/v2/credentials/enrollments/{enrollment_id}/`.
+    `GET /api/v2/connections/enrollments/{enrollment_id}/`.
     </Warning>
   </Step>
-  <Step title="Tu backend guarda la credencial">
+  <Step title="Tu backend guarda la conexión">
     Cuando el SII valida la clave, el webhook trae el `cred_…`. Con eso emites.
     También puedes listarlas con
-    [`GET /credentials/`](/api-reference/v2/credentials/list).
+    [`GET /connections/`](/api-reference/v2/connections/list).
 
 ```json
 {
@@ -173,7 +173,7 @@ todavía no existe: te llega un `enrollment_id`.
 }
 ```
 
-`GET /api/v2/credentials/enrollments/{enrollment_id}/` hasta que quede
+`GET /api/v2/connections/enrollments/{enrollment_id}/` hasta que quede
 `VALID`. O espera el webhook.
 
 | Evento | Cuándo |
@@ -183,9 +183,9 @@ todavía no existe: te llega un `enrollment_id`.
 
 Responde 2xx al webhook y procesa después. Puede llegarte dos veces.
 
-Para ver o quitar credenciales usa
-[`GET /credentials/`](/api-reference/v2/credentials/list) y
-[`DELETE /credentials/{id}/`](/api-reference/v2/credentials/unenroll).
+Para ver o quitar conexiones usa
+[`GET /connections/`](/api-reference/v2/connections/list) y
+[`DELETE /connections/{company_id}/`](/api-reference/v2/connections/delete).
 
 ## Qué viaja por tu app
 
