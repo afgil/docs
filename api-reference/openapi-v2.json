@@ -5452,6 +5452,161 @@
           }
         }
       }
+    },
+    "/connections/": {
+      "get": {
+        "operationId": "listConnections_v2",
+        "summary": "Listar conexiones",
+        "description": "Las empresas conectadas a tu integración. Es también el paso \"empresa emisora\" de cualquier flujo: cada conexión trae el giro, su código y la dirección, así que no necesitas guardarlos — mandas `company_id` y la API completa el emisor.",
+        "tags": [
+          "Conexiones"
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 2
+            },
+            "description": "Filtra por nombre o RUT. Mínimo 2 caracteres."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 25,
+              "minimum": 1,
+              "maximum": 100
+            },
+            "description": "Conexiones por página. Se acota a 100."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Conexiones del integrador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "connection_id": {
+                            "type": "string",
+                            "example": "cred_2959001189629508554"
+                          },
+                          "company_id": {
+                            "type": "string",
+                            "example": "ment_3672486436546233854"
+                          },
+                          "provider": {
+                            "type": "string",
+                            "example": "sii"
+                          },
+                          "type": {
+                            "type": "string",
+                            "example": "tax"
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "1 A 1 ARQUITECTURA Y CONSTRUCCIÓN SPA"
+                          },
+                          "tax_id": {
+                            "type": "string",
+                            "example": "77.918.412-9"
+                          },
+                          "environment": {
+                            "type": "string",
+                            "enum": [
+                              "sandbox",
+                              "production"
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "active",
+                              "requires_action"
+                            ],
+                            "description": "`requires_action`: la clave dejó de servir y el usuario final tiene que reconectar."
+                          },
+                          "last_verified_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "business_activity": {
+                            "type": "string",
+                            "description": "Giro del emisor, tal como lo necesita el documento."
+                          },
+                          "activity_code": {
+                            "type": "integer",
+                            "nullable": true
+                          },
+                          "address": {
+                            "type": "string"
+                          },
+                          "district": {
+                            "type": "string"
+                          },
+                          "city": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "Cuántas conexiones hay en total. Va aparte del largo de `data` para que un corte por `limit` nunca pase inadvertido."
+                    },
+                    "limit": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "La búsqueda trae menos de 2 caracteres"
+          }
+        }
+      }
+    },
+    "/connections/{company_id}/": {
+      "delete": {
+        "operationId": "deleteConnection_v2",
+        "summary": "Desconectar una empresa",
+        "description": "Corta el acceso de tu integración a esa empresa. La empresa y sus documentos siguen existiendo; lo que se termina es tu conexión, y el usuario final tendría que volver a conectarla con Tupana Link.",
+        "tags": [
+          "Conexiones"
+        ],
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "ment_3672486436546233854"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Conexión terminada"
+          },
+          "404": {
+            "description": "La empresa no está conectada a tu integración"
+          }
+        }
+      }
     }
   },
   "components": {

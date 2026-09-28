@@ -1,0 +1,34 @@
+---
+title: "Listar conexiones"
+openapi: "api-reference/openapi-v2.json GET /connections/"
+---
+
+Las empresas conectadas a tu integración. Una conexión es lo único que tu SaaS
+conoce de una empresa: nunca ves la clave del SII, porque la entrega el usuario
+final dentro de [Tupana Link](/api-reference/v2/connect/tupana-link).
+
+Es además el paso **empresa emisora** de cualquier flujo. Cada conexión trae el
+giro, su código y la dirección, así que no necesitas guardarlos: mandas
+`company_id` al emitir y la API completa el emisor.
+
+## Buscar
+
+`?search=` filtra por nombre o RUT, con un mínimo de 2 caracteres — con una
+letra, "buscar" sería traer todo. Menos de 2 responde `400`.
+
+```bash
+curl https://api.tupana.ai/v2/connections/?search=arquitectura \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+## Paginar
+
+`limit` viene en 25 y se acota a 100. El `total` va aparte del largo de `data`
+a propósito: si tienes más conexiones de las que pediste, te enteras en vez de
+recibir un corte silencioso.
+
+## Estado
+
+`status` es `active` mientras la conexión sirve, y `requires_action` cuando la
+clave dejó de funcionar. En ese caso no hay nada que reintentar desde tu lado:
+el usuario final tiene que reconectar la empresa con Tupana Link.
