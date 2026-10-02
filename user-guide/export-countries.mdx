@@ -3,7 +3,7 @@ title: 'Países de exportación'
 description: 'Códigos de país del SII aceptados en facturas de exportación (DTE 110, 111 y 112)'
 ---
 
-Las facturas de exportación (DTE 110), notas de débito (111) y notas de crédito (112) declaran el país de destino de la operación mediante el campo `destination_country_code` dentro de `export_data`.
+Las facturas de exportación (DTE 110), notas de débito (111) y notas de crédito (112) declaran el país de destino de la operación mediante el campo `destination_country_code` dentro de `export_data`. Si el receptor está en otro país o tiene otra nacionalidad, se informan con `receiver_country_code` y `receiver_nationality_code`, con la misma tabla de códigos.
 
 <Warning>
   El `destination_country_code` **no es el código ISO 3166-1** (`US`, `BR`, `AR`). Es el **código de país del SII** (tabla de Aduana), enviado como *string*. Por ejemplo, Estados Unidos es `"225"`, no `"US"`.
@@ -32,7 +32,15 @@ curl https://api.tupana.ai/api/documents/export-countries/
 ## Uso en `export_data`
 
 <ParamField body="destination_country_code" type="string" required>
-  Código de país del SII del destino final de la exportación (ver tabla). Se envía como texto, por ejemplo `"225"`.
+  Código de país del SII del destino final de la mercadería (`CodPaisDestin`). Se envía como texto, por ejemplo `"225"`.
+</ParamField>
+
+<ParamField body="receiver_country_code" type="string">
+  País donde está el receptor (`CodPaisRecep`), cuando no es el destino. Si no se envía, se usa `destination_country_code`.
+</ParamField>
+
+<ParamField body="receiver_nationality_code" type="string">
+  Nacionalidad del receptor (`Extranjero/Nacionalidad`). Si no se envía, se usa `receiver_country_code` y, si tampoco viene, `destination_country_code`.
 </ParamField>
 
 ```json export_data
@@ -44,7 +52,7 @@ curl https://api.tupana.ai/api/documents/export-countries/
 ```
 
 <Note>
-  El país se informa solo con `destination_country_code`. `document_receiver` no tiene campo de país: si se envía `document_receiver.country`, se ignora y la respuesta lo devuelve como aviso `unknown_field` (o como error 422 si la API key tiene validación estricta).
+  Los países se informan solo en `export_data`. `document_receiver` no tiene campo de país: si se envía `document_receiver.country`, se ignora y la respuesta lo devuelve como aviso `unknown_field` (o como error 422 si la API key tiene validación estricta).
 </Note>
 
 ## Tabla de códigos
