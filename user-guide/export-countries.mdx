@@ -44,7 +44,7 @@ curl https://api.tupana.ai/api/documents/export-countries/
 ```
 
 <Note>
-  El `destination_country_code` debe coincidir con el país del receptor extranjero (`document_receiver.country`).
+  El país se informa solo con `destination_country_code`. `document_receiver` no tiene campo de país: si se envía `document_receiver.country`, se ignora y la respuesta lo devuelve como aviso `unknown_field` (o como error 422 si la API key tiene validación estricta).
 </Note>
 
 ## Tabla de códigos

@@ -432,8 +432,7 @@ La guía queda con `exempt_amount` 4.050.000, IVA 0 y total 4.050.000.
         "rut": "99999999-9",
         "business_name": "Importador Internacional Inc",
         "address": "123 Main Street",
-        "city": "New York",
-        "country": "USA"
+        "city": "New York"
       },
       "header": {
         "sale_transaction_type": 1,
@@ -814,7 +813,7 @@ En v2 el error usa el formato de [errores v2](/api-reference/v2/errors) con `typ
 ### Información del receptor extranjero:
 - **RUT**: Puede usar identificadores especiales como `99999999-9` para extranjeros
 - **Dirección**: Dirección completa en el extranjero
-- **País**: País de destino (debe coincidir con `destination_country`)
+- **País**: `document_receiver` no lleva país. El país de destino se informa en `export_data.destination_country_code`, con el código de país del SII (ej: `"225"` = U.S.A.)
 
 ### Precios y cálculos:
 - **FOB (Free on Board)**: Los precios deben incluir costos hasta la entrega al transportista
