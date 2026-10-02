@@ -300,7 +300,6 @@ Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en l
   - `business_activity` (String): Descripción de la actividad
   - `address` (String): Dirección en el extranjero
   - `city` (String): Ciudad del extranjero
-  - `country` (String): País de destino
 
 **export_data (Obligatorio)**
 - **Tipo:** Object
@@ -309,7 +308,7 @@ Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en l
 
   - `destination_country_code` (String): **País de destino final**
     - **No es código ISO 3166-1.** Es el código de país del SII (tabla de Aduana), enviado como *string* (ej: `"225"` = U.S.A., `"220"` = Brasil, `"224"` = Argentina, `"216"` = México). Ver [Países de exportación](/user-guide/export-countries) para la tabla completa.
-    - Debe coincidir exactamente con el país del receptor extranjero
+    - Es el único campo de país del documento: `document_receiver` no lleva país
 
   - `currency_code` (String): **Moneda de la operación**
     - Código de moneda del SII, como *string* (ej: `"13"` = Dólar USA). No es ISO 4217.
