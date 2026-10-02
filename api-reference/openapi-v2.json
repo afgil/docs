@@ -7919,8 +7919,18 @@
           },
           "destination_country_code": {
             "type": "string",
-            "description": "Código de país del SII del destino (tabla de Aduana). No es código ISO 3166-1. Ver /user-guide/export-countries",
+            "description": "Código de país del SII del destino final de la mercadería (Aduana/CodPaisDestin). No es código ISO 3166-1. Si no se envían receiver_country_code ni receiver_nationality_code, también es el país y la nacionalidad del receptor. Ver /user-guide/export-countries",
             "example": "225"
+          },
+          "receiver_country_code": {
+            "type": "string",
+            "description": "Código de país del SII donde está el receptor (Aduana/CodPaisRecep), cuando es distinto del destino, por ejemplo en una triangulación. Opcional: si no se envía, se usa destination_country_code. Misma tabla que destination_country_code.",
+            "example": "515"
+          },
+          "receiver_nationality_code": {
+            "type": "string",
+            "description": "Código de país del SII de la nacionalidad del receptor (Receptor/Extranjero/Nacionalidad). Opcional: si no se envía, se usa receiver_country_code y, si tampoco viene, destination_country_code. Misma tabla que destination_country_code.",
+            "example": "515"
           },
           "currency_code": {
             "type": "string",

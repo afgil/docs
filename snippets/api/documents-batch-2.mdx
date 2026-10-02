@@ -742,13 +742,36 @@ En v2 el error usa el formato de [errores v2](/api-reference/v2/errors) con `typ
 
 - **`destination_country_code`** (String, Obligatorio):
   - **No es código ISO 3166-1.** Es el código de país del SII (ej: `"225"` = U.S.A., `"220"` = Brasil, `"224"` = Argentina). Ver [Países de exportación](/user-guide/export-countries) para la tabla completa.
-  - Debe coincidir con el país del receptor
+  - Es el destino final de la mercadería (`CodPaisDestin`). Si el receptor está en otro país, ver la sección "País y nacionalidad del receptor" más abajo
 
 - **`currency_code`** (String, Obligatorio):
   - Código de moneda del SII (ej: `"13"` = Dólar USA). No es ISO 4217.
 
 - **`sale_mode_code`** (String, Obligatorio):
   - Código de modalidad de venta del SII (no una cláusula Incoterm). Ver [Modalidades de venta de exportación](/user-guide/export-sale-modes) para la tabla completa.
+
+### País y nacionalidad del receptor
+
+El DTE de exportación declara tres países distintos. Normalmente son el mismo y basta con `destination_country_code`. Cuando no coinciden (por ejemplo, el comprador es una distribuidora en Holanda y la carga va directo a Alemania), se informan por separado:
+
+| Campo | Tag del DTE | Si no se envía |
+|---|---|---|
+| `destination_country_code` | `Aduana/CodPaisDestin` | Obligatorio |
+| `receiver_country_code` | `Aduana/CodPaisRecep` | Se usa `destination_country_code` |
+| `receiver_nationality_code` | `Receptor/Extranjero/Nacionalidad` | Se usa `receiver_country_code` y, si tampoco viene, `destination_country_code` |
+
+Los tres usan los códigos de país del SII ([Países de exportación](/user-guide/export-countries)). Un código fuera de la tabla devuelve `400`.
+
+```json
+"export_data": {
+  "destination_country_code": "563",
+  "receiver_country_code": "515",
+  "currency_code": "142",
+  "sale_mode_code": "1"
+}
+```
+
+En este ejemplo la carga va a Alemania (`563`), el comprador está en Holanda (`515`) y su nacionalidad también queda como Holanda, porque no se envió `receiver_nationality_code`.
 
 ### Cláusula de venta (Incoterm)
 
@@ -813,7 +836,7 @@ En v2 el error usa el formato de [errores v2](/api-reference/v2/errors) con `typ
 ### Información del receptor extranjero:
 - **RUT**: Puede usar identificadores especiales como `99999999-9` para extranjeros
 - **Dirección**: Dirección completa en el extranjero
-- **País**: `document_receiver` no lleva país. El país de destino se informa en `export_data.destination_country_code`, con el código de país del SII (ej: `"225"` = U.S.A.)
+- **País**: `document_receiver` no lleva país. Los países van en `export_data`: `destination_country_code` (destino) y, si son distintos, `receiver_country_code` y `receiver_nationality_code`
 
 ### Precios y cálculos:
 - **FOB (Free on Board)**: Los precios deben incluir costos hasta la entrega al transportista
