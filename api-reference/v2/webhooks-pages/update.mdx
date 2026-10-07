@@ -1,0 +1,14 @@
+---
+title: 'Actualizar webhook'
+openapi: 'api-reference/openapi-v2.json PATCH /webhooks/{webhook_id}/'
+---
+
+Modifica uno o más campos del webhook: `url`, `events`, `secret`, `is_active`, `environment` o `api_version`.
+
+Es la forma de subir un webhook creado antes de octubre de 2026 al contrato de ids públicos:
+
+```json
+{ "api_version": 2 }
+```
+
+Desde ese momento `data.id`, `sender.id` y `receiver.id` llegan como `docu_…` y `ment_…`. Ver [Identificadores en el payload](/user-guide/webhooks#identificadores-en-el-payload).

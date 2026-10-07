@@ -96,7 +96,10 @@
                 "group": "Webhooks",
                 "pages": [
                   "api-reference/v2/webhooks-pages/list",
-                  "api-reference/v2/webhooks-pages/create"
+                  "api-reference/v2/webhooks-pages/create",
+                  "api-reference/v2/webhooks-pages/get",
+                  "api-reference/v2/webhooks-pages/update",
+                  "api-reference/v2/webhooks-pages/delete"
                 ]
               },
               {
