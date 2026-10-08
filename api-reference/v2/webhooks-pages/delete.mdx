@@ -1,0 +1,6 @@
+---
+title: 'Eliminar webhook'
+openapi: 'api-reference/openapi-v2.json DELETE /webhooks/{webhook_id}/'
+---
+
+Elimina el webhook. Las entregas ya registradas se conservan para auditoría. Para pausarlo sin borrarlo usa `PATCH` con `{"is_active": false}`.

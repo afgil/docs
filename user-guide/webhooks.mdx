@@ -23,6 +23,8 @@ A diferencia de las APIs donde tú haces las consultas, con los webhooks **Tupan
    - **URL del Endpoint**: La URL de tu servidor que recibirá las notificaciones (debe ser HTTPS)
    - **Eventos**: Selecciona los eventos que quieres recibir
    - **Secret** (opcional): Una clave secreta para verificar la autenticidad de las notificaciones
+   - **Ambiente**: Producción y sandbox (default), sólo producción o sólo sandbox
+   - **Formato de identificadores**: Públicos (`docu_…`, `ment_…`, recomendado) o enteros (API v1). Viene preseleccionado según los webhooks que ya tiene la empresa. Ver [Identificadores en el payload](#identificadores-en-el-payload)
    - **Activo**: Marca esta opción para activar el webhook
 4. Haz clic en **Guardar**
 
@@ -175,7 +177,7 @@ Se dispara cuando un documento se emite exitosamente. Incluye el PDF y XML del d
   "event": "document.issued",
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
-    "id": 1234,
+    "id": "docu_8371029384756",
     "folio": "12345",
     "date_issued": "2026-01-19",
     "amount_with_iva": 119000.0,
@@ -185,13 +187,13 @@ Se dispara cuando un documento se emite exitosamente. Incluye el PDF y XML del d
       "description": "Factura Electrónica"
     },
     "sender": {
-      "id": 1,
+      "id": "ment_4829301923847",
       "name": "Empresa Emisora S.A.",
       "tax_id": "76.123.456-7",
       "email": "contacto@empresa.cl"
     },
     "receiver": {
-      "id": 2,
+      "id": "ment_7710084398120",
       "name": "Cliente Receptor S.A.",
       "tax_id": "77.987.654-3",
       "email": "contacto@cliente.cl"
@@ -262,7 +264,7 @@ Se dispara cuando falla la emisión de un documento.
   "event": "document.issue_failed",
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
-    "id": 1234,
+    "id": "docu_8371029384756",
     "folio": null,
     "date_issued": "2026-01-19",
     "amount_with_iva": 119000.0,
@@ -272,13 +274,13 @@ Se dispara cuando falla la emisión de un documento.
       "description": "Factura Electrónica"
     },
     "sender": {
-      "id": 1,
+      "id": "ment_4829301923847",
       "name": "Empresa Emisora S.A.",
       "tax_id": "76.123.456-7",
       "email": "contacto@empresa.cl"
     },
     "receiver": {
-      "id": 2,
+      "id": "ment_7710084398120",
       "name": "Cliente Receptor S.A.",
       "tax_id": "77.987.654-3",
       "email": "contacto@cliente.cl"
@@ -307,7 +309,7 @@ Se dispara cuando se actualiza un documento existente.
   "event": "document.updated",
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
-    "id": 1234,
+    "id": "docu_8371029384756",
     "folio": "12345",
     "date_issued": "2026-01-19",
     "amount_with_iva": 119000.0,
@@ -337,7 +339,7 @@ Se dispara cuando se entrega un documento (PDF/XML enviado al cliente).
   "event": "document.delivered",
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
-    "id": 1234,
+    "id": "docu_8371029384756",
     "folio": "12345",
     "date_issued": "2026-01-19",
     "amount_with_iva": 119000.0,
@@ -361,7 +363,7 @@ Se dispara cuando el SII rechaza un documento.
   "event": "document.rejected",
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
-    "id": 1234,
+    "id": "docu_8371029384756",
     "folio": "12345",
     "date_issued": "2026-01-19",
     "amount_with_iva": 119000.0,
@@ -385,7 +387,7 @@ Se dispara cuando un documento es pagado (conciliación bancaria).
   "event": "document.paid",
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
-    "id": 1234,
+    "id": "docu_8371029384756",
     "folio": "12345",
     "date_issued": "2026-01-19",
     "amount_with_iva": 119000.0,
@@ -412,7 +414,7 @@ idéntico al de `document.paid`; solo cambia el campo `event`.
   "event": "document.unpaid",
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
-    "id": 1234,
+    "id": "docu_8371029384756",
     "folio": "12345",
     "date_issued": "2026-01-19",
     "amount_with_iva": 119000.0,
@@ -436,7 +438,7 @@ Se dispara cuando un documento es anulado o tiene una nota de crédito asociada.
   "event": "document.cancelled",
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
-    "id": 1234,
+    "id": "docu_8371029384756",
     "folio": "12345",
     "date_issued": "2026-01-19",
     "amount_with_iva": 119000.0,
@@ -485,7 +487,7 @@ recibe su propia notificación con su propio `role`.
   "event": "document.trace_updated",
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
-    "id": 1234,
+    "id": "docu_8371029384756",
     "folio": "12345",
     "date_issued": "2026-01-19",
     "amount_with_iva": 119000.0,
@@ -497,7 +499,7 @@ recibe su propia notificación con su propio `role`.
     "xml_file": "https://s3.amazonaws.com/bucket/documento.xml",
     "role": "receiver",
     "trace": {
-      "id": 987,
+      "id": "trac_6120394857261",
       "date_reception": "2026-01-19T12:03:11-03:00",
       "has_acknowledgments": true,
       "has_claims": false,
@@ -585,16 +587,16 @@ Se dispara cuando se crea un documento programado.
   "event": "scheduled_document.created",
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
-    "id": 5678,
+    "id": "scdo_2938475610293",
     "frequency": "monthly",
     "status": "active",
     "sender": {
-      "id": 1,
+      "id": "ment_4829301923847",
       "name": "Empresa Emisora S.A.",
       "tax_id": "76.123.456-7"
     },
     "receiver": {
-      "id": 2,
+      "id": "ment_7710084398120",
       "name": "Cliente Receptor S.A.",
       "tax_id": "77.987.654-3"
     },
@@ -621,7 +623,7 @@ Se dispara cuando se actualiza un documento programado.
   "event": "scheduled_document.updated",
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
-    "id": 5678,
+    "id": "scdo_2938475610293",
     "frequency": "monthly",
     "status": "active",
     "sender": { /* objeto sender completo */ },
@@ -641,7 +643,7 @@ Se dispara cuando se inicia la ejecución de un documento programado.
   "event": "scheduled_document.run_started",
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
-    "id": 5678,
+    "id": "scdo_2938475610293",
     "frequency": "monthly",
     "status": "running",
     "sender": { /* objeto sender completo */ },
@@ -661,7 +663,7 @@ Se dispara cuando la ejecución de un documento programado es exitosa.
   "event": "scheduled_document.run_succeeded",
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
-    "id": 5678,
+    "id": "scdo_2938475610293",
     "frequency": "monthly",
     "status": "active",
     "sender": { /* objeto sender completo */ },
@@ -683,7 +685,7 @@ Se dispara cuando falla la ejecución de un documento programado.
   "event": "scheduled_document.run_failed",
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
-    "id": 5678,
+    "id": "scdo_2938475610293",
     "frequency": "monthly",
     "status": "active",
     "sender": { /* objeto sender completo */ },
@@ -707,12 +709,12 @@ Se dispara cuando una credencial SII fue validada exitosamente contra el SII (lo
   "event": "credential.validated",
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
-    "credential_id": 245,
+    "credential_id": "cred_7382910465728",
     "credential_type": "sii_company",
     "user": "12.345.678-5",
     "status": "VALID",
     "master_entity": {
-      "id": 4355,
+      "id": "ment_4355019283746",
       "name": "HIDDEN CORE SPA",
       "tax_id": "78.121.555-4"
     }
@@ -729,12 +731,12 @@ Se dispara cuando una credencial SII queda inválida: clave incorrecta o cuenta 
   "event": "credential.invalid",
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
-    "credential_id": 245,
+    "credential_id": "cred_7382910465728",
     "credential_type": "sii_company",
     "user": "12.345.678-5",
     "status": "INVALID",
     "master_entity": {
-      "id": 4355,
+      "id": "ment_4355019283746",
       "name": "HIDDEN CORE SPA",
       "tax_id": "78.121.555-4"
     }
@@ -756,7 +758,7 @@ Evento de prueba para verificar que tu endpoint funciona correctamente.
   "created_at": "2026-01-19T15:30:45.123456Z",
   "data": {
     "message": "Este es un evento de prueba de webhook",
-    "webhook_id": 123,
+    "webhook_id": "dowe_2c9e5a1b7f3d0",
     "timestamp": "2026-01-19T15:30:45.123456Z",
     "test": true
   }
@@ -764,6 +766,25 @@ Evento de prueba para verificar que tu endpoint funciona correctamente.
 ```
 
 **Uso:** Este evento se puede disparar manualmente desde la interfaz para probar tu endpoint sin esperar un evento real.
+
+### Identificadores en el payload
+
+Cada webhook tiene un campo `api_version` que define el formato de **todos** los ids del payload:
+
+| `api_version` | `data.id` | `sender.id` / `receiver.id` | Programados, folios, prueba |
+|---|---|---|---|
+| **2** | `docu_8371029384756` | `ment_4829301923847` | `scdo_…`, `fir_…`, `dowe_…` |
+| 1 (API v1) | `1234` | `1` | enteros |
+
+Si no eliges la versión al crear, el default sigue el contexto: por `/v2/webhooks/` nace en 2, por `/v1/webhooks/` nace en 1, y desde la plataforma nace en la versión que ya usa la empresa (1 si tiene algún webhook con enteros, 2 si no). El selector del formulario muestra el valor preseleccionado.
+
+Los ids públicos son los mismos que devuelve la [API v2](/api-reference/v2/introduction), así que puedes cruzarlos directo con `GET /v2/documents/` o `/v2/master-entities/`. Los ejemplos de esta guía muestran la versión 2.
+
+<Warning>
+Los webhooks creados antes de octubre de 2026 quedaron en `api_version` 1 para no romper integraciones que validan el id numérico. Si migraste a la API v2, súbelos a la versión 2 desde **Configuración → Webhooks** (selector *Formato de identificadores*) o con `PATCH /v2/webhooks/{id}/` y el cuerpo `{"api_version": 2}`. Usa el botón **Probar** para confirmar: el `webhook_id` del evento `webhook.test` debe llegar como `dowe_…`.
+</Warning>
+
+Los eventos de credenciales (`credential.*`) siempre traen ids públicos, en cualquier versión.
 
 ### Estructura común del payload
 
@@ -775,7 +796,7 @@ Todos los payloads comparten esta estructura base:
 
 ### Campos comunes en eventos de documentos
 
-- **`id`**: ID único del documento en Tupana (integer)
+- **`id`**: ID único del documento en Tupana (`docu_…`; entero si el webhook está en `api_version` 1)
 - **`folio`**: Folio del documento (string o null)
 - **`date_issued`**: Fecha de emisión en formato ISO (string)
 - **`amount_with_iva`**: Monto total con IVA (float)

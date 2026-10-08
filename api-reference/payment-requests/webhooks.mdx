@@ -19,20 +19,20 @@ Para registrar o gestionar tus endpoints de webhook, consulta la sección de [We
 
 ## Estructura del payload
 
-Todos los eventos de cobro siguen la estructura estándar de webhooks de Tupana:
+Todos los eventos de cobro siguen la estructura estándar de webhooks de Tupana. Los ids (`payment_request_id`, `issued_document_id`, `document_ids`) son públicos (`pare_…`, `docu_…`) en webhooks con `api_version` 2, el default; un webhook en `api_version` 1 los recibe como enteros. Ver [Identificadores en el payload](/user-guide/webhooks#identificadores-en-el-payload).
 
 ```json
 {
   "event": "payment_request.paid",
   "created_at": "2026-04-15T14:03:45Z",
   "data": {
-    "payment_request_id": 1042,
+    "payment_request_id": "pare_1042837465192",
     "status": "paid",
     "external_id": "booking_abc123",
     "amount": 50000,
     "target_dte_type": "39",
     "payment_url": "https://www.tupana.ai/pagos/tok_xyz",
-    "issued_document_id": 9871,
+    "issued_document_id": "docu_9871203948576",
     "metadata": {},
     "document_ids": []
   }
@@ -60,7 +60,7 @@ Todos los eventos de cobro siguen la estructura estándar de webhooks de Tupana:
   "event": "payment_request.paid",
   "created_at": "2026-04-15T14:03:45Z",
   "data": {
-    "payment_request_id": 1099,
+    "payment_request_id": "pare_1099283746501",
     "status": "paid",
     "external_id": "collection_session_001",
     "amount": 75000,

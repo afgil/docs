@@ -3022,7 +3022,9 @@
                   "document.rejected"
                 ],
                 "secret": "mi-clave-secreta-super-segura",
-                "is_active": true
+                "is_active": true,
+                "environment": "production",
+                "api_version": 2
               }
             }
           }
@@ -3055,7 +3057,9 @@
                   "success_rate": 0,
                   "last_delivery": null,
                   "created_at": "2025-01-13T11:00:00Z",
-                  "updated_at": "2025-01-13T11:00:00Z"
+                  "updated_at": "2025-01-13T11:00:00Z",
+                  "environment": "production",
+                  "api_version": 2
                 }
               }
             }
@@ -4978,6 +4982,25 @@
             "type": "boolean",
             "description": "Si el webhook está activo",
             "default": true
+          },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "both",
+              "production",
+              "sandbox"
+            ],
+            "default": "both",
+            "description": "De qué ambiente recibe eventos de documentos: `both` (default), `production` o `sandbox`. Los eventos que no son de documento (credenciales, folios, cobros, programados) se entregan como producción."
+          },
+          "api_version": {
+            "type": "integer",
+            "enum": [
+              1,
+              2
+            ],
+            "default": 1,
+            "description": "Formato de los identificadores que viajan en el payload. `2`: todos los ids son public_id (`docu_…` documento, `ment_…` emisor/receptor, `scdo_…` programado, `fir_…` solicitud de folios, `dowe_…` webhook). `1`: ids enteros, el contrato de la API v1. Si se omite, el default sigue la ruta de creación: `/v2/webhooks/` crea en 2 y `/v1/webhooks/` crea en 1 (desde la plataforma, la versión que ya usa la empresa). Los webhooks creados antes de octubre 2026 quedaron en `1`: súbelos con PATCH o desde la plataforma."
           }
         }
       },
@@ -5089,12 +5112,29 @@
             "type": "string",
             "format": "date-time",
             "description": "Fecha de última actualización"
+          },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "both",
+              "production",
+              "sandbox"
+            ],
+            "description": "De qué ambiente recibe eventos de documentos: `both` (default), `production` o `sandbox`. Los eventos que no son de documento (credenciales, folios, cobros, programados) se entregan como producción."
+          },
+          "api_version": {
+            "type": "integer",
+            "enum": [
+              1,
+              2
+            ],
+            "description": "Formato de los identificadores que viajan en el payload. `2`: todos los ids son public_id (`docu_…` documento, `ment_…` emisor/receptor, `scdo_…` programado, `fir_…` solicitud de folios, `dowe_…` webhook). `1`: ids enteros, el contrato de la API v1. Si se omite, el default sigue la ruta de creación: `/v2/webhooks/` crea en 2 y `/v1/webhooks/` crea en 1 (desde la plataforma, la versión que ya usa la empresa). Los webhooks creados antes de octubre 2026 quedaron en `1`: súbelos con PATCH o desde la plataforma."
           }
         }
       },
       "WebhookEvent": {
         "type": "object",
-        "description": "Notificación enviada a la URL configurada del webhook",
+        "description": "Notificación enviada a la URL del webhook. Headers: `X-Pana-Event-Id`, `X-Pana-Event-Type`, `X-Pana-Timestamp`, `X-Pana-Delivery`, `X-Pana-Signature` (HMAC SHA-256 del cuerpo con el `secret`). Ver la guía de webhooks para el payload de cada evento.",
         "properties": {
           "event": {
             "type": "string",
@@ -5106,65 +5146,137 @@
               "document.trace_updated",
               "document.paid",
               "document.unpaid",
-              "document.cancelled"
+              "document.cancelled",
+              "scheduled_document.created",
+              "scheduled_document.updated",
+              "scheduled_document.executed",
+              "scheduled_document.failed",
+              "folio_request.completed",
+              "folio_request.failed",
+              "folio_request.authorized_without_caf",
+              "credential.validated",
+              "credential.invalid",
+              "webhook.test"
             ]
           },
-          "timestamp": {
+          "created_at": {
             "type": "string",
             "format": "date-time",
-            "description": "Fecha y hora del evento"
-          },
-          "delivery_id": {
-            "type": "string",
-            "description": "ID único de la entrega"
+            "description": "Fecha y hora del evento (ISO 8601)"
           },
           "data": {
             "type": "object",
-            "description": "Datos del documento",
+            "description": "Datos del evento. Para `document.*`:",
             "properties": {
-              "document_id": {
-                "type": "integer",
-                "description": "ID del documento"
+              "id": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ],
+                "example": "docu_8371029384756",
+                "description": "Id del documento: public_id `docu_…` con `api_version` 2 (default), entero con `api_version` 1."
               },
               "folio": {
                 "type": "string",
-                "description": "Folio del documento"
+                "nullable": true
               },
-              "document_type": {
+              "date_issued": {
                 "type": "string",
-                "description": "Tipo de documento (código DTE)"
+                "format": "date"
               },
-              "amount": {
+              "amount_with_iva": {
                 "type": "number",
-                "format": "decimal",
-                "description": "Monto total del documento"
+                "nullable": true
               },
-              "sender_rut": {
-                "type": "string",
-                "description": "RUT del emisor",
-                "example": "use default"
+              "is_sandbox": {
+                "type": "boolean"
               },
-              "receiver_rut": {
-                "type": "string",
-                "description": "RUT del receptor",
-                "example": "use default"
+              "dte_type": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "example": "33"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                }
               },
-              "issue_date": {
-                "type": "string",
-                "format": "date",
-                "description": "Fecha de emisión"
+              "sender": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "ment_4829301923847",
+                    "description": "public_id de la empresa (`api_version` 2); entero con `api_version` 1"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "tax_id": {
+                    "type": "string",
+                    "example": "76.123.456-7"
+                  },
+                  "email": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                }
+              },
+              "receiver": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "ment_7710084398120",
+                    "description": "public_id de la empresa (`api_version` 2); entero con `api_version` 1"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "tax_id": {
+                    "type": "string",
+                    "example": "76.123.456-7"
+                  },
+                  "email": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "nullable": true
+              },
+              "document_total": {
+                "type": "object",
+                "nullable": true
+              },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "references": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
               },
               "xml_file": {
                 "type": "string",
                 "format": "uri",
-                "description": "URL del archivo XML (presigned)",
-                "nullable": true
+                "nullable": true,
+                "description": "URL del XML (presigned)"
               },
               "pdf_file": {
                 "type": "string",
                 "format": "uri",
-                "description": "URL del archivo PDF (presigned)",
-                "nullable": true
+                "nullable": true,
+                "description": "URL del PDF (presigned, solo en `document.issued`)"
               }
             }
           }
@@ -7494,6 +7606,63 @@
             "format": "date-time",
             "description": "Fecha/hora de creación de la solicitud",
             "example": "2026-07-20T14:30:00Z"
+          }
+        }
+      },
+      "WebhookUpdate": {
+        "type": "object",
+        "description": "Campos editables de un webhook. Todos opcionales (PATCH).",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL del endpoint que recibirá las notificaciones"
+          },
+          "events": {
+            "type": "array",
+            "description": "Lista de eventos a notificar",
+            "items": {
+              "type": "string",
+              "enum": [
+                "document.issued",
+                "document.delivered",
+                "document.rejected",
+                "document.trace_updated",
+                "document.paid",
+                "document.unpaid",
+                "document.cancelled"
+              ]
+            },
+            "minItems": 1
+          },
+          "secret": {
+            "type": "string",
+            "description": "Clave secreta para verificar la autenticidad de las notificaciones",
+            "maxLength": 255
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Si el webhook está activo",
+            "default": true
+          },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "both",
+              "production",
+              "sandbox"
+            ],
+            "default": "both",
+            "description": "De qué ambiente recibe eventos de documentos: `both` (default), `production` o `sandbox`. Los eventos que no son de documento (credenciales, folios, cobros, programados) se entregan como producción."
+          },
+          "api_version": {
+            "type": "integer",
+            "enum": [
+              1,
+              2
+            ],
+            "default": 1,
+            "description": "Formato de los identificadores que viajan en el payload. `2`: todos los ids son public_id (`docu_…` documento, `ment_…` emisor/receptor, `scdo_…` programado, `fir_…` solicitud de folios, `dowe_…` webhook). `1`: ids enteros, el contrato de la API v1. Si se omite, el default sigue la ruta de creación: `/v2/webhooks/` crea en 2 y `/v1/webhooks/` crea en 1 (desde la plataforma, la versión que ya usa la empresa). Los webhooks creados antes de octubre 2026 quedaron en `1`: súbelos con PATCH o desde la plataforma."
           }
         }
       }

@@ -64,6 +64,39 @@ También puedes hacerlo:
 
 El webhook es clave porque es el canal donde se envía el estado final y los archivos asociados.
 
+### Ids en los webhooks (`api_version`)
+
+Los webhooks tienen su propio contrato de identificadores, independiente de la
+ruta por la que los creaste. El campo `api_version` del webhook define el
+formato de **todos** los ids del payload (`data.id`, `sender.id`,
+`receiver.id`, programados, folios):
+
+- **`2`:** ids públicos (`docu_…`, `ment_…`), los mismos que devuelve esta API.
+- **`1`:** ids enteros. Es el contrato de la API v1 y se conservó en los
+  webhooks creados **antes de octubre de 2026** para no romper integraciones
+  que validan el id numérico.
+
+Si no mandas `api_version` al crear, el default sigue el contexto: un webhook
+creado por `/v2/webhooks/` nace en **2**; uno creado por `/v1/webhooks/` nace
+en **1**; desde la plataforma nace en la versión que ya usa la empresa (1 si
+tiene algún webhook con enteros, 2 si no). Mandar `api_version` explícito
+siempre gana.
+
+Si migraste de v1 a v2 y tus webhooks siguen entregando enteros, súbelos a la
+versión 2 con [`PATCH /v2/webhooks/{id}/`](/api-reference/v2/webhooks-pages/update):
+
+```bash
+curl -X PATCH https://api.tupana.ai/v2/webhooks/dowe_2c9e5a1b7f3d0/ \
+  -H "Authorization: Api-Key $TUPANA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"api_version": 2}'
+```
+
+También puedes hacerlo desde la plataforma (**Configuración → Webhooks**,
+selector *Formato de identificadores*). Para verificar, usa **Probar**: el
+`webhook_id` del evento `webhook.test` debe llegar como `dowe_…`. El detalle de
+cada payload está en la [guía de webhooks](/user-guide/webhooks#identificadores-en-el-payload).
+
 ## 5) Recepción de resultados (XML y PDF)
 
 Una vez configurado el webhook, el sistema **recibe automáticamente del SII** el PDF y XML final de cada factura emitida. Vas a recibir las notificaciones del procesamiento del batch, incluyendo:

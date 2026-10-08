@@ -28,6 +28,12 @@ Crea un nuevo webhook para recibir notificaciones automáticas cuando ocurren ev
 ### Entidad maestra
 Debes especificar el `master_entity_id` de la entidad para la cual quieres crear el webhook. El usuario debe tener acceso a la entidad especificada.
 
+### Ambiente (`environment`)
+`both` (default) recibe los documentos de producción y de sandbox; `production` o `sandbox` los separan sobre la misma empresa. Los eventos que no son de documento (credenciales, folios, cobros, programados) se entregan como producción.
+
+### Formato de identificadores (`api_version`)
+`2`: todos los ids del payload son públicos (`docu_…`, `ment_…`), igual que la API v2. `1`: ids enteros, el contrato de la API v1. Si lo omites, el default sigue la ruta: `/v2/webhooks/` crea en 2 y `/v1/webhooks/` crea en 1. Ver [Identificadores en el payload](/user-guide/webhooks#identificadores-en-el-payload).
+
 ### Validación de URL
 No puede existir un webhook con la misma URL para la misma entidad. Si intentas crear un webhook duplicado, recibirás un error de validación.
 
