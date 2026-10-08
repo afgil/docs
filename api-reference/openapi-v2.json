@@ -5905,7 +5905,7 @@
               2
             ],
             "default": 2,
-            "description": "Formato de los identificadores que viajan en el payload. `2` (default): todos los ids son public_id (`docu_…` documento, `ment_…` emisor/receptor, `scdo_…` programado, `fir_…` solicitud de folios, `dowe_…` webhook). `1`: ids enteros, contrato anterior; solo para integraciones creadas antes del cambio que validan el id numérico. Los webhooks creados antes de octubre 2026 quedaron en `1`: súbelos con PATCH o desde la plataforma."
+            "description": "Formato de los identificadores que viajan en el payload. `2`: todos los ids son public_id (`docu_…` documento, `ment_…` emisor/receptor, `scdo_…` programado, `fir_…` solicitud de folios, `dowe_…` webhook). `1`: ids enteros, el contrato de la API v1. Si se omite, el default sigue la ruta de creación: `/v2/webhooks/` crea en 2 y `/v1/webhooks/` crea en 1 (desde la plataforma, la versión que ya usa la empresa). Los webhooks creados antes de octubre 2026 quedaron en `1`: súbelos con PATCH o desde la plataforma."
           }
         }
       },
@@ -6035,7 +6035,7 @@
               1,
               2
             ],
-            "description": "Formato de los identificadores que viajan en el payload. `2` (default): todos los ids son public_id (`docu_…` documento, `ment_…` emisor/receptor, `scdo_…` programado, `fir_…` solicitud de folios, `dowe_…` webhook). `1`: ids enteros, contrato anterior; solo para integraciones creadas antes del cambio que validan el id numérico. Los webhooks creados antes de octubre 2026 quedaron en `1`: súbelos con PATCH o desde la plataforma."
+            "description": "Formato de los identificadores que viajan en el payload. `2`: todos los ids son public_id (`docu_…` documento, `ment_…` emisor/receptor, `scdo_…` programado, `fir_…` solicitud de folios, `dowe_…` webhook). `1`: ids enteros, el contrato de la API v1. Si se omite, el default sigue la ruta de creación: `/v2/webhooks/` crea en 2 y `/v1/webhooks/` crea en 1 (desde la plataforma, la versión que ya usa la empresa). Los webhooks creados antes de octubre 2026 quedaron en `1`: súbelos con PATCH o desde la plataforma."
           }
         }
       },
@@ -8501,7 +8501,7 @@
               2
             ],
             "default": 2,
-            "description": "Formato de los identificadores que viajan en el payload. `2` (default): todos los ids son public_id (`docu_…` documento, `ment_…` emisor/receptor, `scdo_…` programado, `fir_…` solicitud de folios, `dowe_…` webhook). `1`: ids enteros, contrato anterior; solo para integraciones creadas antes del cambio que validan el id numérico. Los webhooks creados antes de octubre 2026 quedaron en `1`: súbelos con PATCH o desde la plataforma."
+            "description": "Formato de los identificadores que viajan en el payload. `2`: todos los ids son public_id (`docu_…` documento, `ment_…` emisor/receptor, `scdo_…` programado, `fir_…` solicitud de folios, `dowe_…` webhook). `1`: ids enteros, el contrato de la API v1. Si se omite, el default sigue la ruta de creación: `/v2/webhooks/` crea en 2 y `/v1/webhooks/` crea en 1 (desde la plataforma, la versión que ya usa la empresa). Los webhooks creados antes de octubre 2026 quedaron en `1`: súbelos con PATCH o desde la plataforma."
           }
         }
       }

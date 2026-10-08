@@ -24,7 +24,7 @@ A diferencia de las APIs donde tú haces las consultas, con los webhooks **Tupan
    - **Eventos**: Selecciona los eventos que quieres recibir
    - **Secret** (opcional): Una clave secreta para verificar la autenticidad de las notificaciones
    - **Ambiente**: Producción y sandbox (default), sólo producción o sólo sandbox
-   - **Formato de identificadores**: Públicos (`docu_…`, `ment_…`, recomendado) o enteros, sólo para integraciones antiguas. Ver [Identificadores en el payload](#identificadores-en-el-payload)
+   - **Formato de identificadores**: Públicos (`docu_…`, `ment_…`, recomendado) o enteros (API v1). Viene preseleccionado según los webhooks que ya tiene la empresa. Ver [Identificadores en el payload](#identificadores-en-el-payload)
    - **Activo**: Marca esta opción para activar el webhook
 4. Haz clic en **Guardar**
 
@@ -773,8 +773,10 @@ Cada webhook tiene un campo `api_version` que define el formato de **todos** los
 
 | `api_version` | `data.id` | `sender.id` / `receiver.id` | Programados, folios, prueba |
 |---|---|---|---|
-| **2** (default) | `docu_8371029384756` | `ment_4829301923847` | `scdo_…`, `fir_…`, `dowe_…` |
-| 1 (integraciones antiguas) | `1234` | `1` | enteros |
+| **2** | `docu_8371029384756` | `ment_4829301923847` | `scdo_…`, `fir_…`, `dowe_…` |
+| 1 (API v1) | `1234` | `1` | enteros |
+
+Si no eliges la versión al crear, el default sigue el contexto: por `/v2/webhooks/` nace en 2, por `/v1/webhooks/` nace en 1, y desde la plataforma nace en la versión que ya usa la empresa (1 si tiene algún webhook con enteros, 2 si no). El selector del formulario muestra el valor preseleccionado.
 
 Los ids públicos son los mismos que devuelve la [API v2](/api-reference/v2/introduction), así que puedes cruzarlos directo con `GET /v2/documents/` o `/v2/master-entities/`. Los ejemplos de esta guía muestran la versión 2.
 

@@ -71,11 +71,16 @@ ruta por la que los creaste. El campo `api_version` del webhook define el
 formato de **todos** los ids del payload (`data.id`, `sender.id`,
 `receiver.id`, programados, folios):
 
-- **`2` (default para webhooks nuevos):** ids públicos (`docu_…`, `ment_…`),
-  los mismos que devuelve esta API.
-- **`1`:** ids enteros. Es el contrato anterior y se conservó en los webhooks
-  creados **antes de octubre de 2026** para no romper integraciones que
-  validan el id numérico.
+- **`2`:** ids públicos (`docu_…`, `ment_…`), los mismos que devuelve esta API.
+- **`1`:** ids enteros. Es el contrato de la API v1 y se conservó en los
+  webhooks creados **antes de octubre de 2026** para no romper integraciones
+  que validan el id numérico.
+
+Si no mandas `api_version` al crear, el default sigue el contexto: un webhook
+creado por `/v2/webhooks/` nace en **2**; uno creado por `/v1/webhooks/` nace
+en **1**; desde la plataforma nace en la versión que ya usa la empresa (1 si
+tiene algún webhook con enteros, 2 si no). Mandar `api_version` explícito
+siempre gana.
 
 Si migraste de v1 a v2 y tus webhooks siguen entregando enteros, súbelos a la
 versión 2 con [`PATCH /v2/webhooks/{id}/`](/api-reference/v2/webhooks-pages/update):
