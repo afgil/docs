@@ -220,7 +220,7 @@ La [Resolución Exenta SII N°154 de 2025](https://www.sii.cl/normativa_legislac
 | Fecha y hora de salida | `departure_date`, `departure_time` | Inicio del traslado; opcionalmente la **fecha estimada de llegada** (`arrival_date`), que no puede ser anterior |
 | Unidad de medida en cada línea | `details[].unit` | `UN`, `KG`, `M3`, etc. |
 | Precio unitario | `details[].unit_price` | Obligatorio si el traslado constituye venta (tipos 1 y 9). En los demás se puede omitir indicando el **motivo del traslado** (`transfer_reason`) |
-| Origen efectivo | Dirección del emisor (`document_issuer.address`) | Si la bodega está registrada en la empresa con su código de sucursal SII, la guía sale con ese código (`CdgSIISucur`) |
+| Origen efectivo | Dirección del emisor (`document_issuer.address`) | Cualquier dirección de la empresa registrada en el SII (casa matriz o sucursal): la guía sale con su código de sucursal (`CdgSIISucur`). Se administran en el perfil de la empresa, no por API |
 
 - **Plataforma:** el formulario de guía tiene los campos nuevos (salida, llegada, patente del carro, motivo del traslado, transporte no informado) y la vista previa lista lo que falta antes de firmar.
 - **Carga por Excel:** la plantilla agrega las columnas `tipo_traslado`, `rut_transporte`, `patente`, `patente_carro`, `rut_chofer`, `nombre_chofer`, `fecha_salida`, `hora_salida`, `fecha_llegada`, `motivo_traslado`, `transporte_no_informado`, `direccion_destino` y `comuna_destino`.

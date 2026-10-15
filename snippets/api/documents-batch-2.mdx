@@ -725,25 +725,7 @@ Ejemplo de aviso (misma forma en v1 y v2):
 
 #### Origen efectivo del traslado
 
-La resolución exige el **origen efectivo** de las mercaderías. La guía toma como origen la dirección del emisor (`document_issuer.address`, `district`, `city`) y, si esa dirección está registrada en la empresa con su código de sucursal SII, lo informa en `Emisor/CdgSIISucur`. Para despachar desde una bodega distinta de la casa matriz:
-
-1. Registra la bodega una vez con su código de sucursal SII (el endpoint admite la misma API key):
-
-```bash
-curl -X POST "https://api.tupana.ai/api/companies/{company_id}/addresses/" \
-  -H "Authorization: Api-Key TU_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "address": "Camino Lo Boza 120, Bodega 4",
-    "district": "Pudahuel",
-    "city": "Santiago",
-    "sii_branch_code": "12345"
-  }'
-```
-
-   `GET` en la misma URL lista las direcciones registradas con su `sii_branch_code`. `company_id` es el id de la empresa emisora en Pana.
-
-2. En cada guía, envía esa misma dirección en `document_issuer.address` (con `district` y `city`). La coincidencia es por texto, así que usa exactamente el mismo valor.
+La resolución exige el **origen efectivo** de las mercaderías. La guía toma como origen la dirección del emisor (`document_issuer.address`, `district`, `city`). Puedes usar cualquier dirección de la empresa **registrada en el SII** (casa matriz o sucursal): Tupana las sincroniza al perfil de la empresa con su código de sucursal, y al coincidir el texto de `document_issuer.address` con una de ellas la guía sale con ese código en `Emisor/CdgSIISucur`. Usa exactamente el mismo texto que figura en el perfil de la empresa. Si la bodega no está registrada en el SII, regístrala primero allí; las direcciones no se administran por la API.
 
 #### Anulación de una guía
 
