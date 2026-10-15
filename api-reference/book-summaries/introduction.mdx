@@ -1,15 +1,17 @@
 ---
 title: 'Introduccion - API Consultas'
-description: 'Consultas de datos agregados scrapeados desde el SII, como el resumen de libro de compras/ventas'
+description: 'Consultas de datos scrapeados desde el SII, como el resumen y el detalle del libro de compras/ventas'
 ---
 
 ## Para que sirve la API de Consultas?
 
-La **API de Consultas** agrupa endpoints de solo lectura sobre datos que Tupana obtiene periódicamente desde el SII u otras fuentes, distintos de los documentos tributarios electrónicos en sí. Por ahora incluye el **resumen de libro de compras y ventas** (getResumen del SII): totales agregados por tipo de documento y operación (COMPRA/VENTA) para un período dado.
+La **API de Consultas** agrupa endpoints de solo lectura sobre datos que Tupana obtiene periódicamente desde el SII u otras fuentes, distintos de los documentos tributarios electrónicos en sí. Incluye el **resumen de libro de compras y ventas** (getResumen del SII), con totales agregados por tipo de documento y operación (COMPRA/VENTA) para un período dado, y el **detalle del libro**: cada documento del Registro de Compras y Ventas (RCV) con los montos e impuestos que informa el SII.
 
 ## Habilitación
 
 El resumen de libro de compras/ventas es un dato **opt-in**: solo se scrapea para las entidades que lo tengan explícitamente habilitado. Si tu integración necesita este dato para una entidad, solicita su habilitación a soporte@tupana.cl. El campo `is_enabled` en la respuesta del endpoint te indica si la entidad ya está habilitada.
+
+El detalle del libro tiene una **habilitación independiente**: depende del scrape del libro de compras (`PURCHASE_BOOK`) y del libro de ventas (`SALE_BOOK`) de la entidad, que están activos por defecto para las entidades sincronizadas. Una entidad puede tener habilitado el resumen y no el detalle, o viceversa; cada endpoint informa su propio `is_enabled`.
 
 ## Autenticacion
 
@@ -20,5 +22,6 @@ Todos los endpoints requieren autenticacion (API Key o JWT). La API Key debe ten
 | Accion | Metodo | Endpoint |
 |--------|--------|----------|
 | Resumen de libro de compras/ventas | GET | `/book-summaries?master_entity_id={id}&period={period}` |
+| Detalle de libro de compras/ventas | GET | `/book-documents?master_entity_id={id}&period={period}&operation=COMPRA` |
 
 `master_entity_id` acepta el id opaco (`eid_...`, campo `opaque_id` de `/master-entities?rut=`) o el id entero. La ruta anidada anterior (`/master-entities/{id}/book-summaries`) sigue funcionando por compatibilidad.

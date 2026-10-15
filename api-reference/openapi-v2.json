@@ -21,7 +21,7 @@
       "get": {
         "operationId": "listBookSummaries_v2",
         "tags": [
-          "Resumen de Libros"
+          "Libros SII"
         ],
         "security": [
           {
@@ -96,6 +96,10 @@
                         "total_pages": {
                           "type": "integer",
                           "nullable": true
+                        },
+                        "is_enabled": {
+                          "type": "boolean",
+                          "description": "true si la entidad tiene habilitado el scrape de resumen de libros (BOOK_SUMMARY). Si es false, `data` estará vacío aunque el período sea válido."
                         }
                       }
                     },
@@ -5201,6 +5205,175 @@
           }
         }
       }
+    },
+    "/book-documents/": {
+      "get": {
+        "operationId": "listBookDocuments_v2",
+        "tags": [
+          "Libros SII"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar detalle de libro de compras/ventas SII",
+        "description": "Lista, documento por documento, el Registro de Compras y Ventas (RCV) del SII de una entidad para un período tributario y una operación. Es el detalle del que `/book-summaries` entrega los totales. Cada fila trae los montos tal como los informa el SII y el desglose de impuestos del RCV. Solo devuelve datos para entidades con el scrape del libro habilitado (ver `is_enabled`); la habilitación es independiente de la del resumen.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "required": true,
+            "description": "ID de la entidad maestra. El public ID de la entidad (`ment_...`).",
+            "schema": {
+              "type": "string",
+              "example": "ment_4829301923847"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": true,
+            "description": "Período tributario a consultar, formato YYYYMM. Es el período en que el SII clasifica el documento en ese libro, que puede diferir del mes de emisión.",
+            "schema": {
+              "type": "string",
+              "example": "202603"
+            }
+          },
+          {
+            "name": "operation",
+            "in": "query",
+            "required": true,
+            "description": "Libro a consultar: `COMPRA` (la entidad es el receptor, libro de compras) o `VENTA` (la entidad es el emisor, libro de ventas).",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "COMPRA",
+                "VENTA"
+              ]
+            }
+          },
+          {
+            "name": "dte_type_code",
+            "in": "query",
+            "required": false,
+            "description": "Filtra por tipo de documento SII. Lista separada por coma, por ejemplo `33,61`.",
+            "schema": {
+              "type": "string",
+              "example": "33,61"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Página (desde 1).",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "description": "Filas por página. Por defecto 25, máximo 100.",
+            "schema": {
+              "type": "integer",
+              "example": 25
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Filas del libro para la entidad, período y operación consultados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BookDocumentItem"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "page_size": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "is_enabled": {
+                          "type": "boolean",
+                          "description": "true si la entidad tiene habilitado el scrape del libro consultado (PURCHASE_BOOK para COMPRA, SALE_BOOK para VENTA). Si es false, `data` estará vacío aunque el período sea válido."
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "next": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "prev": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "master_entity_id, period u operation faltantes o inválidos, o dte_type_code mal formado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "operation is required: COMPRA or VENTA."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin acceso a la entidad, o la API key no tiene el permiso book_summary:access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Access denied."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -8502,6 +8675,248 @@
             ],
             "default": 2,
             "description": "Formato de los identificadores que viajan en el payload. `2`: todos los ids son public_id (`docu_…` documento, `ment_…` emisor/receptor, `scdo_…` programado, `fir_…` solicitud de folios, `dowe_…` webhook). `1`: ids enteros, el contrato de la API v1. Si se omite, el default sigue la ruta de creación: `/v2/webhooks/` crea en 2 y `/v1/webhooks/` crea en 1 (desde la plataforma, la versión que ya usa la empresa). Los webhooks creados antes de octubre 2026 quedaron en `1`: súbelos con PATCH o desde la plataforma."
+          }
+        }
+      },
+      "BookDocumentItem": {
+        "type": "object",
+        "description": "Un documento tal como aparece en el libro de compras o ventas del SII para la entidad y el período consultados. Los montos son enteros en pesos, tal como los informa el SII.",
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "description": "Public ID del documento (`docu_...`). Úsalo en `GET /documents/{id}/` para el PDF, XML y líneas.",
+            "example": "docu_7291038456120"
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "COMPRA",
+              "VENTA"
+            ],
+            "description": "Libro al que pertenece la fila."
+          },
+          "period": {
+            "type": "string",
+            "description": "Período tributario YYYYMM en que el SII clasifica el documento en este libro.",
+            "example": "202603"
+          },
+          "dte_type_code": {
+            "type": "integer",
+            "description": "Código de tipo de documento SII (33, 34, 61, etc.).",
+            "example": 33
+          },
+          "folio": {
+            "type": "string",
+            "example": "12345"
+          },
+          "issue_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha de emisión del documento según el SII.",
+            "example": "2026-03-10"
+          },
+          "counterparty": {
+            "$ref": "#/components/schemas/BookDocumentCounterparty"
+          },
+          "reception_date": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Fecha de recepción en el SII. Solo en COMPRA."
+          },
+          "acknowledgment_date": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Fecha del acuse de recibo."
+          },
+          "claimed_date": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Fecha del reclamo, si lo hubo."
+          },
+          "receiver_event": {
+            "type": "object",
+            "nullable": true,
+            "description": "Evento registrado por el receptor (acuse, reclamo, etc.).",
+            "properties": {
+              "code": {
+                "type": "string",
+                "nullable": true,
+                "example": "A"
+              },
+              "label": {
+                "type": "string",
+                "nullable": true,
+                "example": "Acuse de recibo"
+              }
+            }
+          },
+          "transaction_type": {
+            "type": "object",
+            "nullable": true,
+            "description": "Tipo de transacción declarado en el libro de compras (del giro, activo fijo, etc.). Solo en COMPRA.",
+            "properties": {
+              "code": {
+                "type": "integer",
+                "nullable": true,
+                "example": 1
+              },
+              "description": {
+                "type": "string",
+                "nullable": true,
+                "example": "Del Giro"
+              }
+            }
+          },
+          "cancelled": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Documento anulado según el SII."
+          },
+          "exempt_amount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Monto exento."
+          },
+          "net_amount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Monto neto."
+          },
+          "vat_amount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Monto IVA."
+          },
+          "total_amount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Monto total."
+          },
+          "taxes": {
+            "$ref": "#/components/schemas/BookDocumentTaxes"
+          },
+          "reference": {
+            "type": "object",
+            "nullable": true,
+            "description": "Documento referenciado (notas de crédito y débito).",
+            "properties": {
+              "dte_type_code": {
+                "type": "integer",
+                "nullable": true,
+                "example": 33
+              },
+              "folio": {
+                "type": "string",
+                "nullable": true,
+                "example": "12345"
+              }
+            }
+          },
+          "sii_branch_code": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Código de sucursal SII."
+          },
+          "synced_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Última vez que esta fila se actualizó desde el SII."
+          }
+        }
+      },
+      "BookDocumentCounterparty": {
+        "type": "object",
+        "description": "Contraparte del documento: el emisor en COMPRA, el receptor en VENTA.",
+        "properties": {
+          "rut": {
+            "type": "string",
+            "nullable": true,
+            "example": "77222333-4"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "example": "PROVEEDOR SPA"
+          }
+        }
+      },
+      "BookDocumentTaxes": {
+        "type": "object",
+        "description": "Desglose de impuestos del Registro de Compras y Ventas. Montos enteros en pesos; `null` cuando el SII no informa el campo.",
+        "properties": {
+          "fixed_asset_amount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Monto neto activo fijo."
+          },
+          "fixed_asset_vat_amount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "IVA activo fijo."
+          },
+          "non_recoverable_vat_amount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "IVA no recuperable."
+          },
+          "non_recoverable_code": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Código del IVA no recuperable."
+          },
+          "no_credit_amount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Monto sin derecho a crédito."
+          },
+          "common_use_vat": {
+            "type": "integer",
+            "nullable": true,
+            "description": "IVA uso común."
+          },
+          "total_withheld_vat": {
+            "type": "integer",
+            "nullable": true,
+            "description": "IVA retenido total."
+          },
+          "partial_withheld_vat": {
+            "type": "integer",
+            "nullable": true,
+            "description": "IVA retenido parcial."
+          },
+          "non_withheld_vat": {
+            "type": "integer",
+            "nullable": true,
+            "description": "IVA no retenido."
+          },
+          "own_vat": {
+            "type": "integer",
+            "nullable": true,
+            "description": "IVA propio."
+          },
+          "third_party_vat": {
+            "type": "integer",
+            "nullable": true,
+            "description": "IVA de terceros."
+          },
+          "out_of_term_vat": {
+            "type": "integer",
+            "nullable": true,
+            "description": "IVA fuera de plazo."
+          },
+          "other_taxes_amount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Otros impuestos (DTOI), por ejemplo impuestos adicionales."
+          },
+          "tax_rate": {
+            "type": "string",
+            "nullable": true,
+            "description": "Tasa de IVA aplicada.",
+            "example": "19"
           }
         }
       }
