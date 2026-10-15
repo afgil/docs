@@ -789,12 +789,12 @@ Respuesta `200`:
 | `transport_rut`, `transport_plate`, `driver_rut`, `driver_name`, madera (origen) | ✅ | ✅ |
 | `trailer_plate`, `departure_date`, `departure_time`, `arrival_date`, `transfer_reason`, `transport_unknown_reason` | ✅ (tags del DTE o texto en el detalle) | ✅ (texto en la primera línea del detalle) |
 | `destination_commune_role`, `destination_block_role`, `destination_property_role`, `work_execution_notice`, `destination_latitude`, `destination_longitude` | ✅ | ❌ `422` |
-| `dispatch_type` | ✅ | ❌ `422` |
-| `destination_address`, `destination_district`, `destination_city` | ✅ | ❌ `422` |
+| `dispatch_type` | ✅ | ✅ (texto en la primera línea del detalle) |
+| `destination_address`, `destination_district`, `destination_city` | ✅ | ✅ (texto en la primera línea del detalle) |
 | Datos de Aduana | ✅ (obligatorios con `"8"`/`"9"`) | ❌ `422` (no se exigen con `"8"`/`"9"`) |
 | `details[].is_exempt` | ✅ | ❌ `422` |
 
-El mensaje de error indica que el campo está *"no disponible para emisores del facturador gratuito del SII"*.
+El mensaje de error indica que el campo está *"no disponible para emisores del facturador gratuito del SII"*. Lo que va como texto se escribe al inicio de la descripción de la primera línea, por ejemplo: `Destino: Camino Lo Boza 120, Pudahuel, Santiago. Despacho: Por cuenta del emisor a instalaciones del cliente. Salida: 02-11-2026 08:30.`
 
 <Warning>
 En el facturador gratuito del SII **una guía con precios siempre lleva IVA 19%**: el formulario del SII no permite líneas exentas. Para un traslado de exportación con valor sin IVA, el emisor necesita el facturador de mercado.
@@ -816,7 +816,7 @@ La guía se valida al recibir el batch, antes de emitir, para no quemar folios c
 | `gross_weight` o `total_packages` menor o igual a 0 | `422` |
 | `total_packages` sin `package_type_code` | `422` |
 | `details[].is_exempt` en un documento que no es DTE 52 | `422`: no soportado para este tipo de documento |
-| `dispatch_type`, destino, Aduana, destino de la madera o `is_exempt` con emisor del facturador gratuito | `422`: no disponible para emisores del facturador gratuito del SII |
+| Aduana, destino de la madera o `is_exempt` con emisor del facturador gratuito | `422`: no disponible para emisores del facturador gratuito del SII |
 | `trailer_plate` de más de 8 caracteres (sin guion ni espacios) | `422` |
 | `arrival_date` anterior a `departure_date` | `422` |
 | `transfer_reason` > 200 o `transport_unknown_reason` > 100 caracteres | `422` |
