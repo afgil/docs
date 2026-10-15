@@ -725,25 +725,7 @@ Ejemplo de aviso (misma forma en v1 y v2):
 
 #### Origen efectivo del traslado
 
-La resolución exige el **origen efectivo** de las mercaderías. La guía toma como origen la dirección del emisor (`document_issuer.address`, `district`, `city`) y, si esa dirección está registrada en la empresa con su código de sucursal SII, lo informa en `Emisor/CdgSIISucur`. Para despachar desde una bodega distinta de la casa matriz:
-
-1. Registra la bodega una vez con su código de sucursal SII (el endpoint admite la misma API key):
-
-```bash
-curl -X POST "https://api.tupana.ai/api/companies/{company_id}/addresses/" \
-  -H "Authorization: Api-Key TU_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "address": "Camino Lo Boza 120, Bodega 4",
-    "district": "Pudahuel",
-    "city": "Santiago",
-    "sii_branch_code": "12345"
-  }'
-```
-
-   `GET` en la misma URL lista las direcciones registradas con su `sii_branch_code`. `company_id` es el id de la empresa emisora en Pana.
-
-2. En cada guía, envía esa misma dirección en `document_issuer.address` (con `district` y `city`). La coincidencia es por texto, así que usa exactamente el mismo valor.
+La resolución exige el **origen efectivo** de las mercaderías. La guía toma como origen la dirección del emisor (`document_issuer.address`, `district`, `city`). Puedes usar cualquier dirección de la empresa **registrada en el SII** (casa matriz o sucursal): Tupana las sincroniza al perfil de la empresa con su código de sucursal, y al coincidir el texto de `document_issuer.address` con una de ellas la guía sale con ese código en `Emisor/CdgSIISucur`. Usa exactamente el mismo texto que figura en el perfil de la empresa. Si la bodega no está registrada en el SII, regístrala primero allí; las direcciones no se administran por la API.
 
 #### Anulación de una guía
 
@@ -789,12 +771,12 @@ Respuesta `200`:
 | `transport_rut`, `transport_plate`, `driver_rut`, `driver_name`, madera (origen) | ✅ | ✅ |
 | `trailer_plate`, `departure_date`, `departure_time`, `arrival_date`, `transfer_reason`, `transport_unknown_reason` | ✅ (tags del DTE o texto en el detalle) | ✅ (texto en la primera línea del detalle) |
 | `destination_commune_role`, `destination_block_role`, `destination_property_role`, `work_execution_notice`, `destination_latitude`, `destination_longitude` | ✅ | ❌ `422` |
-| `dispatch_type` | ✅ | ❌ `422` |
-| `destination_address`, `destination_district`, `destination_city` | ✅ | ❌ `422` |
+| `dispatch_type` | ✅ | ✅ (texto en la primera línea del detalle) |
+| `destination_address`, `destination_district`, `destination_city` | ✅ | ✅ (texto en la primera línea del detalle) |
 | Datos de Aduana | ✅ (obligatorios con `"8"`/`"9"`) | ❌ `422` (no se exigen con `"8"`/`"9"`) |
 | `details[].is_exempt` | ✅ | ❌ `422` |
 
-El mensaje de error indica que el campo está *"no disponible para emisores del facturador gratuito del SII"*.
+El mensaje de error indica que el campo está *"no disponible para emisores del facturador gratuito del SII"*. Lo que va como texto se escribe al inicio de la descripción de la primera línea, por ejemplo: `Destino: Camino Lo Boza 120, Pudahuel, Santiago. Despacho: Por cuenta del emisor a instalaciones del cliente. Salida: 02-11-2026 08:30.`
 
 <Warning>
 En el facturador gratuito del SII **una guía con precios siempre lleva IVA 19%**: el formulario del SII no permite líneas exentas. Para un traslado de exportación con valor sin IVA, el emisor necesita el facturador de mercado.
@@ -816,7 +798,7 @@ La guía se valida al recibir el batch, antes de emitir, para no quemar folios c
 | `gross_weight` o `total_packages` menor o igual a 0 | `422` |
 | `total_packages` sin `package_type_code` | `422` |
 | `details[].is_exempt` en un documento que no es DTE 52 | `422`: no soportado para este tipo de documento |
-| `dispatch_type`, destino, Aduana, destino de la madera o `is_exempt` con emisor del facturador gratuito | `422`: no disponible para emisores del facturador gratuito del SII |
+| Aduana, destino de la madera o `is_exempt` con emisor del facturador gratuito | `422`: no disponible para emisores del facturador gratuito del SII |
 | `trailer_plate` de más de 8 caracteres (sin guion ni espacios) | `422` |
 | `arrival_date` anterior a `departure_date` | `422` |
 | `transfer_reason` > 200 o `transport_unknown_reason` > 100 caracteres | `422` |

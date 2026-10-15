@@ -8202,7 +8202,7 @@
       },
       "TransportData": {
         "type": "object",
-        "description": "Datos de transporte de la guía de despacho (DTE 52): tipo de traslado, tipo de despacho, transportista, chofer, destino y datos de Aduana. Los campos de transporte y destino también se aceptan en otros tipos de documento; los de Aduana, sólo con transport_type 8 o 9. Con timber_enabled en true se incluyen los datos de origen de la madera que exige el SII (CONAF). Res. Ex. SII N°154 (vigente desde el 2026-11-01): tipo de traslado, patente, RUT del transportista, chofer (o transport_unknown_reason), destino con comuna, fecha y hora de salida y unidad de medida en cada línea pasan a ser obligatorios en la guía; hasta esa fecha la respuesta del batch sólo trae un aviso (warnings, code res154_*). Con emisores del facturador gratuito del SII (MiPyme), dispatch_type, destination_*, los datos de Aduana y el destino de la madera no están disponibles: la API responde 422; salida, llegada, patente del carro y motivos se imprimen como texto en la primera línea del detalle porque el formulario del SII no tiene esos campos.",
+        "description": "Datos de transporte de la guía de despacho (DTE 52): tipo de traslado, tipo de despacho, transportista, chofer, destino y datos de Aduana. Los campos de transporte y destino también se aceptan en otros tipos de documento; los de Aduana, sólo con transport_type 8 o 9. Con timber_enabled en true se incluyen los datos de origen de la madera que exige el SII (CONAF). Res. Ex. SII N°154 (vigente desde el 2026-11-01): tipo de traslado, patente, RUT del transportista, chofer (o transport_unknown_reason), destino con comuna, fecha y hora de salida y unidad de medida en cada línea pasan a ser obligatorios en la guía; hasta esa fecha la respuesta del batch sólo trae un aviso (warnings, code res154_*). Con emisores del facturador gratuito del SII (MiPyme), los datos de Aduana y el destino de la madera no están disponibles: la API responde 422; tipo de despacho, destino, salida, llegada, patente del carro y motivos se imprimen como texto en la primera línea del detalle porque el formulario del SII no tiene esos campos.",
         "properties": {
           "transport_type": {
             "type": "string",
@@ -8224,7 +8224,7 @@
           "dispatch_type": {
             "type": "string",
             "nullable": true,
-            "description": "Tipo de despacho (IdDoc/TipoDespacho). 1=Por cuenta del receptor (el cliente retira), 2=Por cuenta del emisor a instalaciones del cliente, 3=Por cuenta del emisor a otras instalaciones. Si no se envía, se emite 3. No se permite con transport_type 5 (422). No disponible para emisores del facturador gratuito del SII (422).",
+            "description": "Tipo de despacho (IdDoc/TipoDespacho). 1=Por cuenta del receptor (el cliente retira), 2=Por cuenta del emisor a instalaciones del cliente, 3=Por cuenta del emisor a otras instalaciones. Si no se envía, se emite 3. No se permite con transport_type 5 (422). Con emisores del facturador gratuito del SII (MiPyme) va como texto en la primera línea del detalle (su formulario no tiene el campo).",
             "enum": [
               "1",
               "2",
@@ -8260,21 +8260,21 @@
             "type": "string",
             "nullable": true,
             "maxLength": 70,
-            "description": "Dirección de destino (Transporte/DirDest). Se informa cuando el destino es distinto de la dirección del receptor. No disponible para emisores del facturador gratuito del SII (422).",
+            "description": "Dirección de destino (Transporte/DirDest). Se informa cuando el destino es distinto de la dirección del receptor. Con emisores del facturador gratuito del SII (MiPyme) va como texto en la primera línea del detalle (su formulario no tiene el campo).",
             "example": "Aeropuerto Arturo Merino Benitez"
           },
           "destination_district": {
             "type": "string",
             "nullable": true,
             "maxLength": 20,
-            "description": "Comuna de destino (Transporte/CmnaDest). No disponible para emisores del facturador gratuito del SII (422).",
+            "description": "Comuna de destino (Transporte/CmnaDest). Con emisores del facturador gratuito del SII (MiPyme) va como texto en la primera línea del detalle (su formulario no tiene el campo).",
             "example": "Pudahuel"
           },
           "destination_city": {
             "type": "string",
             "nullable": true,
             "maxLength": 20,
-            "description": "Ciudad de destino (Transporte/CiudadDest). No disponible para emisores del facturador gratuito del SII (422).",
+            "description": "Ciudad de destino (Transporte/CiudadDest). Con emisores del facturador gratuito del SII (MiPyme) va como texto en la primera línea del detalle (su formulario no tiene el campo).",
             "example": "Santiago"
           },
           "transfer_issuer_code": {

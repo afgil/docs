@@ -279,7 +279,7 @@ Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en l
 - Mismos campos que Nota de Crédito. En un traslado para exportación se puede referenciar el DUS con `dte_type_code` `"807"`.
 
 <Warning>
-**Facturador gratuito del SII (MiPyme):** su formulario no admite `dispatch_type`, `destination_*`, los datos de Aduana, el destino de la madera ni `details[].is_exempt`. Tampoco tiene campos para salida, llegada, patente del carro ni motivos: esos datos se aceptan igual y se imprimen como texto en la primera línea del detalle, como permite la Resolución 154 mientras el formulario no los tenga. Si el emisor usa el facturador gratuito y envías alguno, la API responde `422` con el mensaje *"no disponible para emisores del facturador gratuito del SII"*. Además, **una guía con precios siempre lleva IVA 19%** en el facturador gratuito; para un traslado de exportación con valor sin IVA se necesita el facturador de mercado.
+**Facturador gratuito del SII (MiPyme):** su formulario no admite los datos de Aduana, el destino de la madera ni `details[].is_exempt`. Tampoco tiene campos para `dispatch_type`, `destination_*`, salida, llegada, patente del carro ni motivos: esos datos se aceptan igual y se imprimen como texto en la primera línea del detalle, como permite la Resolución 154 mientras el formulario no los tenga. Si el emisor usa el facturador gratuito y envías alguno, la API responde `422` con el mensaje *"no disponible para emisores del facturador gratuito del SII"*. Además, **una guía con precios siempre lleva IVA 19%** en el facturador gratuito; para un traslado de exportación con valor sin IVA se necesita el facturador de mercado.
 </Warning>
 
 </details>
