@@ -1,0 +1,24 @@
+---
+title: 'Detalle de libro de compras/ventas'
+openapi: 'GET /book-documents'
+---
+
+## ¿Para qué se usa?
+
+Permite **obtener el detalle documento por documento del libro de compras y ventas** (Registro de Compras y Ventas, RCV) de una entidad para un período tributario y una operación. Es el detalle del que [`/book-summaries`](/api-reference/book-summaries/list) entrega los totales: cada ítem es un documento tal como aparece en el libro del SII, con los montos y el desglose de impuestos que informa el SII.
+
+## Qué hace
+
+- Devuelve las filas del libro de **COMPRA** (la entidad es el receptor) o de **VENTA** (la entidad es el emisor) para el `period` (YYYYMM) indicado. `operation` es obligatorio.
+- El período es el **período tributario en que el SII clasifica el documento en ese libro**, que puede diferir del mes de emisión. Un mismo documento puede caer en períodos distintos en el libro de compras del receptor y en el de ventas del emisor.
+- Cada fila trae `net_amount`, `exempt_amount`, `vat_amount` y `total_amount` tal como los informa el SII, más el objeto `taxes` con el desglose del RCV (IVA no recuperable, retenido, activo fijo, uso común, otros impuestos), el evento del receptor, el tipo de transacción y la referencia en notas de crédito y débito.
+- `document_id` enlaza con [`/documents/{id}`](/api-reference/documents/get) para obtener el PDF, el XML y las líneas del documento.
+- Puedes filtrar por tipo de documento con `dte_type_code` (lista separada por coma, por ejemplo `33,61`). La respuesta está paginada (`page`, `page_size`, máximo 100).
+- La entidad se indica con `master_entity_id`, igual que en `/book-summaries`. Acepta el **id opaco** (`eid_...`) o el id entero.
+- El campo **is_enabled** indica si la entidad tiene habilitado el scrape del libro consultado (`PURCHASE_BOOK` para COMPRA, `SALE_BOOK` para VENTA). Esta habilitación es independiente de la del resumen (`BOOK_SUMMARY`). Si es `false`, `results` viene vacío aunque el período sea válido.
+
+## Ejemplos de uso
+
+- Reconstruir el libro de compras o ventas de un período en tu propio sistema contable, con los mismos montos que declara el SII.
+- Cruzar línea a línea el RCV contra tu contabilidad y detectar documentos faltantes o con montos distintos.
+- Obtener el IVA no recuperable, retenido o de activo fijo por documento para preparar el F29.

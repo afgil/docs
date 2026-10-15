@@ -205,9 +205,10 @@
                 ]
               },
               {
-                "group": "Resumen de Libros",
+                "group": "Libros SII",
                 "pages": [
-                  "api-reference/v2/book-summaries/list"
+                  "api-reference/v2/book-summaries/list",
+                  "api-reference/v2/book-documents/list"
                 ]
               },
               {
@@ -466,9 +467,10 @@
                 ]
               },
               {
-                "group": "Resumen de Libros",
+                "group": "Libros SII",
                 "pages": [
-                  "api-reference/book-summaries/list"
+                  "api-reference/book-summaries/list",
+                  "api-reference/book-documents/list"
                 ]
               },
               {
