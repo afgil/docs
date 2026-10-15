@@ -85,7 +85,7 @@
                     "Estados de Documentos"
                 ],
                 "summary": "Registrar nuevo estado en un documento",
-                "description": "Registrar un nuevo estado cuando ocurre un evento relevante sobre el documento. Admite eventos del SII (ERM, ACD, RCD, RFT, RFP) y eventos internos de cobranza: **PAID** (marcar factura emitida como pagada) y **UNPAID** (marcar como no pagada). Para PAID y UNPAID solo el emisor del documento puede usarlos; aplican a facturas emitidas (tipo 33, 34, 39, 41). PAID genera un asiento contable de cierre de cuentas por cobrar (CxC); UNPAID revierte ese asiento si existe.",
+                "description": "Registrar un nuevo estado cuando ocurre un evento relevante sobre el documento. Admite eventos del SII (ERM, ACD, RCD, RFT, RFP) y eventos internos de cobranza: **PAID** (marcar factura emitida como pagada) y **UNPAID** (marcar como no pagada). Para PAID y UNPAID solo el emisor del documento puede usarlos; aplican a facturas emitidas (tipo 33, 34, 39, 41). PAID genera un asiento contable de cierre de cuentas por cobrar (CxC); UNPAID revierte ese asiento si existe. También admite **ANNULLED** para anular una guía de despacho (DTE 52) emitida con folio, con `reason` obligatorio (Res. Ex. SII N°154: la guía que se reemplaza por otra queda registrada como anulada). Solo el emisor; la respuesta indica en `annulment.registry` dónde queda registrada la anulación: `delivery_note_book` (Libro de Guías, facturador de mercado) o `portal_follow_up` (facturador gratuito del SII: además hay que anotarla en \"Seguimiento del documento\" del portal mientras el SII no habilite el Registro de Guías). Errores 400 con `code`: `annulment_only_for_delivery_notes`, `annulment_only_for_issued_delivery_notes`, `annulment_reason_required`.",
                 "parameters": [
                     {
                         "name": "document_id",
@@ -136,6 +136,14 @@
                                     "description": "Solo emisor; revierte el asiento de cierre CxC si existe.",
                                     "value": {
                                         "event_code": "UNPAID"
+                                    }
+                                },
+                                "anular_guia": {
+                                    "summary": "Anular guía de despacho (ANNULLED)",
+                                    "description": "Solo emisor; guía (DTE 52) emitida con folio. Res. Ex. SII N°154. La respuesta trae annulment.registry y annulment.registry_note.",
+                                    "value": {
+                                        "event_code": "ANNULLED",
+                                        "reason": "Reemplazada por guía folio 1051: cambió la cantidad de bultos"
                                     }
                                 }
                             }
@@ -281,15 +289,22 @@
                             "RFT",
                             "RFP",
                             "PAID",
-                            "UNPAID"
+                            "UNPAID",
+                            "ANNULLED"
                         ],
-                        "description": "Código del evento a registrar:\n- ERM: Acuse de Recibo de Mercaderías y Servicios\n- ACD: Acepta Contenido del Documento\n- RCD: Reclama Contenido del Documento\n- RFT: Reclamo por Falta Total\n- RFP: Reclamo por Falta Parcial\n- PAID: Marcar factura emitida como pagada (genera asiento cierre CxC; solo emisor; tipos 33, 34, 39, 41)\n- UNPAID: Marcar factura emitida como no pagada (revierte asiento cierre CxC; solo emisor)",
+                        "description": "Código del evento a registrar:\n- ERM: Acuse de Recibo de Mercaderías y Servicios\n- ACD: Acepta Contenido del Documento\n- RCD: Reclama Contenido del Documento\n- RFT: Reclamo por Falta Total\n- RFP: Reclamo por Falta Parcial\n- PAID: Marcar factura emitida como pagada (genera asiento cierre CxC; solo emisor; tipos 33, 34, 39, 41)\n- UNPAID: Marcar factura emitida como no pagada (revierte asiento cierre CxC; solo emisor)\n- ANNULLED: Anular una guía de despacho (52) emitida, con motivo en reason (Res. Ex. SII N°154; solo emisor)",
                         "example": "ERM"
                     },
                     "rejection_reason": {
                         "type": "string",
                         "description": "Razón del rechazo (opcional, solo para eventos de rechazo: RCD, RFT, RFP)",
                         "example": "Error en el monto facturado"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "description": "Motivo de la anulación. Obligatorio con ANNULLED (por ejemplo, el folio de la guía que la reemplaza). Se guarda con la guía anulada y se informa en el Libro de Guías.",
+                        "example": "Reemplazada por guía folio 1051: cambió la cantidad de bultos"
                     }
                 }
             },
