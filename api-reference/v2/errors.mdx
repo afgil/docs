@@ -145,7 +145,9 @@ identifica el campo por su ruta.
 | `transfer_issuer_code` `"4"` sin `authorization_resolution_number` / `authorization_resolution_date`, o esos campos con otro código | 422 |
 | Puerto, unidad o tipo de bulto fuera de las tablas de Aduana; `gross_weight` o `total_packages` ≤ 0; `total_packages` sin `package_type_code` | 422 |
 | `details[].is_exempt` en un documento que no es DTE 52 | 422 |
-| `dispatch_type`, `destination_*`, datos de Aduana o `details[].is_exempt` con emisor del **facturador gratuito del SII**: *"no disponible para emisores del facturador gratuito del SII"* | 422 |
+| `dispatch_type`, `destination_*`, datos de Aduana, destino de la madera (`destination_commune_role`, `destination_block_role`, `destination_property_role`, `work_execution_notice`, `destination_latitude`, `destination_longitude`) o `details[].is_exempt` con emisor del **facturador gratuito del SII**: *"no disponible para emisores del facturador gratuito del SII"* | 422 |
+| `trailer_plate` > 8 caracteres; `arrival_date` anterior a `departure_date`; `transfer_reason` > 200 o `transport_unknown_reason` > 100 caracteres; rol predial de destino de la madera con otra cosa que 1 a 6 dígitos | 422 |
+| **Desde el 1 de noviembre de 2026 (Res. Ex. SII N°154):** guía sin `transport_type`; sin patente, transportista o chofer y sin `transport_unknown_reason`; sin dirección o comuna de destino (propia o del receptor); sin `departure_date` o `departure_time`; línea sin `unit`; venta (`"1"`/`"9"`) sin `unit_price`; traslado sin venta sin precio ni `transfer_reason`; `timber_enabled` sin rol predial de destino. Hasta esa fecha son avisos `res154_*` (ver abajo) | 422 |
 
 Detalle de cada campo en [Emisión masiva de documentos (v1)](/api-reference/documents/batch), bloque "Guía de Despacho (DTE 52)".
 
@@ -178,7 +180,7 @@ Un campo que no existe en el documento (por ejemplo `header.transfer_indicator`)
 |-------|-------------|
 | `document_index` | Posición del documento en `documents` (desde 0). |
 | `field` | Ruta del campo dentro del documento. |
-| `code` | Tipo de aviso: `unknown_field` (campo desconocido) o `invalid_rut` (RUT de transportista o chofer con dígito verificador inválido: el documento se emite igual y el aviso nunca pasa a 422, ni con validación estricta). |
+| `code` | Tipo de aviso: `unknown_field` (campo desconocido), `invalid_rut` (RUT de transportista o chofer con dígito verificador inválido: el documento se emite igual y el aviso nunca pasa a 422, ni con validación estricta) o un código `res154_*` / `res75_timber_destination` (dato de la guía que la Res. Ex. SII N°154 vuelve obligatorio el 1 de noviembre de 2026; ver tabla siguiente). |
 | `message` | Texto para humanos. **Puede cambiar — nunca lo parsees.** |
 | `suggestion` | Campo correcto si se reconoce el error, o `null`. |
 
@@ -193,6 +195,41 @@ Un aviso significa que el dato **no llegó al documento**: con
 `header.transfer_indicator` la guía sale como venta (`transport_type` `"1"`) y con
 `export_data.export_clause` la factura de exportación sale sin cláusula de venta.
 </Warning>
+
+### ⏳ Facturación — Avisos de la Resolución 154 (guías de despacho)
+
+Hasta el **31 de octubre de 2026** la guía se emite aunque falten los datos que la
+Res. Ex. SII N°154 vuelve obligatorios; la respuesta del batch (v1 y v2, con o sin
+API key) los lista en `warnings` con estos códigos. Desde el **1 de noviembre de
+2026** los mismos casos responden **422**, salvo `res154_trailer_plate`, que sigue
+siendo sólo un aviso.
+
+| `code` | `field` | Qué falta |
+|--------|---------|-----------|
+| `res154_transfer_type` | `transport_data.transport_type` | Tipo de traslado |
+| `res154_carrier` | `transport_data.transport_plate`, `transport_rut` o `driver_rut` | Patente, RUT del transportista o chofer, sin `transport_unknown_reason` |
+| `res154_destination` | `transport_data.destination_address` o `destination_district` | Dirección o comuna de destino (propia o del receptor) |
+| `res154_departure` | `transport_data.departure_date` o `departure_time` | Fecha u hora de inicio del traslado |
+| `res154_unit` | `details[n].unit` | Unidad de medida de la línea |
+| `res154_transfer_reason` | `details[n].unit_price` o `transport_data.transfer_reason` | Precio en una venta, o motivo del traslado cuando se omite el precio |
+| `res154_trailer_plate` | `transport_data.trailer_plate` | Patente del carro, si el vehículo lleva uno (nunca 422) |
+| `res75_timber_destination` | `transport_data.destination_*_role` | Rol predial de destino de la madera (`timber_enabled`, facturador de mercado) |
+
+```json
+{
+  "warnings": [
+    {
+      "document_index": 0,
+      "field": "transport_data.departure_time",
+      "code": "res154_departure",
+      "message": "La hora de inicio del traslado es obligatoria.",
+      "suggestion": "Informe transport_data.departure_time (HH:MM)."
+    }
+  ]
+}
+```
+
+Detalle de cada campo y de la anulación de guías en [Emisión masiva de documentos (v2)](/api-reference/v2/documents/batch), sección "Resolución 154".
 
 ### ⏳ Facturación — Boleta de Honorarios (DTE 80/90)
 

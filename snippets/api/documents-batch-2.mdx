@@ -330,8 +330,12 @@ Guía que acompaña una venta, despachada por el emisor a una bodega del cliente
         "dispatch_type": "2",
         "transport_rut": "76234567-6",
         "transport_plate": "ABCD12",
+        "trailer_plate": "JK1234",
         "driver_rut": "12345678-5",
         "driver_name": "Juan Pérez",
+        "departure_date": "2026-11-02",
+        "departure_time": "08:30",
+        "arrival_date": "2026-11-02",
         "destination_address": "Camino Lo Boza 120, Bodega 4",
         "destination_district": "Pudahuel",
         "destination_city": "Santiago"
@@ -340,11 +344,13 @@ Guía que acompaña una venta, despachada por el emisor a una bodega del cliente
         {
           "item_name": "Pastillas de freno",
           "quantity": 40,
+          "unit": "UN",
           "unit_price": 12500
         },
         {
           "item_name": "Discos de freno",
           "quantity": 10,
+          "unit": "UN",
           "unit_price": 38000
         }
       ]
@@ -595,29 +601,37 @@ Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y 
 
 ### Campos de transport_data
 
-Todos los campos son opcionales salvo lo que se indica. Los mismos campos se aceptan en `POST /v1/documents/batch/` y en `POST /v2/documents/batch/`.
+Todos los campos son opcionales salvo lo que se indica. Los mismos campos se aceptan en `POST /v1/documents/batch/` y en `POST /v2/documents/batch/`. La columna **Res. 154** marca lo que pasa a ser obligatorio en la guía el **1 de noviembre de 2026** (ver [Resolución 154](#resolucion-154-dte-52)).
 
-| Campo | Tipo | Obligatorio | Validación | Campo del DTE |
-|---|---|---|---|---|
-| `transport_type` | String `"1"`–`"9"` | No (por defecto `"1"`) | Tabla de tipos de traslado | `IdDoc/IndTraslado` |
-| `dispatch_type` | String `"1"`–`"3"` | No (si no se envía, se emite `3`) | No se permite con `transport_type` `"5"` | `IdDoc/TipoDespacho` |
-| `transport_rut` | String | No | Si el dígito verificador es inválido se emite igual y la respuesta trae un aviso `invalid_rut` | `Transporte/RUTTrans` |
-| `transport_plate` | String | No | Se normaliza a mayúsculas sin guion ni espacios; máximo 8 caracteres | `Transporte/Patente` |
-| `driver_rut` | String | Con `driver_name` | Si el dígito verificador es inválido se emite igual y la respuesta trae un aviso `invalid_rut` | `Transporte/Chofer/RUTChofer` |
-| `driver_name` | String | Con `driver_rut` | Se trunca a 30 caracteres en el DTE | `Transporte/Chofer/NombreChofer` |
-| `destination_address` | String | No | Máximo 70 caracteres | `Transporte/DirDest` |
-| `destination_district` | String | No | Máximo 20 caracteres | `Transporte/CmnaDest` |
-| `destination_city` | String | No | Máximo 20 caracteres | `Transporte/CiudadDest` |
-| `transfer_issuer_code` | String `"1"`–`"4"` | Con traslado `"8"`/`"9"` (facturador de mercado) | Ver [Emisor del traslado](#emisor-del-traslado-transfer-issuer-code). Sólo con `transport_type` `"8"` o `"9"` | `Emisor/GuiaExport/CdgTraslado` |
-| `authorization_resolution_number` | Integer | Con `transfer_issuer_code` `"4"` | Mayor a 0; no se permite con otro código | `Emisor/GuiaExport/FolioAut` |
-| `authorization_resolution_date` | String `YYYY-MM-DD` | Con `transfer_issuer_code` `"4"` | No se permite con otro código | `Emisor/GuiaExport/FchAut` |
-| `departure_port_code` | String | Con traslado `"8"`/`"9"` (facturador de mercado) | Código o nombre exacto de la tabla de puertos de Aduana | `Aduana/CodPtoEmbarque` |
-| `arrival_port_code` | String | Con traslado `"8"`/`"9"` (facturador de mercado) | Código o nombre exacto de la tabla de puertos de Aduana | `Aduana/CodPtoDesemb` |
-| `gross_weight` | String decimal | Con traslado `"8"`/`"9"` (facturador de mercado) | Mayor a 0, hasta 2 decimales | `Aduana/PesoBruto` |
-| `gross_weight_unit_code` | String | Con traslado `"8"`/`"9"` (facturador de mercado) | Tabla de unidades de medida de Aduana | `Aduana/CodUnidPesoBruto` |
-| `total_packages` | Integer | No | Mayor a 0 | `Aduana/TotBultos` |
-| `package_type_code` | String | Si se envía `total_packages` | Tabla de tipos de bulto de Aduana | `Aduana/TipoBultos/CodTpoBultos` |
-| `timber_enabled`, `comuna_rol`, `manzana_rol`, `predio_rol`, `geo_ref_system`, `latitude`, `longitude`, `conaf_plan_code` | — | No | Sin cambios | `ManejoMadera` (CONAF) |
+| Campo | Tipo | Obligatorio | Res. 154 | Validación | Campo del DTE |
+|---|---|---|---|---|---|
+| `transport_type` | String `"1"`–`"9"` | No (por defecto `"1"`) | Obligatorio | Tabla de tipos de traslado | `IdDoc/IndTraslado` |
+| `dispatch_type` | String `"1"`–`"3"` | No (si no se envía, se emite `3`) | — | No se permite con `transport_type` `"5"` | `IdDoc/TipoDespacho` |
+| `transport_rut` | String | No | Obligatorio (o `transport_unknown_reason`) | Si el dígito verificador es inválido se emite igual y la respuesta trae un aviso `invalid_rut` | `Transporte/RUTTrans` |
+| `transport_plate` | String | No | Obligatorio (o `transport_unknown_reason`) | Se normaliza a mayúsculas sin guion ni espacios; máximo 8 caracteres | `Transporte/Patente` |
+| `driver_rut` | String | Con `driver_name` | Obligatorio (o `transport_unknown_reason`) | Si el dígito verificador es inválido se emite igual y la respuesta trae un aviso `invalid_rut` | `Transporte/Chofer/RUTChofer` |
+| `driver_name` | String | Con `driver_rut` | Obligatorio (o `transport_unknown_reason`) | Se trunca a 30 caracteres en el DTE | `Transporte/Chofer/NombreChofer` |
+| `destination_address` | String | No | Obligatoria (vale la dirección del receptor) | Máximo 70 caracteres | `Transporte/DirDest` |
+| `destination_district` | String | No | Obligatoria (vale la comuna del receptor) | Máximo 20 caracteres | `Transporte/CmnaDest` |
+| `destination_city` | String | No | — | Máximo 20 caracteres | `Transporte/CiudadDest` |
+| `transfer_issuer_code` | String `"1"`–`"4"` | Con traslado `"8"`/`"9"` (facturador de mercado) | — | Ver [Emisor del traslado](#emisor-del-traslado-transfer-issuer-code). Sólo con `transport_type` `"8"` o `"9"` | `Emisor/GuiaExport/CdgTraslado` |
+| `authorization_resolution_number` | Integer | Con `transfer_issuer_code` `"4"` | — | Mayor a 0; no se permite con otro código | `Emisor/GuiaExport/FolioAut` |
+| `authorization_resolution_date` | String `YYYY-MM-DD` | Con `transfer_issuer_code` `"4"` | — | No se permite con otro código | `Emisor/GuiaExport/FchAut` |
+| `departure_port_code` | String | Con traslado `"8"`/`"9"` (facturador de mercado) | — | Código o nombre exacto de la tabla de puertos de Aduana | `Aduana/CodPtoEmbarque` |
+| `arrival_port_code` | String | Con traslado `"8"`/`"9"` (facturador de mercado) | — | Código o nombre exacto de la tabla de puertos de Aduana | `Aduana/CodPtoDesemb` |
+| `gross_weight` | String decimal | Con traslado `"8"`/`"9"` (facturador de mercado) | — | Mayor a 0, hasta 2 decimales | `Aduana/PesoBruto` |
+| `gross_weight_unit_code` | String | Con traslado `"8"`/`"9"` (facturador de mercado) | — | Tabla de unidades de medida de Aduana | `Aduana/CodUnidPesoBruto` |
+| `total_packages` | Integer | No | — | Mayor a 0 | `Aduana/TotBultos` |
+| `package_type_code` | String | Si se envía `total_packages` | — | Tabla de tipos de bulto de Aduana | `Aduana/TipoBultos/CodTpoBultos` |
+| `trailer_plate` | String | No | Aviso si hay patente y no viene carro (`res154_trailer_plate`, nunca `422`) | Igual que `transport_plate`: mayúsculas, sin guion ni espacios, máximo 8 | `Transporte/PatenteCarro` |
+| `departure_date` | String `YYYY-MM-DD` | No | Obligatoria | Fecha válida | `Transporte/FchSalida` |
+| `departure_time` | String `HH:MM` | No | Obligatoria | También se acepta `HH:MM:SS` | `Transporte/HraSalida` |
+| `arrival_date` | String `YYYY-MM-DD` | No | — | No puede ser anterior a `departure_date` | `Transporte/FchLlegada` |
+| `transfer_reason` | String | No | Obligatorio si un traslado que no es venta omite `unit_price` | Máximo 200 caracteres | Texto en el detalle |
+| `transport_unknown_reason` | String | No | Reemplaza patente, transportista y chofer cuando no se conocen | Máximo 100 caracteres | Texto en el detalle |
+| `timber_enabled`, `comuna_rol`, `manzana_rol`, `predio_rol`, `geo_ref_system`, `latitude`, `longitude`, `conaf_plan_code` | — | No | — | Sin cambios | `ManejoMadera` (CONAF) |
+| `destination_commune_role`, `destination_block_role`, `destination_property_role` | String numérico (1 a 6 dígitos) | No | Obligatorios con `timber_enabled` (facturador de mercado) | Sólo con `timber_enabled` | `ManejoMadera/ComunaRolDestino`, `MnzRolDestino`, `PrdRolDestino` |
+| `work_execution_notice`, `destination_latitude`, `destination_longitude` | String | No | — | Máximo 40 / 30 / 30 caracteres. Sólo con `timber_enabled` | `ManejoMadera/AvisoEjecucionFaena`, `LatitudDestinoMadera`, `LongitudDestinoMadera` |
 
 Los campos de transporte y destino también se aceptan en otros tipos de documento; los de Aduana y el emisor del traslado, sólo con `transport_type` `"8"` o `"9"`.
 
@@ -626,7 +640,7 @@ Los campos de transporte y destino también se aceptan en otros tipos de documen
 | Código | Tipo de traslado | Código | Tipo de traslado |
 |---|---|---|---|
 | `"1"` | Operación constituye venta | `"6"` | Otros traslados no venta |
-| `"2"` | Ventas por efectuar | `"7"` | Guía de devolución |
+| `"2"` | Ventas por efectuar | `"7"` | Devolución de mercaderías |
 | `"3"` | Consignaciones | `"8"` | Traslado para exportación (no venta) |
 | `"4"` | Entrega gratuita | `"9"` | Venta para exportación |
 | `"5"` | Traslados internos | | |
@@ -673,6 +687,93 @@ En guías de traslado 8 y 9 el SII exige indicar en qué calidad se emite la gu�
 | `"3"` | Vendedor |
 | `"4"` | Contribuyente autorizado expresamente por el SII: requiere `authorization_resolution_number` y `authorization_resolution_date` |
 
+### Resolución 154 (DTE 52)
+
+<a id="resolucion-154-dte-52"></a>
+
+La [Resolución Exenta SII N°154 de 2025](https://www.sii.cl/normativa_legislacion/resoluciones/2025/reso154.pdf), prorrogada por la Resolución Exenta N°52 de 2026, fija el contenido mínimo de la guía de despacho y rige desde el **1 de noviembre de 2026**. La API aplica las mismas reglas en v1 y v2:
+
+- **Hasta el 31 de octubre de 2026:** la guía se acepta igual y la respuesta del batch trae un aviso por cada dato faltante en `warnings`, con `document_index`, `field`, `code` (`res154_*`), `message` y `suggestion`. Los avisos también aparecen en el borrador y en la vista previa de la plataforma.
+- **Desde el 1 de noviembre de 2026:** los mismos datos faltantes responden `422` con el campo bajo `documents` → posición → `transport_data` o `details[]`, y la guía no se crea. El único aviso que nunca pasa a `422` es `res154_trailer_plate`.
+
+| Código del aviso | Qué falta | Cómo resolverlo |
+|---|---|---|
+| `res154_transfer_type` | `transport_type` | Informar el tipo de traslado `"1"`–`"9"` |
+| `res154_carrier` | `transport_plate`, `transport_rut` o `driver_rut` + `driver_name` | Informarlos, o declarar en `transport_unknown_reason` por qué no se conocen |
+| `res154_destination` | Dirección o comuna de destino | `destination_address` + `destination_district`, o la dirección y comuna del receptor en `document_receiver` |
+| `res154_departure` | `departure_date` o `departure_time` | Fecha y hora de inicio del traslado |
+| `res154_unit` | `details[].unit` | Unidad de medida en cada línea (`UN`, `KG`, `M3`, ...) |
+| `res154_transfer_reason` | Precio unitario | En un traslado que constituye venta (`"1"`, `"9"`) cada línea lleva `unit_price`; en los demás se puede omitir si viene `transfer_reason` |
+| `res154_trailer_plate` | `trailer_plate` | Sólo aviso: si el vehículo lleva carro o remolque, informar su patente |
+| `res75_timber_destination` | Rol predial de destino de la madera | `destination_commune_role`, `destination_block_role` y `destination_property_role` (sólo con `timber_enabled`, facturador de mercado) |
+
+Ejemplo de aviso (misma forma en v1 y v2):
+
+```json
+{
+  "warnings": [
+    {
+      "document_index": 0,
+      "field": "transport_data.departure_time",
+      "code": "res154_departure",
+      "message": "La hora de inicio del traslado es obligatoria.",
+      "suggestion": "Informe transport_data.departure_time (HH:MM)."
+    }
+  ]
+}
+```
+
+#### Origen efectivo del traslado
+
+La resolución exige el **origen efectivo** de las mercaderías. La guía toma como origen la dirección del emisor (`document_issuer.address`, `district`, `city`) y, si esa dirección está registrada en la empresa con su código de sucursal SII, lo informa en `Emisor/CdgSIISucur`. Para despachar desde una bodega distinta de la casa matriz:
+
+1. Registra la bodega una vez con su código de sucursal SII (el endpoint admite la misma API key):
+
+```bash
+curl -X POST "https://api.tupana.ai/api/companies/{company_id}/addresses/" \
+  -H "Authorization: Api-Key TU_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "address": "Camino Lo Boza 120, Bodega 4",
+    "district": "Pudahuel",
+    "city": "Santiago",
+    "sii_branch_code": "12345"
+  }'
+```
+
+   `GET` en la misma URL lista las direcciones registradas con su `sii_branch_code`. `company_id` es el id de la empresa emisora en Pana.
+
+2. En cada guía, envía esa misma dirección en `document_issuer.address` (con `district` y `city`). La coincidencia es por texto, así que usa exactamente el mismo valor.
+
+#### Anulación de una guía
+
+Si cambia lo informado (cantidad, destino, transporte), la resolución pide **emitir una guía nueva que referencie a la anterior** (`references[]` con `dte_type_code` `"52"`) y registrar la original como anulada. La anulación se registra con el endpoint de estados del documento:
+
+```bash
+curl -X POST "https://api.tupana.ai/v2/documents/{document_id}/states/" \
+  -H "Authorization: Api-Key TU_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"event_code": "ANNULLED", "reason": "Reemplazada por guía folio 1051: cambió la cantidad de bultos"}'
+```
+
+Respuesta `200`:
+
+```json
+{
+  "success": true,
+  "annulment": {
+    "annulled": true,
+    "already_annulled": false,
+    "registry": "delivery_note_book",
+    "registry_note": "La guía queda como anulada en el Libro de Guías de Despacho del período."
+  }
+}
+```
+
+- Sólo el emisor puede anular (`403`), sólo guías (DTE 52) emitidas con folio y siempre con `reason` (`400` con `code` `annulment_only_for_delivery_notes`, `annulment_only_for_issued_delivery_notes` o `annulment_reason_required`).
+- `registry` indica dónde queda el registro mientras el SII no habilite el Registro de Guías: `delivery_note_book` (Libro de Guías, facturador de mercado) o `portal_follow_up` (facturador gratuito del SII: además hay que anotarla en "Seguimiento del documento" del portal).
+- Anular dos veces responde `200` con `already_annulled: true`. El mismo endpoint existe en v1 (`POST /v1/documents/{document_id}/states/`).
+
 ### Líneas exentas (`details[].is_exempt`)
 
 - `is_exempt: true` marca la línea como no afecta o exenta (`IndExe = 1` en el DTE).
@@ -685,7 +786,9 @@ En guías de traslado 8 y 9 el SII exige indicar en qué calidad se emite la gu�
 | Campo | Facturador de mercado | Facturador gratuito |
 |---|---|---|
 | `transport_type` (incluidos `"8"` y `"9"`) | ✅ | ✅ |
-| `transport_rut`, `transport_plate`, `driver_rut`, `driver_name`, madera | ✅ | ✅ |
+| `transport_rut`, `transport_plate`, `driver_rut`, `driver_name`, madera (origen) | ✅ | ✅ |
+| `trailer_plate`, `departure_date`, `departure_time`, `arrival_date`, `transfer_reason`, `transport_unknown_reason` | ✅ (tags del DTE o texto en el detalle) | ✅ (texto en la primera línea del detalle) |
+| `destination_commune_role`, `destination_block_role`, `destination_property_role`, `work_execution_notice`, `destination_latitude`, `destination_longitude` | ✅ | ❌ `422` |
 | `dispatch_type` | ✅ | ❌ `422` |
 | `destination_address`, `destination_district`, `destination_city` | ✅ | ❌ `422` |
 | Datos de Aduana | ✅ (obligatorios con `"8"`/`"9"`) | ❌ `422` (no se exigen con `"8"`/`"9"`) |
@@ -713,7 +816,12 @@ La guía se valida al recibir el batch, antes de emitir, para no quemar folios c
 | `gross_weight` o `total_packages` menor o igual a 0 | `422` |
 | `total_packages` sin `package_type_code` | `422` |
 | `details[].is_exempt` en un documento que no es DTE 52 | `422`: no soportado para este tipo de documento |
-| `dispatch_type`, destino, Aduana o `is_exempt` con emisor del facturador gratuito | `422`: no disponible para emisores del facturador gratuito del SII |
+| `dispatch_type`, destino, Aduana, destino de la madera o `is_exempt` con emisor del facturador gratuito | `422`: no disponible para emisores del facturador gratuito del SII |
+| `trailer_plate` de más de 8 caracteres (sin guion ni espacios) | `422` |
+| `arrival_date` anterior a `departure_date` | `422` |
+| `transfer_reason` > 200 o `transport_unknown_reason` > 100 caracteres | `422` |
+| Rol predial de destino de la madera con otra cosa que 1 a 6 dígitos | `422` |
+| **Desde el 1 de noviembre de 2026:** falta tipo de traslado, patente/transportista/chofer (sin `transport_unknown_reason`), destino, salida, `details[].unit`, precio en una venta o rol predial de destino con madera | `422` (hasta esa fecha, aviso `res154_*`) |
 
 Ejemplo de respuesta v1 (el error va en la posición del documento dentro de `documents`):
 

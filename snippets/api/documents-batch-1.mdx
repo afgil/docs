@@ -247,20 +247,31 @@ Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en l
 
 **document_issuer y document_receiver (Obligatorio):** Mismos campos que Factura Electrónica. En un traslado para exportación el receptor es quien recibe la carga en Chile (por ejemplo, la agencia de aduanas), no el importador extranjero.
 
-**transport_data (Opcional)**
+<Note>
+**Resolución Exenta SII N°154 (vigente desde el 1 de noviembre de 2026):** en la guía pasan a ser obligatorios el tipo de traslado, la patente, el RUT del transportista, el chofer (o una declaración de transporte no informado), el destino con comuna, la fecha y hora de salida y la unidad de medida de cada línea. Hasta esa fecha la API acepta la guía y devuelve un aviso por cada dato faltante en `warnings` (códigos `res154_*`); desde esa fecha responde `422`. Ver [Resolución 154](#resolucion-154-dte-52).
+</Note>
+
+**transport_data (Opcional hasta el 1 de noviembre de 2026)**
 - **Tipo:** Object
-- **Descripción:** Tipo de traslado, tipo de despacho, transportista, chofer, destino y datos de Aduana de la guía. Ver la tabla completa en [Guía de Despacho (DTE 52)](#guia-de-despacho-dte-52-transport-data).
+- **Descripción:** Tipo de traslado, tipo de despacho, transportista, chofer, salida y llegada, destino y datos de Aduana de la guía. Ver la tabla completa en [Guía de Despacho (DTE 52)](#guia-de-despacho-dte-52-transport-data).
 - **Campos principales:**
   - `transport_type` (String): Tipo de traslado (`IndTraslado`), `"1"` a `"9"`. Por defecto `"1"` (operación constituye venta)
   - `dispatch_type` (String): Tipo de despacho (`TipoDespacho`), `"1"` a `"3"`. Si no se envía, se emite `3`. No se permite con `transport_type` `"5"`
-  - `transport_rut`, `transport_plate`, `driver_rut`, `driver_name` (String): Transportista, patente y chofer
-  - `destination_address`, `destination_district`, `destination_city` (String): Destino, cuando es distinto de la dirección del receptor
+  - `transport_rut`, `transport_plate`, `driver_rut`, `driver_name` (String): Transportista, patente y chofer. **Obligatorios desde el 1 de noviembre de 2026**, salvo que se declare `transport_unknown_reason`
+  - `trailer_plate` (String): Patente del carro o remolque, cuando el vehículo lleva uno
+  - `departure_date` (`YYYY-MM-DD`), `departure_time` (`HH:MM`): Fecha y hora de inicio del traslado. **Obligatorias desde el 1 de noviembre de 2026**
+  - `arrival_date` (`YYYY-MM-DD`): Fecha estimada de llegada; no puede ser anterior a la salida
+  - `transfer_reason` (String, 200): Motivo del traslado. En un traslado que no es venta permite omitir el precio unitario de las líneas
+  - `transport_unknown_reason` (String, 100): Declaración expresa de que no se conocen patente, transportista o chofer, y por qué
+  - `destination_address`, `destination_district`, `destination_city` (String): Destino, cuando es distinto de la dirección del receptor. **Desde el 1 de noviembre de 2026** la guía necesita dirección y comuna de destino: las propias o, en su defecto, las del receptor
   - `transfer_issuer_code` (String): Quién realiza el traslado de exportación (`CdgTraslado`), `"1"` a `"4"`, **sólo con `transport_type` `"8"` o `"9"`**. Con `"4"` van también `authorization_resolution_number` y `authorization_resolution_date`
   - `departure_port_code`, `arrival_port_code`, `gross_weight`, `gross_weight_unit_code`, `total_packages`, `package_type_code`: Datos de Aduana, **sólo con `transport_type` `"8"` o `"9"`**
+  - `destination_commune_role`, `destination_block_role`, `destination_property_role`, `work_execution_notice`, `destination_latitude`, `destination_longitude`: Destino de la madera, **sólo con `timber_enabled` y facturador de mercado**. El rol predial de destino es obligatorio desde el 1 de noviembre de 2026
 
 **details (Obligatorio)**
 - **Tipo:** Array
 - **Campos de cada elemento:** Mismos campos que Factura Electrónica (`item_name`, `quantity`, `unit_price`), más:
+  - `unit` (String): Unidad de medida de la línea (`UN`, `KG`, `M3`, ...). **Obligatoria en la guía desde el 1 de noviembre de 2026** (`UnmdItem` pasa a obligatorio en el Formato DTE 2026-02)
   - `is_exempt` (Boolean): **Opcional, por defecto `false`.** Marca la línea como no afecta o exenta de IVA (`IndExe = 1`): su monto va a `exempt_amount` y no genera IVA. Por ahora sólo se acepta en DTE 52; en otro tipo de documento la API responde `422`.
   - `gross_unit_price` (Number): **No aplica a este tipo de documento.** Solo válido para boletas electrónicas (DTE 39 y 41).
 
@@ -268,7 +279,7 @@ Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en l
 - Mismos campos que Nota de Crédito. En un traslado para exportación se puede referenciar el DUS con `dte_type_code` `"807"`.
 
 <Warning>
-**Facturador gratuito del SII (MiPyme):** su formulario no admite `dispatch_type`, `destination_*`, los datos de Aduana ni `details[].is_exempt`. Si el emisor usa el facturador gratuito y envías alguno, la API responde `422` con el mensaje *"no disponible para emisores del facturador gratuito del SII"*. Además, **una guía con precios siempre lleva IVA 19%** en el facturador gratuito; para un traslado de exportación con valor sin IVA se necesita el facturador de mercado.
+**Facturador gratuito del SII (MiPyme):** su formulario no admite `dispatch_type`, `destination_*`, los datos de Aduana, el destino de la madera ni `details[].is_exempt`. Tampoco tiene campos para salida, llegada, patente del carro ni motivos: esos datos se aceptan igual y se imprimen como texto en la primera línea del detalle, como permite la Resolución 154 mientras el formulario no los tenga. Si el emisor usa el facturador gratuito y envías alguno, la API responde `422` con el mensaje *"no disponible para emisores del facturador gratuito del SII"*. Además, **una guía con precios siempre lleva IVA 19%** en el facturador gratuito; para un traslado de exportación con valor sin IVA se necesita el facturador de mercado.
 </Warning>
 
 </details>

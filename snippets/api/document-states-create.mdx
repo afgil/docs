@@ -13,3 +13,34 @@
 - Registrar un rechazo
 - Asociar un evento proveniente del SII
 - Registrar mérito ejecutivo o eventos de cobranza
+- Anular una guía de despacho (DTE 52) con `event_code` `ANNULLED`
+
+## Anular una guía de despacho (`ANNULLED`)
+
+La [Resolución Exenta SII N°154](https://www.sii.cl/normativa_legislacion/resoluciones/2025/reso154.pdf) pide que, cuando cambia lo informado en una guía, se emita una nueva que la referencie y la original quede registrada como anulada. Se registra con este mismo endpoint, enviando el motivo:
+
+```json
+{
+  "event_code": "ANNULLED",
+  "reason": "Reemplazada por guía folio 1051: cambió la cantidad de bultos"
+}
+```
+
+Respuesta `200`:
+
+```json
+{
+  "success": true,
+  "annulment": {
+    "annulled": true,
+    "already_annulled": false,
+    "registry": "delivery_note_book",
+    "registry_note": "La guía queda como anulada en el Libro de Guías de Despacho del período."
+  }
+}
+```
+
+- Sólo el emisor de la guía puede anularla (`403`).
+- Sólo guías (DTE 52) emitidas con folio y siempre con `reason` (hasta 200 caracteres). Si no, `400` con `code`: `annulment_only_for_delivery_notes`, `annulment_only_for_issued_delivery_notes` o `annulment_reason_required`.
+- `registry` dice dónde queda registrada la anulación mientras el SII no habilite el Registro de Guías: `delivery_note_book` (Libro de Guías, facturador de mercado) o `portal_follow_up` (facturador gratuito del SII: además hay que anotarla en "Seguimiento del documento" del portal, como explica `registry_note`).
+- Anular una guía ya anulada responde `200` con `already_annulled: true`.

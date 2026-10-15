@@ -203,9 +203,31 @@ Cada guía declara por qué se trasladan las mercaderías (el `IndTraslado` del 
 | **4** | Entrega gratuita | Muestras, regalos o donaciones |
 | **5** | Traslados internos | Movimiento entre bodegas o sucursales de la misma empresa |
 | **6** | Otros traslados no venta | Reparaciones, préstamos u otros traslados que no son venta |
-| **7** | Guía de devolución | Devolución de mercaderías |
+| **7** | Devolución de mercaderías | Devolución de mercaderías al proveedor o al cliente |
 | **8** | Traslado para exportación (no venta) | Llevar al puerto o aeropuerto mercadería de exportación cuya venta va en la factura de exportación |
 | **9** | Venta para exportación | Traslado al puerto o aeropuerto que constituye la venta de exportación |
+
+#### Resolución Exenta N°154: nuevos requisitos desde el 1 de noviembre de 2026
+
+La [Resolución Exenta SII N°154 de 2025](https://www.sii.cl/normativa_legislacion/resoluciones/2025/reso154.pdf), prorrogada por la Resolución Exenta N°52 de 2026, fija el contenido mínimo de toda guía de despacho. Rige desde el **1 de noviembre de 2026**; hasta esa fecha Pana avisa lo que falta (en la vista previa, en el borrador y en la respuesta de la API) y emite igual. Desde esa fecha, la guía no se emite hasta completar:
+
+| Dato | Dónde va | Qué se acepta |
+|---|---|---|
+| Tipo de traslado | `transport_type` | Código 1 a 9 de la tabla anterior |
+| Patente del vehículo, RUT del transportista y chofer (RUT y nombre) | `transport_plate`, `transport_rut`, `driver_rut`, `driver_name` | Si no se conocen, hay que declararlo expresamente en **Transporte no informado** (`transport_unknown_reason`), con el motivo |
+| Patente del carro o remolque | `trailer_plate` | Sólo cuando el vehículo lleva uno. Si hay patente y no viene carro, sólo se avisa |
+| Destino efectivo | `destination_address` y `destination_district` | Si no se informan, vale la dirección y comuna del receptor |
+| Fecha y hora de salida | `departure_date`, `departure_time` | Inicio del traslado; opcionalmente la **fecha estimada de llegada** (`arrival_date`), que no puede ser anterior |
+| Unidad de medida en cada línea | `details[].unit` | `UN`, `KG`, `M3`, etc. |
+| Precio unitario | `details[].unit_price` | Obligatorio si el traslado constituye venta (tipos 1 y 9). En los demás se puede omitir indicando el **motivo del traslado** (`transfer_reason`) |
+| Origen efectivo | Dirección del emisor (`document_issuer.address`) | Si la bodega está registrada en la empresa con su código de sucursal SII, la guía sale con ese código (`CdgSIISucur`) |
+
+- **Plataforma:** el formulario de guía tiene los campos nuevos (salida, llegada, patente del carro, motivo del traslado, transporte no informado) y la vista previa lista lo que falta antes de firmar.
+- **Carga por Excel:** la plantilla agrega las columnas `tipo_traslado`, `rut_transporte`, `patente`, `patente_carro`, `rut_chofer`, `nombre_chofer`, `fecha_salida`, `hora_salida`, `fecha_llegada`, `motivo_traslado`, `transporte_no_informado`, `direccion_destino` y `comuna_destino`.
+- **API:** los mismos campos en `transport_data`; el detalle está en [Emisión masiva de documentos](/api-reference/documents/batch), sección "Resolución 154".
+- **Facturador gratuito del SII (MiPyme):** el formulario del SII no tiene campos para salida, llegada, carro ni motivos, así que Pana los imprime como texto en la primera línea del detalle, como permite la resolución mientras el SII no los habilite.
+
+**Anulación de una guía.** Si cambia lo informado, se emite una guía nueva que referencia a la anterior (referencia tipo 52) y la original se registra como anulada con su motivo. Por API se registra con `POST /v2/documents/{id}/states/` y `event_code` `ANNULLED`; si emites desde la plataforma, pídela a soporte indicando el folio y el motivo. Mientras el SII no habilite el Registro de Guías, la anulación queda en el **Libro de Guías** (facturador de mercado) y, en el facturador gratuito, además hay que anotarla en "Seguimiento del documento" del portal del SII.
 
 #### Tipo de despacho
 
