@@ -225,7 +225,7 @@ La [Resolución Exenta SII N°154 de 2025](https://www.sii.cl/normativa_legislac
 - **Plataforma:** el formulario de guía tiene los campos nuevos (salida, llegada, patente del carro, motivo del traslado, transporte no informado) y la vista previa lista lo que falta antes de firmar.
 - **Carga por Excel:** la plantilla agrega las columnas `tipo_traslado`, `rut_transporte`, `patente`, `patente_carro`, `rut_chofer`, `nombre_chofer`, `fecha_salida`, `hora_salida`, `fecha_llegada`, `motivo_traslado`, `transporte_no_informado`, `direccion_destino` y `comuna_destino`.
 - **API:** los mismos campos en `transport_data`; el detalle está en [Emisión masiva de documentos](/api-reference/documents/batch), sección "Resolución 154".
-- **Facturador gratuito del SII (MiPyme):** el formulario del SII no tiene campos para salida, llegada, carro ni motivos, así que Pana los imprime como texto en la primera línea del detalle, como permite la resolución mientras el SII no los habilite.
+- **Facturador gratuito del SII (MiPyme):** el formulario del SII no tiene campos para destino, tipo de despacho, salida, llegada, carro ni motivos, así que Pana los imprime como texto en la primera línea del detalle, como permite la resolución mientras el SII no los habilite.
 
 **Anulación de una guía.** Si cambia lo informado, se emite una guía nueva que referencia a la anterior (referencia tipo 52) y la original se registra como anulada con su motivo. Por API se registra con `POST /v2/documents/{id}/states/` y `event_code` `ANNULLED`; si emites desde la plataforma, pídela a soporte indicando el folio y el motivo. Mientras el SII no habilite el Registro de Guías, la anulación queda en el **Libro de Guías** (facturador de mercado) y, en el facturador gratuito, además hay que anotarla en "Seguimiento del documento" del portal del SII.
 
@@ -275,7 +275,7 @@ Cada línea de la guía puede marcarse como **exenta** (no afecta a IVA). Su mon
 
 #### Facturador gratuito del SII (MiPyme)
 
-Si tu empresa emite con el **facturador gratuito del SII**, el formulario del SII sólo admite el tipo de traslado, el transportista, la patente, el chofer y los datos de madera. **No admite** tipo de despacho, destino, datos de Aduana ni líneas exentas: Tupana rechaza la guía antes de emitirla si los incluyes.
+Si tu empresa emite con el **facturador gratuito del SII**, el formulario del SII sólo admite el tipo de traslado, el transportista, la patente, el chofer y el origen de la madera. El tipo de despacho, el destino, la salida, la llegada, la patente del carro y los motivos se aceptan igual y Tupana los escribe como texto en la primera línea del detalle. **No admite** datos de Aduana, destino de la madera ni líneas exentas: Tupana rechaza la guía antes de emitirla si los incluyes.
 
 <Warning>
 En el facturador gratuito del SII, una guía con precios **siempre lleva IVA 19%**: no hay forma de marcar líneas exentas. Para un traslado de exportación con valor sin IVA, necesitas emitir con el **facturador de mercado**. En el facturador gratuito los datos de Aduana no son obligatorios con traslado 8 o 9.
