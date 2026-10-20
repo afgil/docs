@@ -71,7 +71,8 @@ No tienes que generar una API key ni registrar una aplicación. Al conectar, el 
 ## Permisos y seguridad
 
 - El asistente actúa con **tus permisos**: sólo ve y opera sobre las empresas a las que perteneces en Tupana.
-- Las acciones que **emiten documentos al SII o envían correos** piden **confirmación explícita** en la conversación antes de ejecutarse. Sin confirmación, el documento queda como borrador.
+- **Toda emisión parte como borrador.** Las herramientas que crean facturas, notas de crédito, facturas de compra o de exportación generan un borrador sin folio que no llega al SII. Para emitirlo, primero se genera la vista previa (`get_document_preview`) y recién después `emit_document` lo envía al SII. Las facturas programadas se crean **inactivas** hasta que las actives en Tupana.
+- Las herramientas declaran si son de solo lectura o si modifican datos, así que el cliente (por ejemplo, Claude) te pide confirmación antes de emitir al SII, enviar un correo o conciliar un movimiento.
 - Para revocar el acceso, desconecta el servidor en el cliente.
 
 ## Qué puedes hacer
@@ -83,14 +84,16 @@ Las herramientas se describen solas al conectarse, así que la lista siempre est
 
 | Categoría | Ejemplos |
 |---|---|
-| **Documentos** | Consultar y buscar emitidos y recibidos; emitir facturas afectas (33) y exentas (34), notas de crédito (61), facturas de compra (46) y facturas de exportación (110); crear facturas programadas; obtener el PDF |
+| **Documentos** | Consultar y buscar emitidos y recibidos; crear borradores de facturas afectas (33) y exentas (34), notas de crédito (61), facturas de compra (46) y facturas de exportación (110), revisarlos con vista previa y emitirlos; crear facturas programadas; obtener el PDF |
 | **Clientes y proveedores** | Datos de una empresa por RUT; cuentas por cobrar y por pagar |
 | **Libros del SII y F29** | Libros de compra y venta; resumen de IVA y del F29 |
 | **Banco y conciliación** | Movimientos bancarios; sugerencias de conciliación; conciliar movimientos |
-| **Contabilidad** | Asientos, libro mayor, balance y estado de resultados |
-| **Gráficos** | Reportes y gráficos de ventas, compras y otros indicadores |
+| **Reportes** | Ventas y compras por mes, cliente o tipo; ingresos mensuales; principales clientes y productos |
+| **Base de empresas del SII** | Buscar empresas por rubro, región, tamaño y crecimiento |
 
 ## Qué no hace
+
+- **No incluye contabilidad** (asientos, libro mayor, balances). Eso está en el conector de [abacco](https://abacco.ai).
 
 - **No emite guías de despacho (DTE 52).** Puede consultarlas, pero para emitirlas usa la plataforma o la [API de emisión masiva](/api-reference/documents/batch).
 - No reemplaza tareas que sólo existen en pantalla, como cargas masivas o configurar credenciales del SII: en esos casos el asistente te entrega el link a la plataforma.
@@ -113,6 +116,10 @@ La API usa API key (`Authorization: Api-Key TU_API_KEY`), no la sesión del usua
 <Warning>
 `mcp.tupana.ai` es el servidor de Tupana: da acceso a los datos y operaciones de tus empresas, con inicio de sesión. **No es** el buscador de documentación que Mintlify puede exponer en el dominio de esta documentación, que sólo lee páginas públicas.
 </Warning>
+
+## English
+
+An English version of this page, with the full tool list, is available at [Tupana connector for Claude](/agentes/claude-connector).
 
 ## Guía para asistentes
 
