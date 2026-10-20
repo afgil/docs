@@ -47,7 +47,7 @@ API para developers e integradores (valores netos, más IVA):
 - Recaudación (link de pago): 2% de lo recaudado, sin costo fijo.
 - Sandbox y base de datos de empresas del SII: gratis.
 
-Planes de la plataforma web: Independent 0,3 UF (10 documentos), Starter 1,0 UF (70 documentos, incluye API), Basic 2,2 UF (180 documentos), Enterprise desde 4,5 UF (hasta 1.000 documentos al mes).
+Planes de la plataforma web: Independent 0,3 UF (10 documentos y 100 boletas), Starter 1,0 UF (70 documentos y 700 boletas, incluye cobranza y API), Pro 2,2 UF (200 documentos y 2.000 boletas, incluye cesiones), Enterprise desde 4,5 UF (1.000 documentos y 10.000 boletas, hasta 3 razones sociales). Conciliación bancaria: 1,0 UF al mes (1 banco incluido).
 
 Detalle: https://docs.tupana.ai/precios
 
@@ -564,12 +564,14 @@ Para SaaS, ERP y plataformas que facturan por API para sus clientes. Pagas por e
 
 Para empresas que facturan desde la plataforma web de Tupana. La API de integración está incluida desde el plan Starter.
 
-| Plan | Precio mensual | Documentos incluidos | Destacado |
+| Plan | Precio mensual | Incluye al mes | Destacado |
 |---|---|---|---|
-| **Independent** | 0,3 UF | 10 | Facturación electrónica y facturas programadas |
-| **Starter** | 1,0 UF | 70 | Carga masiva desde Excel, **API de integración**, notas de crédito |
-| **Basic** | 2,2 UF | 180 | Alertas de vencimiento, reportes mensuales, de orden de compra a factura |
-| **Enterprise** | desde 4,5 UF | Hasta 1.000 al mes | Integración con portales B2B y atención con ventas |
+| **Independent** | 0,3 UF | 10 documentos y 100 boletas | Emisión web y móvil |
+| **Starter** | 1,0 UF | 70 documentos y 700 boletas | Cobranza y **API de integración** incluidas |
+| **Pro** | 2,2 UF | 200 documentos y 2.000 boletas | Cesiones y todo lo de Starter |
+| **Enterprise** | desde 4,5 UF | 1.000 documentos y 10.000 boletas | Hasta 3 razones sociales, alto volumen y API |
+
+Módulo de conciliación bancaria: 1,0 UF al mes (1 banco incluido). Si te pasas del cupo, los documentos extra se cobran a valor bajo y nunca te bloqueamos.
 
 El detalle vigente de cada plan está en [tupana.ai](https://www.tupana.ai).
 
