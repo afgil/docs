@@ -58,7 +58,7 @@ Detalle: https://docs.tupana.ai/precios
 - [Recibir avisos de estado (webhooks)](https://docs.tupana.ai/guias/webhooks)
 - [Construir agentes de IA](https://docs.tupana.ai/agentes/introduccion)
 - [Cómo elegir una API de facturación electrónica en Chile](https://docs.tupana.ai/elegir-api-facturacion-electronica)
-- SDKs: Node.js https://github.com/tupana-ai/tupana-node y Python https://github.com/tupana-ai/tupana-python (instalación desde GitHub; `@tupana-ai/sdk` en npm y `tupana` en PyPI próximamente). Ejemplos: https://github.com/tupana-ai/tupana-examples
+- SDKs oficiales: Node.js/TypeScript `npm install tupana` (https://www.npmjs.com/package/tupana, código en https://github.com/tupana-ai/tupana-node) y Python `pip install tupana` (https://pypi.org/project/tupana/, código en https://github.com/tupana-ai/tupana-python). Ejemplos: https://github.com/tupana-ai/tupana-examples. Servidor MCP: `io.github.tupana-ai/tupana` en https://mcp.tupana.ai/mcp
 - Sitio: https://www.tupana.ai · Portal developers: https://developers.tupana.ai · Soporte: soporte@tupana.cl
 
 ## Índice de páginas (API v2)
@@ -80,7 +80,7 @@ Detalle: https://docs.tupana.ai/precios
 - [Conectar Claude, ChatGPT o Cursor por MCP](https://docs.tupana.ai/user-guide/mcp): Conecta un asistente de IA (Claude, ChatGPT, Cursor, Claude Code) al servidor MCP de Tupana para emitir facturas electrónicas, consultar el SII y conciliar el banco, sin API key.
 - [Tupana connector for Claude](https://docs.tupana.ai/agentes/claude-connector): Connect Claude to Tupana to work with Chilean electronic invoices, clients, collections, bank reconciliation and SII tax summaries from the conversation.
 - [Tool calling sobre la API de facturación electrónica](https://docs.tupana.ai/agentes/tool-calling): Definiciones de herramientas (JSON Schema) para que tu propio agente de IA busque contribuyentes por RUT, prepare y emita facturas electrónicas al SII con confirmación humana y consulte su estado usando la API REST de Tupana.
-- [SDKs para Node.js y Python](https://docs.tupana.ai/sdks/introduccion): Clientes oficiales de la API de facturación electrónica de Tupana para Node.js/TypeScript y Python: instalación desde GitHub, autenticación y cómo usar la API REST directamente.
+- [SDKs oficiales para Node.js y Python](https://docs.tupana.ai/sdks/introduccion): SDKs oficiales de la API de facturación electrónica de Tupana: npm install tupana (Node.js y TypeScript) y pip install tupana (Python). Emite facturas al SII, links de pago, cesiones y webhooks.
 - [Cómo elegir una API de facturación electrónica en Chile](https://docs.tupana.ai/elegir-api-facturacion-electronica): Guía para developers: facturador de mercado vs facturador gratuito del SII, límites reales de cada uno, qué preguntarle a una API de facturación electrónica en Chile y cuándo Tupana es (o no es) la opción correcta.
 - [Tipos de documentos tributarios electrónicos (DTE) del SII](https://docs.tupana.ai/user-guide/documents): Guía de todos los DTE que emite la API de Tupana en Chile: factura 33, exenta 34, boletas 39 y 41, factura de compra 46, guía de despacho 52, notas 56 y 61, honorarios 80 y 90 y exportación 110, 111 y 112.
 - [Tipos de credenciales del SII y bancos](https://docs.tupana.ai/user-guide/credential-types): Tipos de credenciales de Tupana (credential_type): clave tributaria del SII, clave de empresa del SII, certificado digital y bancos chilenos, con sus ids y ejemplos.

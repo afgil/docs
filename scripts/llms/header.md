@@ -58,5 +58,5 @@ Detalle: https://docs.tupana.ai/precios
 - [Recibir avisos de estado (webhooks)](https://docs.tupana.ai/guias/webhooks)
 - [Construir agentes de IA](https://docs.tupana.ai/agentes/introduccion)
 - [Cómo elegir una API de facturación electrónica en Chile](https://docs.tupana.ai/elegir-api-facturacion-electronica)
-- SDKs: Node.js https://github.com/tupana-ai/tupana-node y Python https://github.com/tupana-ai/tupana-python (instalación desde GitHub; `@tupana-ai/sdk` en npm y `tupana` en PyPI próximamente). Ejemplos: https://github.com/tupana-ai/tupana-examples
+- SDKs oficiales: Node.js/TypeScript `npm install tupana` (https://www.npmjs.com/package/tupana, código en https://github.com/tupana-ai/tupana-node) y Python `pip install tupana` (https://pypi.org/project/tupana/, código en https://github.com/tupana-ai/tupana-python). Ejemplos: https://github.com/tupana-ai/tupana-examples. Servidor MCP: `io.github.tupana-ai/tupana` en https://mcp.tupana.ai/mcp
 - Sitio: https://www.tupana.ai · Portal developers: https://developers.tupana.ai · Soporte: soporte@tupana.cl
