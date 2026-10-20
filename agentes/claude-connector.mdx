@@ -1,0 +1,159 @@
+---
+title: 'Tupana connector for Claude'
+sidebarTitle: 'Tupana connector for Claude (English)'
+description: 'Connect Claude to Tupana to work with Chilean electronic invoices, clients, collections, bank reconciliation and SII tax summaries from the conversation.'
+---
+
+# Tupana connector for Claude
+
+[Tupana](https://www.tupana.ai) is a Chilean electronic invoicing platform. The Tupana connector lets Claude work with your companies' data in Tupana: search and summarize documents, prepare invoices and credit notes, follow up on unpaid invoices, reconcile bank movements and read tax summaries from the SII (Chile's tax authority).
+
+## Connection details
+
+| | |
+|---|---|
+| Server URL | `https://mcp.tupana.ai/mcp` |
+| Transport | Streamable HTTP (remote MCP) |
+| Authentication | OAuth 2.1 with PKCE and dynamic client registration |
+| Sign-in | Your Tupana account (email and password, or Google) |
+| API key | Not needed |
+
+## Setup
+
+1. In Claude, open **Settings → Connectors** and add the Tupana connector (or **Add custom connector** with the URL above).
+2. Sign in with your Tupana account when the browser opens.
+3. Ask Claude about your invoices, clients or bank movements.
+
+Claude Code: `claude mcp add --transport http tupana https://mcp.tupana.ai/mcp`, then run `/mcp` and choose `tupana` to sign in.
+
+## How issuing works
+
+Issuing a tax document in Chile is legally binding and cannot be deleted (only cancelled with a credit note), so every issuing flow has a review step:
+
+1. **Draft**: `create_sale_invoice`, `create_credit_note`, `create_purchase_invoice` and `create_export_invoice` create a draft. A draft has no folio (document number) and is not sent to the SII.
+2. **Preview**: `get_document_preview` renders the draft as a PDF.
+3. **Issue**: `emit_document` sends the draft to the SII. It refuses to issue a draft that has no preview.
+
+Recurring invoices created with `create_scheduled_invoice` start **inactive**: nothing is issued until you activate them in Tupana.
+
+Each tool declares whether it is read-only or writes data. Claude asks for your confirmation before running the tools that issue documents, send email or record a reconciliation.
+
+## Tools
+
+### Documents and invoicing
+
+| Tool | What it does | Access |
+|---|---|---|
+| `get_documents` | List documents | Read-only |
+| `search_documents` | Search issued documents | Read-only |
+| `get_document_link` | Get document PDF link | Read-only |
+| `report_documents` | Report issued documents | Read-only |
+| `create_sale_invoice` | Create sale invoice (draft) | Writes |
+| `create_credit_note` | Create credit note draft | Writes |
+| `create_purchase_invoice` | Create purchase invoice draft | Writes |
+| `create_export_invoice` | Create export invoice draft | Writes |
+| `get_document_preview` | Preview a draft document | Writes |
+| `emit_document` | Issue document to the SII | Writes (destructive) |
+| `send_document_email` | Email a document | Writes (destructive) |
+| `create_scheduled_invoice` | Create recurring invoice schedule | Writes |
+| `get_scheduled_documents` | List scheduled invoices | Read-only |
+| `parse_document_to_invoice` | Extract invoice items from a document | Read-only |
+
+### Clients and suppliers
+
+| Tool | What it does | Access |
+|---|---|---|
+| `get_entity_info` | List my companies | Read-only |
+| `find_clients` | Find clients | Read-only |
+| `get_suppliers` | List suppliers | Read-only |
+| `enrich_client_from_rut` | Look up a company by RUT | Read-only |
+| `get_top_clients` | Top clients | Read-only |
+| `get_top_products` | Top products | Read-only |
+| `get_monthly_revenue` | Monthly revenue | Read-only |
+
+### Collections and bank reconciliation
+
+| Tool | What it does | Access |
+|---|---|---|
+| `get_pending_invoices` | List unpaid invoices | Read-only |
+| `get_payment_documents` | List payment documents | Read-only |
+| `get_bank_movements` | List bank movements | Read-only |
+| `get_reconciliation_suggestions` | Get reconciliation suggestions | Read-only |
+| `get_reconciliations` | List bank reconciliations | Read-only |
+| `reconcile_movement` | Reconcile bank movement | Writes (destructive) |
+
+### Tax summaries
+
+| Tool | What it does | Access |
+|---|---|---|
+| `get_sii_books` | Get purchase and sales books | Read-only |
+| `get_f29_summary` | Get F29 VAT return summary | Read-only |
+| `get_tax_summary` | Get VAT summary | Read-only |
+
+### SII company registry
+
+| Tool | What it does | Access |
+|---|---|---|
+| `search_sii_companies` | Search SII companies | Read-only |
+| `find_growing_sii_companies` | Find growing SII companies | Read-only |
+| `get_sii_companies_metadata` | SII registry filters | Read-only |
+| `find_sii_prospects` | Find prospects in SII registry | Read-only |
+| `get_sii_company_history` | SII company history | Read-only |
+| `get_sii_market_summary` | SII market size summary | Read-only |
+
+### Help, links and Tupana Connect
+
+| Tool | What it does | Access |
+|---|---|---|
+| `get_app_guide` | Tupana app guide | Read-only |
+| `list_capabilities` | List Tupana capabilities | Read-only |
+| `how_to` | Step-by-step how-to | Read-only |
+| `get_app_link` | Get Tupana app link | Read-only |
+| `get_tupana_connect_guide` | Tupana Connect guide | Read-only |
+| `open_tupana_connect` | Open Tupana Connect | Writes |
+
+### Integration guides (for developers)
+
+| Tool | What it does | Access |
+|---|---|---|
+| `get_invoice_flow` | Integration guide: invoice flow | Read-only |
+| `get_invoice_ui_spec` | Integration guide: invoice UI spec | Read-only |
+| `get_invoice_validation_schema` | Integration guide: validation schema | Read-only |
+| `validate_invoice_draft` | Validate invoice draft | Read-only |
+| `get_customer_lookup_flow` | Integration guide: customer lookup | Read-only |
+| `get_invoice_item_rules` | Integration guide: line item rules | Read-only |
+| `get_invoice_reference_rules` | Integration guide: reference rules | Read-only |
+| `get_invoice_preview_flow` | Integration guide: preview flow | Read-only |
+| `get_invoice_issuance_flow` | Integration guide: issuance flow | Read-only |
+| `get_async_strategy` | Integration guide: async strategy | Read-only |
+| `get_integration_setup` | Integration guide: setup | Read-only |
+| `get_invoice_contract_findings` | Integration guide: contract rules | Read-only |
+| `get_error_resolution` | Explain a Tupana or SII error | Read-only |
+| `get_capabilities` | Integration guide: API capabilities | Read-only |
+| `get_design_system` | Integration guide: Tupana design tokens | Read-only |
+
+## Permissions and data
+
+- Claude acts with **your** Tupana permissions and only sees the companies you belong to.
+- The connector returns only the data needed for each request, paginated (at most 100 rows per page).
+- The connector does not read your conversation history or files.
+- Your data is processed under the [Tupana privacy policy](https://www.tupana.ai/privacy). Security practices: [tupana.ai/seguridad](https://www.tupana.ai/seguridad).
+- To revoke access, disconnect the connector in Claude.
+
+## What it does not do
+
+- It does not do bookkeeping (journal entries, ledger, balance sheet).
+- It does not issue dispatch guides (DTE 52) or bulk uploads; those are available in the Tupana app and the [REST API](/api-reference/v2/introduction).
+- It does not move money or make payments.
+
+## Example prompts
+
+- "Which invoices are still unpaid this month, and who owes the most?"
+- "Prepare an invoice for Cliente Demo SpA for 1 consulting service of $100,000 and show me the preview."
+- "Summarize my VAT for September."
+- "Suggest matches between my bank movements and pending invoices."
+- "Find growing logistics companies in the Biobío region."
+
+## Support
+
+Questions or problems: [contacto@tupana.ai](mailto:contacto@tupana.ai).

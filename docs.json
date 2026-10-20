@@ -46,6 +46,7 @@
                 "pages": [
                   "agentes/introduccion",
                   "user-guide/mcp",
+                  "agentes/claude-connector",
                   "agentes/tool-calling"
                 ]
               },
