@@ -1,6 +1,7 @@
 ---
-title: 'Paso a Paso'
-description: 'Comienza a usar Tupana en minutos'
+title: 'Paso a paso: empezar a facturar con Tupana'
+sidebarTitle: 'Paso a paso'
+description: 'Guía para empezar a emitir facturas electrónicas al SII con Tupana: cuenta, API key de sandbox, primera factura desde la plataforma o por API y webhooks.'
 ---
 
 
@@ -59,7 +60,9 @@ Todas las API Keys nuevas comienzan en modo sandbox (pruebas). Esto te permite:
 Si necesitas automatizar tu facturación:
 1. Integra con nuestra API usando tu lenguaje de programación favorito
 2. Emite documentos individuales o en lote
-3. [Ver documentación de la API →](/api-reference/documents-batch)
+3. [Ver documentación de la API →](/api-reference/v2/documents/batch)
+
+¿Quieres probar la API ahora? Sigue [Tu primera llamada en 2 minutos](/quickstart).
 
 ## Paso 4: Configura las Notificaciones (Webhooks)
 
@@ -70,12 +73,7 @@ Los webhooks te permiten recibir notificaciones automáticas cuando ocurren even
 <img src="/images/webhook2.png" alt="Configuración de Webhook" />
 
 <Note>
-Actualmente solo está disponible el evento **document.issued**, que se dispara cuando un documento es emitido exitosamente. Próximamente se habilitarán los siguientes eventos:
-- **document.delivered**: Cuando el PDF/XML sea enviado al receptor
-- **document.rejected**: Cuando el SII rechace el documento
-- **document.paid**: Cuando se registre el pago del documento
-- **document.unpaid**: Cuando el documento vuelva de pagado a no pagado (se revierta el pago/conciliación)
-- **document.cancelled**: Cuando el documento sea anulado o se emita una Nota de Crédito
+Además de **document.issued** hay eventos para fallas de emisión, rechazos del SII, entrega, pagos, anulaciones, documentos programados, conexiones y cobros. La lista completa está en la [guía de webhooks](/user-guide/webhooks) y en [Recibir avisos de estado](/guias/webhooks).
 </Note>
 
 ### Ejemplo de Payload
@@ -198,7 +196,7 @@ Una vez que hayas emitido tu primer documento, puedes:
 
 1. [Configurar la autenticación](/user-guide/authentication)
 2. [Explorar tipos de documentos](/user-guide/documents)
-3. [Ver la referencia completa de la API](/api-reference/introduction)
+3. [Ver la referencia completa de la API](/api-reference/v2/introduction)
 
 ## Soporte
 

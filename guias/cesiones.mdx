@@ -1,0 +1,78 @@
+---
+title: 'Ceder facturas electrónicas (factoring) por API'
+sidebarTitle: 'Ceder facturas'
+description: 'Cómo ceder facturas electrónicas (DTE 33 y 34) a una empresa de factoring con la API de Cesiones de Tupana: genera los AEC, los envía al SII y te entrega el certificado de cesión.'
+keywords: ['cesión de facturas', 'factoring', 'aec', 'sii', 'api cesiones', 'chile']
+---
+
+Ceder una factura es transferir el derecho a cobrarla, normalmente a una empresa de factoring. Con la [API de Cesiones](/api-reference/v2/cessions/introduction) generas los archivos electrónicos de cesión (AEC) de varias facturas en una llamada; Tupana obtiene los datos que pide el SII, envía las cesiones y te deja el resultado por documento.
+
+## Antes de empezar
+
+- Las facturas a ceder deben ser **DTE 33 o 34**, emitidas por la empresa que cede.
+- La empresa necesita una conexión del SII **del representante legal** (RUT y clave personal) en estado válido. Las empresas que emiten con el facturador de mercado de Tupana ceden con el certificado de la empresa.
+- Los ids de los documentos (`docu_…`), que obtienes con [Listar documentos](/api-reference/v2/documents/list).
+
+## 1. Crea el lote de cesión
+
+```bash
+curl -X POST https://api.tupana.ai/v2/cessions/batch/ \
+  -H "Authorization: Api-Key $TUPANA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "master_entity_id": "ment_4829301923847",
+    "document_ids": ["docu_9f2a7c1b8e4d0", "docu_3b7e1a9c2f5d8"],
+    "assignee_rut": "76798398",
+    "assignee_dv": "0",
+    "assignee_business_name": "FACTORING EJEMPLO SPA",
+    "assignee_address": "Av. Apoquindo 1000",
+    "assignee_email": "operaciones@factoring.cl",
+    "assignor_email": "finanzas@miempresa.cl"
+  }'
+```
+
+La API valida y responde `202` de inmediato; las cesiones se generan en segundo plano:
+
+```json
+{
+  "success": true,
+  "status": "processing",
+  "total": 2,
+  "message": "Generando las cesiones y enviándolas al SII…",
+  "cession_batch_id": "e7877303-1a03-424d-a024-48c1de218611"
+}
+```
+
+Referencia: [Crear cesiones en lote](/api-reference/v2/cessions/batch).
+
+## 2. Consulta el estado del lote
+
+```bash
+curl https://api.tupana.ai/v2/cessions/batch/e7877303-1a03-424d-a024-48c1de218611/ \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+Consulta con reintentos espaciados hasta que `status` deje de ser `pending` o `processing`:
+
+| `status` | Significado |
+|---|---|
+| `completed` | Todas las facturas se cedieron |
+| `partial` | Algunas sí y otras no: revisa `batch_cessions` |
+| `failed` | Ninguna se cedió |
+
+Cada elemento de `batch_cessions` trae el `folio`, su `status`, el `cession_id` si tuvo éxito y el `error_message` que devolvió el SII si falló. Referencia: [Consultar estado de un lote de cesión](/api-reference/v2/cessions/batch-status).
+
+## 3. Descarga el certificado
+
+Con el `cession_id`, [Obtener cesión y certificado](/api-reference/v2/cessions/get) entrega el detalle y el certificado de la cesión para enviárselo al factoring. Para ver todas las cesiones de una empresa, usa [Listar cesiones](/api-reference/v2/cessions/list).
+
+## Errores frecuentes
+
+- **Credencial no válida o de empresa**: la cesión en el portal del SII requiere la clave personal del representante legal.
+- **La factura no cumple los requisitos de cesión** del SII (por ejemplo, ya fue cedida o está fuera de plazo): el detalle viene en `error_message`.
+- **Errores transitorios del SII**: vuelve a crear un lote solo con las facturas que fallaron.
+
+## Relacionado
+
+- [Introducción a Cesiones](/api-reference/v2/cessions/introduction)
+- [Recibir avisos de estado](/guias/webhooks): `document.trace_updated` avisa cambios en la traza del SII

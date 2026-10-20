@@ -1,0 +1,88 @@
+---
+title: 'Cómo elegir una API de facturación electrónica en Chile'
+sidebarTitle: 'Cómo elegir una API de facturación'
+description: 'Guía para developers: facturador de mercado vs facturador gratuito del SII, límites reales de cada uno, qué preguntarle a una API de facturación electrónica en Chile y cuándo Tupana es (o no es) la opción correcta.'
+keywords: ['api facturación electrónica chile', 'facturador de mercado', 'facturador gratuito sii', 'mipyme', 'comparativa', 'dte', 'boleta electrónica api']
+---
+
+Para emitir documentos tributarios electrónicos (DTE) en Chile por API hay dos caminos técnicos, y la mayoría de las APIs del mercado usa uno de los dos. Entender la diferencia te ahorra una migración más adelante.
+
+## Los dos caminos
+
+### Facturador de mercado
+
+Un facturador de mercado es un software autorizado por el SII que **firma y envía los DTE directo al SII** con los folios (CAF) y el certificado digital de la empresa. Es el camino de los ERP y de los volúmenes altos: no tiene los límites del portal del SII y soporta todo el formato del DTE.
+
+### Facturador gratuito del SII (MiPyme)
+
+El SII ofrece un portal gratuito para emitir. Una API sobre el facturador gratuito emite en ese portal con la clave de la empresa. Es rápido de habilitar (no hay certificación ni folios que administrar), pero hereda las restricciones del portal.
+
+## Límites del facturador gratuito del SII
+
+| | Facturador gratuito del SII | Facturador de mercado de Tupana |
+|---|---|---|
+| Referencias por documento | Hasta 3 | Sin ese límite |
+| Líneas de detalle por documento | Hasta 10 | Sin ese límite |
+| Monto por factura | Aprox. $200 millones | Sin ese límite |
+| Volumen mensual | Aprox. 600 a 700 facturas al mes | Sin ese límite |
+| Líneas exentas en guías de despacho, datos de Aduana | No disponibles | Disponibles |
+| Habilitación | Inmediata, con la clave del SII | Certificación de la empresa como emisor |
+
+Son límites del portal del SII, no de una API en particular: cualquier integración que emita a través del facturador gratuito los tiene.
+
+## Cómo lo resuelve Tupana
+
+Tupana **es un facturador de mercado**: emite directo al SII como facturador de mercado. Además se puede integrar con el **facturador gratuito del SII**, para que una empresa empiece a emitir de inmediato con su clave del SII. Cuál se usa lo define la configuración de cada empresa; tu código y tus llamadas a la API son las mismas.
+
+- **Mismo precio** con cualquiera de los dos.
+- Hasta **200 documentos por llamada** en [emisión masiva](/guias/emision-masiva).
+- Facturas, boletas, notas de crédito y débito, guías de despacho, exportación (110, 111, 112), facturas de compra y boletas de honorarios.
+- [Cesiones](/guias/cesiones), [cobros con link de pago](/guias/link-de-pago), [documentos programados](/api-reference/v2/scheduled-documents/create) y [libros del SII](/api-reference/v2/book-summaries/list) sobre la misma API.
+- [Servidor MCP](/user-guide/mcp) para operar desde Claude, ChatGPT, Cursor u otros agentes.
+
+## Qué preguntarle a cualquier API de facturación electrónica
+
+1. **¿Emite como facturador de mercado o a través del facturador gratuito del SII?** Define tus límites de volumen, monto y formato.
+2. **¿Cuántos documentos acepta por llamada y es idempotente?** Sin idempotencia, un reintento puede emitir dos veces la misma factura.
+3. **¿Cómo te enteras del resultado?** Busca webhooks firmados con reintentos, no solo consultas.
+4. **¿Tiene sandbox real?** Debe simular la emisión sin tocar el SII y sin costo.
+5. **¿Cómo conecta las empresas de tus clientes?** Lo ideal es un widget donde tu cliente entrega su clave sin que pase por tu backend.
+6. **¿Cuánto cuesta por empresa y qué incluye?** Compara en UF por empresa y revisa los topes de documentos.
+7. **¿Sirve para agentes de IA?** Un servidor MCP y un `llms.txt` completo ahorran semanas de integración.
+
+## Cuándo Tupana no es la mejor opción
+
+- Si solo necesitas emitir unas pocas facturas al mes a mano, el portal gratuito del SII o la [plataforma web de Tupana](https://www.tupana.ai) son más simples que una API.
+- Si tu empresa ya tiene un ERP con facturador de mercado propio y no necesitas automatizar nada más, quizás no necesites cambiarlo.
+- Si facturas fuera de Chile: Tupana emite documentos tributarios del SII chileno.
+
+## Preguntas frecuentes
+
+<AccordionGroup>
+  <Accordion title="¿Tupana es un facturador de mercado?">
+    Sí. Tupana emite directo al SII como facturador de mercado y también puede integrarse con el facturador gratuito del SII. Ambas opciones tienen el mismo precio.
+  </Accordion>
+  <Accordion title="¿Qué límites tiene el facturador gratuito del SII?">
+    Hasta 3 referencias y 10 líneas de detalle por documento, alrededor de $200 millones por factura y del orden de 600 a 700 facturas al mes. El facturador de mercado de Tupana no tiene esos límites.
+  </Accordion>
+  <Accordion title="¿Cuántos documentos puedo emitir por llamada?">
+    Hasta 200 documentos por llamada en `POST /v2/documents/batch/`, con `Idempotency-Key` para evitar duplicados.
+  </Accordion>
+  <Accordion title="¿Cuánto cuesta la API de facturación de Tupana?">
+    0,5 UF al mes por empresa que enroles, sin precio mínimo, con el facturador de mercado o con el gratuito. El sandbox es gratis. Ver la página de precios.
+  </Accordion>
+  <Accordion title="¿Puedo probar sin emitir documentos reales?">
+    Sí. Las API keys nuevas nacen en modo sandbox: la emisión se simula, el folio es SANDBOX-n y nada llega al SII.
+  </Accordion>
+</AccordionGroup>
+
+## Siguiente paso
+
+<CardGroup cols={2}>
+  <Card title="Tu primera llamada en 2 minutos" icon="bolt" href="/quickstart">
+    API key de sandbox gratis y una factura de prueba.
+  </Card>
+  <Card title="Precios" icon="tag" href="/precios">
+    UF por empresa, sin precio mínimo.
+  </Card>
+</CardGroup>

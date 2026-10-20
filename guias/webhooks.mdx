@@ -1,0 +1,113 @@
+---
+title: 'Recibir avisos de estado de tus DTE con webhooks'
+sidebarTitle: 'Recibir avisos de estado (webhooks)'
+description: 'Configura webhooks de Tupana para saber cuándo una factura electrónica se emite, la rechaza el SII, se paga o se anula. Incluye verificación de la firma HMAC-SHA256 y manejo de reintentos.'
+keywords: ['webhooks', 'estado dte', 'sii', 'hmac', 'document.issued', 'api facturación']
+---
+
+Emitir es asíncrono: la API acepta el lote al tiro y el resultado llega después. Un webhook es la forma confiable de enterarte. Esta guía lo configura, lo protege y lo deja listo para reintentos. La lista completa de eventos y payloads está en la [guía de webhooks](/user-guide/webhooks).
+
+## 1. Crea el webhook
+
+Un webhook es por empresa (`master_entity_id`). Elige solo los eventos que vas a usar y define un `secret` para firmar.
+
+```bash
+curl -X POST https://api.tupana.ai/v2/webhooks/ \
+  -H "Authorization: Api-Key $TUPANA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "master_entity_id": "ment_4829301923847",
+    "url": "https://mi-sistema.com/webhooks/tupana",
+    "events": ["document.issued", "document.rejected", "document.issue_failed"],
+    "secret": "un-secreto-largo-y-aleatorio",
+    "is_active": true,
+    "environment": "both",
+    "api_version": 2
+  }'
+```
+
+`api_version: 2` hace que todos los ids del payload sean públicos (`docu_…`, `ment_…`), los mismos que devuelve la API v2. Referencia: [Crear webhook](/api-reference/v2/webhooks-pages/create).
+
+## 2. Elige los eventos
+
+| Si quieres saber… | Evento |
+|---|---|
+| Que el documento quedó emitido (folio, montos, PDF) | `document.issued` |
+| Que la emisión falló | `document.issue_failed` |
+| Que el SII lo rechazó | `document.rejected` |
+| Que se envió al receptor | `document.delivered` |
+| Cambios en la traza del SII (acuse, reclamo, cesión) | `document.trace_updated` |
+| Que se pagó o se revirtió el pago | `document.paid`, `document.unpaid` |
+| Que se anuló o se emitió una nota de crédito | `document.cancelled` |
+| Resultado de un documento programado | `scheduled_document.run_succeeded`, `scheduled_document.run_failed` |
+| Que una conexión quedó lista o requiere acción | `connection.active`, `connection.requires_action` |
+| Que un cobro se pagó o expiró | `payment_request.paid`, `payment_request.expired` |
+| Probar tu endpoint | `webhook.test` |
+
+## 3. Verifica la firma
+
+Si el webhook tiene `secret`, cada envío trae `X-Pana-Signature`: el HMAC-SHA256 en hexadecimal **del cuerpo crudo de la petición** con tu secret. Calcula la firma sobre los bytes tal como llegaron, antes de parsear el JSON.
+
+<CodeGroup>
+
+```javascript Node.js (Express)
+import crypto from "node:crypto";
+import express from "express";
+
+const app = express();
+
+app.post("/webhooks/tupana", express.raw({ type: "application/json" }), (req, res) => {
+  const expected = crypto
+    .createHmac("sha256", process.env.TUPANA_WEBHOOK_SECRET)
+    .update(req.body) // Buffer con el cuerpo crudo
+    .digest("hex");
+  const received = req.get("X-Pana-Signature") || "";
+  const valid =
+    received.length === expected.length &&
+    crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(received));
+  if (!valid) return res.status(401).end();
+
+  const event = JSON.parse(req.body);
+  // Encola el trabajo y responde rápido
+  res.status(200).end();
+});
+```
+
+```python Python (Flask)
+import hashlib, hmac, os
+from flask import Flask, request
+
+app = Flask(__name__)
+
+@app.post("/webhooks/tupana")
+def tupana_webhook():
+    raw = request.get_data()  # bytes, sin parsear
+    expected = hmac.new(
+        os.environ["TUPANA_WEBHOOK_SECRET"].encode(), raw, hashlib.sha256
+    ).hexdigest()
+    if not hmac.compare_digest(expected, request.headers.get("X-Pana-Signature", "")):
+        return "", 401
+    event = request.get_json()
+    # Encola el trabajo y responde rápido
+    return "", 200
+```
+
+</CodeGroup>
+
+Otros headers útiles: `X-Pana-Event-Type` (el evento), `X-Pana-Event-Id` (id del evento), `X-Pana-Delivery` (id del intento de entrega) y `X-Pana-Timestamp`.
+
+## 4. Responde rápido y sin duplicar
+
+- Responde `2xx` en menos de 2 segundos y procesa el evento en segundo plano.
+- Si tu endpoint falla, Tupana reintenta con espera creciente (1 minuto, 5 minutos, 15 minutos, 1 hora, 6 horas).
+- Un reintento repite el mismo evento: guarda `X-Pana-Event-Id` y descarta los que ya procesaste.
+
+## 5. Pruébalo
+
+Desde la plataforma (**Configuración → Webhooks → Probar**) se envía un `webhook.test`. El campo `environment` del webhook define de qué ambiente recibe eventos de documentos: `both` (default), `production` o `sandbox`. Con `both` o `sandbox`, los documentos simulados con tu key de sandbox también llegan, así que puedes probar el flujo completo sin emitir nada real. Usa un webhook con `production` cuando pases a producción para no mezclar eventos.
+
+## Relacionado
+
+- [Guía de webhooks: todos los payloads](/user-guide/webhooks)
+- [Webhooks de Recaudación](/api-reference/payment-requests/webhooks)
+- [Emitir facturas en lote](/guias/emision-masiva)

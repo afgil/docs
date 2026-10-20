@@ -1,0 +1,86 @@
+---
+title: 'Cobrar con link de pago y emitir la boleta o factura al pagar'
+sidebarTitle: 'Cobrar con link de pago'
+description: 'Crea un link de pago con la API de Recaudación de Tupana (Transbank): tu cliente paga con débito, crédito o transferencia y Tupana emite el DTE al SII automáticamente y te avisa por webhook.'
+keywords: ['link de pago', 'recaudación', 'cobranza', 'transbank', 'boleta electrónica', 'api pagos chile']
+---
+
+Con la [API de Recaudación](/api-reference/payment-requests/introduction) creas una sesión de cobro y recibes una `payment_url`. Tu cliente paga ahí (Transbank), Tupana deposita el monto neto a la empresa que cobra y, si corresponde, emite la boleta o factura. Tú solo esperas el webhook.
+
+<Info>
+Recaudación cuesta el **2% de lo recaudado**, sin costo fijo. Ver [Precios](/precios).
+</Info>
+
+## Antes de empezar
+
+- La empresa que cobra registrada con su [cuenta bancaria](/api-reference/payment-requests/banking-info-create) para recibir los depósitos.
+- Un [webhook](/guias/webhooks) suscrito a `payment_request.paid`.
+
+## 1. Elige el modo
+
+| Modo | Cuándo | Qué mandas |
+|---|---|---|
+| **Emisión** | Cobras algo nuevo y quieres que se emita el DTE al pagar | `amount`, `target_dte_type`, `dte_recipient`, `items` |
+| **Cobro directo** | Ya emitiste los documentos y quieres cobrarlos | `document_ids` |
+
+Los dos modos son excluyentes.
+
+## 2. Crea el cobro
+
+```bash
+curl -X POST https://api.tupana.ai/v1/payment-requests/ \
+  -H "Authorization: Api-Key $TUPANA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 50000,
+    "currency": "CLP",
+    "recipient_id": 789,
+    "redirect_url": "https://tuapp.com/confirmacion",
+    "target_dte_type": 39,
+    "dte_recipient": { "rut": "11111111-1", "name": "Juan Soto", "email": "juan@ejemplo.com" },
+    "items": [{ "description": "Sesión de psicoterapia", "quantity": 1, "unit_price": 50000 }],
+    "expires_in_minutes": 30,
+    "auto_issue": true,
+    "external_id": "reserva_abc123"
+  }'
+```
+
+La respuesta trae la `payment_url` a la que rediriges a tu cliente:
+
+```json
+{
+  "payment_request_id": 1042,
+  "status": "pending",
+  "payment_url": "https://www.tupana.ai/pagos/tok_xyz",
+  "expires_at": "2026-04-06T12:30:00Z",
+  "auto_issue": true,
+  "external_id": "reserva_abc123"
+}
+```
+
+- `recipient_id` es la empresa que recibe el dinero y emite el documento.
+- `external_id` es tu referencia (la reserva, el pedido); vuelve en el webhook.
+- `skip_portal: true` lleva directo a Transbank, sin la pantalla de Tupana.
+- Con `auto_issue: false` emites tú después, con [Emitir DTE manualmente](/api-reference/payment-requests/issue).
+
+Referencia completa: [Crear sesión de cobro](/api-reference/payment-requests/create).
+
+## 3. Espera el webhook
+
+| Evento | Cuándo |
+|---|---|
+| `payment_request.paid` | El pago se confirmó. Es tu señal para entregar el servicio |
+| `payment_request.document_issued` | Se emitió el DTE (no aplica en cobro directo) |
+| `payment_request.expired` | La sesión venció sin pago |
+
+No confíes en la redirección a `redirect_url` como prueba de pago: confirma con el webhook o con [Consultar estado de un cobro](/api-reference/payment-requests/get).
+
+## 4. Prueba en sandbox
+
+Con una API key de sandbox el pago pasa por el ambiente de integración de Transbank (sin dinero real) y el DTE se crea con folio `SANDBOX-{id}`, sin ir al SII. Tarjeta de débito de prueba: `4051 8856 0044 6623`, CVV `123`, RUT `11.111.111-1`, clave `123`. Más tarjetas en la [introducción de Recaudación](/api-reference/payment-requests/introduction).
+
+## Relacionado
+
+- [Listar liquidaciones](/api-reference/payment-requests/settlements-list): qué se depositó y cuándo
+- [Webhooks de Recaudación](/api-reference/payment-requests/webhooks)
+- [Referencia de Recaudación](/api-reference/payment-requests/reference): tipos de DTE, medios de pago y errores

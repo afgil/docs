@@ -1,15 +1,60 @@
 ---
-title: 'Introducción'
-description: 'Bienvenido a Tupana - Facturación electrónica simplificada'
+title: 'API de facturación electrónica para Chile (SII)'
+sidebarTitle: 'Introducción'
+description: 'Documentación de la API de Tupana: emite facturas, boletas, notas de crédito y guías de despacho (DTE) al SII de Chile, cobra con link de pago, cede facturas y conecta agentes de IA por MCP.'
+keywords: ['api facturación electrónica', 'chile', 'sii', 'dte', 'factura electrónica', 'boleta electrónica', 'facturador de mercado', 'mcp']
 ---
 
+Tupana es una plataforma chilena de facturación electrónica con API REST. Emite documentos tributarios electrónicos (DTE) directo al SII como **facturador de mercado** y también puede integrarse con el **facturador gratuito del SII**. Sobre la misma API cobras con link de pago, cedes facturas, lees los libros del SII y conectas agentes de IA.
 
-Tupana es una plataforma moderna y amigable diseñada para simplificar la facturación electrónica en Chile. Con nuestra API, puedes emitir documentos tributarios electrónicos de forma automática, sin complicaciones y en minutos ⚡.
+<CardGroup cols={2}>
+  <Card title="Tu primera llamada en 2 minutos" icon="bolt" href="/quickstart">
+    API key de sandbox gratis, una llamada real y una factura de prueba.
+  </Card>
+  <Card title="Referencia de la API v2" icon="code" href="/api-reference/v2/introduction">
+    Endpoints, parámetros, ejemplos y errores.
+  </Card>
+  <Card title="Agentes de IA" icon="robot" href="/agentes/introduccion">
+    Servidor MCP para Claude, ChatGPT y Cursor, o tool calling sobre la API.
+  </Card>
+  <Card title="Precios" icon="tag" href="/precios">
+    0,5 UF al mes por empresa, sin precio mínimo. Sandbox gratis.
+  </Card>
+</CardGroup>
+
+## Qué puedes hacer con la API
+
+| Necesitas | Dónde |
+|---|---|
+| Emitir facturas, boletas, notas de crédito y débito, guías de despacho y exportación | [Emitir en lote](/guias/emision-masiva) |
+| Saber cuándo un documento se emite, se rechaza, se paga o se anula | [Webhooks](/guias/webhooks) |
+| Facturar para muchas empresas desde tu SaaS o ERP | [Varias empresas](/guias/multiempresa) |
+| Cobrar con link de pago y emitir el DTE al pagar | [Link de pago](/guias/link-de-pago) |
+| Ceder facturas a un factoring | [Cesiones](/guias/cesiones) |
+| Facturación recurrente | [Documentos programados](/api-reference/v2/scheduled-documents/create) |
+| Libros de compra y venta, sincronización y folios del SII | [API Consultas](/api-reference/v2/consultas/introduction) |
+| Datos públicos de empresas chilenas | [Bases de datos gratuitas](/api-reference/v2/free-databases/introduction) |
+| Boletas de honorarios | [API Boleta de Honorarios](/api-reference/v2/honorary/introduction) |
+
+## Documentos soportados
+
+Factura electrónica (33), factura exenta (34), boleta electrónica (39), boleta exenta (41), factura de compra (46), guía de despacho (52), nota de débito (56), nota de crédito (61), boleta de honorarios (80 y 90), y factura, nota de débito y nota de crédito de exportación (110, 111 y 112). El detalle de cada uno está en [Tipos de documentos](/user-guide/documents).
+
+## Cómo funciona
+
+1. **Crea una API key** en [developers.tupana.ai](https://developers.tupana.ai/console). Nace en sandbox: simula la emisión y no envía nada al SII.
+2. **Conecta la empresa emisora** con [Tupana Link](/api-reference/v2/connect/tupana-link). Tu cliente entrega su clave dentro del widget; tu backend nunca la ve.
+3. **Emite** con [`POST /v2/documents/batch/`](/api-reference/v2/documents/batch): hasta 200 documentos por llamada, con `Idempotency-Key`.
+4. **Recibe el resultado** por [webhook](/guias/webhooks): folio, estado del SII, XML y PDF.
+
+## Facturador de mercado y facturador gratuito del SII
+
+Tupana emite directo al SII como facturador de mercado, sin los límites del portal del SII (referencias, líneas por documento, monto por factura y volumen mensual). Si una empresa prefiere partir con el facturador gratuito del SII, Tupana también se integra con él. Las dos opciones tienen el mismo precio. Ver [Cómo elegir una API de facturación electrónica](/elegir-api-facturacion-electronica).
 
 <div style={{
   position: 'relative',
   width: '100%',
-  paddingBottom: '56.25%', /* Aspect ratio 16:9 */
+  paddingBottom: '56.25%',
   marginBottom: '20px'
 }}>
   <iframe
@@ -20,8 +65,7 @@ Tupana es una plataforma moderna y amigable diseñada para simplificar la factur
       width: '100%',
       height: '100%',
       border: 0,
-      borderRadius: '8px', /* Bordes redondeados para mejor apariencia */
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' /* Sombra suave para dar profundidad */
+      borderRadius: '8px'
     }}
     src="https://www.youtube.com/embed/M4kNEOps8-k"
     title="Introducción a Tupana"
@@ -30,52 +74,12 @@ Tupana es una plataforma moderna y amigable diseñada para simplificar la factur
   />
 </div>
 
-## ¿Qué es Tupana?
+## Recursos para LLMs y herramientas
 
-Tupana es un sistema diseñado para empresas, contadores y equipos de backoffice que buscan ahorrar tiempo en sus procesos de facturación. Solo necesitas proporcionar los datos del receptor, generar tu documento y emitirlo. Nosotros nos encargamos del resto 😎.
+- [`llms.txt`](https://docs.tupana.ai/llms.txt): qué es Tupana, cuándo usarla e índice de páginas.
+- [`llms-full.txt`](https://docs.tupana.ai/llms-full.txt): guías y referencia completa de la API v2 en Markdown.
+- [OpenAPI v2](https://docs.tupana.ai/api-reference/openapi-v2.json) y servidor MCP en `https://mcp.tupana.ai/mcp`.
 
-## Características Principales
+## Soporte
 
-### 🚀 Facturación Automatizada
-- Emite documentos tributarios electrónicos de forma automática
-- Integra fácilmente con tus sistemas existentes
-- Procesa documentos en lotes para mayor eficiencia
-
-### 🔒 Seguridad y Cumplimiento
-- Certificación oficial del SII
-- Firma electrónica avanzada
-- Almacenamiento seguro de documentos
-
-### 📊 Gestión Simplificada
-- Panel de control intuitivo
-- Seguimiento en tiempo real
-- Reportes detallados
-
-## ¿Por qué Tupana?
-
-### Ahorro de Tiempo
-Automatiza tus procesos de facturación y reduce el tiempo dedicado a tareas manuales.
-
-### Confiabilidad
-Sistema robusto con validaciones automáticas para evitar errores comunes.
-
-### Soporte Especializado
-Equipo de expertos disponible para ayudarte en cada paso.
-
-## Tipos de Documentos Soportados
-
-- Facturas Electrónicas (33)
-- Facturas Exentas (34)
-- Boletas Electrónicas (39)
-- Notas de Crédito (61)
-- Notas de Débito (56)
-- Guías de Despacho (52)
-
-## Guía de Usuario
-
-¡Bienvenido a Tupana! Esta guía te ayudará a comenzar a emitir documentos tributarios electrónicos en minutos.
-
-### Próximos Pasos
-
-1. [Comienza Aquí](/user-guide/getting-started) - Guía paso a paso para comenzar
-2. [Autenticación](/user-guide/authentication) - Configura tus credenciales
+Escríbenos a [soporte@tupana.cl](mailto:soporte@tupana.cl). Revisa también las [novedades de la API](/changelog).

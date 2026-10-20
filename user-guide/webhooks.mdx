@@ -1,6 +1,7 @@
 ---
-title: 'Webhooks'
-description: 'Guía completa para configurar y usar webhooks en Tupana'
+title: 'Webhooks: eventos, payloads y firma'
+sidebarTitle: 'Webhooks'
+description: 'Referencia de los webhooks de Tupana: eventos de documentos tributarios electrónicos (emitido, rechazado por el SII, pagado, anulado), documentos programados y conexiones, payloads, firma HMAC-SHA256 y reintentos.'
 ---
 
 # Webhooks
@@ -45,54 +46,54 @@ Para verificar que las notificaciones provienen realmente de Tupana, puedes conf
 
 #### Cómo verificar la firma
 
-**Node.js:**
+`X-Pana-Signature` es el HMAC-SHA256, en hexadecimal, **del cuerpo crudo de la petición** calculado con tu secret. Calcula la firma sobre los bytes tal como llegaron, antes de parsear el JSON: si vuelves a serializar el objeto (con otro orden de llaves o espacios), la firma no va a calzar.
+
+**Node.js (Express):**
 
 ```javascript
 const crypto = require('crypto');
+const express = require('express');
 
-function verifySignature(payload, signature, secret) {
+const app = express();
+
+// express.raw entrega el cuerpo como Buffer, sin parsear
+app.post('/webhooks/tupana', express.raw({ type: 'application/json' }), (req, res) => {
   const expected = crypto
-    .createHmac('sha256', secret)
-    .update(JSON.stringify(payload))
+    .createHmac('sha256', process.env.WEBHOOK_SECRET)
+    .update(req.body)
     .digest('hex');
-  
-  return crypto.timingSafeEqual(
-    Buffer.from(expected),
-    Buffer.from(signature)
-  );
-}
+  const signature = req.headers['x-pana-signature'] || '';
 
-// En tu endpoint
-const signature = req.headers['x-pana-signature'];
-const isValid = verifySignature(req.body, signature, process.env.WEBHOOK_SECRET);
+  const isValid =
+    signature.length === expected.length &&
+    crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+  if (!isValid) {
+    return res.status(401).send('Invalid signature');
+  }
 
-if (!isValid) {
-  return res.status(401).send('Invalid signature');
-}
+  const event = JSON.parse(req.body);
+  res.status(200).end();
+});
 ```
 
-**Python:**
+**Python (Flask):**
 
 ```python
-import hmac
 import hashlib
-import json
+import hmac
+import os
 
-def verify_signature(payload, signature, secret):
-    expected = hmac.new(
-        secret.encode(),
-        json.dumps(payload, sort_keys=True).encode(),
-        hashlib.sha256
-    ).hexdigest()
-    
-    return hmac.compare_digest(expected, signature)
+from flask import request
+
+def verify_signature(raw_body: bytes, signature: str, secret: str) -> bool:
+    expected = hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, signature or "")
 
 # En tu endpoint
-signature = request.headers.get('X-Pana-Signature')
-is_valid = verify_signature(request.json, signature, os.environ['WEBHOOK_SECRET'])
-
-if not is_valid:
+raw_body = request.get_data()  # bytes, sin parsear
+if not verify_signature(raw_body, request.headers.get('X-Pana-Signature'), os.environ['WEBHOOK_SECRET']):
     return {'error': 'Invalid signature'}, 401
+event = request.get_json()
 ```
 
 ### Headers enviados

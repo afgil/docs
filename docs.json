@@ -2,6 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "Tupana",
+  "description": "Documentación de la API de facturación electrónica de Tupana para Chile: emite facturas, boletas, notas de crédito y guías (DTE) al SII como facturador de mercado, cobra con link de pago, cede facturas, consulta libros del SII y conecta agentes de IA por MCP.",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
@@ -24,9 +25,40 @@
                 "group": "Primeros Pasos",
                 "pages": [
                   "index",
+                  "quickstart",
                   "user-guide/getting-started",
                   "user-guide/authentication",
-                  "user-guide/mcp"
+                  "precios"
+                ]
+              },
+              {
+                "group": "Guías por tarea",
+                "pages": [
+                  "guias/emision-masiva",
+                  "guias/webhooks",
+                  "guias/multiempresa",
+                  "guias/link-de-pago",
+                  "guias/cesiones"
+                ]
+              },
+              {
+                "group": "Agentes de IA",
+                "pages": [
+                  "agentes/introduccion",
+                  "user-guide/mcp",
+                  "agentes/tool-calling"
+                ]
+              },
+              {
+                "group": "SDKs",
+                "pages": [
+                  "sdks/introduccion"
+                ]
+              },
+              {
+                "group": "Elegir y comparar",
+                "pages": [
+                  "elegir-api-facturacion-electronica"
                 ]
               },
               {
@@ -39,6 +71,12 @@
                   "user-guide/export-sale-modes",
                   "user-guide/transport-codes",
                   "user-guide/webhooks"
+                ]
+              },
+              {
+                "group": "Novedades",
+                "pages": [
+                  "changelog"
                 ]
               }
             ]
@@ -574,5 +612,42 @@
       "icon": "code",
       "url": "api-reference"
     }
-  ]
+  ],
+  "seo": {
+    "indexing": "navigable",
+    "metatags": {
+      "canonical": "https://docs.tupana.ai",
+      "og:site_name": "Tupana Docs",
+      "og:type": "website",
+      "og:locale": "es_CL",
+      "twitter:card": "summary_large_image",
+      "keywords": "API facturación electrónica, Chile, SII, DTE, factura electrónica, boleta electrónica, facturador de mercado, MCP, Tupana",
+      "application-name": "Tupana Docs"
+    },
+    "organization": {
+      "id": "https://www.tupana.ai/#organization",
+      "name": "Tupana",
+      "url": "https://www.tupana.ai",
+      "sameAs": [
+        "https://www.tupana.ai",
+        "https://developers.tupana.ai",
+        "https://github.com/tupana-ai"
+      ]
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
+  },
+  "search": {
+    "prompt": "Busca en la documentación de Tupana..."
+  }
 }

@@ -1,6 +1,7 @@
 ---
-title: 'Webhooks de Recaudación'
-description: 'Eventos disponibles para la API de Cobros y cómo recibirlos'
+title: 'Webhooks de Recaudación (link de pago)'
+sidebarTitle: 'Webhooks de Recaudación'
+description: 'Eventos de la API de Recaudación de Tupana (pagado, documento emitido, expirado), payload y verificación de la firma HMAC-SHA256.'
 ---
 
 ## ¿Cómo funcionan los webhooks de cobros?
@@ -88,48 +89,38 @@ X-Pana-Signature: <firma-hmac>
 
 ## Verificar la firma
 
-Verifica que el webhook proviene realmente de Tupana usando el `secret` que recibiste al registrar el endpoint.
+Verifica que el webhook proviene realmente de Tupana usando el `secret` que recibiste al registrar el endpoint. La firma es el HMAC-SHA256, en hexadecimal, **del cuerpo crudo de la petición**: calcúlala sobre los bytes tal como llegaron, antes de parsear el JSON.
 
 ```python
-import hmac
 import hashlib
-import json
+import hmac
+import os
 
-def verify_signature(payload, signature, secret):
-    expected = hmac.new(
-        secret.encode(),
-        json.dumps(payload, sort_keys=True).encode(),
-        hashlib.sha256
-    ).hexdigest()
+def verify_signature(raw_body: bytes, signature: str, secret: str) -> bool:
+    expected = hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, signature or "")
 
-    return hmac.compare_digest(expected, signature)
-
-# En tu endpoint:
-signature = request.headers.get('X-Pana-Signature')
-is_valid = verify_signature(request.json, signature, os.environ['TUPANA_WEBHOOK_SECRET'])
-
-if not is_valid:
+# En tu endpoint (Flask):
+raw_body = request.get_data()  # bytes, sin parsear
+if not verify_signature(raw_body, request.headers.get('X-Pana-Signature'), os.environ['TUPANA_WEBHOOK_SECRET']):
     return {'error': 'Invalid signature'}, 401
 ```
 
 ```javascript
 const crypto = require('crypto');
 
-function verifySignature(payload, signature, secret) {
-  const expected = crypto
-    .createHmac('sha256', secret)
-    .update(JSON.stringify(payload))
-    .digest('hex');
-
-  return crypto.timingSafeEqual(
-    Buffer.from(expected),
-    Buffer.from(signature)
+// Con Express, usa express.raw({ type: 'application/json' }) en esta ruta
+// para que req.body sea el Buffer original.
+function verifySignature(rawBody, signature, secret) {
+  const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+  return (
+    typeof signature === 'string' &&
+    signature.length === expected.length &&
+    crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
   );
 }
 
-const signature = req.headers['x-pana-signature'];
-const isValid = verifySignature(req.body, signature, process.env.TUPANA_WEBHOOK_SECRET);
-
+const isValid = verifySignature(req.body, req.headers['x-pana-signature'], process.env.TUPANA_WEBHOOK_SECRET);
 if (!isValid) {
   return res.status(401).json({ error: 'Invalid signature' });
 }

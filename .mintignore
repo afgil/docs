@@ -1,0 +1,12 @@
+# Notas internas del equipo y planes de trabajo: viven en el repo, no se publican
+/*.md
+/*.html
+/*.py
+/Makefile
+/scripts/
+/docs_old/
+/docs_old_final/
+# Páginas MDX antiguas fuera de la navegación (reemplazadas por los snippets)
+/api-reference/mdx/
+/api-reference/openapi-combined.json.backup
+/api-reference/openapi-combined.json.current

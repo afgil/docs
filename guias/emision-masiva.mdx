@@ -1,0 +1,114 @@
+---
+title: 'Emitir facturas electrónicas en lote por API'
+sidebarTitle: 'Emitir facturas en lote'
+description: 'Cómo emitir hasta 200 facturas, boletas o notas de crédito (DTE) al SII en una sola llamada a la API de Tupana, sin duplicados y con el resultado de cada documento por webhook.'
+keywords: ['emisión masiva', 'facturas en lote', 'api facturación electrónica', 'dte', 'sii', 'idempotency-key']
+---
+
+Esta guía arma una emisión masiva de punta a punta: preparar el lote, enviarlo sin riesgo de duplicados, leer la respuesta y recibir el resultado final de cada documento. La referencia completa del endpoint está en [Emisión masiva de documentos](/api-reference/v2/documents/batch).
+
+## Antes de empezar
+
+- Una API key (empieza con una de **sandbox**: simula la emisión y no envía nada al SII). Ver [Tu primera llamada](/quickstart).
+- La empresa emisora conectada con [Tupana Link](/api-reference/v2/connect/tupana-link). En producción, sin una conexión activa la API responde `400` (credenciales no activas).
+- Un [webhook](/guias/webhooks) para la empresa, para recibir el estado final y los archivos.
+
+## 1. Arma el lote
+
+Un lote es un objeto con un arreglo `documents`. Cada documento lleva al menos el tipo (`dte_type.code`), el emisor, el receptor y el detalle. Puedes mezclar tipos de documento en un mismo lote.
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": { "code": "33" },
+      "document_issuer": { "rut": "76123456-7" },
+      "document_receiver": { "rut": "77987654-3", "business_name": "Cliente Uno SpA" },
+      "details": [{ "item_name": "Plan mensual", "quantity": 1, "unit_price": 50000 }],
+      "json_param": { "external_order_id": "PED-1001" }
+    },
+    {
+      "dte_type": { "code": "33" },
+      "document_issuer": { "rut": "76123456-7" },
+      "document_receiver": { "rut": "76555444-3", "business_name": "Cliente Dos Ltda" },
+      "details": [{ "item_name": "Plan mensual", "quantity": 1, "unit_price": 50000 }],
+      "json_param": { "external_order_id": "PED-1002" }
+    }
+  ]
+}
+```
+
+- **Hasta 200 documentos por llamada.** Si tienes más, divide en varios lotes.
+- `json_param` guarda tus propios datos (tu id de pedido, por ejemplo). Vuelve en la respuesta y en los webhooks, y puedes filtrar por él en [`GET /v2/documents/`](/api-reference/v2/documents/list) con `json_param__external_order_id=PED-1001`.
+- Los tipos soportados (33, 34, 39, 41, 46, 52, 56, 61, 80, 90, 110, 111, 112) y sus campos están en [Tipos de documentos](/user-guide/documents).
+
+## 2. Envía el lote sin duplicados
+
+```bash
+curl -X POST https://api.tupana.ai/v2/documents/batch/ \
+  -H "Authorization: Api-Key $TUPANA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "X-Use-Defaults: true" \
+  -H "Idempotency-Key: facturacion-2026-10-cierre-lote-01" \
+  -d @lote.json
+```
+
+| Header | Para qué |
+|---|---|
+| `Idempotency-Key` | Si la llamada se corta y la repites con la misma clave, recibes el lote original **sin volver a emitir al SII**. Máximo 256 caracteres; dura 24 horas. Usa una clave por lote, derivada de tus datos (no aleatoria en cada reintento). |
+| `X-Use-Defaults: true` | Completa fecha, actividad económica, dirección y forma de pago con la configuración de cada empresa. Recomendado siempre. |
+
+## 3. Lee la respuesta
+
+La API acepta el lote y lo procesa en segundo plano. La respuesta trae un `batch_id`, el estado de cada documento y, si mandaste campos que no existen, un arreglo `warnings`:
+
+```json
+{
+  "batch_id": "doba_4829301923847561203",
+  "status": "processing",
+  "warnings": [
+    {
+      "document_index": 0,
+      "field": "header.transfer_indicator",
+      "code": "unknown_field",
+      "message": "Campo desconocido: se ignoró.",
+      "suggestion": "transport_data.transport_type"
+    }
+  ]
+}
+```
+
+| Código | Qué significa | Qué hacer |
+|---|---|---|
+| `202` / `201` | Lote aceptado | Espera el webhook o consulta los documentos |
+| `400` | La empresa emisora no tiene una conexión activa | Conéctala con Tupana Link |
+| `413` | Más de 200 documentos | Divide el lote |
+| `422` | Error de validación, con la posición del documento y la ruta del campo | Corrige y reenvía con una **nueva** `Idempotency-Key` |
+
+Con validación estricta (activa en las API keys nuevas), un campo desconocido responde `422` en vez de `warnings`. El catálogo completo está en [Errores](/api-reference/v2/errors).
+
+## 4. Recibe el resultado de cada documento
+
+Cada documento emitido dispara `document.issued` con el folio, los montos y el PDF; si el SII lo rechaza, llega `document.rejected`, y si la emisión falla, `document.issue_failed`. Configúralo en [Recibir avisos de estado](/guias/webhooks).
+
+Si prefieres consultar, lista los documentos de la empresa:
+
+```bash
+curl "https://api.tupana.ai/v2/documents/?master_entity_id=ment_4829301923847&json_param__external_order_id=PED-1001" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+## Facturador de mercado o facturador gratuito del SII
+
+Tupana emite de dos maneras, y lo decide la configuración de cada empresa, no tu código:
+
+- **Facturador de mercado de Tupana**: emite directo al SII con los folios (CAF) y el certificado de la empresa. Sin los límites del portal del SII.
+- **Facturador gratuito del SII**: Tupana emite en el portal del SII con la clave de la empresa. Tiene límites propios del SII (referencias, líneas por documento, monto y volumen) y algunos campos no están disponibles.
+
+La comparación completa está en [Cómo elegir una API de facturación electrónica](/elegir-api-facturacion-electronica).
+
+## Relacionado
+
+- [Referencia: emisión masiva](/api-reference/v2/documents/batch)
+- [Documentos programados](/api-reference/v2/scheduled-documents/create) para facturación recurrente
+- [Facturar para varias empresas](/guias/multiempresa)

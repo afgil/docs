@@ -1,11 +1,12 @@
 ---
-title: 'Facturación'
-description: 'API de Facturación v2 - Emisión masiva de documentos electrónicos'
+title: 'API de facturación electrónica v2: introducción'
+sidebarTitle: 'Introducción'
+description: 'API REST v2 de Tupana para emitir facturas, boletas, notas de crédito y guías (DTE) al SII de Chile en lote: autenticación, sandbox, Tupana Link, webhooks, paginación y errores.'
 ---
 
 # Introducción a la API de Facturación
 
-La API de Facturación está integrada directamente al **facturador gratuito del SII** y permite emitir documentos de forma masiva usando Batch Documents. El sistema **emite por ti** y además **recibe automáticamente el PDF y XML final** de cada factura a través de webhooks. La integración se apoya en un flujo simple:
+La API de Facturación emite directo al SII como **facturador de mercado** y también se integra con el **facturador gratuito del SII** (lo define la configuración de cada empresa; tus llamadas son las mismas). Permite emitir documentos de forma masiva usando Batch Documents, hasta 200 por llamada. El sistema **emite por ti** y además **recibe automáticamente el PDF y XML final** de cada factura a través de webhooks. La integración se apoya en un flujo simple:
 
 1. **obtener tu API Key**
 2. **partir en modo Sandbox** (recomendado)
@@ -29,7 +30,7 @@ La API Key es por usuario y sirve para operar sobre todas las empresas enroladas
 
 Existe operación en **Sandbox** y en **Producción**.
 
-Se recomienda comenzar en Sandbox para validar el flujo completo sin riesgos.
+Se recomienda comenzar en Sandbox para validar el flujo completo sin riesgos. Las keys que creas en [developers.tupana.ai](https://developers.tupana.ai/console) nacen en sandbox: la emisión se simula (folio `SANDBOX-{n}`) y nada llega al SII. Se autentican con el header `Authorization: Api-Key <tu_key>`. Ver [Tu primera llamada en 2 minutos](/quickstart).
 
 ## 2) Conectar la empresa con Tupana Link
 
@@ -178,8 +179,11 @@ Ver [Errores](/api-reference/v2/errors).
 ## Endpoints relacionados
 
 - **[Tupana Link](/api-reference/v2/connect/tupana-link)** — Conectar una empresa (widget)
-- **Listar Credenciales** — Ver conexiones ya activas
-- **Listar Documentos** — Consultar documentos emitidos
-- **Obtener Documento Específico** — Ver detalles de un documento
-- **Consultar Estados de Documento** — Ver historial de estados
-- **Registrar Estado de Documento** — Registrar eventos manualmente
+- **[Listar conexiones](/api-reference/v2/connections/list)** — Ver empresas ya conectadas
+- **[Emisión masiva](/api-reference/v2/documents/batch)** — Crear un lote de documentos
+- **[Listar documentos](/api-reference/v2/documents/list)** — Consultar documentos emitidos o recibidos
+- **[Obtener documento](/api-reference/v2/documents/get)** — Ver detalles de un documento
+- **[Consultar estados de documento](/api-reference/v2/document-states/list)** — Ver historial de estados
+- **[Registrar estado de documento](/api-reference/v2/document-states/create)** — Registrar eventos manualmente
+
+Guías por tarea: [tu primera llamada](/quickstart), [emitir en lote](/guias/emision-masiva), [webhooks](/guias/webhooks) y [varias empresas](/guias/multiempresa).
