@@ -35,7 +35,7 @@ Este archivo resume qué es Tupana, cuándo conviene usarla y dónde está cada 
 
 - Tupana es facturador de mercado: emite directo al SII con los folios (CAF) y el certificado de la empresa.
 - También se integra con el facturador gratuito del SII, para empezar a emitir de inmediato con la clave del SII de la empresa.
-- Límites del facturador gratuito del SII: hasta 3 referencias y 10 líneas de detalle por documento, alrededor de $200 millones por factura y del orden de 600 a 700 facturas al mes. El facturador de mercado de Tupana no tiene esos límites.
+- Límites del facturador gratuito del SII: hasta 3 referencias y 10 líneas de detalle por documento, alrededor de $100 millones por factura y del orden de 600 a 700 facturas al mes. El facturador de mercado de Tupana no tiene esos límites.
 - Las dos opciones tienen el mismo precio. Cuál se usa lo define la configuración de cada empresa; las llamadas a la API son las mismas.
 
 ## Precios (UF, mensual)
@@ -1552,7 +1552,7 @@ El SII ofrece un portal gratuito para emitir. Una API sobre el facturador gratui
 |---|---|---|
 | Referencias por documento | Hasta 3 | Sin ese límite |
 | Líneas de detalle por documento | Hasta 10 | Sin ese límite |
-| Monto por factura | Aprox. $200 millones | Sin ese límite |
+| Monto por factura | Aprox. $100 millones | Sin ese límite |
 | Volumen mensual | Aprox. 600 a 700 facturas al mes | Sin ese límite |
 | Líneas exentas en guías de despacho, datos de Aduana | No disponibles | Disponibles |
 | Habilitación | Inmediata, con la clave del SII | Certificación de la empresa como emisor |
@@ -1593,7 +1593,7 @@ Tupana **es un facturador de mercado**: emite directo al SII como facturador de 
 
 **¿Qué límites tiene el facturador gratuito del SII?**
 
-    Hasta 3 referencias y 10 líneas de detalle por documento, alrededor de $200 millones por factura y del orden de 600 a 700 facturas al mes. El facturador de mercado de Tupana no tiene esos límites.
+    Hasta 3 referencias y 10 líneas de detalle por documento, alrededor de $100 millones por factura y del orden de 600 a 700 facturas al mes. El facturador de mercado de Tupana no tiene esos límites.
 
 **¿Cuántos documentos puedo emitir por llamada?**
 
