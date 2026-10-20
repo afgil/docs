@@ -86,7 +86,11 @@ Con una key de sandbox, `POST /v2/documents/batch/` **simula** la emisión: el d
 
 Usa como emisor (`document_issuer.rut`) el RUT de una empresa que tengas conectada en tu cuenta. Para conectar una, mira [Tupana Link](/api-reference/v2/connect/tupana-link) (en sandbox, la conexión también es de prueba).
 
-```bash
+Puedes hacerlo con curl o con los SDKs oficiales (`npm install tupana` o `pip install tupana`, ver [SDKs](/sdks/introduccion)):
+
+<CodeGroup>
+
+```bash curl
 curl -X POST https://api.tupana.ai/v2/documents/batch/ \
   -H "Authorization: Api-Key $TUPANA_API_KEY" \
   -H "Content-Type: application/json" \
@@ -106,8 +110,55 @@ curl -X POST https://api.tupana.ai/v2/documents/batch/ \
   }'
 ```
 
-- `X-Use-Defaults: true` completa la fecha, la actividad y la dirección con los datos por defecto de cada empresa.
-- `Idempotency-Key` evita duplicados: si repites la llamada con la misma clave, recibes el mismo lote sin volver a emitir.
+```ts Node.js (SDK)
+import Tupana from "tupana";
+
+const tupana = new Tupana({ apiKey: process.env.TUPANA_API_KEY });
+
+const batch = await tupana.documents.createBatch(
+  {
+    documents: [
+      {
+        dte_type: { code: "33" },
+        document_issuer: { rut: "RUT_DE_TU_EMPRESA" },
+        document_receiver: { rut: "98765432-1", business_name: "Cliente Importante Ltda" },
+        details: [{ item_name: "Servicio de consultoría", quantity: 1, unit_price: 100000 }],
+      },
+    ],
+  },
+  { useDefaults: true, idempotencyKey: "primera-factura-001" },
+);
+
+const result = await tupana.documents.waitForBatch(batch.batch_id);
+console.log(result.documents[0].status, result.documents[0].document?.folio);
+```
+
+```python Python (SDK)
+from tupana import Tupana
+
+tupana = Tupana()  # lee TUPANA_API_KEY
+
+batch = tupana.documents.create_batch(
+    [
+        {
+            "dte_type": {"code": "33"},
+            "document_issuer": {"rut": "RUT_DE_TU_EMPRESA"},
+            "document_receiver": {"rut": "98765432-1", "business_name": "Cliente Importante Ltda"},
+            "details": [{"item_name": "Servicio de consultoría", "quantity": 1, "unit_price": 100000}],
+        }
+    ],
+    use_defaults=True,
+    idempotency_key="primera-factura-001",
+)
+
+result = tupana.documents.wait_for_batch(batch["batch_id"])
+print(result["documents"][0]["status"])
+```
+
+</CodeGroup>
+
+- `X-Use-Defaults: true` (`useDefaults` / `use_defaults` en los SDKs) completa la fecha, la actividad y la dirección con los datos por defecto de cada empresa.
+- `Idempotency-Key` (`idempotencyKey` / `idempotency_key`) evita duplicados: si repites la llamada con la misma clave, recibes el mismo lote sin volver a emitir.
 
 La respuesta es `202` con un `batch_id` y el resultado de cada documento. El estado final también llega por [webhook](/guias/webhooks).
 

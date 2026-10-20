@@ -1,40 +1,123 @@
 ---
-title: 'SDKs para Node.js y Python'
+title: 'SDKs oficiales para Node.js y Python'
 sidebarTitle: 'SDKs (Node.js y Python)'
-description: 'Clientes oficiales de la API de facturación electrónica de Tupana para Node.js/TypeScript y Python: instalación desde GitHub, autenticación y cómo usar la API REST directamente.'
-keywords: ['sdk', 'node.js', 'typescript', 'python', 'api facturación electrónica', 'cliente api', 'npm', 'pypi']
+description: 'SDKs oficiales de la API de facturación electrónica de Tupana: npm install tupana (Node.js y TypeScript) y pip install tupana (Python). Emite facturas al SII, links de pago, cesiones y webhooks.'
+keywords: ['sdk', 'sdk oficial', 'npm install tupana', 'pip install tupana', 'node.js', 'typescript', 'python', 'api facturación electrónica', 'cliente api', 'npm', 'pypi']
 ---
 
-Tupana tiene clientes oficiales para Node.js (TypeScript) y Python, con código abierto en GitHub.
+Tupana tiene SDKs oficiales para Node.js (TypeScript) y Python, publicados en npm y PyPI con el nombre `tupana` y con código abierto en GitHub.
 
-| Lenguaje | Repositorio | Instalación hoy | Paquete |
+| Lenguaje | Paquete | Instalación | Repositorio |
 |---|---|---|---|
-| Node.js / TypeScript | [tupana-ai/tupana-node](https://github.com/tupana-ai/tupana-node) | `npm i github:tupana-ai/tupana-node` | `@tupana-ai/sdk` en npm (próximamente) |
-| Python | [tupana-ai/tupana-python](https://github.com/tupana-ai/tupana-python) | `pip install git+https://github.com/tupana-ai/tupana-python` | `tupana` en PyPI (próximamente) |
+| Node.js / TypeScript | [`tupana` en npm](https://www.npmjs.com/package/tupana) | `npm install tupana` | [tupana-ai/tupana-node](https://github.com/tupana-ai/tupana-node) |
+| Python | [`tupana` en PyPI](https://pypi.org/project/tupana/) | `pip install tupana` | [tupana-ai/tupana-python](https://github.com/tupana-ai/tupana-python) |
 
-<Note>
-Mientras los paquetes no estén publicados en npm y PyPI, instala desde GitHub con los comandos de la tabla. Cuando se publiquen, bastará con `npm i @tupana-ai/sdk` o `pip install tupana`. La API del cliente y sus ejemplos están en el README de cada repositorio.
-</Note>
+Ambos SDKs cubren la API v2: emisión de documentos en lote con `Idempotency-Key` automático, links de pago (recaudación), cesiones, webhooks con verificación de firma, reintentos con backoff ante `429` y `5xx`, y errores tipados. La referencia completa de métodos está en el README de cada repositorio.
 
 ## Instalación
 
 <CodeGroup>
 
 ```bash Node.js
-npm i github:tupana-ai/tupana-node
+npm install tupana
 ```
 
 ```bash Python
-pip install git+https://github.com/tupana-ai/tupana-python
+pip install tupana
 ```
 
 </CodeGroup>
 
-Guarda tu API key en una variable de entorno (por ejemplo `TUPANA_API_KEY`) y pásasela al cliente desde ahí; nunca la dejes en el código. Para obtener una, ver [Tu primera llamada en 2 minutos](/quickstart).
+El SDK de Node.js funciona en Node 18 o superior (también en Bun, Deno o cualquier runtime con `fetch`) y no tiene dependencias en runtime. El de Python requiere Python 3.9 o superior e incluye un cliente síncrono (`Tupana`) y uno asíncrono (`AsyncTupana`).
+
+Guarda tu API key en la variable de entorno `TUPANA_API_KEY`: ambos clientes la leen de ahí si no se la pasas. Nunca la dejes en el código. Para obtener una, ver [Tu primera llamada en 2 minutos](/quickstart).
+
+```bash
+export TUPANA_API_KEY="tu-api-key"
+```
+
+## Emitir una factura
+
+Con una key de sandbox la emisión se simula y no va al SII; con una de producción, el código es el mismo.
+
+<CodeGroup>
+
+```ts Node.js
+import Tupana from "tupana";
+
+const tupana = new Tupana({ apiKey: process.env.TUPANA_API_KEY });
+
+const batch = await tupana.documents.createBatch(
+  {
+    documents: [
+      {
+        dte_type: { code: "33" }, // Factura electrónica
+        document_issuer: { rut: "76543210-3" }, // tu empresa
+        document_receiver: { rut: "77777777-7" }, // tu cliente
+        details: [{ item_name: "Asesoría contable octubre", quantity: 1, unit_price: 150000 }],
+      },
+    ],
+  },
+  { useDefaults: true }, // la API completa razón social, giro, dirección, fecha y forma de pago
+);
+
+// En un script puedes esperar el resultado. En producción, usa webhooks.
+const result = await tupana.documents.waitForBatch(batch.batch_id);
+for (const doc of result.documents) {
+  console.log(doc.index, doc.status, doc.document?.folio, doc.document?.pdf_url);
+}
+```
+
+```python Python
+from tupana import Tupana
+
+tupana = Tupana()  # lee TUPANA_API_KEY
+
+batch = tupana.documents.create_batch(
+    [
+        {
+            "dte_type": {"code": "33"},  # Factura electrónica
+            "document_issuer": {"rut": "76543210-3"},  # tu empresa
+            "document_receiver": {"rut": "77777777-7"},  # tu cliente
+            "details": [
+                {"item_name": "Asesoría contable octubre", "quantity": 1, "unit_price": 150000}
+            ],
+        }
+    ],
+    use_defaults=True,  # la API completa razón social, giro, dirección, fecha y forma de pago
+)
+
+# En un script puedes esperar el resultado. En producción, usa webhooks.
+result = tupana.documents.wait_for_batch(batch["batch_id"])
+for doc in result["documents"]:
+    print(doc["index"], doc["status"], (doc.get("document") or {}).get("folio"))
+```
+
+</CodeGroup>
+
+Cada llamada a `createBatch` / `create_batch` acepta hasta 200 documentos y viaja con un `Idempotency-Key`. Si no pasas uno, el SDK genera un UUID; para reintentar con seguridad desde otro proceso, usa una key tuya y estable (`idempotencyKey` en Node.js, `idempotency_key` en Python).
+
+## Otros endpoints
+
+Para endpoints de la API v2 que todavía no tienen método propio (folios, libros del SII, nómina) usa `raw` en Node.js o `request` en Python, con la misma autenticación, reintentos y errores:
+
+<CodeGroup>
+
+```ts Node.js
+const folios = await tupana.raw("GET", "/folios/", { query: { master_entity_id: "ment_4829301923847" } });
+```
+
+```python Python
+folios = tupana.request("GET", "/folios/", query={"master_entity_id": "ment_4829301923847"})
+```
+
+</CodeGroup>
+
+En Node.js, los tipos generados del OpenAPI completo están en `tupana/openapi`.
 
 ## Sin SDK: la API REST directa
 
-La API es REST con JSON, así que cualquier cliente HTTP sirve. Lo único que necesitas es el header `Authorization: Api-Key <tu_key>`.
+Si prefieres no agregar una dependencia, la API es REST con JSON y cualquier cliente HTTP sirve. Lo único que necesitas es el header `Authorization: Api-Key <tu_key>`.
 
 <CodeGroup>
 
@@ -90,5 +173,6 @@ La especificación OpenAPI 3.0 de la API v2 es pública: [`/api-reference/openap
 ## Relacionado
 
 - [Ejemplos en GitHub](https://github.com/tupana-ai/tupana-examples), incluido un agente de IA
+- [README del SDK de Node.js](https://github.com/tupana-ai/tupana-node) y [del SDK de Python](https://github.com/tupana-ai/tupana-python)
 - [Referencia de la API v2](/api-reference/v2/introduction)
 - [Construir agentes de IA](/agentes/introduccion)
