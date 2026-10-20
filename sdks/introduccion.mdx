@@ -95,7 +95,7 @@ for doc in result["documents"]:
 
 </CodeGroup>
 
-Cada llamada a `createBatch` / `create_batch` acepta hasta 200 documentos y viaja con un `Idempotency-Key`. Si no pasas uno, el SDK genera un UUID; para reintentar con seguridad desde otro proceso, usa una key tuya y estable (`idempotencyKey` en Node.js, `idempotency_key` en Python).
+Cada llamada a `createBatch` / `create_batch` acepta hasta 500 documentos y viaja con un `Idempotency-Key`. Si no pasas uno, el SDK genera un UUID; para reintentar con seguridad desde otro proceso, usa una key tuya y estable (`idempotencyKey` en Node.js, `idempotency_key` en Python).
 
 ## Otros endpoints
 

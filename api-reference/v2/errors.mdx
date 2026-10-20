@@ -103,7 +103,7 @@ específicos listados se están desplegando.
 | `code` | `type` | HTTP | Significado |
 |--------|--------|:----:|-------------|
 | `no_documents` | invalid_request_error | 400 | La lista `documents` está vacía. |
-| `too_many_documents` | invalid_request_error | 413 | Máximo 200 documentos por batch. |
+| `too_many_documents` | invalid_request_error | 413 | Máximo 500 documentos por batch. |
 | `issuer_rut_missing` | invalid_request_error | 400 | Falta el RUT del emisor en el documento. |
 | `issuer_not_found` | not_found_error | 404 | No existe una empresa con ese RUT emisor. |
 | `issuer_forbidden` | permission_error | 403 | La API Key no puede emitir por esa empresa. |

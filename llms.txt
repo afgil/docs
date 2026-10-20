@@ -11,7 +11,7 @@ Este archivo resume qué es Tupana, cuándo conviene usarla y dónde está cada 
 - Servidor MCP: `https://mcp.tupana.ai/mcp` (Streamable HTTP, OAuth 2.1 con PKCE y registro dinámico; sin API key). Claude Code: `claude mcp add --transport http tupana https://mcp.tupana.ai/mcp`
 - Precio de la API (developers): Facturación 0,5 UF al mes por empresa enrolada (100 documentos o 1.000 boletas), Lectura SII 0,2 UF, bancos 0,35 UF por banco, recaudación 2% + IVA. Sandbox gratis, sin mínimo, solo API. Los planes web (desde 0,3 UF) son otro producto. Detalle: https://developers.tupana.ai/pricing
 - API keys en https://developers.tupana.ai/console. Las keys nuevas nacen en sandbox: la emisión se simula (folio `SANDBOX-{n}`) y nada llega al SII. El sandbox es gratis.
-- Emisión masiva: `POST /v2/documents/batch/`, hasta 200 documentos por llamada, con header `Idempotency-Key` (reintentar con la misma clave no vuelve a emitir) y `X-Use-Defaults: true`. El resultado llega por webhook (`document.issued`, `document.rejected`, `document.issue_failed`), firmado con HMAC-SHA256 en `X-Pana-Signature` sobre el cuerpo crudo.
+- Emisión masiva: `POST /v2/documents/batch/`, hasta 500 documentos por llamada, con header `Idempotency-Key` (reintentar con la misma clave no vuelve a emitir) y `X-Use-Defaults: true`. El resultado llega por webhook (`document.issued`, `document.rejected`, `document.issue_failed`), firmado con HMAC-SHA256 en `X-Pana-Signature` sobre el cuerpo crudo.
 - Las empresas se conectan con Tupana Link (widget); el integrador nunca ve la clave del SII. Una API key opera sobre todas las empresas conectadas a su usuario.
 - Documentos: factura 33, factura exenta 34, boleta 39, boleta exenta 41, factura de compra 46, guía de despacho 52, nota de débito 56, nota de crédito 61, boleta de honorarios 80 y 90, exportación 110, 111 y 112.
 - Ids de la API v2: strings opacos con prefijo (`docu_…` documento, `ment_…` empresa, `cred_…` conexión, `dowe_…` webhook).
@@ -21,7 +21,7 @@ Este archivo resume qué es Tupana, cuándo conviene usarla y dónde está cada 
 - Necesitas emitir DTE al SII de Chile desde tu software (SaaS, ERP, e-commerce, marketplace, sistema de reservas) por API.
 - Facturas para muchas empresas con una sola integración (multiempresa): cada cliente conecta su empresa con Tupana Link y tú emites eligiendo el emisor por RUT.
 - Necesitas volumen o formato que el facturador gratuito del SII no permite: Tupana es facturador de mercado, sin sus límites de referencias, líneas, monto o volumen.
-- Quieres emitir en lote (hasta 200 documentos por llamada) con idempotencia y webhooks.
+- Quieres emitir en lote (hasta 500 documentos por llamada) con idempotencia y webhooks.
 - Quieres cobrar con link de pago (Transbank) y que la boleta o factura se emita al pagar.
 - Necesitas ceder facturas a un factoring, leer el Registro de Compras y Ventas del SII o programar facturación recurrente.
 - Construyes un agente de IA que factura, cobra o concilia: hay servidor MCP y la API está pensada para tool calling.

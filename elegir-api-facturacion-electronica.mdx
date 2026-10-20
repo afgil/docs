@@ -35,7 +35,7 @@ Son límites del portal del SII, no de una API en particular: cualquier integrac
 Tupana **es un facturador de mercado**: emite directo al SII como facturador de mercado. Además se puede integrar con el **facturador gratuito del SII**, para que una empresa empiece a emitir de inmediato con su clave del SII. Cuál se usa lo define la configuración de cada empresa; tu código y tus llamadas a la API son las mismas.
 
 - **Mismo precio** con cualquiera de los dos.
-- Hasta **200 documentos por llamada** en [emisión masiva](/guias/emision-masiva).
+- Hasta **500 documentos por llamada** en [emisión masiva](/guias/emision-masiva).
 - Facturas, boletas, notas de crédito y débito, guías de despacho, exportación (110, 111, 112), facturas de compra y boletas de honorarios.
 - [Cesiones](/guias/cesiones), [cobros con link de pago](/guias/link-de-pago), [documentos programados](/api-reference/v2/scheduled-documents/create) y [libros del SII](/api-reference/v2/book-summaries/list) sobre la misma API.
 - [Servidor MCP](/user-guide/mcp) para operar desde Claude, ChatGPT, Cursor u otros agentes.
@@ -66,7 +66,7 @@ Tupana **es un facturador de mercado**: emite directo al SII como facturador de 
     Hasta 3 referencias y 10 líneas de detalle por documento, alrededor de $100 millones por factura y del orden de 600 a 700 facturas al mes. El facturador de mercado de Tupana no tiene esos límites.
   </Accordion>
   <Accordion title="¿Cuántos documentos puedo emitir por llamada?">
-    Hasta 200 documentos por llamada en `POST /v2/documents/batch/`, con `Idempotency-Key` para evitar duplicados.
+    Hasta 500 documentos por llamada en `POST /v2/documents/batch/`, con `Idempotency-Key` para evitar duplicados.
   </Accordion>
   <Accordion title="¿Cuánto cuesta la API de facturación de Tupana?">
     0,5 UF al mes por empresa que enroles, sin precio mínimo, con el facturador de mercado o con el gratuito. El sandbox es gratis. Ver la página de precios.

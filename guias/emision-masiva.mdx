@@ -38,7 +38,7 @@ Un lote es un objeto con un arreglo `documents`. Cada documento lleva al menos e
 }
 ```
 
-- **Hasta 200 documentos por llamada.** Si tienes más, divide en varios lotes.
+- **Hasta 500 documentos por llamada.** Si tienes más, divide en varios lotes.
 - `json_param` guarda tus propios datos (tu id de pedido, por ejemplo). Vuelve en la respuesta y en los webhooks, y puedes filtrar por él en [`GET /v2/documents/`](/api-reference/v2/documents/list) con `json_param__external_order_id=PED-1001`.
 - Los tipos soportados (33, 34, 39, 41, 46, 52, 56, 61, 80, 90, 110, 111, 112) y sus campos están en [Tipos de documentos](/user-guide/documents).
 
@@ -82,7 +82,7 @@ La API acepta el lote y lo procesa en segundo plano. La respuesta trae un `batch
 |---|---|---|
 | `202` / `201` | Lote aceptado | Espera el webhook o consulta los documentos |
 | `400` | La empresa emisora no tiene una conexión activa | Conéctala con Tupana Link |
-| `413` | Más de 200 documentos | Divide el lote |
+| `413` | Más de 500 documentos | Divide el lote |
 | `422` | Error de validación, con la posición del documento y la ruta del campo | Corrige y reenvía con una **nueva** `Idempotency-Key` |
 
 Con validación estricta (activa en las API keys nuevas), un campo desconocido responde `422` en vez de `warnings`. El catálogo completo está en [Errores](/api-reference/v2/errors).
