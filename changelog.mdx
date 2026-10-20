@@ -1,66 +1,281 @@
 ---
 title: 'Novedades de la API (changelog)'
 sidebarTitle: 'Novedades (changelog)'
-description: 'Cambios y nuevas funciones de la API de facturación electrónica de Tupana: API v2, Tupana Link, webhooks, guías de despacho, exportación, libros del SII, cesiones y recaudación.'
-keywords: ['changelog', 'novedades', 'api tupana', 'versiones', 'api v2']
+description: 'Historial completo de cambios de la API de facturación electrónica de Tupana para Chile: API v1 y v2, emisión de DTE al SII, webhooks, sandbox, Tupana Link, cesiones, recaudación, folios, libros del SII, servidor MCP y SDKs.'
+keywords: ['changelog api', 'novedades api tupana', 'api facturación electrónica chile', 'api sii', 'api v2', 'webhooks', 'sandbox', 'dte', 'guía de despacho', 'factura de exportación', 'boleta electrónica', 'cesión de facturas', 'mcp', 'sdk node', 'sdk python']
 rss: true
 ---
 
-<Update label="20 de octubre de 2026" description="Documentación">
+Aquí registramos cada cambio de la API de Tupana que se nota desde tu integración: endpoints nuevos, campos, eventos de webhook, tipos de documento, límites y cambios de comportamiento. Las fechas son las de salida a producción. Suscríbete por RSS para enterarte de cada novedad.
+
+<Update label="20 de octubre de 2026" description="SDKs, MCP y documentación">
+  - SDKs oficiales de código abierto en GitHub: [tupana-ai/tupana-node](https://github.com/tupana-ai/tupana-node) (Node.js y TypeScript) y [tupana-ai/tupana-python](https://github.com/tupana-ai/tupana-python). Ver [SDKs](/sdks/introduccion).
+  - El servidor MCP de Tupana ahora tiene repositorio público: [tupana-ai/tupana-mcp](https://github.com/tupana-ai/tupana-mcp). Ver [Servidor MCP](/user-guide/mcp).
   - Nueva guía [Tu primera llamada en 2 minutos](/quickstart) con sandbox.
   - Guías por tarea: [emitir en lote](/guias/emision-masiva), [webhooks](/guias/webhooks), [link de pago](/guias/link-de-pago), [cesiones](/guias/cesiones) y [varias empresas](/guias/multiempresa).
-  - Nueva sección [Agentes de IA](/agentes/introduccion) (MCP y tool calling), [SDKs](/sdks/introduccion), [Precios](/precios) y [Cómo elegir una API de facturación](/elegir-api-facturacion-electronica).
+  - Nueva sección [Agentes de IA](/agentes/introduccion) (MCP y tool calling), [Precios](/precios) y [Cómo elegir una API de facturación](/elegir-api-facturacion-electronica).
   - `llms-full.txt` ahora incluye la referencia completa de la API v2 en Markdown.
 </Update>
 
-<Update label="15 de octubre de 2026" description="Documentos y libros del SII">
-  - Guía de despacho (DTE 52): campos de la Resolución Exenta N°154 del SII, avisos y anulación de guías.
-  - Nuevo endpoint de [detalle del libro de compras y ventas](/api-reference/v2/book-documents/list).
+<Update label="19 de octubre de 2026" description="MCP y documentos programados">
+  - Servidor MCP: `create_sale_invoice` deja la factura como borrador y la emisión pasa por revisar su vista previa (`get_document_preview` y luego `emit_document`). La herramienta acepta referencias (orden de compra 801, HES), forma de pago y vencimiento (`payment_method`, `due_date`, `due_days`). `get_document_link` entrega el PDF oficial del SII. Ver [Servidor MCP](/user-guide/mcp).
+  - [Documentos programados](/api-reference/v2/scheduled-documents/create): cada línea puede llevar su propia `currency`; si no la envías, se usa la moneda del documento.
+</Update>
+
+<Update label="15 de octubre de 2026" description="Guía de despacho y libros del SII">
+  - Guía de despacho (DTE 52): campos de la Resolución Exenta N°154 del SII, con avisos en la respuesta de la API hasta la fecha de entrada en vigencia. Ver [Documentos](/user-guide/documents).
+  - Anulación de guías con motivo: [`POST /v2/documents/{id}/states/`](/api-reference/v2/document-states/create) con `event_code` `ANNULLED` y `reason`.
+  - Con el facturador gratuito del SII, el destino y el tipo de despacho de la guía se aceptan y se imprimen como texto en el detalle, en vez de rechazar el documento.
+  - Nuevo endpoint de [detalle del libro de compras y ventas](/api-reference/v2/book-documents/list) (`/v1/book-documents/` y `/v2/book-documents/`): una fila por documento del Registro de Compras y Ventas con sus montos e impuestos.
 </Update>
 
 <Update label="8 de octubre de 2026" description="Webhooks">
-  - Los webhooks creados por `/v2/webhooks/` nacen con `api_version: 2` (ids públicos `docu_…`, `ment_…`). Los existentes se suben con [`PATCH /v2/webhooks/{id}/`](/api-reference/v2/webhooks-pages/update).
+  - Si no eliges `api_version` al crear un webhook, se usa la de la ruta: los creados por `/v1/webhooks/` nacen en versión 1 (ids enteros) y los creados por `/v2/webhooks/` en versión 2 (ids públicos `docu_…`, `ment_…`).
+  - Nuevos [`GET`](/api-reference/v2/webhooks-pages/get), [`PATCH`](/api-reference/v2/webhooks-pages/update) y `DELETE` sobre `/v2/webhooks/{id}/`. Con `PATCH` subes un webhook existente a `api_version: 2`.
 </Update>
 
 <Update label="2 de octubre de 2026" description="Exportación">
-  - País y nacionalidad del receptor en facturas de exportación. Ver [Países de exportación](/user-guide/export-countries).
+  - País y nacionalidad del receptor en facturas de exportación, separados del país de destino. Ver [Países de exportación](/user-guide/export-countries).
 </Update>
 
-<Update label="28 de septiembre de 2026" description="Conexiones">
-  - Nuevos endpoints de [conexiones](/api-reference/v2/connections/list): listar y desactivar las empresas conectadas.
+<Update label="30 de septiembre de 2026" description="Idempotencia">
+  - Al reenviar un lote con el mismo `Idempotency-Key`, la respuesta incluye el `batch_id` del lote original.
+  - El header `Idempotency-Key` se puede enviar desde el navegador (permitido en CORS).
 </Update>
 
-<Update label="25 de septiembre de 2026" description="Tupana Link y bases de datos gratuitas">
-  - [Tupana Link](/api-reference/v2/connect/tupana-link): el widget con el que tus usuarios conectan su empresa. En v2 reemplaza la creación de credenciales por API.
-  - [Bases de datos gratuitas](/api-reference/v2/free-databases/introduction): nómina de empresas del SII consultable con cualquier API key.
-  - `additional_info` en documentos (creación, detalle, listado y webhooks).
+<Update label="29 de septiembre de 2026" description="Webhooks">
+  - Nuevo campo `environment` en los webhooks: `production`, `sandbox` o `both` (por defecto). Así un mismo endpoint recibe sólo los eventos del ambiente que elijas. Ver [Webhooks](/user-guide/webhooks).
 </Update>
 
-<Update label="15 de septiembre de 2026" description="Guía de despacho">
-  - Emisión de guías de despacho (DTE 52) por API, con transporte, destino y datos de Aduana.
+<Update label="28 de septiembre de 2026" description="Conexiones y consola de developers">
+  - Nuevos endpoints de [conexiones](/api-reference/v2/connections/list): listar y [desactivar](/api-reference/v2/connections/delete) las empresas conectadas. `/v2/connections/` acepta API key y sesión de usuario.
+  - La conexión de un banco por Tupana Link se da por activa cuando el banco entrega las cuentas, y en ese momento se envía el webhook `connection.active` (o `connection.requires_action`).
+  - Consola de developers en [developers.tupana.ai/console](https://developers.tupana.ai/console): crea tu cuenta y tus API keys.
+</Update>
+
+<Update label="25 de septiembre de 2026" description="Bases de datos gratuitas y MCP">
+  - [Bases de datos gratuitas](/api-reference/v2/free-databases/introduction): nómina de empresas del SII consultable con cualquier API key, con [búsqueda](/api-reference/v2/free-databases/companies-search), [historia por RUT](/api-reference/v2/free-databases/company-history), [resumen](/api-reference/v2/free-databases/companies-summary) y [metadatos](/api-reference/v2/free-databases/companies-metadata).
+  - El servidor MCP enseña a construir facturación dentro de otro SaaS: flujo de emisión, especificación de la interfaz, búsqueda de clientes por RUT y reglas de validación. Ver [Agentes de IA](/agentes/introduccion).
+</Update>
+
+<Update label="24 de septiembre de 2026" description="Tupana Link y emisión v2">
+  - [Tupana Link](/api-reference/v2/connect/tupana-link): el widget hospedado con el que tus usuarios conectan su empresa (SII y bancos). En v2 reemplaza la creación de credenciales por API. Nuevos eventos de webhook `connection.active` y `connection.requires_action`.
+  - `additional_info` en documentos (creación, detalle, listado y webhooks). Se imprime en el PDF y queda fija cuando el documento tiene folio.
+  - [Emisión v2](/api-reference/v2/documents/batch): ya no es necesario enviar `master_entity_id`; el emisor se toma de `document_issuer`. En sandbox no se exige credencial del SII y la vista previa del borrador funciona igual que en producción.
+</Update>
+
+<Update label="23 de septiembre de 2026" description="Sandbox y documentos">
+  - Con una API key de sandbox, el [listado de documentos](/api-reference/v2/documents/list) devuelve los documentos de producción y los de sandbox de la empresa.
+  - Las respuestas v2 de documentos vuelven a incluir el `json_param` que enviaste al crear.
+</Update>
+
+<Update label="21 de septiembre de 2026" description="Cesiones">
+  - Un [lote de cesión](/api-reference/v2/cessions/batch) lo puede pedir quien tiene hoy la factura, no sólo su emisor original.
+</Update>
+
+<Update label="17 de septiembre de 2026" description="API v2">
+  - La API v2 responde en `https://api.tupana.ai/v2/…`, con el mismo estilo de URL que la v1. Ver [Introducción a la API v2](/api-reference/v2/introduction).
+</Update>
+
+<Update label="15 de septiembre de 2026" description="Guía de despacho y validación">
+  - Emisión de guías de despacho (DTE 52) con transporte, destino, despacho, datos de Aduana y líneas exentas. Las guías de exportación aceptan el código de traslado excepcional (`transfer_issuer_code`) y su resolución. Ver [Códigos de transporte y Aduana](/user-guide/transport-codes).
+  - El lote de emisión avisa los campos desconocidos en `warnings`. Las API keys nuevas validan en modo estricto y responden `422` antes de crear el lote; las existentes quedan en modo aviso.
+  - El detalle de un lote acepta el id público o el UUID.
+  - La API v1 mantiene sus ids enteros: las integraciones existentes no cambian.
 </Update>
 
 <Update label="12 de septiembre de 2026" description="API v2">
-  - Lanzamiento de la API v2: ids públicos con prefijo, listas paginadas uniformes, selección de campos y [taxonomía de errores](/api-reference/v2/errors).
-  - Avisos por campos desconocidos y validación estricta por API key.
+  - Lanzamiento de la API v2: ids públicos con prefijo (`docu_…`, `ment_…`), listas paginadas uniformes, selección de campos y [taxonomía de errores](/api-reference/v2/errors) con códigos estables (`parameter_*`, `resource_missing` y códigos propios de cesiones y recaudación).
+  - Las respuestas v2 no exponen estado interno del servidor (trazas crudas del SII, registros de actualización).
+  - Reenviar un lote con un `Idempotency-Key` ya procesado devuelve el lote original (`200`) sin volver a emitir al SII.
 </Update>
 
-<Update label="Septiembre de 2026" description="Exportación y folios">
-  - Facturas de exportación: cláusula de venta (Incoterm) y forma de pago.
-  - [API de folios](/api-reference/v2/folios/availability): timbraje, retiro del CAF y lecturas al SII.
+<Update label="10 de septiembre de 2026" description="Exportación">
+  - Forma de pago de exportación por API.
 </Update>
 
-<Update label="Agosto de 2026" description="Trazas y cesiones">
-  - Evento `document.trace_updated` con la traza del SII y filtro por `json_param` en el listado de documentos.
-  - Seguimiento por documento en los [lotes de cesión](/api-reference/v2/cessions/batch-status).
+<Update label="9 de septiembre de 2026" description="Exportación">
+  - Cláusula de venta (Incoterm) en facturas de exportación por API. Ver [Modalidades de venta de exportación](/user-guide/export-sale-modes).
 </Update>
 
-<Update label="Julio de 2026" description="Consultas al SII">
-  - [Resumen de libros](/api-reference/v2/book-summaries/list) y [sincronización a demanda](/api-reference/v2/sync/request-create).
-  - Boleta exenta (DTE 41) y sincronización de usuarios autorizados de boleta de honorarios.
+<Update label="8 de septiembre de 2026" description="Boletas">
+  - Boleta de espectáculo por cuenta de terceros: la línea de detalle acepta `show_item_type`, `principal_rut` y un bloque `ticket`, en `POST /v1/documents/batch/` y en v2.
 </Update>
 
-<Update label="Mayo y junio de 2026" description="Recaudación">
-  - Cobro directo de documentos ya emitidos, listado de tarjetas inscritas y de liquidaciones en la [API de Recaudación](/api-reference/payment-requests/introduction).
-  - Evento `document.unpaid`.
+<Update label="4 de septiembre de 2026" description="Exportación y folios">
+  - Facturas de exportación: el tipo de cambio se alinea con la fecha de emisión del DTE y los puertos de embarque y desembarque se completan desde el país de destino.
+  - Los errores de folios traen `error_code` (vocabulario cerrado para decidir si reintentar) y `sii_code`. Ver [Códigos de error de folios](/api-reference/folios/errors).
+</Update>
+
+<Update label="1 de septiembre de 2026" description="Límites">
+  - La búsqueda por `folio` en el listado de documentos tiene un límite de 30 consultas por hora por API key. Al superarlo, la API responde `429`.
+</Update>
+
+<Update label="28 de agosto de 2026" description="Documentos y folios">
+  - Las referencias de notas de crédito y débito aceptan `reference_code` (CodRef del SII: 1 anula, 2 corrige texto, 3 corrige montos).
+  - Documentos programados: reajuste del precio por IPC cada cierta cantidad de meses.
+  - Las consultas de folios al SII pasan a ser un recurso propio: [`/v2/folio-queries/`](/api-reference/v2/folios/query-create).
+</Update>
+
+<Update label="27 de agosto de 2026" description="Folios, referencias y límites">
+  - [API de folios](/api-reference/v2/folios/availability): disponibilidad, timbraje de folios y retiro del CAF, con los webhooks `folio_request.completed`, `folio_request.failed` y `folio_request.authorized_without_caf`.
+  - Las referencias aceptan un tipo de documento definido por tu empresa (hasta 3 caracteres, por ejemplo `HES`).
+  - El [detalle de un documento](/api-reference/documents/get) tiene un límite de 600 consultas por hora por API key y de 60 por hora sobre un mismo documento. Al superarlo, la API responde `429`; para enterarte de cambios de estado usa [webhooks](/user-guide/webhooks).
+</Update>
+
+<Update label="25 de agosto de 2026" description="Sandbox">
+  - Los documentos de sandbox se timbran con un XML de la misma estructura que en producción y un PDF real con marca de agua de vista previa.
+</Update>
+
+<Update label="19 de agosto de 2026" description="Webhooks">
+  - Nuevo evento `document.trace_updated`: un aviso por cada evento nuevo de la traza del SII (acuses, reclamos, rechazos), tanto de documentos emitidos como recibidos. El payload trae `role` para saber de qué lado estás.
+</Update>
+
+<Update label="18 de agosto de 2026" description="Documentos">
+  - Filtro `json_param__<clave>=<valor>` en el [listado de documentos](/api-reference/documents/list) para buscar por los datos propios que enviaste al emitir.
+</Update>
+
+<Update label="13 de agosto de 2026" description="Webhooks">
+  - Envío de webhooks más estable: se limita la cantidad de conexiones simultáneas a cada endpoint y las conexiones se reutilizan.
+  - Un webhook se desactiva automáticamente sólo ante una caída sostenida de tu endpoint (100 fallos seguidos), no por un error puntual.
+</Update>
+
+<Update label="6 de agosto de 2026" description="Cesiones">
+  - Nuevo [`GET /v1/cessions/batch/{id}/`](/api-reference/cessions/batch-status) con el seguimiento de cada documento del lote de cesión.
+</Update>
+
+<Update label="23 de julio de 2026" description="Cesiones">
+  - Parámetro `document_type=issued|received` en el [listado de cesiones](/api-reference/cessions/list): consulta también las facturas de tus proveedores que fueron cedidas a un tercero.
+</Update>
+
+<Update label="22 de julio de 2026" description="Boletas de honorarios">
+  - [Sincronización a demanda](/api-reference/honorary/authorized-users-sync) de los usuarios autorizados para emitir boletas de honorarios.
+</Update>
+
+<Update label="20 de julio de 2026" description="Consultas al SII">
+  - [Resumen de libros](/api-reference/book-summaries/list) del SII en `/v1/book-summaries/`.
+  - [Sincronización a demanda](/api-reference/sync/request-create) con `/v1/sync-requests/`, estado de la última sincronización con `/v1/sync-status/` y frecuencia por empresa con `/v1/sync-settings/{id}/`. Ver [Sincronización](/api-reference/sync/introduction).
+</Update>
+
+<Update label="15 de julio de 2026" description="Credenciales">
+  - [Enrolamiento en lote](/api-reference/credentials/batch) con `POST /v1/credentials/batch/` y consulta del lote por id.
+  - [Desenrolar una empresa](/api-reference/credentials/unenroll) con `DELETE /v1/credentials/{id}/`.
+  - Nuevo evento de webhook `credential.validated`.
+</Update>
+
+<Update label="6 de julio de 2026" description="Boletas">
+  - Boletas 39 y 41 aceptan `gross_unit_price` (precio con IVA incluido): el total emitido coincide al peso con el monto que cobraste.
+</Update>
+
+<Update label="26 de junio de 2026" description="Webhooks">
+  - `document.issue_failed` incluye `data.error` con `message`, `code` y `type` del último intento fallido.
+</Update>
+
+<Update label="22 de junio de 2026" description="Boletas">
+  - Boletas 39 y 41 aceptan líneas con monto negativo (descuentos por línea).
+</Update>
+
+<Update label="8 de junio de 2026" description="Boletas de honorarios">
+  - Anulación de boletas de honorarios (DTE 80) por API con `PATCH /v1/documents/batch/` y `patch: {"annulled": true}`.
+</Update>
+
+<Update label="5 de junio de 2026" description="Webhooks">
+  - `document.paid` y el nuevo `document.unpaid` se envían en cada cambio del estado de pago, también en los cambios masivos.
+</Update>
+
+<Update label="27 de mayo de 2026" description="Recaudación">
+  - Cobro directo de documentos ya emitidos con `document_ids` en [`POST /v1/payment-requests/`](/api-reference/payment-requests/create).
+  - [Listado de tarjetas inscritas](/api-reference/payment-requests/payment-methods-list) y [liquidaciones](/api-reference/payment-requests/settlements-list) por empresa.
+</Update>
+
+<Update label="15 de mayo de 2026" description="Cesiones">
+  - El [detalle de una cesión](/api-reference/cessions/get) trae `certificate_pdf_url` con el certificado de cesión.
+</Update>
+
+<Update label="13 de mayo de 2026" description="Webhooks">
+  - Nuevo evento `credential.invalid`: te avisa cuando la clave de una empresa deja de funcionar en el SII.
+</Update>
+
+<Update label="8 de mayo de 2026" description="Cesiones">
+  - [Listado](/api-reference/cessions/list) y [detalle](/api-reference/cessions/get) de cesiones bajo `/v1/cessions/` con API key.
+</Update>
+
+<Update label="4 de mayo de 2026" description="Documentos y recaudación">
+  - `?include_trace_events=true` en el [listado de documentos](/api-reference/documents/list) devuelve la traza completa del SII de cada documento.
+  - Las solicitudes de cobro suman el estado `issued` cuando se emite su documento.
+</Update>
+
+<Update label="29 de abril de 2026" description="MCP">
+  - Servidor MCP de Tupana con inicio de sesión OAuth 2.1: consulta documentos, clientes y libros, y emite facturas desde agentes de IA compatibles con MCP. Ver [Servidor MCP](/user-guide/mcp).
+</Update>
+
+<Update label="28 de abril de 2026" description="Recaudación">
+  - [API de Recaudación](/api-reference/payment-requests/introduction) bajo `/v1/` con API key: solicitudes de cobro con link de pago, datos bancarios de la empresa y emisión del documento al pagar.
+  - Webhooks `payment_request.paid`, `payment_request.document_issued` y `payment_request.expired`. Ver [Webhooks de recaudación](/api-reference/payment-requests/webhooks).
+</Update>
+
+<Update label="15 de abril de 2026" description="Documentos">
+  - En el detalle de un borrador fuera de sandbox, `pdf_url` viene siempre presente y en `null` hasta que el documento se emite.
+</Update>
+
+<Update label="6 de marzo de 2026" description="Emisión en lote">
+  - Los documentos de un lote que quedaron en error permanente se pueden reintentar con el mismo `Idempotency-Key`.
+</Update>
+
+<Update label="3 de marzo de 2026" description="Documentos">
+  - Nuevos tipos de referencia: contrato y nota de pedido.
+</Update>
+
+<Update label="3 de febrero de 2026" description="Documentos">
+  - Estado de pago por API: `PATCH /v1/documents/batch/` con `patch: {"payment_status": "paid" | "unpaid" | "partially_paid"}` y `paid_amount` para pagos parciales. El estado se refleja en el detalle y el listado.
+</Update>
+
+<Update label="19 de enero de 2026" description="Webhooks y boletas de honorarios">
+  - Nuevos eventos `document.issue_failed`, `document.updated` y de documentos programados (`scheduled_document.created`, `scheduled_document.updated`, `scheduled_document.run_started`, `scheduled_document.run_succeeded`, `scheduled_document.run_failed`), más `webhook.test` para probar tu endpoint.
+  - Usuarios autorizados para emitir boletas de honorarios por empresa. Ver [Boletas de honorarios](/api-reference/honorary/introduction).
+</Update>
+
+<Update label="16 de enero de 2026" description="Documentos">
+  - [Detalle de un documento](/api-reference/documents/get) en `/v1/documents/{id}/` y sus [estados](/api-reference/document-states/list) en `/v1/documents/{id}/states/`.
+  - [Vista previa](/api-reference/scheduled-documents/preview) de un documento programado antes de su próxima emisión.
+</Update>
+
+<Update label="13 de enero de 2026" description="Webhooks">
+  - Crea y lista webhooks por API con `/v1/webhooks/`. Ver [Webhooks](/api-reference/webhooks/webhooks).
+</Update>
+
+<Update label="5 de enero de 2026" description="Cesiones">
+  - [Cesión de facturas en lote](/api-reference/cessions/batch) por API con `POST /v1/cessions/batch/`. Ver [Cesiones](/api-reference/cessions/introduction).
+</Update>
+
+<Update label="Diciembre de 2025" description="Exportación">
+  - Nota de débito de exportación (DTE 111).
+</Update>
+
+<Update label="Noviembre de 2025" description="Documentos programados y honorarios">
+  - [API de documentos programados](/api-reference/scheduled-documents/list) (`/v1/scheduled-documents/`): facturación recurrente con ajuste a días hábiles y tipo de cambio del día para exportación.
+  - Boletas de honorarios (DTE 80 y 90) y nota de crédito de exportación (DTE 112).
+</Update>
+
+<Update label="Septiembre de 2025" description="Documentos">
+  - Guía de despacho (DTE 52) y nota de débito (DTE 56) en la emisión por API.
+</Update>
+
+<Update label="Agosto de 2025" description="Sandbox">
+  - API keys de sandbox: emiten documentos simulados sin enviar nada al SII. Ver [Autenticación](/user-guide/authentication).
+</Update>
+
+<Update label="Julio de 2025" description="Exportación y credenciales">
+  - Factura de exportación (DTE 110). Ver [Monedas de exportación](/user-guide/export-currencies).
+  - [API de credenciales](/api-reference/credentials/list) (`/v1/credentials/`) para enrolar las empresas que emiten a través de tu integración.
+</Update>
+
+<Update label="Junio de 2025" description="Lanzamiento de la API v1">
+  - [Emisión en lote](/api-reference/documents/batch) con `POST /v1/documents/batch/`: asíncrona, con `Idempotency-Key` y consulta del lote por id. Incluye boletas 39 y 41.
+  - Autenticación con el header `Authorization: Api-Key <tu_key>`. Ver [Autenticación](/user-guide/authentication).
+  - Webhooks de documentos: `document.issued`, `document.delivered`, `document.rejected`, `document.paid` y `document.cancelled`, con historial de entregas.
+</Update>
+
+<Update label="Abril de 2025" description="Primeros endpoints">
+  - Primer endpoint público con API key: [búsqueda de empresas por RUT](/api-reference/endpoint/master-entity).
 </Update>
