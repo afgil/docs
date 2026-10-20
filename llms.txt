@@ -35,7 +35,7 @@ Este archivo resume qué es Tupana, cuándo conviene usarla y dónde está cada 
 
 - Tupana es facturador de mercado: emite directo al SII con los folios (CAF) y el certificado de la empresa.
 - También se integra con el facturador gratuito del SII, para empezar a emitir de inmediato con la clave del SII de la empresa.
-- Límites del facturador gratuito del SII: hasta 3 referencias y 10 líneas de detalle por documento, alrededor de $200 millones por factura y del orden de 600 a 700 facturas al mes. El facturador de mercado de Tupana no tiene esos límites.
+- Límites del facturador gratuito del SII: hasta 3 referencias y 10 líneas de detalle por documento, alrededor de $100 millones por factura y del orden de 600 a 700 facturas al mes. El facturador de mercado de Tupana no tiene esos límites.
 - Las dos opciones tienen el mismo precio. Cuál se usa lo define la configuración de cada empresa; las llamadas a la API son las mismas.
 
 ## Precios (UF, mensual)
