@@ -1,0 +1,66 @@
+---
+title: 'Novedades de la API (changelog)'
+sidebarTitle: 'Novedades (changelog)'
+description: 'Cambios y nuevas funciones de la API de facturación electrónica de Tupana: API v2, Tupana Link, webhooks, guías de despacho, exportación, libros del SII, cesiones y recaudación.'
+keywords: ['changelog', 'novedades', 'api tupana', 'versiones', 'api v2']
+rss: true
+---
+
+<Update label="20 de octubre de 2026" description="Documentación">
+  - Nueva guía [Tu primera llamada en 2 minutos](/quickstart) con sandbox.
+  - Guías por tarea: [emitir en lote](/guias/emision-masiva), [webhooks](/guias/webhooks), [link de pago](/guias/link-de-pago), [cesiones](/guias/cesiones) y [varias empresas](/guias/multiempresa).
+  - Nueva sección [Agentes de IA](/agentes/introduccion) (MCP y tool calling), [SDKs](/sdks/introduccion), [Precios](/precios) y [Cómo elegir una API de facturación](/elegir-api-facturacion-electronica).
+  - `llms-full.txt` ahora incluye la referencia completa de la API v2 en Markdown.
+</Update>
+
+<Update label="15 de octubre de 2026" description="Documentos y libros del SII">
+  - Guía de despacho (DTE 52): campos de la Resolución Exenta N°154 del SII, avisos y anulación de guías.
+  - Nuevo endpoint de [detalle del libro de compras y ventas](/api-reference/v2/book-documents/list).
+</Update>
+
+<Update label="8 de octubre de 2026" description="Webhooks">
+  - Los webhooks creados por `/v2/webhooks/` nacen con `api_version: 2` (ids públicos `docu_…`, `ment_…`). Los existentes se suben con [`PATCH /v2/webhooks/{id}/`](/api-reference/v2/webhooks-pages/update).
+</Update>
+
+<Update label="2 de octubre de 2026" description="Exportación">
+  - País y nacionalidad del receptor en facturas de exportación. Ver [Países de exportación](/user-guide/export-countries).
+</Update>
+
+<Update label="28 de septiembre de 2026" description="Conexiones">
+  - Nuevos endpoints de [conexiones](/api-reference/v2/connections/list): listar y desactivar las empresas conectadas.
+</Update>
+
+<Update label="25 de septiembre de 2026" description="Tupana Link y bases de datos gratuitas">
+  - [Tupana Link](/api-reference/v2/connect/tupana-link): el widget con el que tus usuarios conectan su empresa. En v2 reemplaza la creación de credenciales por API.
+  - [Bases de datos gratuitas](/api-reference/v2/free-databases/introduction): nómina de empresas del SII consultable con cualquier API key.
+  - `additional_info` en documentos (creación, detalle, listado y webhooks).
+</Update>
+
+<Update label="15 de septiembre de 2026" description="Guía de despacho">
+  - Emisión de guías de despacho (DTE 52) por API, con transporte, destino y datos de Aduana.
+</Update>
+
+<Update label="12 de septiembre de 2026" description="API v2">
+  - Lanzamiento de la API v2: ids públicos con prefijo, listas paginadas uniformes, selección de campos y [taxonomía de errores](/api-reference/v2/errors).
+  - Avisos por campos desconocidos y validación estricta por API key.
+</Update>
+
+<Update label="Septiembre de 2026" description="Exportación y folios">
+  - Facturas de exportación: cláusula de venta (Incoterm) y forma de pago.
+  - [API de folios](/api-reference/v2/folios/availability): timbraje, retiro del CAF y lecturas al SII.
+</Update>
+
+<Update label="Agosto de 2026" description="Trazas y cesiones">
+  - Evento `document.trace_updated` con la traza del SII y filtro por `json_param` en el listado de documentos.
+  - Seguimiento por documento en los [lotes de cesión](/api-reference/v2/cessions/batch-status).
+</Update>
+
+<Update label="Julio de 2026" description="Consultas al SII">
+  - [Resumen de libros](/api-reference/v2/book-summaries/list) y [sincronización a demanda](/api-reference/v2/sync/request-create).
+  - Boleta exenta (DTE 41) y sincronización de usuarios autorizados de boleta de honorarios.
+</Update>
+
+<Update label="Mayo y junio de 2026" description="Recaudación">
+  - Cobro directo de documentos ya emitidos, listado de tarjetas inscritas y de liquidaciones en la [API de Recaudación](/api-reference/payment-requests/introduction).
+  - Evento `document.unpaid`.
+</Update>

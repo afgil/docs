@@ -1,0 +1,53 @@
+---
+title: 'Precios de la API de facturación electrónica'
+sidebarTitle: 'Precios'
+description: 'Precios de Tupana en UF: API de facturación electrónica a 0,5 UF por empresa al mes, lectura SII y bancaria, recaudación al 2%, sandbox gratis y planes de la plataforma desde 0,3 UF.'
+keywords: ['precios api facturación electrónica', 'uf', 'planes tupana', 'sandbox gratis', 'precio por empresa']
+---
+
+Los precios están en UF y son mensuales. El sandbox es gratis.
+
+## API para developers e integradores
+
+Para SaaS, ERP y plataformas que facturan por API para sus clientes. Pagas por empresa conectada, sin precio mínimo. Valores netos: se agrega IVA.
+
+| Producto | Precio | Qué incluye |
+|---|---|---|
+| **Facturación** | **0,5 UF** al mes por empresa que enroles | Hasta 100 documentos o 1.000 boletas de venta al mes por empresa. Facturas, boletas, notas de crédito y boletas de honorarios. XML, PDF y estados del SII. Con el facturador de mercado de Tupana (sin restricciones de monto, cantidad de productos ni referencias) o con el facturador gratuito del SII, al mismo precio. Solo por API: no incluye la plataforma web. |
+| **Lectura SII** | **0,2 UF** al mes por empresa | Registro de compra y venta, boletas de honorarios emitidas y recibidas. Solo lectura; requiere la clave del SII de la empresa. |
+| **Lectura bancaria** | **0,35 UF** al mes por banco que enroles | Cuentas, saldos y movimientos sincronizados sin límite. |
+| **Recaudación** | **2%** de lo recaudado | Link de pago integrado a Transbank y webhook cuando llega el dinero. Sin costo fijo. |
+| **Sandbox** | **Gratis** | APIs, MCP, Tupana Link, facturas y webhooks de prueba. |
+| **Bases de datos gratuitas** | **Gratis** | [Nómina de empresas del SII](/api-reference/v2/free-databases/introduction), con cualquier API key. No consume cupo. |
+
+¿Necesitas más de 100 documentos o 1.000 boletas al mes por empresa? Pide un plan a la medida en [developers.tupana.ai](https://developers.tupana.ai).
+
+## Planes de la plataforma Tupana
+
+Para empresas que facturan desde la plataforma web de Tupana. La API de integración está incluida desde el plan Starter.
+
+| Plan | Precio mensual | Documentos incluidos | Destacado |
+|---|---|---|---|
+| **Independent** | 0,3 UF | 10 | Facturación electrónica y facturas programadas |
+| **Starter** | 1,0 UF | 70 | Carga masiva desde Excel, **API de integración**, notas de crédito |
+| **Basic** | 2,2 UF | 180 | Alertas de vencimiento, reportes mensuales, de orden de compra a factura |
+| **Enterprise** | desde 4,5 UF | Hasta 1.000 al mes | Integración con portales B2B y atención con ventas |
+
+El detalle vigente de cada plan está en [tupana.ai](https://www.tupana.ai).
+
+## Preguntas frecuentes
+
+**¿El precio cambia si emito con el facturador de mercado o con el gratuito del SII?**
+No. Es el mismo precio. La diferencia está en los límites: el facturador gratuito del SII tiene topes de referencias, líneas, monto y volumen que el facturador de mercado de Tupana no tiene. Ver [Cómo elegir una API de facturación](/elegir-api-facturacion-electronica).
+
+**¿Qué pasa con los documentos emitidos en sandbox?**
+No se cobran y no llegan al SII. Su folio tiene la forma `SANDBOX-{n}`.
+
+**¿Por qué en UF?**
+Es la unidad de referencia habitual en Chile para servicios recurrentes: el precio se mantiene estable en términos reales.
+
+## Empieza
+
+<Card title="Tu primera llamada en 2 minutos" icon="bolt" href="/quickstart">
+  Crea tu API key de sandbox gratis y emite una factura de prueba.
+</Card>

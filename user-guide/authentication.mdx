@@ -1,6 +1,7 @@
 ---
-title: 'Autenticación'
-description: 'Configura tus credenciales y accede a la API de Tupana'
+title: 'Autenticación de la API (API key)'
+sidebarTitle: 'Autenticación'
+description: 'Cómo autenticarte en la API de facturación electrónica de Tupana con el header Authorization: Api-Key, crear keys de sandbox y producción, permisos por alcance y errores 401.'
 ---
 
 # Autenticación
@@ -9,10 +10,21 @@ Para comenzar a utilizar la API de Tupana, necesitarás configurar la autenticac
 
 ## Obtener tu API Key
 
-1. Ingresa a tu panel de control
-2. Ve a "Configuración > API"
-3. Haz clic en "Generar Nueva API Key"
-4. Guarda tu API Key en un lugar seguro - no podrás verla nuevamente
+1. Entra a [developers.tupana.ai/console](https://developers.tupana.ai/console) (o, si usas la plataforma, a **Configuración → API Keys**).
+2. Crea una nueva API key. Las keys nuevas **nacen en modo sandbox**: simulan la emisión y no envían nada al SII.
+3. Guarda tu API key en un lugar seguro: no podrás verla nuevamente.
+
+### Sandbox y producción
+
+| | Sandbox | Producción |
+|---|---|---|
+| Emisión | Simulada: el documento se crea con folio `SANDBOX-{n}` y no va al SII | Real, al SII |
+| Datos | Nunca toca datos reales | Tus empresas conectadas |
+| Costo | Gratis | Según [Precios](/precios) |
+
+### Permisos
+
+Cada API key tiene permisos por alcance, por ejemplo `document:access` (leer documentos), `document:create` (emitir), `master_entity:access` (buscar entidades) y `book_summary:access` (libros del SII). Una key con `*` tiene todos. Usa el mínimo que necesite cada integración, sobre todo si la usa un [agente de IA](/agentes/introduccion).
 
 ## Usar tu API Key
 
@@ -21,10 +33,10 @@ Para comenzar a utilizar la API de Tupana, necesitarás configurar la autenticac
 Para autenticarte con la API, incluye tu API Key en el header de tus peticiones usando el prefijo `Api-Key`:
 
 ```bash
-curl -X POST https://api.tupana.ai/v1/documents \
+curl -X POST https://api.tupana.ai/v2/documents/batch/ \
   -H "Authorization: Api-Key TU_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"type": "33", ...}'
+  -d '{"documents": [ ... ]}'
 ```
 
 ### Ejemplo en Python
@@ -39,9 +51,9 @@ headers = {
 }
 
 response = requests.post(
-    "https://api.tupana.ai/v1/documents",
+    "https://api.tupana.ai/v2/documents/batch/",
     headers=headers,
-    json={"type": "33", ...}
+    json={"documents": [...]}
 )
 ```
 
@@ -67,6 +79,6 @@ Si recibes un error de autenticación (401), verifica:
 
 Una vez configurada la autenticación, puedes:
 
-1. Emitir tu primer documento
-2. Explorar los endpoints disponibles
-3. Configurar webhooks para notificaciones 
+1. [Hacer tu primera llamada](/quickstart)
+2. [Emitir facturas en lote](/guias/emision-masiva)
+3. [Configurar webhooks](/guias/webhooks) 

@@ -1,0 +1,69 @@
+---
+title: 'Facturar para varias empresas con una sola integración (multiempresa)'
+sidebarTitle: 'Facturar para varias empresas'
+description: 'Cómo un SaaS, ERP o estudio contable emite facturas electrónicas al SII para muchas empresas con una sola API key de Tupana: conexiones con Tupana Link, emisor por RUT, webhooks por empresa y reconexión.'
+keywords: ['multiempresa', 'multicredencial', 'saas', 'erp', 'contadores', 'tupana link', 'api facturación electrónica']
+---
+
+Si eres un SaaS, un ERP o un estudio contable, no integras una empresa: integras cientos. En Tupana eso es una sola integración. La API key es **por usuario** y opera sobre todas las empresas conectadas a ese usuario; cada empresa se conecta una vez (una conexión o credencial por empresa, por eso se le dice multicredencial) y desde ahí la eliges por su RUT en cada documento.
+
+## Cómo se arma
+
+<Steps>
+  <Step title="Cada cliente conecta su empresa con Tupana Link">
+    Tu backend abre una sesión (`POST /v2/connect-sessions/`) y tu frontend muestra el widget. Tu cliente entrega su clave adentro del widget: tú nunca la ves. Manda tu propio id de cliente en `external_customer_id` para cruzarlo después.
+
+```bash
+curl -X POST https://api.tupana.ai/v2/connect-sessions/ \
+  -H "Authorization: Api-Key $TUPANA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"capabilities": ["invoicing"], "app_name": "Mi SaaS", "tax_id": "78.152.641-K", "external_customer_id": "cus_912"}'
+```
+
+    El detalle del widget y sus eventos está en [Tupana Link](/api-reference/v2/connect/tupana-link).
+  </Step>
+  <Step title="Guardas la conexión cuando queda activa">
+    El webhook `connection.active` trae `connection_id` (`cred_…`), `company_id` (`ment_…`) y tu `external_customer_id`. Guarda los tres. El evento `success` del widget solo sirve para cerrar el modal; la fuente de verdad es el webhook.
+  </Step>
+  <Step title="Emites eligiendo la empresa por RUT">
+    En cada documento, `document_issuer.rut` dice a nombre de qué empresa se emite. Si facturas para varias empresas a la vez, arma un lote por empresa emisora: así cada lote tiene un resultado y un reintento independiente.
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": { "code": "33" },
+      "document_issuer": { "rut": "78152641-K" },
+      "document_receiver": { "rut": "77987654-3", "business_name": "Cliente de mi cliente SpA" },
+      "details": [{ "item_name": "Servicio", "quantity": 1, "unit_price": 100000 }]
+    }
+  ]
+}
+```
+  </Step>
+  <Step title="Un webhook por empresa">
+    Los webhooks se crean por `master_entity_id`. Crea uno por cada empresa al recibir `connection.active`, apuntando a la misma URL de tu backend; el payload trae el emisor para que sepas de quién es cada evento. Ver [Recibir avisos de estado](/guias/webhooks).
+  </Step>
+</Steps>
+
+## Mantener las conexiones sanas
+
+- [`GET /v2/connections/`](/api-reference/v2/connections/list) lista todas las empresas conectadas, con su giro, dirección, ambiente (`sandbox` o `production`) y `status`.
+- Cuando una clave deja de funcionar, la conexión pasa a `requires_action` y llega el webhook `connection.requires_action`. No hay nada que reintentar desde tu lado: pide a tu cliente que reconecte con Tupana Link.
+- Para dar de baja una empresa, usa [Desactivar una conexión](/api-reference/v2/connections/delete).
+
+## Permisos
+
+- La key ve las empresas a las que tiene acceso su usuario. Si tu equipo tiene varias personas, crea las keys con un usuario de integración y no con una cuenta personal.
+- Emitir requiere que el usuario tenga permiso de emisión en esa empresa; sin él, el acceso es de solo lectura.
+- Las keys de sandbox nunca operan sobre datos reales. Prueba el alta de clientes completa en sandbox antes de abrir producción.
+
+## Precios para integradores
+
+Facturación por API cuesta **0,5 UF al mes por empresa que enroles**, sin precio mínimo. Ver [Precios](/precios).
+
+## Relacionado
+
+- [Tupana Link](/api-reference/v2/connect/tupana-link)
+- [Listar conexiones](/api-reference/v2/connections/list)
+- [Emitir facturas en lote](/guias/emision-masiva)

@@ -1,0 +1,103 @@
+---
+title: 'Agentes de IA que facturan, cobran y concilian'
+sidebarTitle: 'Construir agentes de IA'
+description: 'Cómo construir agentes de IA que emiten facturas electrónicas al SII, cobran y concilian el banco con Tupana: servidor MCP para Claude, ChatGPT y Cursor, tool calling sobre la API REST y patrones seguros.'
+keywords: ['agentes de ia', 'mcp', 'tool calling', 'facturación electrónica', 'claude', 'chatgpt', 'cursor', 'sii', 'llm']
+---
+
+Tupana está pensada para que un agente de IA pueda operar la facturación de una empresa chilena: buscar un cliente por RUT, preparar una factura, emitirla al SII con confirmación, mandarla por correo, ver qué está pendiente de pago y conciliar el banco. Hay dos formas de conectarlo.
+
+| | Servidor MCP | Tool calling sobre la API REST |
+|---|---|---|
+| Para qué | Un asistente que opera en nombre de una persona (Claude, ChatGPT, Cursor, Claude Code) | Un agente propio dentro de tu producto o backend |
+| Autenticación | OAuth con la cuenta Tupana del usuario, sin API key | API key en tu backend |
+| Herramientas | Ya definidas por Tupana (emitir, buscar, conciliar, reportes) | Las defines tú a partir de la [referencia de la API](/api-reference/v2/introduction) |
+| Confirmación antes de emitir | Incluida en el servidor | La implementas tú |
+| Empieza en | [Conectar un asistente (MCP)](/user-guide/mcp) | [Tool calling sobre la API](/agentes/tool-calling) |
+
+## Opción 1: el servidor MCP
+
+El servidor MCP de Tupana está en `https://mcp.tupana.ai/mcp` (Streamable HTTP, OAuth 2.1 con PKCE y registro dinámico de clientes). No necesitas API key ni client ID: el usuario inicia sesión con su cuenta Tupana y el asistente solo ve las empresas a las que esa persona pertenece.
+
+<CodeGroup>
+
+```bash Claude Code
+claude mcp add --transport http tupana https://mcp.tupana.ai/mcp
+```
+
+```json Cursor (~/.cursor/mcp.json)
+{
+  "mcpServers": {
+    "tupana": { "url": "https://mcp.tupana.ai/mcp" }
+  }
+}
+```
+
+</CodeGroup>
+
+En claude.ai, Claude Desktop y ChatGPT se agrega como conector personalizado con la misma URL. Los pasos por cliente están en [Conectar un asistente de IA (MCP)](/user-guide/mcp).
+
+Algunas herramientas que expone el servidor:
+
+| Herramienta | Qué hace |
+|---|---|
+| `list_capabilities`, `how_to` | Descubrir qué puede hacer el servidor y cómo |
+| `enrich_client_from_rut`, `find_clients` | Buscar o completar un cliente desde su RUT |
+| `validate_invoice_draft`, `create_sale_invoice` | Validar y emitir una factura (con confirmación) |
+| `create_credit_note` | Anular o corregir con nota de crédito |
+| `search_documents`, `get_document_link`, `send_document_email` | Encontrar un documento, obtener su PDF y reenviarlo |
+| `get_pending_invoices` | Cuentas por cobrar y por pagar |
+| `get_reconciliation_suggestions`, `reconcile_movement` | Conciliar movimientos bancarios con facturas |
+| `get_sii_books`, `get_f29_summary` | Libros del SII y resumen de IVA |
+
+Para la lista vigente, pídele al asistente que llame a `list_capabilities`.
+
+## Opción 2: tool calling sobre la API REST
+
+Si el agente vive en tu producto, defínele herramientas que llamen a la API de Tupana desde tu backend. La guía [Tool calling sobre la API](/agentes/tool-calling) trae las definiciones listas para copiar (JSON Schema) y el ciclo completo de confirmación.
+
+## Patrones recomendados
+
+<AccordionGroup>
+  <Accordion title="Confirmación humana antes de emitir" defaultOpen>
+    Emitir un DTE al SII es irreversible: una factura mal emitida solo se corrige con una nota de crédito. Separa siempre **preparar** de **emitir**: el agente arma el documento y muestra un resumen (receptor, RUT, ítems, neto, IVA, total); la emisión ocurre solo cuando una persona confirma. El servidor MCP ya lo hace así: sin confirmación explícita, el documento queda como borrador.
+  </Accordion>
+  <Accordion title="Claves de idempotencia en cada emisión">
+    Los modelos reintentan. Manda `Idempotency-Key` en `POST /v2/documents/batch/`, derivada de algo estable (tu id de pedido, por ejemplo `pedido-1001`), no un valor aleatorio por intento. Si el agente repite la llamada, Tupana devuelve el lote original sin volver a emitir.
+  </Accordion>
+  <Accordion title="Lotes asíncronos y webhooks, no esperas activas">
+    La emisión se procesa en segundo plano. En vez de que el agente consulte en un ciclo, recibe el resultado por [webhook](/guias/webhooks) (`document.issued`, `document.rejected`, `document.issue_failed`) y retoma la conversación con ese evento.
+  </Accordion>
+  <Accordion title="API keys con el mínimo de permisos">
+    Las API keys tienen permisos por alcance (por ejemplo `document:access` para leer documentos y `document:create` para emitir). Un agente que solo consulta no necesita emitir. Usa una key por agente o por entorno, guárdala en tu backend y nunca la pongas en el prompt ni en el navegador.
+  </Accordion>
+  <Accordion title="Sandbox primero">
+    Las keys nuevas nacen en sandbox: la emisión se simula, el folio es `SANDBOX-{n}` y nada llega al SII. Corre tus evaluaciones del agente en sandbox y pasa a producción solo cuando el flujo completo funcione.
+  </Accordion>
+  <Accordion title="Datos del contribuyente desde el RUT, no desde el modelo">
+    No dejes que el modelo invente razón social, giro o dirección. Pídelos a la API ([Buscar entidad por RUT](/api-reference/v2/entities/master-entity)) y usa `X-Use-Defaults: true` para que Tupana complete lo que falte con la configuración de la empresa.
+  </Accordion>
+</AccordionGroup>
+
+## Prompts de ejemplo
+
+Con el servidor MCP conectado, prueba:
+
+- "Factura a 76.123.456-7 un servicio de consultoría por $850.000 neto. Muéstrame el borrador antes de emitir."
+- "¿Qué facturas de clientes vencieron este mes y cuánto suman? Ordénalas por monto."
+- "Reenvíale a Constructora Vega la factura 1234 con el PDF."
+- "Concilia los movimientos del banco de la última semana y muéstrame los que no tienen una factura que calce."
+- "Anula la factura 5678 con una nota de crédito total; antes muéstrame el detalle."
+- "Arma un gráfico de ventas mensuales de este año comparado con el anterior."
+
+## Ejemplos de código
+
+En el repositorio [tupana-ai/tupana-examples](https://github.com/tupana-ai/tupana-examples) hay un agente de ejemplo que emite, cobra y concilia con Tupana. Para el cliente de la API en Node.js o Python, ver [SDKs](/sdks/introduccion).
+
+## Para LLMs
+
+Si tu agente necesita leer la documentación completa, apúntalo a:
+
+- [`/llms.txt`](https://docs.tupana.ai/llms.txt): resumen, cuándo usar Tupana e índice de páginas.
+- [`/llms-full.txt`](https://docs.tupana.ai/llms-full.txt): todas las guías y la referencia completa de la API v2 en Markdown.
+- [`/api-reference/openapi-v2.json`](https://docs.tupana.ai/api-reference/openapi-v2.json): la especificación OpenAPI.

@@ -1,0 +1,161 @@
+---
+title: 'Tool calling sobre la API de facturación electrónica'
+sidebarTitle: 'Tool calling sobre la API'
+description: 'Definiciones de herramientas (JSON Schema) para que tu propio agente de IA busque contribuyentes por RUT, prepare y emita facturas electrónicas al SII con confirmación humana y consulte su estado usando la API REST de Tupana.'
+keywords: ['tool calling', 'function calling', 'agente ia', 'json schema', 'api facturación electrónica', 'openai', 'anthropic']
+---
+
+Cuando el agente vive en tu producto, le das herramientas que tu backend ejecuta contra la API de Tupana. Las definiciones de abajo usan JSON Schema, el formato que aceptan los principales proveedores de modelos (Anthropic, OpenAI, Google y los frameworks de agentes). La API key queda siempre en tu backend.
+
+## Herramientas
+
+```json
+[
+  {
+    "name": "buscar_contribuyente",
+    "description": "Busca una empresa chilena por RUT y devuelve razón social, actividades económicas y direcciones con sus ids. Úsala antes de facturar a un receptor nuevo; nunca inventes estos datos.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "rut": { "type": "string", "description": "RUT con guion, por ejemplo 76123456-7" }
+      },
+      "required": ["rut"]
+    }
+  },
+  {
+    "name": "preparar_factura",
+    "description": "Arma el borrador de una factura electrónica y devuelve un resumen para que el usuario lo revise. NO emite nada.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "dte_type": { "type": "string", "enum": ["33", "34", "39", "41", "61"], "description": "33 factura, 34 exenta, 39 boleta, 41 boleta exenta, 61 nota de crédito" },
+        "issuer_rut": { "type": "string" },
+        "receiver_rut": { "type": "string" },
+        "receiver_name": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "item_name": { "type": "string" },
+              "quantity": { "type": "number" },
+              "unit_price": { "type": "number", "description": "Precio unitario neto en pesos" }
+            },
+            "required": ["item_name", "quantity", "unit_price"]
+          }
+        },
+        "external_id": { "type": "string", "description": "Tu id del pedido u operación; se usa como clave de idempotencia" }
+      },
+      "required": ["dte_type", "issuer_rut", "receiver_rut", "items", "external_id"]
+    }
+  },
+  {
+    "name": "emitir_factura",
+    "description": "Emite al SII un borrador ya confirmado por el usuario. Requiere el draft_id que devolvió preparar_factura y la confirmación explícita del usuario.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "draft_id": { "type": "string" },
+        "user_confirmed": { "type": "boolean", "description": "true solo si el usuario confirmó este borrador en este turno" }
+      },
+      "required": ["draft_id", "user_confirmed"]
+    }
+  },
+  {
+    "name": "consultar_documentos",
+    "description": "Lista documentos emitidos o recibidos de una empresa, con filtros por folio, fechas o tu external_id.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "master_entity_id": { "type": "string", "description": "Id de la empresa (ment_…)" },
+        "folio": { "type": "string" },
+        "issue_date_gte": { "type": "string", "format": "date" },
+        "issue_date_lte": { "type": "string", "format": "date" },
+        "external_order_id": { "type": "string" }
+      },
+      "required": ["master_entity_id"]
+    }
+  }
+]
+```
+
+## Qué ejecuta tu backend
+
+| Herramienta | Llamada a Tupana |
+|---|---|
+| `buscar_contribuyente` | [`GET /v2/master-entities/?rut=`](/api-reference/v2/entities/master-entity) |
+| `preparar_factura` | Ninguna. Guarda el borrador en tu base de datos y devuelve el resumen y un `draft_id` |
+| `emitir_factura` | [`POST /v2/documents/batch/`](/api-reference/v2/documents/batch) con `Idempotency-Key` = `external_id` |
+| `consultar_documentos` | [`GET /v2/documents/`](/api-reference/v2/documents/list) con `json_param__external_order_id` |
+
+```javascript
+const TUPANA = "https://api.tupana.ai/v2";
+const headers = {
+  Authorization: `Api-Key ${process.env.TUPANA_API_KEY}`,
+  "Content-Type": "application/json",
+};
+
+export async function runTool(name, input, ctx) {
+  switch (name) {
+    case "buscar_contribuyente": {
+      const res = await fetch(`${TUPANA}/master-entities/?rut=${encodeURIComponent(input.rut)}`, { headers });
+      return res.json();
+    }
+    case "preparar_factura": {
+      const draft = await ctx.drafts.save(input); // tu base de datos
+      const neto = input.items.reduce((s, i) => s + i.quantity * i.unit_price, 0);
+      return { draft_id: draft.id, receptor: input.receiver_rut, neto, aviso: "Pide confirmación al usuario antes de emitir." };
+    }
+    case "emitir_factura": {
+      // La regla vive en tu código, no en el prompt.
+      if (!input.user_confirmed || !ctx.userConfirmed(input.draft_id)) {
+        return { error: "Falta la confirmación del usuario." };
+      }
+      const d = await ctx.drafts.get(input.draft_id);
+      const res = await fetch(`${TUPANA}/documents/batch/`, {
+        method: "POST",
+        headers: { ...headers, "Idempotency-Key": d.external_id, "X-Use-Defaults": "true" },
+        body: JSON.stringify({
+          documents: [{
+            dte_type: { code: d.dte_type },
+            document_issuer: { rut: d.issuer_rut },
+            document_receiver: { rut: d.receiver_rut, business_name: d.receiver_name },
+            details: d.items,
+            json_param: { external_order_id: d.external_id },
+          }],
+        }),
+      });
+      return { status: res.status, body: await res.json() };
+    }
+    case "consultar_documentos": {
+      const q = new URLSearchParams({ master_entity_id: input.master_entity_id });
+      if (input.folio) q.set("folio", input.folio);
+      if (input.issue_date_gte) q.set("issue_date_gte", input.issue_date_gte);
+      if (input.issue_date_lte) q.set("issue_date_lte", input.issue_date_lte);
+      if (input.external_order_id) q.set("json_param__external_order_id", input.external_order_id);
+      const res = await fetch(`${TUPANA}/documents/?${q}`, { headers });
+      return res.json();
+    }
+  }
+}
+```
+
+## Reglas que conviene darle al modelo
+
+- "Nunca emitas sin mostrar antes el resumen del borrador y recibir un sí explícito."
+- "Obtén razón social, giro y dirección con `buscar_contribuyente`; no los inventes."
+- "Los montos de `unit_price` son netos; el IVA lo calcula Tupana."
+- "Si `emitir_factura` responde 422, explica qué campo falló y propone la corrección; no reintentes con los mismos datos."
+- "El resultado final llega después: informa que la factura quedó en proceso y que avisarás cuando el SII la acepte."
+
+## Errores y reintentos
+
+- `422`: el cuerpo indica la posición del documento y el campo. Corrige y vuelve a emitir con una nueva clave de idempotencia. Ver [Errores](/api-reference/v2/errors).
+- Errores de red o `5xx`: reintenta **con la misma** `Idempotency-Key`; Tupana no emite dos veces.
+- Estado final: escúchalo por [webhook](/guias/webhooks) y vuelve a la conversación con el evento.
+
+## Relacionado
+
+- [Construir agentes de IA](/agentes/introduccion): MCP y patrones recomendados
+- [Emitir facturas en lote](/guias/emision-masiva)
+- [`llms-full.txt`](https://docs.tupana.ai/llms-full.txt): la referencia completa en Markdown para cargar en el contexto del agente

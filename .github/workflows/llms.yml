@@ -1,0 +1,46 @@
+name: Generar llms.txt
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.mdx'
+      - 'docs.json'
+      - 'api-reference/openapi-v2.json'
+      - 'api-reference/openapi-payment-requests.json'
+      - 'scripts/generate_llms.py'
+      - 'scripts/llms/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  llms:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Generar llms.txt y llms-full.txt
+        run: python3 scripts/generate_llms.py
+      - name: Avisar si el PR no trae los archivos regenerados
+        if: github.event_name == 'pull_request'
+        run: |
+          if [ -n "$(git status --porcelain llms.txt llms-full.txt)" ]; then
+            echo "::warning::llms.txt o llms-full.txt están desactualizados. Corre python3 scripts/generate_llms.py"
+          fi
+      - name: Commit de los archivos regenerados
+        if: github.event_name == 'push'
+        run: |
+          if [ -n "$(git status --porcelain llms.txt llms-full.txt)" ]; then
+            git config user.email "action@github.com"
+            git config user.name "GitHub Action"
+            git add llms.txt llms-full.txt
+            git commit -m "chore: regenerar llms.txt y llms-full.txt"
+            git push
+          fi

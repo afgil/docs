@@ -1,0 +1,94 @@
+---
+title: 'SDKs para Node.js y Python'
+sidebarTitle: 'SDKs (Node.js y Python)'
+description: 'Clientes oficiales de la API de facturación electrónica de Tupana para Node.js/TypeScript y Python: instalación desde GitHub, autenticación y cómo usar la API REST directamente.'
+keywords: ['sdk', 'node.js', 'typescript', 'python', 'api facturación electrónica', 'cliente api', 'npm', 'pypi']
+---
+
+Tupana tiene clientes oficiales para Node.js (TypeScript) y Python, con código abierto en GitHub.
+
+| Lenguaje | Repositorio | Instalación hoy | Paquete |
+|---|---|---|---|
+| Node.js / TypeScript | [tupana-ai/tupana-node](https://github.com/tupana-ai/tupana-node) | `npm i github:tupana-ai/tupana-node` | `@tupana-ai/sdk` en npm (próximamente) |
+| Python | [tupana-ai/tupana-python](https://github.com/tupana-ai/tupana-python) | `pip install git+https://github.com/tupana-ai/tupana-python` | `tupana` en PyPI (próximamente) |
+
+<Note>
+Mientras los paquetes no estén publicados en npm y PyPI, instala desde GitHub con los comandos de la tabla. Cuando se publiquen, bastará con `npm i @tupana-ai/sdk` o `pip install tupana`. La API del cliente y sus ejemplos están en el README de cada repositorio.
+</Note>
+
+## Instalación
+
+<CodeGroup>
+
+```bash Node.js
+npm i github:tupana-ai/tupana-node
+```
+
+```bash Python
+pip install git+https://github.com/tupana-ai/tupana-python
+```
+
+</CodeGroup>
+
+Guarda tu API key en una variable de entorno (por ejemplo `TUPANA_API_KEY`) y pásasela al cliente desde ahí; nunca la dejes en el código. Para obtener una, ver [Tu primera llamada en 2 minutos](/quickstart).
+
+## Sin SDK: la API REST directa
+
+La API es REST con JSON, así que cualquier cliente HTTP sirve. Lo único que necesitas es el header `Authorization: Api-Key <tu_key>`.
+
+<CodeGroup>
+
+```javascript Node.js (fetch)
+const res = await fetch("https://api.tupana.ai/v2/documents/batch/", {
+  method: "POST",
+  headers: {
+    Authorization: `Api-Key ${process.env.TUPANA_API_KEY}`,
+    "Content-Type": "application/json",
+    "Idempotency-Key": "pedido-1001",
+    "X-Use-Defaults": "true",
+  },
+  body: JSON.stringify({
+    documents: [{
+      dte_type: { code: "33" },
+      document_issuer: { rut: "76123456-7" },
+      document_receiver: { rut: "77987654-3", business_name: "Cliente SpA" },
+      details: [{ item_name: "Servicio", quantity: 1, unit_price: 100000 }],
+    }],
+  }),
+});
+console.log(res.status, await res.json());
+```
+
+```python Python (requests)
+import os, requests
+
+res = requests.post(
+    "https://api.tupana.ai/v2/documents/batch/",
+    headers={
+        "Authorization": f"Api-Key {os.environ['TUPANA_API_KEY']}",
+        "Idempotency-Key": "pedido-1001",
+        "X-Use-Defaults": "true",
+    },
+    json={
+        "documents": [{
+            "dte_type": {"code": "33"},
+            "document_issuer": {"rut": "76123456-7"},
+            "document_receiver": {"rut": "77987654-3", "business_name": "Cliente SpA"},
+            "details": [{"item_name": "Servicio", "quantity": 1, "unit_price": 100000}],
+        }]
+    },
+)
+print(res.status_code, res.json())
+```
+
+</CodeGroup>
+
+## Genera tu propio cliente
+
+La especificación OpenAPI 3.0 de la API v2 es pública: [`/api-reference/openapi-v2.json`](https://docs.tupana.ai/api-reference/openapi-v2.json). Sirve para generar un cliente en cualquier lenguaje (Java, Go, C#, PHP, Ruby) con herramientas como OpenAPI Generator.
+
+## Relacionado
+
+- [Ejemplos en GitHub](https://github.com/tupana-ai/tupana-examples), incluido un agente de IA
+- [Referencia de la API v2](/api-reference/v2/introduction)
+- [Construir agentes de IA](/agentes/introduccion)
