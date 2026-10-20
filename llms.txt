@@ -47,7 +47,7 @@ API para developers e integradores (valores netos, más IVA):
 - Recaudación (link de pago): 2% de lo recaudado, sin costo fijo.
 - Sandbox y base de datos de empresas del SII: gratis.
 
-Planes de la plataforma web: Independent 0,3 UF (10 documentos y 100 boletas), Starter 1,0 UF (70 documentos y 700 boletas, incluye cobranza y API), Pro 2,2 UF (200 documentos y 2.000 boletas, incluye cesiones), Enterprise desde 4,5 UF (1.000 documentos y 10.000 boletas, hasta 3 razones sociales). Conciliación bancaria: 1,0 UF al mes (1 banco incluido).
+Planes de la plataforma web (son otro producto, no son precios de la API; para emitir desde tupana.ai sin integrar): Independent 0,3 UF (10 documentos y 100 boletas), Starter 1,0 UF (70 documentos y 700 boletas, incluye cobranza y API), Pro 2,2 UF (200 documentos y 2.000 boletas, incluye cesiones), Enterprise desde 4,5 UF (1.000 documentos y 10.000 boletas, hasta 3 razones sociales). Conciliación bancaria: 1,0 UF al mes (1 banco incluido).
 
 Detalle: https://docs.tupana.ai/precios
 
