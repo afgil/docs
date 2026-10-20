@@ -9,6 +9,7 @@ Este archivo resume qué es Tupana, cuándo conviene usarla y dónde está cada 
 - API REST v2: `https://api.tupana.ai/v2`. Autenticación con el header `Authorization: Api-Key <tu_key>` (no `Bearer`).
 - Especificación OpenAPI 3.0: https://docs.tupana.ai/api-reference/openapi-v2.json
 - Servidor MCP: `https://mcp.tupana.ai/mcp` (Streamable HTTP, OAuth 2.1 con PKCE y registro dinámico; sin API key). Claude Code: `claude mcp add --transport http tupana https://mcp.tupana.ai/mcp`
+- Precio de la API (developers): Facturación 0,5 UF al mes por empresa enrolada (100 documentos o 1.000 boletas), Lectura SII 0,2 UF, bancos 0,35 UF por banco, recaudación 2% + IVA. Sandbox gratis, sin mínimo, solo API. Los planes web (desde 0,3 UF) son otro producto. Detalle: https://developers.tupana.ai/pricing
 - API keys en https://developers.tupana.ai/console. Las keys nuevas nacen en sandbox: la emisión se simula (folio `SANDBOX-{n}`) y nada llega al SII. El sandbox es gratis.
 - Emisión masiva: `POST /v2/documents/batch/`, hasta 200 documentos por llamada, con header `Idempotency-Key` (reintentar con la misma clave no vuelve a emitir) y `X-Use-Defaults: true`. El resultado llega por webhook (`document.issued`, `document.rejected`, `document.issue_failed`), firmado con HMAC-SHA256 en `X-Pana-Signature` sobre el cuerpo crudo.
 - Las empresas se conectan con Tupana Link (widget); el integrador nunca ve la clave del SII. Una API key opera sobre todas las empresas conectadas a su usuario.
@@ -44,12 +45,14 @@ API para developers e integradores (valores netos, más IVA):
 - Facturación: 0,5 UF al mes por empresa enrolada, sin precio mínimo. Hasta 100 documentos o 1.000 boletas al mes por empresa. Solo por API.
 - Lectura SII: 0,2 UF al mes por empresa.
 - Lectura bancaria: 0,35 UF al mes por banco.
-- Recaudación (link de pago): 2% de lo recaudado, sin costo fijo.
+- Recaudación (link de pago): 2% + IVA de lo recaudado, sin costo fijo.
 - Sandbox y base de datos de empresas del SII: gratis.
 
-Planes de la plataforma web (son otro producto, no son precios de la API; para emitir desde tupana.ai sin integrar): Independent 0,3 UF (10 documentos y 100 boletas), Starter 1,0 UF (70 documentos y 700 boletas, incluye cobranza y API), Pro 2,2 UF (200 documentos y 2.000 boletas, incluye cesiones), Enterprise desde 4,5 UF (1.000 documentos y 10.000 boletas, hasta 3 razones sociales). Conciliación bancaria: 1,0 UF al mes (1 banco incluido).
+Planes de la plataforma web (son otro producto, no son precios de la API; para emitir desde tupana.ai sin integrar): Independent 0,3 UF (10 documentos y 100 boletas), Starter 1,0 UF (70 documentos y 700 boletas, incluye cobranza y acceso a la API solo para las empresas de tu propia cuenta; para integrar a tus clientes, la API cuesta 0,5 UF por empresa), Pro 2,2 UF (200 documentos y 2.000 boletas, incluye cesiones), Enterprise desde 4,5 UF (1.000 documentos y 10.000 boletas, hasta 3 razones sociales). Conciliación bancaria: 1,0 UF al mes (1 banco incluido).
 
-Detalle: https://docs.tupana.ai/precios
+Ejemplo: 10 empresas facturando por la API = 5 UF al mes.
+
+Detalle: https://docs.tupana.ai/precios · https://developers.tupana.ai/pricing
 
 ## Empezar
 

@@ -9,6 +9,7 @@ Este archivo resume qué es Tupana, cuándo conviene usarla y dónde está cada 
 - API REST v2: `https://api.tupana.ai/v2`. Autenticación con el header `Authorization: Api-Key <tu_key>` (no `Bearer`).
 - Especificación OpenAPI 3.0: https://docs.tupana.ai/api-reference/openapi-v2.json
 - Servidor MCP: `https://mcp.tupana.ai/mcp` (Streamable HTTP, OAuth 2.1 con PKCE y registro dinámico; sin API key). Claude Code: `claude mcp add --transport http tupana https://mcp.tupana.ai/mcp`
+- Precio de la API (developers): Facturación 0,5 UF al mes por empresa enrolada (100 documentos o 1.000 boletas), Lectura SII 0,2 UF, bancos 0,35 UF por banco, recaudación 2% + IVA. Sandbox gratis, sin mínimo, solo API. Los planes web (desde 0,3 UF) son otro producto. Detalle: https://developers.tupana.ai/pricing
 - API keys en https://developers.tupana.ai/console. Las keys nuevas nacen en sandbox: la emisión se simula (folio `SANDBOX-{n}`) y nada llega al SII. El sandbox es gratis.
 - Emisión masiva: `POST /v2/documents/batch/`, hasta 200 documentos por llamada, con header `Idempotency-Key` (reintentar con la misma clave no vuelve a emitir) y `X-Use-Defaults: true`. El resultado llega por webhook (`document.issued`, `document.rejected`, `document.issue_failed`), firmado con HMAC-SHA256 en `X-Pana-Signature` sobre el cuerpo crudo.
 - Las empresas se conectan con Tupana Link (widget); el integrador nunca ve la clave del SII. Una API key opera sobre todas las empresas conectadas a su usuario.
@@ -44,12 +45,14 @@ API para developers e integradores (valores netos, más IVA):
 - Facturación: 0,5 UF al mes por empresa enrolada, sin precio mínimo. Hasta 100 documentos o 1.000 boletas al mes por empresa. Solo por API.
 - Lectura SII: 0,2 UF al mes por empresa.
 - Lectura bancaria: 0,35 UF al mes por banco.
-- Recaudación (link de pago): 2% de lo recaudado, sin costo fijo.
+- Recaudación (link de pago): 2% + IVA de lo recaudado, sin costo fijo.
 - Sandbox y base de datos de empresas del SII: gratis.
 
-Planes de la plataforma web (son otro producto, no son precios de la API; para emitir desde tupana.ai sin integrar): Independent 0,3 UF (10 documentos y 100 boletas), Starter 1,0 UF (70 documentos y 700 boletas, incluye cobranza y API), Pro 2,2 UF (200 documentos y 2.000 boletas, incluye cesiones), Enterprise desde 4,5 UF (1.000 documentos y 10.000 boletas, hasta 3 razones sociales). Conciliación bancaria: 1,0 UF al mes (1 banco incluido).
+Planes de la plataforma web (son otro producto, no son precios de la API; para emitir desde tupana.ai sin integrar): Independent 0,3 UF (10 documentos y 100 boletas), Starter 1,0 UF (70 documentos y 700 boletas, incluye cobranza y acceso a la API solo para las empresas de tu propia cuenta; para integrar a tus clientes, la API cuesta 0,5 UF por empresa), Pro 2,2 UF (200 documentos y 2.000 boletas, incluye cesiones), Enterprise desde 4,5 UF (1.000 documentos y 10.000 boletas, hasta 3 razones sociales). Conciliación bancaria: 1,0 UF al mes (1 banco incluido).
 
-Detalle: https://docs.tupana.ai/precios
+Ejemplo: 10 empresas facturando por la API = 5 UF al mes.
+
+Detalle: https://docs.tupana.ai/precios · https://developers.tupana.ai/pricing
 
 ## Empezar
 
@@ -587,41 +590,64 @@ Una vez configurada la autenticación, puedes:
 
 Fuente: https://docs.tupana.ai/precios · Sección: Guía de Usuario / Primeros Pasos
 
-> Precios de Tupana en UF: API de facturación electrónica a 0,5 UF por empresa al mes, lectura SII y bancaria, recaudación al 2%, sandbox gratis y planes de la plataforma desde 0,3 UF.
+> Precio de la API de Tupana en UF: facturación 0,5 UF al mes por empresa enrolada, lectura SII 0,2 UF, bancos 0,35 UF por banco y recaudación 2% + IVA. Sandbox gratis, sin mínimo. Los planes web son otro producto.
 
 Los precios están en UF y son mensuales. El sandbox es gratis.
 
-### API para developers e integradores
+> **Nota:** Esta página tiene **dos productos distintos**: el precio de la API (developers) y los planes de la plataforma web. No se suman ni se reemplazan. Si integras la facturación en tu software, tu precio es el de la API: **0,5 UF al mes por empresa enrolada**.
 
-Para SaaS, ERP y plataformas que facturan por API para sus clientes. Pagas por empresa conectada, sin precio mínimo. Valores netos: se agrega IVA.
+### Precio de la API (developers)
+
+Para SaaS, ERP y plataformas que facturan por API para sus clientes. Pagas por empresa enrolada, sin precio mínimo y sin cobro por documento. Valores netos: se agrega IVA. Es solo API: no incluye la plataforma web.
 
 | Producto | Precio | Qué incluye |
 |---|---|---|
 | **Facturación** | **0,5 UF** al mes por empresa que enroles | Hasta 100 documentos o 1.000 boletas de venta al mes por empresa. Facturas, boletas, notas de crédito y boletas de honorarios. XML, PDF y estados del SII. Con el facturador de mercado de Tupana (sin restricciones de monto, cantidad de productos ni referencias) o con el facturador gratuito del SII, al mismo precio. Solo por API: no incluye la plataforma web. |
 | **Lectura SII** | **0,2 UF** al mes por empresa | Registro de compra y venta, boletas de honorarios emitidas y recibidas. Solo lectura; requiere la clave del SII de la empresa. |
 | **Lectura bancaria** | **0,35 UF** al mes por banco que enroles | Cuentas, saldos y movimientos sincronizados sin límite. |
-| **Recaudación** | **2%** de lo recaudado | Link de pago integrado a Transbank y webhook cuando llega el dinero. Sin costo fijo. |
+| **Recaudación** | **2% + IVA** de lo recaudado | Link de pago integrado a Transbank y webhook cuando llega el dinero. Sin costo fijo. |
 | **Sandbox** | **Gratis** | APIs, MCP, Tupana Link, facturas y webhooks de prueba. |
 | **Bases de datos gratuitas** | **Gratis** | [Nómina de empresas del SII](https://docs.tupana.ai/api-reference/v2/free-databases/introduction), con cualquier API key. No consume cupo. |
 
-¿Necesitas más de 100 documentos o 1.000 boletas al mes por empresa? Pide un plan a la medida en [developers.tupana.ai](https://developers.tupana.ai).
+¿Necesitas más de 100 documentos o 1.000 boletas al mes por empresa? Pide un plan a la medida en [developers.tupana.ai](https://developers.tupana.ai/pricing).
 
-### Planes de la plataforma Tupana
+#### Ejemplos de cálculo
 
-Para empresas que facturan desde la plataforma web de Tupana. La API de integración está incluida desde el plan Starter.
+| Caso | Cálculo | Total al mes (neto) |
+|---|---|---|
+| 1 empresa facturando | 1 × 0,5 UF | 0,5 UF |
+| 10 empresas facturando | 10 × 0,5 UF | **5 UF** |
+| 10 empresas facturando y leyendo el SII | 10 × (0,5 + 0,2) UF | 7 UF |
+| 10 empresas facturando, con 1 banco cada una | 10 × 0,5 UF + 10 × 0,35 UF | 8,5 UF |
+| 100 empresas facturando | 100 × 0,5 UF | 50 UF |
+
+La recaudación se suma aparte: 2% + IVA de lo que cobras con el link de pago. Tabla completa en [developers.tupana.ai/pricing](https://developers.tupana.ai/pricing).
+
+### Planes de la plataforma web (otro producto)
+
+Para empresas que facturan desde la plataforma web de Tupana ([www.tupana.ai](https://www.tupana.ai/#precios)). **No son el precio de la API.** Desde Starter incluyen acceso a la API para las empresas de tu propia cuenta; para integrar a tus clientes en tu software, la API de developers cuesta 0,5 UF al mes por empresa enrolada.
 
 | Plan | Precio mensual | Incluye al mes | Destacado |
 |---|---|---|---|
 | **Independent** | 0,3 UF | 10 documentos y 100 boletas | Emisión web y móvil |
-| **Starter** | 1,0 UF | 70 documentos y 700 boletas | Cobranza y **API de integración** incluidas |
+| **Starter** | 1,0 UF | 70 documentos y 700 boletas | Cobranza y API para las empresas de tu cuenta |
 | **Pro** | 2,2 UF | 200 documentos y 2.000 boletas | Cesiones y todo lo de Starter |
-| **Enterprise** | desde 4,5 UF | 1.000 documentos y 10.000 boletas | Hasta 3 razones sociales, alto volumen y API |
+| **Enterprise** | desde 4,5 UF | 1.000 documentos y 10.000 boletas | Hasta 3 razones sociales, alto volumen y API para esas empresas |
 
 Módulo de conciliación bancaria: 1,0 UF al mes (1 banco incluido). Si te pasas del cupo, los documentos extra se cobran a valor bajo y nunca te bloqueamos.
 
 El detalle vigente de cada plan está en [tupana.ai](https://www.tupana.ai).
 
 ### Preguntas frecuentes
+
+**¿La API está incluida en los planes web?**
+Son productos distintos. Los planes web (Independent 0,3 UF, Starter 1,0 UF, Pro 2,2 UF y Enterprise desde 4,5 UF) son para facturar desde la plataforma www.tupana.ai, y desde Starter incluyen acceso a la API para las empresas de tu propia cuenta. Para integrar a tus clientes en tu software, la API de developers cuesta 0,5 UF al mes por empresa enrolada y no incluye la plataforma web.
+
+**¿Cuánto pago si tengo 10 empresas facturando por la API?**
+5 UF al mes más IVA: 10 empresas por 0,5 UF. Si además lees el SII de esas 10 empresas, se suman 2 UF y el total queda en 7 UF al mes.
+
+**¿Hay precio mínimo o costo fijo?**
+No. Pagas por las empresas enroladas en el mes. Si un mes no tienes ninguna, no pagas nada.
 
 **¿El precio cambia si emito con el facturador de mercado o con el gratuito del SII?**
 No. Es el mismo precio. La diferencia está en los límites: el facturador gratuito del SII tiene topes de referencias, líneas, monto y volumen que el facturador de mercado de Tupana no tiene. Ver [Cómo elegir una API de facturación](https://docs.tupana.ai/elegir-api-facturacion-electronica).
