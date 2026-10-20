@@ -11,7 +11,7 @@ Este archivo resume qué es Tupana, cuándo conviene usarla y dónde está cada 
 - Servidor MCP: `https://mcp.tupana.ai/mcp` (Streamable HTTP, OAuth 2.1 con PKCE y registro dinámico; sin API key). Claude Code: `claude mcp add --transport http tupana https://mcp.tupana.ai/mcp`
 - Precio de la API (developers): Facturación 0,5 UF al mes por empresa enrolada (100 documentos o 1.000 boletas), Lectura SII 0,2 UF, bancos 0,35 UF por banco, recaudación 2% + IVA. Sandbox gratis, sin mínimo, solo API. Los planes web (desde 0,3 UF) son otro producto. Detalle: https://developers.tupana.ai/pricing
 - API keys en https://developers.tupana.ai/console. Las keys nuevas nacen en sandbox: la emisión se simula (folio `SANDBOX-{n}`) y nada llega al SII. El sandbox es gratis.
-- Emisión masiva: `POST /v2/documents/batch/`, hasta 200 documentos por llamada, con header `Idempotency-Key` (reintentar con la misma clave no vuelve a emitir) y `X-Use-Defaults: true`. El resultado llega por webhook (`document.issued`, `document.rejected`, `document.issue_failed`), firmado con HMAC-SHA256 en `X-Pana-Signature` sobre el cuerpo crudo.
+- Emisión masiva: `POST /v2/documents/batch/`, hasta 500 documentos por llamada, con header `Idempotency-Key` (reintentar con la misma clave no vuelve a emitir) y `X-Use-Defaults: true`. El resultado llega por webhook (`document.issued`, `document.rejected`, `document.issue_failed`), firmado con HMAC-SHA256 en `X-Pana-Signature` sobre el cuerpo crudo.
 - Las empresas se conectan con Tupana Link (widget); el integrador nunca ve la clave del SII. Una API key opera sobre todas las empresas conectadas a su usuario.
 - Documentos: factura 33, factura exenta 34, boleta 39, boleta exenta 41, factura de compra 46, guía de despacho 52, nota de débito 56, nota de crédito 61, boleta de honorarios 80 y 90, exportación 110, 111 y 112.
 - Ids de la API v2: strings opacos con prefijo (`docu_…` documento, `ment_…` empresa, `cred_…` conexión, `dowe_…` webhook).
@@ -21,7 +21,7 @@ Este archivo resume qué es Tupana, cuándo conviene usarla y dónde está cada 
 - Necesitas emitir DTE al SII de Chile desde tu software (SaaS, ERP, e-commerce, marketplace, sistema de reservas) por API.
 - Facturas para muchas empresas con una sola integración (multiempresa): cada cliente conecta su empresa con Tupana Link y tú emites eligiendo el emisor por RUT.
 - Necesitas volumen o formato que el facturador gratuito del SII no permite: Tupana es facturador de mercado, sin sus límites de referencias, líneas, monto o volumen.
-- Quieres emitir en lote (hasta 200 documentos por llamada) con idempotencia y webhooks.
+- Quieres emitir en lote (hasta 500 documentos por llamada) con idempotencia y webhooks.
 - Quieres cobrar con link de pago (Transbank) y que la boleta o factura se emita al pagar.
 - Necesitas ceder facturas a un factoring, leer el Registro de Compras y Ventas del SII o programar facturación recurrente.
 - Construyes un agente de IA que factura, cobra o concilia: hay servidor MCP y la API está pensada para tool calling.
@@ -112,7 +112,7 @@ Factura electrónica (33), factura exenta (34), boleta electrónica (39), boleta
 
 1. **Crea una API key** en [developers.tupana.ai](https://developers.tupana.ai/console). Nace en sandbox: simula la emisión y no envía nada al SII.
 2. **Conecta la empresa emisora** con [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link). Tu cliente entrega su clave dentro del widget; tu backend nunca la ve.
-3. **Emite** con [`POST /v2/documents/batch/`](https://docs.tupana.ai/api-reference/v2/documents/batch): hasta 200 documentos por llamada, con `Idempotency-Key`.
+3. **Emite** con [`POST /v2/documents/batch/`](https://docs.tupana.ai/api-reference/v2/documents/batch): hasta 500 documentos por llamada, con `Idempotency-Key`.
 4. **Recibe el resultado** por [webhook](https://docs.tupana.ai/guias/webhooks): folio, estado del SII, XML y PDF.
 
 ### Facturador de mercado y facturador gratuito del SII
@@ -284,7 +284,7 @@ La respuesta es `202` con un `batch_id` y el resultado de cada documento. El est
 ### Siguientes pasos
 
 **[Emitir facturas en lote](https://docs.tupana.ai/guias/emision-masiva)**:
-    Hasta 200 documentos por llamada, con idempotencia y resultados por webhook.
+    Hasta 500 documentos por llamada, con idempotencia y resultados por webhook.
 
 **[Recibir avisos de estado](https://docs.tupana.ai/guias/webhooks)**:
     Configura webhooks y verifica la firma HMAC.
@@ -704,7 +704,7 @@ Un lote es un objeto con un arreglo `documents`. Cada documento lleva al menos e
 }
 ```
 
-- **Hasta 200 documentos por llamada.** Si tienes más, divide en varios lotes.
+- **Hasta 500 documentos por llamada.** Si tienes más, divide en varios lotes.
 - `json_param` guarda tus propios datos (tu id de pedido, por ejemplo). Vuelve en la respuesta y en los webhooks, y puedes filtrar por él en [`GET /v2/documents/`](https://docs.tupana.ai/api-reference/v2/documents/list) con `json_param__external_order_id=PED-1001`.
 - Los tipos soportados (33, 34, 39, 41, 46, 52, 56, 61, 80, 90, 110, 111, 112) y sus campos están en [Tipos de documentos](https://docs.tupana.ai/user-guide/documents).
 
@@ -748,7 +748,7 @@ La API acepta el lote y lo procesa en segundo plano. La respuesta trae un `batch
 |---|---|---|
 | `202` / `201` | Lote aceptado | Espera el webhook o consulta los documentos |
 | `400` | La empresa emisora no tiene una conexión activa | Conéctala con Tupana Link |
-| `413` | Más de 200 documentos | Divide el lote |
+| `413` | Más de 500 documentos | Divide el lote |
 | `422` | Error de validación, con la posición del documento y la ruta del campo | Corrige y reenvía con una **nueva** `Idempotency-Key` |
 
 Con validación estricta (activa en las API keys nuevas), un campo desconocido responde `422` en vez de `warnings`. El catálogo completo está en [Errores](https://docs.tupana.ai/api-reference/v2/errors).
@@ -1337,7 +1337,7 @@ Las herramientas se describen solas al conectarse, así que la lista siempre est
 | Usa el MCP si... | Usa la API REST si... |
 |---|---|
 | Trabajas desde un asistente de IA, con una persona en la conversación | Integras un sistema (ERP, e-commerce, backoffice) que emite sin intervención humana |
-| Quieres consultar, analizar o emitir documentos puntuales | Emites en volumen (hasta 200 documentos por llamada) y recibes el resultado por webhook |
+| Quieres consultar, analizar o emitir documentos puntuales | Emites en volumen (hasta 500 documentos por llamada) y recibes el resultado por webhook |
 | Te basta con iniciar sesión con tu cuenta | Necesitas tipos o campos que el MCP no cubre, como la guía de despacho con transporte y Aduana |
 
 La API usa API key (`Authorization: Api-Key TU_API_KEY`), no la sesión del usuario:
@@ -1770,7 +1770,7 @@ for doc in result["documents"]:
     print(doc["index"], doc["status"], (doc.get("document") or {}).get("folio"))
 ```
 
-Cada llamada a `createBatch` / `create_batch` acepta hasta 200 documentos y viaja con un `Idempotency-Key`. Si no pasas uno, el SDK genera un UUID; para reintentar con seguridad desde otro proceso, usa una key tuya y estable (`idempotencyKey` en Node.js, `idempotency_key` en Python).
+Cada llamada a `createBatch` / `create_batch` acepta hasta 500 documentos y viaja con un `Idempotency-Key`. Si no pasas uno, el SDK genera un UUID; para reintentar con seguridad desde otro proceso, usa una key tuya y estable (`idempotencyKey` en Node.js, `idempotency_key` en Python).
 
 ### Otros endpoints
 
@@ -1882,7 +1882,7 @@ Son límites del portal del SII, no de una API en particular: cualquier integrac
 Tupana **es un facturador de mercado**: emite directo al SII como facturador de mercado. Además se puede integrar con el **facturador gratuito del SII**, para que una empresa empiece a emitir de inmediato con su clave del SII. Cuál se usa lo define la configuración de cada empresa; tu código y tus llamadas a la API son las mismas.
 
 - **Mismo precio** con cualquiera de los dos.
-- Hasta **200 documentos por llamada** en [emisión masiva](https://docs.tupana.ai/guias/emision-masiva).
+- Hasta **500 documentos por llamada** en [emisión masiva](https://docs.tupana.ai/guias/emision-masiva).
 - Facturas, boletas, notas de crédito y débito, guías de despacho, exportación (110, 111, 112), facturas de compra y boletas de honorarios.
 - [Cesiones](https://docs.tupana.ai/guias/cesiones), [cobros con link de pago](https://docs.tupana.ai/guias/link-de-pago), [documentos programados](https://docs.tupana.ai/api-reference/v2/scheduled-documents/create) y [libros del SII](https://docs.tupana.ai/api-reference/v2/book-summaries/list) sobre la misma API.
 - [Servidor MCP](https://docs.tupana.ai/user-guide/mcp) para operar desde Claude, ChatGPT, Cursor u otros agentes.
@@ -1915,7 +1915,7 @@ Tupana **es un facturador de mercado**: emite directo al SII como facturador de 
 
 **¿Cuántos documentos puedo emitir por llamada?**
 
-    Hasta 200 documentos por llamada en `POST /v2/documents/batch/`, con `Idempotency-Key` para evitar duplicados.
+    Hasta 500 documentos por llamada en `POST /v2/documents/batch/`, con `Idempotency-Key` para evitar duplicados.
 
 **¿Cuánto cuesta la API de facturación de Tupana?**
 
@@ -5159,7 +5159,7 @@ Fuente: https://docs.tupana.ai/api-reference/v2/documents/batch · Sección: API
 
 Endpoint: `POST /documents/batch/` (detalle completo en la Parte 2).
 
-Crea hasta 200 documentos tributarios electrónicos en una sola llamada. La respuesta con el PDF y los detalles completos se entrega a través del [webhook configurado](https://docs.tupana.ai/user-guide/getting-started#paso-4%3A-configura-las-notificaciones-webhooks/).
+Crea hasta 500 documentos tributarios electrónicos en una sola llamada. La respuesta con el PDF y los detalles completos se entrega a través del [webhook configurado](https://docs.tupana.ai/user-guide/getting-started#paso-4%3A-configura-las-notificaciones-webhooks/).
 
 ### Headers
 
@@ -5211,7 +5211,7 @@ Con `X-Use-Defaults: true`, solo necesitas proporcionar el `rut` del receptor. E
 #### documents (Obligatorio)
 - **Tipo:** Array
 - **Descripción:** Lista de documentos a crear en el lote
-- **Restricciones:** Máximo 200 documentos por lote
+- **Restricciones:** Máximo 500 documentos por lote
 
 #### Estructura de cada documento
 
@@ -5774,7 +5774,7 @@ Es el mismo formato que el resto de los errores de validación del batch, en v1 
   - `warnings` (Array, opcional): Avisos sobre campos desconocidos que se ignoraron. Ver [Validación de campos desconocidos](#validacion-de-campos-desconocidos)
 
 ##### 413 - Límite excedido
-- **Descripción:** Más de 200 documentos en el array
+- **Descripción:** Más de 500 documentos en el array
 - **Campos:**
   - `error` (String): Descripción del error
   - `code` (String): Código de error
@@ -7271,7 +7271,7 @@ específicos listados se están desplegando.
 | `code` | `type` | HTTP | Significado |
 |--------|--------|:----:|-------------|
 | `no_documents` | invalid_request_error | 400 | La lista `documents` está vacía. |
-| `too_many_documents` | invalid_request_error | 413 | Máximo 200 documentos por batch. |
+| `too_many_documents` | invalid_request_error | 413 | Máximo 500 documentos por batch. |
 | `issuer_rut_missing` | invalid_request_error | 400 | Falta el RUT del emisor en el documento. |
 | `issuer_not_found` | not_found_error | 404 | No existe una empresa con ese RUT emisor. |
 | `issuer_forbidden` | permission_error | 403 | La API Key no puede emitir por esa empresa. |
@@ -9523,7 +9523,7 @@ Esquema: `Error`
 
 **Envío de documentos en lote**
 
-Crea hasta 200 documentos en una sola llamada. La respuesta incluye información completa de cada documento creado, incluyendo PDF cuando está disponible. Los resultados también se enviarán por webhook si está configurado.
+Crea hasta 500 documentos en una sola llamada. La respuesta incluye información completa de cada documento creado, incluyendo PDF cuando está disponible. Los resultados también se enviarán por webhook si está configurado.
 
 **Permisos requeridos:** La API Key debe tener el permiso `document:create` o permisos completos (`*`). Además, la entidad emisora debe tener credenciales SII válidas configuradas.
 
@@ -9640,7 +9640,7 @@ Esquema: `Error`
 }
 ```
 
-Respuesta `413`: Más de 200 documentos en el array
+Respuesta `413`: Más de 500 documentos en el array
 
 Esquema: `Error`
 

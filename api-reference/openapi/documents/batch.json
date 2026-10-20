@@ -4,7 +4,7 @@
       "post": {
         "operationId": "createDocumentsBatch",
         "summary": "Envío de documentos en lote",
-        "description": "Crea hasta 200 documentos en una sola llamada. La respuesta incluye información completa de cada documento creado, incluyendo PDF cuando está disponible. Los resultados también se enviarán por webhook si está configurado.\n\n**Permisos requeridos:** La API Key debe tener el permiso `document:create` o permisos completos (`*`). Además, la entidad emisora debe tener credenciales SII válidas configuradas.",
+        "description": "Crea hasta 500 documentos en una sola llamada. La respuesta incluye información completa de cada documento creado, incluyendo PDF cuando está disponible. Los resultados también se enviarán por webhook si está configurado.\n\n**Permisos requeridos:** La API Key debe tener el permiso `document:create` o permisos completos (`*`). Además, la entidad emisora debe tener credenciales SII válidas configuradas.",
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -142,7 +142,7 @@
             }
           },
           "413": {
-            "description": "Más de 200 documentos en el array",
+            "description": "Más de 500 documentos en el array",
             "content": {
               "application/json": {
                 "schema": {

@@ -44,7 +44,7 @@ Factura electrónica (33), factura exenta (34), boleta electrónica (39), boleta
 
 1. **Crea una API key** en [developers.tupana.ai](https://developers.tupana.ai/console). Nace en sandbox: simula la emisión y no envía nada al SII.
 2. **Conecta la empresa emisora** con [Tupana Link](/api-reference/v2/connect/tupana-link). Tu cliente entrega su clave dentro del widget; tu backend nunca la ve.
-3. **Emite** con [`POST /v2/documents/batch/`](/api-reference/v2/documents/batch): hasta 200 documentos por llamada, con `Idempotency-Key`.
+3. **Emite** con [`POST /v2/documents/batch/`](/api-reference/v2/documents/batch): hasta 500 documentos por llamada, con `Idempotency-Key`.
 4. **Recibe el resultado** por [webhook](/guias/webhooks): folio, estado del SII, XML y PDF.
 
 ## Facturador de mercado y facturador gratuito del SII
