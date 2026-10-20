@@ -4064,42 +4064,165 @@ Si tienes problemas con tus webhooks:
 
 Fuente: https://docs.tupana.ai/changelog · Sección: Guía de Usuario / Novedades
 
-> Cambios y nuevas funciones de la API de facturación electrónica de Tupana: API v2, Tupana Link, webhooks, guías de despacho, exportación, libros del SII, cesiones y recaudación.
+> Historial completo de cambios de la API de facturación electrónica de Tupana para Chile: API v1 y v2, emisión de DTE al SII, webhooks, sandbox, Tupana Link, cesiones, recaudación, folios, libros del SII, servidor MCP y SDKs.
 
-- Nueva guía [Tu primera llamada en 2 minutos](https://docs.tupana.ai/quickstart) con sandbox.
+Aquí registramos cada cambio de la API de Tupana que se nota desde tu integración: endpoints nuevos, campos, eventos de webhook, tipos de documento, límites y cambios de comportamiento. Las fechas son las de salida a producción. Suscríbete por RSS para enterarte de cada novedad.
+
+  - SDKs oficiales de código abierto en GitHub: [tupana-ai/tupana-node](https://github.com/tupana-ai/tupana-node) (Node.js y TypeScript) y [tupana-ai/tupana-python](https://github.com/tupana-ai/tupana-python). Ver [SDKs](https://docs.tupana.ai/sdks/introduccion).
+  - El servidor MCP de Tupana ahora tiene repositorio público: [tupana-ai/tupana-mcp](https://github.com/tupana-ai/tupana-mcp). Ver [Servidor MCP](https://docs.tupana.ai/user-guide/mcp).
+  - Nueva guía [Tu primera llamada en 2 minutos](https://docs.tupana.ai/quickstart) con sandbox.
   - Guías por tarea: [emitir en lote](https://docs.tupana.ai/guias/emision-masiva), [webhooks](https://docs.tupana.ai/guias/webhooks), [link de pago](https://docs.tupana.ai/guias/link-de-pago), [cesiones](https://docs.tupana.ai/guias/cesiones) y [varias empresas](https://docs.tupana.ai/guias/multiempresa).
-  - Nueva sección [Agentes de IA](https://docs.tupana.ai/agentes/introduccion) (MCP y tool calling), [SDKs](https://docs.tupana.ai/sdks/introduccion), [Precios](https://docs.tupana.ai/precios) y [Cómo elegir una API de facturación](https://docs.tupana.ai/elegir-api-facturacion-electronica).
+  - Nueva sección [Agentes de IA](https://docs.tupana.ai/agentes/introduccion) (MCP y tool calling), [Precios](https://docs.tupana.ai/precios) y [Cómo elegir una API de facturación](https://docs.tupana.ai/elegir-api-facturacion-electronica).
   - `llms-full.txt` ahora incluye la referencia completa de la API v2 en Markdown.
 
-  - Guía de despacho (DTE 52): campos de la Resolución Exenta N°154 del SII, avisos y anulación de guías.
-  - Nuevo endpoint de [detalle del libro de compras y ventas](https://docs.tupana.ai/api-reference/v2/book-documents/list).
+  - Servidor MCP: `create_sale_invoice` deja la factura como borrador y la emisión pasa por revisar su vista previa (`get_document_preview` y luego `emit_document`). La herramienta acepta referencias (orden de compra 801, HES), forma de pago y vencimiento (`payment_method`, `due_date`, `due_days`). `get_document_link` entrega el PDF oficial del SII. Ver [Servidor MCP](https://docs.tupana.ai/user-guide/mcp).
+  - [Documentos programados](https://docs.tupana.ai/api-reference/v2/scheduled-documents/create): cada línea puede llevar su propia `currency`; si no la envías, se usa la moneda del documento.
 
-  - Los webhooks creados por `/v2/webhooks/` nacen con `api_version: 2` (ids públicos `docu_…`, `ment_…`). Los existentes se suben con [`PATCH /v2/webhooks/{id}/`](https://docs.tupana.ai/api-reference/v2/webhooks-pages/update).
+  - Guía de despacho (DTE 52): campos de la Resolución Exenta N°154 del SII, con avisos en la respuesta de la API hasta la fecha de entrada en vigencia. Ver [Documentos](https://docs.tupana.ai/user-guide/documents).
+  - Anulación de guías con motivo: [`POST /v2/documents/{id}/states/`](https://docs.tupana.ai/api-reference/v2/document-states/create) con `event_code` `ANNULLED` y `reason`.
+  - Con el facturador gratuito del SII, el destino y el tipo de despacho de la guía se aceptan y se imprimen como texto en el detalle, en vez de rechazar el documento.
+  - Nuevo endpoint de [detalle del libro de compras y ventas](https://docs.tupana.ai/api-reference/v2/book-documents/list) (`/v1/book-documents/` y `/v2/book-documents/`): una fila por documento del Registro de Compras y Ventas con sus montos e impuestos.
 
-  - País y nacionalidad del receptor en facturas de exportación. Ver [Países de exportación](https://docs.tupana.ai/user-guide/export-countries).
+  - Si no eliges `api_version` al crear un webhook, se usa la de la ruta: los creados por `/v1/webhooks/` nacen en versión 1 (ids enteros) y los creados por `/v2/webhooks/` en versión 2 (ids públicos `docu_…`, `ment_…`).
+  - Nuevos [`GET`](https://docs.tupana.ai/api-reference/v2/webhooks-pages/get), [`PATCH`](https://docs.tupana.ai/api-reference/v2/webhooks-pages/update) y `DELETE` sobre `/v2/webhooks/{id}/`. Con `PATCH` subes un webhook existente a `api_version: 2`.
 
-  - Nuevos endpoints de [conexiones](https://docs.tupana.ai/api-reference/v2/connections/list): listar y desactivar las empresas conectadas.
+  - País y nacionalidad del receptor en facturas de exportación, separados del país de destino. Ver [Países de exportación](https://docs.tupana.ai/user-guide/export-countries).
 
-  - [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link): el widget con el que tus usuarios conectan su empresa. En v2 reemplaza la creación de credenciales por API.
-  - [Bases de datos gratuitas](https://docs.tupana.ai/api-reference/v2/free-databases/introduction): nómina de empresas del SII consultable con cualquier API key.
-  - `additional_info` en documentos (creación, detalle, listado y webhooks).
+  - Al reenviar un lote con el mismo `Idempotency-Key`, la respuesta incluye el `batch_id` del lote original.
+  - El header `Idempotency-Key` se puede enviar desde el navegador (permitido en CORS).
 
-  - Emisión de guías de despacho (DTE 52) por API, con transporte, destino y datos de Aduana.
+  - Nuevo campo `environment` en los webhooks: `production`, `sandbox` o `both` (por defecto). Así un mismo endpoint recibe sólo los eventos del ambiente que elijas. Ver [Webhooks](https://docs.tupana.ai/user-guide/webhooks).
 
-  - Lanzamiento de la API v2: ids públicos con prefijo, listas paginadas uniformes, selección de campos y [taxonomía de errores](https://docs.tupana.ai/api-reference/v2/errors).
-  - Avisos por campos desconocidos y validación estricta por API key.
+  - Nuevos endpoints de [conexiones](https://docs.tupana.ai/api-reference/v2/connections/list): listar y [desactivar](https://docs.tupana.ai/api-reference/v2/connections/delete) las empresas conectadas. `/v2/connections/` acepta API key y sesión de usuario.
+  - La conexión de un banco por Tupana Link se da por activa cuando el banco entrega las cuentas, y en ese momento se envía el webhook `connection.active` (o `connection.requires_action`).
+  - Consola de developers en [developers.tupana.ai/console](https://developers.tupana.ai/console): crea tu cuenta y tus API keys.
 
-  - Facturas de exportación: cláusula de venta (Incoterm) y forma de pago.
-  - [API de folios](https://docs.tupana.ai/api-reference/v2/folios/availability): timbraje, retiro del CAF y lecturas al SII.
+  - [Bases de datos gratuitas](https://docs.tupana.ai/api-reference/v2/free-databases/introduction): nómina de empresas del SII consultable con cualquier API key, con [búsqueda](https://docs.tupana.ai/api-reference/v2/free-databases/companies-search), [historia por RUT](https://docs.tupana.ai/api-reference/v2/free-databases/company-history), [resumen](https://docs.tupana.ai/api-reference/v2/free-databases/companies-summary) y [metadatos](https://docs.tupana.ai/api-reference/v2/free-databases/companies-metadata).
+  - El servidor MCP enseña a construir facturación dentro de otro SaaS: flujo de emisión, especificación de la interfaz, búsqueda de clientes por RUT y reglas de validación. Ver [Agentes de IA](https://docs.tupana.ai/agentes/introduccion).
 
-  - Evento `document.trace_updated` con la traza del SII y filtro por `json_param` en el listado de documentos.
-  - Seguimiento por documento en los [lotes de cesión](https://docs.tupana.ai/api-reference/v2/cessions/batch-status).
+  - [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link): el widget hospedado con el que tus usuarios conectan su empresa (SII y bancos). En v2 reemplaza la creación de credenciales por API. Nuevos eventos de webhook `connection.active` y `connection.requires_action`.
+  - `additional_info` en documentos (creación, detalle, listado y webhooks). Se imprime en el PDF y queda fija cuando el documento tiene folio.
+  - [Emisión v2](https://docs.tupana.ai/api-reference/v2/documents/batch): ya no es necesario enviar `master_entity_id`; el emisor se toma de `document_issuer`. En sandbox no se exige credencial del SII y la vista previa del borrador funciona igual que en producción.
 
-  - [Resumen de libros](https://docs.tupana.ai/api-reference/v2/book-summaries/list) y [sincronización a demanda](https://docs.tupana.ai/api-reference/v2/sync/request-create).
-  - Boleta exenta (DTE 41) y sincronización de usuarios autorizados de boleta de honorarios.
+  - Con una API key de sandbox, el [listado de documentos](https://docs.tupana.ai/api-reference/v2/documents/list) devuelve los documentos de producción y los de sandbox de la empresa.
+  - Las respuestas v2 de documentos vuelven a incluir el `json_param` que enviaste al crear.
 
-  - Cobro directo de documentos ya emitidos, listado de tarjetas inscritas y de liquidaciones en la [API de Recaudación](https://docs.tupana.ai/api-reference/payment-requests/introduction).
-  - Evento `document.unpaid`.
+  - Un [lote de cesión](https://docs.tupana.ai/api-reference/v2/cessions/batch) lo puede pedir quien tiene hoy la factura, no sólo su emisor original.
+
+  - La API v2 responde en `https://api.tupana.ai/v2/…`, con el mismo estilo de URL que la v1. Ver [Introducción a la API v2](https://docs.tupana.ai/api-reference/v2/introduction).
+
+  - Emisión de guías de despacho (DTE 52) con transporte, destino, despacho, datos de Aduana y líneas exentas. Las guías de exportación aceptan el código de traslado excepcional (`transfer_issuer_code`) y su resolución. Ver [Códigos de transporte y Aduana](https://docs.tupana.ai/user-guide/transport-codes).
+  - El lote de emisión avisa los campos desconocidos en `warnings`. Las API keys nuevas validan en modo estricto y responden `422` antes de crear el lote; las existentes quedan en modo aviso.
+  - El detalle de un lote acepta el id público o el UUID.
+  - La API v1 mantiene sus ids enteros: las integraciones existentes no cambian.
+
+  - Lanzamiento de la API v2: ids públicos con prefijo (`docu_…`, `ment_…`), listas paginadas uniformes, selección de campos y [taxonomía de errores](https://docs.tupana.ai/api-reference/v2/errors) con códigos estables (`parameter_*`, `resource_missing` y códigos propios de cesiones y recaudación).
+  - Las respuestas v2 no exponen estado interno del servidor (trazas crudas del SII, registros de actualización).
+  - Reenviar un lote con un `Idempotency-Key` ya procesado devuelve el lote original (`200`) sin volver a emitir al SII.
+
+  - Forma de pago de exportación por API.
+
+  - Cláusula de venta (Incoterm) en facturas de exportación por API. Ver [Modalidades de venta de exportación](https://docs.tupana.ai/user-guide/export-sale-modes).
+
+  - Boleta de espectáculo por cuenta de terceros: la línea de detalle acepta `show_item_type`, `principal_rut` y un bloque `ticket`, en `POST /v1/documents/batch/` y en v2.
+
+  - Facturas de exportación: el tipo de cambio se alinea con la fecha de emisión del DTE y los puertos de embarque y desembarque se completan desde el país de destino.
+  - Los errores de folios traen `error_code` (vocabulario cerrado para decidir si reintentar) y `sii_code`. Ver [Códigos de error de folios](https://docs.tupana.ai/api-reference/folios/errors).
+
+  - La búsqueda por `folio` en el listado de documentos tiene un límite de 30 consultas por hora por API key. Al superarlo, la API responde `429`.
+
+  - Las referencias de notas de crédito y débito aceptan `reference_code` (CodRef del SII: 1 anula, 2 corrige texto, 3 corrige montos).
+  - Documentos programados: reajuste del precio por IPC cada cierta cantidad de meses.
+  - Las consultas de folios al SII pasan a ser un recurso propio: [`/v2/folio-queries/`](https://docs.tupana.ai/api-reference/v2/folios/query-create).
+
+  - [API de folios](https://docs.tupana.ai/api-reference/v2/folios/availability): disponibilidad, timbraje de folios y retiro del CAF, con los webhooks `folio_request.completed`, `folio_request.failed` y `folio_request.authorized_without_caf`.
+  - Las referencias aceptan un tipo de documento definido por tu empresa (hasta 3 caracteres, por ejemplo `HES`).
+  - El [detalle de un documento](https://docs.tupana.ai/api-reference/documents/get) tiene un límite de 600 consultas por hora por API key y de 60 por hora sobre un mismo documento. Al superarlo, la API responde `429`; para enterarte de cambios de estado usa [webhooks](https://docs.tupana.ai/user-guide/webhooks).
+
+  - Los documentos de sandbox se timbran con un XML de la misma estructura que en producción y un PDF real con marca de agua de vista previa.
+
+  - Nuevo evento `document.trace_updated`: un aviso por cada evento nuevo de la traza del SII (acuses, reclamos, rechazos), tanto de documentos emitidos como recibidos. El payload trae `role` para saber de qué lado estás.
+
+  - Filtro `json_param__<clave>=<valor>` en el [listado de documentos](https://docs.tupana.ai/api-reference/documents/list) para buscar por los datos propios que enviaste al emitir.
+
+  - Envío de webhooks más estable: se limita la cantidad de conexiones simultáneas a cada endpoint y las conexiones se reutilizan.
+  - Un webhook se desactiva automáticamente sólo ante una caída sostenida de tu endpoint (100 fallos seguidos), no por un error puntual.
+
+  - Nuevo [`GET /v1/cessions/batch/{id}/`](https://docs.tupana.ai/api-reference/cessions/batch-status) con el seguimiento de cada documento del lote de cesión.
+
+  - Parámetro `document_type=issued|received` en el [listado de cesiones](https://docs.tupana.ai/api-reference/cessions/list): consulta también las facturas de tus proveedores que fueron cedidas a un tercero.
+
+  - [Sincronización a demanda](https://docs.tupana.ai/api-reference/honorary/authorized-users-sync) de los usuarios autorizados para emitir boletas de honorarios.
+
+  - [Resumen de libros](https://docs.tupana.ai/api-reference/book-summaries/list) del SII en `/v1/book-summaries/`.
+  - [Sincronización a demanda](https://docs.tupana.ai/api-reference/sync/request-create) con `/v1/sync-requests/`, estado de la última sincronización con `/v1/sync-status/` y frecuencia por empresa con `/v1/sync-settings/{id}/`. Ver [Sincronización](https://docs.tupana.ai/api-reference/sync/introduction).
+
+  - [Enrolamiento en lote](https://docs.tupana.ai/api-reference/credentials/batch) con `POST /v1/credentials/batch/` y consulta del lote por id.
+  - [Desenrolar una empresa](https://docs.tupana.ai/api-reference/credentials/unenroll) con `DELETE /v1/credentials/{id}/`.
+  - Nuevo evento de webhook `credential.validated`.
+
+  - Boletas 39 y 41 aceptan `gross_unit_price` (precio con IVA incluido): el total emitido coincide al peso con el monto que cobraste.
+
+  - `document.issue_failed` incluye `data.error` con `message`, `code` y `type` del último intento fallido.
+
+  - Boletas 39 y 41 aceptan líneas con monto negativo (descuentos por línea).
+
+  - Anulación de boletas de honorarios (DTE 80) por API con `PATCH /v1/documents/batch/` y `patch: {"annulled": true}`.
+
+  - `document.paid` y el nuevo `document.unpaid` se envían en cada cambio del estado de pago, también en los cambios masivos.
+
+  - Cobro directo de documentos ya emitidos con `document_ids` en [`POST /v1/payment-requests/`](https://docs.tupana.ai/api-reference/payment-requests/create).
+  - [Listado de tarjetas inscritas](https://docs.tupana.ai/api-reference/payment-requests/payment-methods-list) y [liquidaciones](https://docs.tupana.ai/api-reference/payment-requests/settlements-list) por empresa.
+
+  - El [detalle de una cesión](https://docs.tupana.ai/api-reference/cessions/get) trae `certificate_pdf_url` con el certificado de cesión.
+
+  - Nuevo evento `credential.invalid`: te avisa cuando la clave de una empresa deja de funcionar en el SII.
+
+  - [Listado](https://docs.tupana.ai/api-reference/cessions/list) y [detalle](https://docs.tupana.ai/api-reference/cessions/get) de cesiones bajo `/v1/cessions/` con API key.
+
+  - `?include_trace_events=true` en el [listado de documentos](https://docs.tupana.ai/api-reference/documents/list) devuelve la traza completa del SII de cada documento.
+  - Las solicitudes de cobro suman el estado `issued` cuando se emite su documento.
+
+  - Servidor MCP de Tupana con inicio de sesión OAuth 2.1: consulta documentos, clientes y libros, y emite facturas desde agentes de IA compatibles con MCP. Ver [Servidor MCP](https://docs.tupana.ai/user-guide/mcp).
+
+  - [API de Recaudación](https://docs.tupana.ai/api-reference/payment-requests/introduction) bajo `/v1/` con API key: solicitudes de cobro con link de pago, datos bancarios de la empresa y emisión del documento al pagar.
+  - Webhooks `payment_request.paid`, `payment_request.document_issued` y `payment_request.expired`. Ver [Webhooks de recaudación](https://docs.tupana.ai/api-reference/payment-requests/webhooks).
+
+  - En el detalle de un borrador fuera de sandbox, `pdf_url` viene siempre presente y en `null` hasta que el documento se emite.
+
+  - Los documentos de un lote que quedaron en error permanente se pueden reintentar con el mismo `Idempotency-Key`.
+
+  - Nuevos tipos de referencia: contrato y nota de pedido.
+
+  - Estado de pago por API: `PATCH /v1/documents/batch/` con `patch: {"payment_status": "paid" | "unpaid" | "partially_paid"}` y `paid_amount` para pagos parciales. El estado se refleja en el detalle y el listado.
+
+  - Nuevos eventos `document.issue_failed`, `document.updated` y de documentos programados (`scheduled_document.created`, `scheduled_document.updated`, `scheduled_document.run_started`, `scheduled_document.run_succeeded`, `scheduled_document.run_failed`), más `webhook.test` para probar tu endpoint.
+  - Usuarios autorizados para emitir boletas de honorarios por empresa. Ver [Boletas de honorarios](https://docs.tupana.ai/api-reference/honorary/introduction).
+
+  - [Detalle de un documento](https://docs.tupana.ai/api-reference/documents/get) en `/v1/documents/{id}/` y sus [estados](https://docs.tupana.ai/api-reference/document-states/list) en `/v1/documents/{id}/states/`.
+  - [Vista previa](https://docs.tupana.ai/api-reference/scheduled-documents/preview) de un documento programado antes de su próxima emisión.
+
+  - Crea y lista webhooks por API con `/v1/webhooks/`. Ver [Webhooks](https://docs.tupana.ai/api-reference/webhooks/webhooks).
+
+  - [Cesión de facturas en lote](https://docs.tupana.ai/api-reference/cessions/batch) por API con `POST /v1/cessions/batch/`. Ver [Cesiones](https://docs.tupana.ai/api-reference/cessions/introduction).
+
+  - Nota de débito de exportación (DTE 111).
+
+  - [API de documentos programados](https://docs.tupana.ai/api-reference/scheduled-documents/list) (`/v1/scheduled-documents/`): facturación recurrente con ajuste a días hábiles y tipo de cambio del día para exportación.
+  - Boletas de honorarios (DTE 80 y 90) y nota de crédito de exportación (DTE 112).
+
+  - Guía de despacho (DTE 52) y nota de débito (DTE 56) en la emisión por API.
+
+  - API keys de sandbox: emiten documentos simulados sin enviar nada al SII. Ver [Autenticación](https://docs.tupana.ai/user-guide/authentication).
+
+  - Factura de exportación (DTE 110). Ver [Monedas de exportación](https://docs.tupana.ai/user-guide/export-currencies).
+  - [API de credenciales](https://docs.tupana.ai/api-reference/credentials/list) (`/v1/credentials/`) para enrolar las empresas que emiten a través de tu integración.
+
+  - [Emisión en lote](https://docs.tupana.ai/api-reference/documents/batch) con `POST /v1/documents/batch/`: asíncrona, con `Idempotency-Key` y consulta del lote por id. Incluye boletas 39 y 41.
+  - Autenticación con el header `Authorization: Api-Key <tu_key>`. Ver [Autenticación](https://docs.tupana.ai/user-guide/authentication).
+  - Webhooks de documentos: `document.issued`, `document.delivered`, `document.rejected`, `document.paid` y `document.cancelled`, con historial de entregas.
+
+  - Primer endpoint público con API key: [búsqueda de empresas por RUT](https://docs.tupana.ai/api-reference/endpoint/master-entity).
 
 ---
 

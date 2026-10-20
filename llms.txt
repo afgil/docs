@@ -88,7 +88,7 @@ Detalle: https://docs.tupana.ai/precios
 - [Modalidades de venta de exportación](https://docs.tupana.ai/user-guide/export-sale-modes): Códigos de modalidad de venta del SII aceptados en facturas de exportación (DTE 110, 111 y 112)
 - [Códigos de transporte y Aduana](https://docs.tupana.ai/user-guide/transport-codes): Puertos, unidades de peso y tipos de bulto del SII para guías de despacho de exportación y facturas de exportación
 - [Webhooks: eventos, payloads y firma](https://docs.tupana.ai/user-guide/webhooks): Referencia de los webhooks de Tupana: eventos de documentos tributarios electrónicos (emitido, rechazado por el SII, pagado, anulado), documentos programados y conexiones, payloads, firma HMAC-SHA256 y reintentos.
-- [Novedades de la API (changelog)](https://docs.tupana.ai/changelog): Cambios y nuevas funciones de la API de facturación electrónica de Tupana: API v2, Tupana Link, webhooks, guías de despacho, exportación, libros del SII, cesiones y recaudación.
+- [Novedades de la API (changelog)](https://docs.tupana.ai/changelog): Historial completo de cambios de la API de facturación electrónica de Tupana para Chile: API v1 y v2, emisión de DTE al SII, webhooks, sandbox, Tupana Link, cesiones, recaudación, folios, libros del SII, servidor MCP y SDKs.
 
 ### API Facturación
 
