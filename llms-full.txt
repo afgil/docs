@@ -8563,7 +8563,7 @@ curl "https://api.tupana.ai/v2/sii-companies/?size=mediana&district=LAS%20CONDES
 ```json
 {
   "year": 2024,
-  "count": 1284,
+  "count": 4511,
   "count_is_exact": true,
   "page": 1,
   "page_size": 50,
