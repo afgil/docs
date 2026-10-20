@@ -22,6 +22,7 @@ curl "https://api.tupana.ai/v2/sii-companies/?size=mediana&district=LAS%20CONDES
 {
   "year": 2024,
   "count": 1284,
+  "count_is_exact": true,
   "page": 1,
   "page_size": 50,
   "results": [
@@ -48,6 +49,15 @@ curl "https://api.tupana.ai/v2/sii-companies/?size=mediana&district=LAS%20CONDES
 }
 ```
 
+## Buscar por RUT
+
+```bash
+curl "https://api.tupana.ai/v2/sii-companies/?tax_id=76543210-3" \
+  -H "Authorization: Api-Key tk_sandbox_…"
+```
+
+Responde en milisegundos. Un RUT que no está en la nómina devuelve `results: []`.
+
 ## Parámetros
 
 Todos son opcionales y se combinan entre sí.
@@ -55,7 +65,7 @@ Todos son opcionales y se combinan entre sí.
 | Parámetro | Tipo | Qué hace |
 | --- | --- | --- |
 | `year` | entero | Año comercial. Por defecto, el más reciente cargado. |
-| `rut` | texto | RUT exacto con guión (`76543210-3`). |
+| `tax_id` | texto | RUT exacto, con o sin puntos ni guión (`76.543.210-3`, `765432103`). |
 | `search` | texto | Busca en la razón social. |
 | `size` | texto | `micro`, `pequena`, `mediana` o `grande`. |
 | `tier_min` / `tier_max` | 1–13 | Rango de tramo de ventas (ver tabla abajo). |
@@ -193,3 +203,13 @@ preguntarlo en español desde Claude, Cursor o ChatGPT:
 > tienen más de 20 trabajadores?"*
 
 Ver [Conectar tu asistente](/user-guide/mcp).
+
+## Totales y búsquedas amplias
+
+- `count` es exacto cuando el resultado es acotado (`count_is_exact: true`). En
+  listados muy grandes, como todo un año sin filtros, es una estimación y
+  `count_is_exact` viene en `false`. Para contar con precisión un mercado usa
+  [Tamaño de un mercado](/api-reference/v2/free-databases/companies-summary).
+- Una búsqueda demasiado amplia para responder en unos segundos devuelve `400`
+  pidiendo otro filtro (por ejemplo `region`, `sector` o `size`).
+- El parámetro se llama `tax_id`. Si envías `rut` la API responde `400`.

@@ -55,3 +55,11 @@ devolver un agrupamiento cualquiera.
 Úsalo **antes** de listar. Primero dimensiona el mercado, después lista solo
 el grupo que te interesa: es una consulta en vez de cincuenta páginas.
 </Tip>
+
+## Tiempos de respuesta
+
+Los resúmenes se guardan por 12 horas y se recalculan cuando se carga una nómina
+nueva del SII, así que una consulta repetida responde al instante. Si una
+combinación de filtros nunca se ha pedido y tarda más de unos segundos, la API
+responde `503` con el encabezado `Retry-After: 60` mientras la calcula; al
+reintentar la recibes lista.
