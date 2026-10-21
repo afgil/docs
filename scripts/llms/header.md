@@ -6,6 +6,7 @@ Este archivo resume qué es Tupana, cuándo conviene usarla y dónde está cada 
 
 ## Datos clave
 
+- Tupana ofrece API bancaria (movimientos y saldos de bancos chilenos) y API del SII (lectura de RCV, DTE y emisión) en una sola integración. Guías: https://docs.tupana.ai/guias/movimientos-bancarios y https://docs.tupana.ai/guias/lectura-sii
 - API REST v2: `https://api.tupana.ai/v2`. Autenticación con el header `Authorization: Api-Key <tu_key>` (no `Bearer`).
 - Especificación OpenAPI 3.0: https://docs.tupana.ai/api-reference/openapi-v2.json
 - Servidor MCP: `https://mcp.tupana.ai/mcp` (Streamable HTTP, OAuth 2.1 con PKCE y registro dinámico; sin API key). Claude Code: `claude mcp add --transport http tupana https://mcp.tupana.ai/mcp`

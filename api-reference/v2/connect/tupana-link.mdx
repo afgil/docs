@@ -26,7 +26,7 @@ En v2 la clave no se manda por API: conectas con este widget y guardas el
     y el widget no lo vuelve a pedir.
 
 ```bash
-curl -X POST "https://app.tupana.ai/api/v2/connect-sessions/" \
+curl -X POST "https://api.tupana.ai/v2/connect-sessions/" \
   -H "Authorization: Api-Key TU_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -74,7 +74,7 @@ window.addEventListener('message', (event) => {
     | `exit` | El usuario cerró antes de terminar |
 
     <Warning>
-    Igual que el widget de Fintoc: `success` y `exit` solo mueven tu
+    `success` y `exit` solo mueven tu
     interfaz. La conexión existe cuando tu backend recibe
     `connection.active` o
     `GET /api/v2/connections/enrollments/{enrollment_id}/` la muestra lista.
@@ -165,15 +165,12 @@ usuario va a conectar, no antes. Una API key de sandbox no abre producción.
 
 ## Cuándo el enrolamiento es exitoso
 
-El widget de Fintoc no avisa éxito al recibir la clave. Se queda en
-pantalla mientras el banco responde. Si la clave está mala, el error queda
-adentro y el usuario reintenta: no hay `onSuccess`. `onSuccess` sale cuando
-el flujo terminó (el banco aceptó y existe el Link). `onExit` sale solo si
-la persona cierra antes. Fintoc pide no usar esos callbacks para saber si el
-Link existe: eso lo confirma el webhook `link.created` en el `webhookUrl`,
-que trae el `link_token`.
+El widget no avisa éxito al recibir la clave. Se queda en pantalla
+mientras la institución responde. Si la clave está mala, el error queda
+adentro y el usuario reintenta: no hay `success`. `success` sale cuando el
+flujo terminó; `exit` sale solo si la persona cierra antes.
 
-Tupana Link funciona igual. El `postMessage` mueve tu modal. El webhook
+El `postMessage` mueve tu modal. El webhook
 dice si la credencial quedó.
 
 | Qué ves | Qué significa |

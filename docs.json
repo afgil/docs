@@ -37,6 +37,8 @@
                   "guias/emision-masiva",
                   "guias/webhooks",
                   "guias/multiempresa",
+                  "guias/lectura-sii",
+                  "guias/movimientos-bancarios",
                   "guias/link-de-pago",
                   "guias/cesiones"
                 ]
