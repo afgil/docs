@@ -1,0 +1,141 @@
+---
+title: 'Leer el RCV, DTE y boletas de honorarios del SII por API'
+sidebarTitle: 'Leer datos del SII'
+description: 'Conecta la empresa de tu cliente con Tupana Link y lee su registro de compras y ventas, sus DTE emitidos y recibidos y sus boletas de honorarios por la API v2.'
+keywords: ['api sii chile', 'leer rcv api', 'registro de compras y ventas api', 'dte recibidos api', 'boletas de honorarios api']
+---
+
+Esta guía conecta la empresa de un cliente y lee sus datos del SII desde tu backend: el Registro de Compras y Ventas (RCV), los documentos emitidos y recibidos y las boletas de honorarios. Es solo lectura. Para emitir, la conexión es otra (`invoicing`) y pide la clave del representante; ver [Tupana Link](/api-reference/v2/connect/tupana-link).
+
+## 1. Conecta la empresa con `sii_data`
+
+```bash
+curl -X POST https://api.tupana.ai/v2/connect-sessions/ \
+  -H "Authorization: Api-Key $TUPANA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "capabilities": ["sii_data"],
+    "app_name": "Mi SaaS",
+    "tax_id": "76.543.210-3",
+    "external_customer_id": "cus_912"
+  }'
+```
+
+Abre el widget con el `client_token` (igual que en [Tupana Link](/api-reference/v2/connect/tupana-link)). Tu cliente escribe la clave del SII de su empresa dentro del widget. Cuando el SII la valida, tu backend recibe `connection.active` con el `company_id` (`ment_…`) que usarás en todas las lecturas.
+
+<Note>
+`sii_data` lee con la clave de la empresa. `invoicing` emite y necesita la clave del representante legal con permisos. Si vas a hacer las dos cosas, pide `["invoicing", "sii_data"]` en la misma sesión.
+</Note>
+
+## 2. Revisa qué está sincronizado
+
+```bash
+curl "https://api.tupana.ai/v2/sync-status/?master_entity_id=ment_4829301923847" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+Trae la frecuencia de la empresa y la última sincronización por tipo de dato. Sirve para mostrar en tu producto "datos actualizados hace X horas".
+
+| Tipo | Qué trae |
+|---|---|
+| `ISSUED_DOCS` | Documentos emitidos |
+| `RECEIVED_DOCS` | Documentos recibidos |
+| `PURCHASE_BOOK` | Libro de compras del RCV |
+| `SALE_BOOK` | Libro de ventas del RCV |
+| `BOOK_SUMMARY` | Resumen del RCV por tipo de documento (se habilita por empresa) |
+| `EMITTED_HONORARY_BILLS` | Boletas de honorarios emitidas |
+| `RECEIVED_HONORARY_BILLS` | Boletas de honorarios recibidas |
+| `THIRD_PARTY_HONORARY` | Boletas de prestación de servicios de terceros |
+| `CESSIONS_EMITTED`, `CESSIONS_RECEIVED` | Cesiones de facturas (se habilitan por empresa) |
+
+## 3. Lee el Registro de Compras y Ventas
+
+Resumen del período, por tipo de documento:
+
+```bash
+curl "https://api.tupana.ai/v2/book-summaries/?master_entity_id=ment_4829301923847&period=202609" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+Detalle documento por documento, en el período en que el SII lo clasifica:
+
+```bash
+curl "https://api.tupana.ai/v2/book-documents/?master_entity_id=ment_4829301923847&period=202609&operation=COMPRA&dte_type_code=33,61" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+Cada fila trae folio, tipo, fecha de emisión, contraparte, montos neto, exento, IVA y total, otros impuestos, fecha de recepción, acuse y reclamo, y la referencia de las notas de crédito y débito. Si `meta.is_enabled` es `false`, ese libro no está habilitado para la empresa. Referencia: [book-documents](/api-reference/v2/book-documents/list) y [book-summaries](/api-reference/v2/book-summaries/list).
+
+## 4. Lee los DTE emitidos y recibidos
+
+```bash
+curl "https://api.tupana.ai/v2/documents/?master_entity_id=ment_4829301923847&document_type=received&issue_date_gte=2026-09-01&include_book_metadata=true" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+`document_type=issued` (por defecto) trae lo que emitió la empresa y `received`, lo que le emitieron. Con `include_book_metadata=true` cada documento trae sus datos del RCV y con `include_trace_events=true`, la traza del SII (acuses, reclamos, rechazos). El PDF y el XML están en [`GET /v2/documents/{document_id}/`](/api-reference/v2/documents/get).
+
+<CodeGroup>
+```ts Node.js
+import Tupana from "tupana";
+
+const tupana = new Tupana();
+const recibidas = await tupana.documents.list({
+  master_entity_id: "ment_4829301923847",
+  document_type: "received",
+  dte_type__code__in: ["33", "34"],
+  issue_date_gte: "2026-09-01",
+});
+```
+
+```python Python
+from tupana import Tupana
+
+tupana = Tupana()
+recibidas = tupana.documents.list(
+    "ment_4829301923847",
+    document_type="received",
+    dte_type__code__in=["33", "34"],
+    issue_date_gte="2026-09-01",
+)
+```
+</CodeGroup>
+
+## 5. Frecuencia y sincronización a demanda
+
+Cada empresa conectada se sincroniza sola cada 24 horas. Si necesitas datos más frescos, hay planes de 12 y de 3 horas (escribe a soporte). En el plan de 24 horas puedes pedir una actualización puntual, por ejemplo justo después de conectar a un cliente nuevo:
+
+```bash
+curl -X POST https://api.tupana.ai/v2/sync-requests/ \
+  -H "Authorization: Api-Key $TUPANA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "master_entity_id": "ment_4829301923847",
+    "scrape_types": ["RECEIVED_DOCS", "PURCHASE_BOOK"],
+    "webhook_url": "https://mi-sistema.com/webhooks/tupana-sync"
+  }'
+```
+
+Responde `201` con `status: "pending"` y nunca bloquea esperando al SII. Al terminar, Tupana hace un POST a tu `webhook_url` (evento `sync_request.completed`) con el resultado por tipo; también puedes consultar [`GET /v2/sync-requests/{id}/`](/api-reference/v2/sync/request-get). Hay un máximo de 10 solicitudes a demanda por empresa al mes.
+
+## Webhooks útiles para lectura
+
+| Evento | Cuándo llega |
+|---|---|
+| `connection.active` | La clave del SII quedó validada |
+| `connection.requires_action` | La clave dejó de servir y hay que volver a conectar |
+| `document.trace_updated` | Hay un evento nuevo en la traza del SII (acuse, reclamo, rechazo), de un documento emitido o recibido |
+| `sync_request.completed` | Terminó una sincronización a demanda (a la `webhook_url` de la solicitud) |
+
+## Precio
+
+La lectura del SII cuesta **0,2 UF al mes por empresa**, más IVA: registro de compras y ventas y boletas de honorarios emitidas y recibidas. Emitir es aparte: 0,5 UF al mes por empresa. El sandbox es gratis. Detalle en [Precios](/precios).
+
+<CardGroup cols={2}>
+  <Card title="Leer movimientos bancarios" icon="building-columns" href="/guias/movimientos-bancarios">
+    Abonos y cargos de los bancos de tus clientes, por la misma API.
+  </Card>
+  <Card title="Facturar para varias empresas" icon="building" href="/guias/multiempresa">
+    Una integración para emitir por todos tus clientes.
+  </Card>
+</CardGroup>

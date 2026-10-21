@@ -6,6 +6,7 @@ Este archivo resume qué es Tupana, cuándo conviene usarla y dónde está cada 
 
 ## Datos clave
 
+- Tupana ofrece API bancaria (movimientos y saldos de bancos chilenos) y API del SII (lectura de RCV, DTE y emisión) en una sola integración. Guías: https://docs.tupana.ai/guias/movimientos-bancarios y https://docs.tupana.ai/guias/lectura-sii
 - API REST v2: `https://api.tupana.ai/v2`. Autenticación con el header `Authorization: Api-Key <tu_key>` (no `Bearer`).
 - Especificación OpenAPI 3.0: https://docs.tupana.ai/api-reference/openapi-v2.json
 - Servidor MCP: `https://mcp.tupana.ai/mcp` (Streamable HTTP, OAuth 2.1 con PKCE y registro dinámico; sin API key). Claude Code: `claude mcp add --transport http tupana https://mcp.tupana.ai/mcp`
@@ -77,6 +78,8 @@ Detalle: https://docs.tupana.ai/precios · https://developers.tupana.ai/pricing
 - [Emitir facturas electrónicas en lote por API](https://docs.tupana.ai/guias/emision-masiva): Cómo emitir hasta 200 facturas, boletas o notas de crédito (DTE) al SII en una sola llamada a la API de Tupana, sin duplicados y con el resultado de cada documento por webhook.
 - [Recibir avisos de estado de tus DTE con webhooks](https://docs.tupana.ai/guias/webhooks): Configura webhooks de Tupana para saber cuándo una factura electrónica se emite, la rechaza el SII, se paga o se anula. Incluye verificación de la firma HMAC-SHA256 y manejo de reintentos.
 - [Facturar para varias empresas con una sola integración (multiempresa)](https://docs.tupana.ai/guias/multiempresa): Cómo un SaaS, ERP o estudio contable emite facturas electrónicas al SII para muchas empresas con una sola API key de Tupana: conexiones con Tupana Link, emisor por RUT, webhooks por empresa y reconexión.
+- [Leer el RCV, DTE y boletas de honorarios del SII por API](https://docs.tupana.ai/guias/lectura-sii): Conecta la empresa de tu cliente con Tupana Link y lee su registro de compras y ventas, sus DTE emitidos y recibidos y sus boletas de honorarios por la API v2.
+- [Leer movimientos bancarios de tus clientes por API](https://docs.tupana.ai/guias/movimientos-bancarios): Conecta el banco de cada cliente con Tupana Link y lee sus abonos y cargos por la API v2: sesión, webhook connection.active, documentos 100 y 101 y aviso document.paid.
 - [Cobrar con link de pago y emitir la boleta o factura al pagar](https://docs.tupana.ai/guias/link-de-pago): Crea un link de pago con la API de Recaudación de Tupana (Transbank): tu cliente paga con débito, crédito o transferencia y Tupana emite el DTE al SII automáticamente y te avisa por webhook.
 - [Ceder facturas electrónicas (factoring) por API](https://docs.tupana.ai/guias/cesiones): Cómo ceder facturas electrónicas (DTE 33 y 34) a una empresa de factoring con la API de Cesiones de Tupana: genera los AEC, los envía al SII y te entrega el certificado de cesión.
 - [Agentes de IA que facturan, cobran y concilian](https://docs.tupana.ai/agentes/introduccion): Cómo construir agentes de IA que emiten facturas electrónicas al SII, cobran y concilian el banco con Tupana: servidor MCP para Claude, ChatGPT y Cursor, tool calling sobre la API REST y patrones seguros.

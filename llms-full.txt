@@ -6,6 +6,7 @@ Este archivo resume qué es Tupana, cuándo conviene usarla y dónde está cada 
 
 ## Datos clave
 
+- Tupana ofrece API bancaria (movimientos y saldos de bancos chilenos) y API del SII (lectura de RCV, DTE y emisión) en una sola integración. Guías: https://docs.tupana.ai/guias/movimientos-bancarios y https://docs.tupana.ai/guias/lectura-sii
 - API REST v2: `https://api.tupana.ai/v2`. Autenticación con el header `Authorization: Api-Key <tu_key>` (no `Bearer`).
 - Especificación OpenAPI 3.0: https://docs.tupana.ai/api-reference/openapi-v2.json
 - Servidor MCP: `https://mcp.tupana.ai/mcp` (Streamable HTTP, OAuth 2.1 con PKCE y registro dinámico; sin API key). Claude Code: `claude mcp add --transport http tupana https://mcp.tupana.ai/mcp`
@@ -959,6 +960,279 @@ Facturación por API cuesta **0,5 UF al mes por empresa que enroles**, sin preci
 - [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link)
 - [Listar conexiones](https://docs.tupana.ai/api-reference/v2/connections/list)
 - [Emitir facturas en lote](https://docs.tupana.ai/guias/emision-masiva)
+
+---
+
+## Leer el RCV, DTE y boletas de honorarios del SII por API
+
+Fuente: https://docs.tupana.ai/guias/lectura-sii · Sección: Guía de Usuario / Guías por tarea
+
+> Conecta la empresa de tu cliente con Tupana Link y lee su registro de compras y ventas, sus DTE emitidos y recibidos y sus boletas de honorarios por la API v2.
+
+Esta guía conecta la empresa de un cliente y lee sus datos del SII desde tu backend: el Registro de Compras y Ventas (RCV), los documentos emitidos y recibidos y las boletas de honorarios. Es solo lectura. Para emitir, la conexión es otra (`invoicing`) y pide la clave del representante; ver [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link).
+
+### 1. Conecta la empresa con `sii_data`
+
+```bash
+curl -X POST https://api.tupana.ai/v2/connect-sessions/ \
+  -H "Authorization: Api-Key $TUPANA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "capabilities": ["sii_data"],
+    "app_name": "Mi SaaS",
+    "tax_id": "76.543.210-3",
+    "external_customer_id": "cus_912"
+  }'
+```
+
+Abre el widget con el `client_token` (igual que en [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link)). Tu cliente escribe la clave del SII de su empresa dentro del widget. Cuando el SII la valida, tu backend recibe `connection.active` con el `company_id` (`ment_…`) que usarás en todas las lecturas.
+
+> **Nota:** `sii_data` lee con la clave de la empresa. `invoicing` emite y necesita la clave del representante legal con permisos. Si vas a hacer las dos cosas, pide `["invoicing", "sii_data"]` en la misma sesión.
+
+### 2. Revisa qué está sincronizado
+
+```bash
+curl "https://api.tupana.ai/v2/sync-status/?master_entity_id=ment_4829301923847" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+Trae la frecuencia de la empresa y la última sincronización por tipo de dato. Sirve para mostrar en tu producto "datos actualizados hace X horas".
+
+| Tipo | Qué trae |
+|---|---|
+| `ISSUED_DOCS` | Documentos emitidos |
+| `RECEIVED_DOCS` | Documentos recibidos |
+| `PURCHASE_BOOK` | Libro de compras del RCV |
+| `SALE_BOOK` | Libro de ventas del RCV |
+| `BOOK_SUMMARY` | Resumen del RCV por tipo de documento (se habilita por empresa) |
+| `EMITTED_HONORARY_BILLS` | Boletas de honorarios emitidas |
+| `RECEIVED_HONORARY_BILLS` | Boletas de honorarios recibidas |
+| `THIRD_PARTY_HONORARY` | Boletas de prestación de servicios de terceros |
+| `CESSIONS_EMITTED`, `CESSIONS_RECEIVED` | Cesiones de facturas (se habilitan por empresa) |
+
+### 3. Lee el Registro de Compras y Ventas
+
+Resumen del período, por tipo de documento:
+
+```bash
+curl "https://api.tupana.ai/v2/book-summaries/?master_entity_id=ment_4829301923847&period=202609" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+Detalle documento por documento, en el período en que el SII lo clasifica:
+
+```bash
+curl "https://api.tupana.ai/v2/book-documents/?master_entity_id=ment_4829301923847&period=202609&operation=COMPRA&dte_type_code=33,61" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+Cada fila trae folio, tipo, fecha de emisión, contraparte, montos neto, exento, IVA y total, otros impuestos, fecha de recepción, acuse y reclamo, y la referencia de las notas de crédito y débito. Si `meta.is_enabled` es `false`, ese libro no está habilitado para la empresa. Referencia: [book-documents](https://docs.tupana.ai/api-reference/v2/book-documents/list) y [book-summaries](https://docs.tupana.ai/api-reference/v2/book-summaries/list).
+
+### 4. Lee los DTE emitidos y recibidos
+
+```bash
+curl "https://api.tupana.ai/v2/documents/?master_entity_id=ment_4829301923847&document_type=received&issue_date_gte=2026-09-01&include_book_metadata=true" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+`document_type=issued` (por defecto) trae lo que emitió la empresa y `received`, lo que le emitieron. Con `include_book_metadata=true` cada documento trae sus datos del RCV y con `include_trace_events=true`, la traza del SII (acuses, reclamos, rechazos). El PDF y el XML están en [`GET /v2/documents/{document_id}/`](https://docs.tupana.ai/api-reference/v2/documents/get).
+
+```ts Node.js
+
+const tupana = new Tupana();
+const recibidas = await tupana.documents.list({
+  master_entity_id: "ment_4829301923847",
+  document_type: "received",
+  dte_type__code__in: ["33", "34"],
+  issue_date_gte: "2026-09-01",
+});
+```
+
+```python Python
+from tupana import Tupana
+
+tupana = Tupana()
+recibidas = tupana.documents.list(
+    "ment_4829301923847",
+    document_type="received",
+    dte_type__code__in=["33", "34"],
+    issue_date_gte="2026-09-01",
+)
+```
+
+### 5. Frecuencia y sincronización a demanda
+
+Cada empresa conectada se sincroniza sola cada 24 horas. Si necesitas datos más frescos, hay planes de 12 y de 3 horas (escribe a soporte). En el plan de 24 horas puedes pedir una actualización puntual, por ejemplo justo después de conectar a un cliente nuevo:
+
+```bash
+curl -X POST https://api.tupana.ai/v2/sync-requests/ \
+  -H "Authorization: Api-Key $TUPANA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "master_entity_id": "ment_4829301923847",
+    "scrape_types": ["RECEIVED_DOCS", "PURCHASE_BOOK"],
+    "webhook_url": "https://mi-sistema.com/webhooks/tupana-sync"
+  }'
+```
+
+Responde `201` con `status: "pending"` y nunca bloquea esperando al SII. Al terminar, Tupana hace un POST a tu `webhook_url` (evento `sync_request.completed`) con el resultado por tipo; también puedes consultar [`GET /v2/sync-requests/{id}/`](https://docs.tupana.ai/api-reference/v2/sync/request-get). Hay un máximo de 10 solicitudes a demanda por empresa al mes.
+
+### Webhooks útiles para lectura
+
+| Evento | Cuándo llega |
+|---|---|
+| `connection.active` | La clave del SII quedó validada |
+| `connection.requires_action` | La clave dejó de servir y hay que volver a conectar |
+| `document.trace_updated` | Hay un evento nuevo en la traza del SII (acuse, reclamo, rechazo), de un documento emitido o recibido |
+| `sync_request.completed` | Terminó una sincronización a demanda (a la `webhook_url` de la solicitud) |
+
+### Precio
+
+La lectura del SII cuesta **0,2 UF al mes por empresa**, más IVA: registro de compras y ventas y boletas de honorarios emitidas y recibidas. Emitir es aparte: 0,5 UF al mes por empresa. El sandbox es gratis. Detalle en [Precios](https://docs.tupana.ai/precios).
+
+**[Leer movimientos bancarios](https://docs.tupana.ai/guias/movimientos-bancarios)**:
+    Abonos y cargos de los bancos de tus clientes, por la misma API.
+
+**[Facturar para varias empresas](https://docs.tupana.ai/guias/multiempresa)**:
+    Una integración para emitir por todos tus clientes.
+
+---
+
+## Leer movimientos bancarios de tus clientes por API
+
+Fuente: https://docs.tupana.ai/guias/movimientos-bancarios · Sección: Guía de Usuario / Guías por tarea
+
+> Conecta el banco de cada cliente con Tupana Link y lee sus abonos y cargos por la API v2: sesión, webhook connection.active, documentos 100 y 101 y aviso document.paid.
+
+Esta guía conecta el banco de un cliente de tu SaaS y lee sus movimientos desde tu backend. La clave del banco la escribe tu cliente dentro de Tupana Link: tu sistema nunca la ve y solo guarda un `connection_id` (`cred_…`). La conexión es de solo lectura: no puede mover dinero.
+
+### Bancos disponibles en Tupana Link
+
+Banco de Chile, Santander, BancoEstado, BCI, Itaú, Scotiabank, Security, BICE y Falabella. Para cuentas de empresa y de persona.
+
+### 1. Abre una sesión con `banking`
+
+Desde tu backend, con tu API key. Si ya conoces el RUT de la empresa, mándalo como `tax_id` y el widget no lo vuelve a pedir.
+
+```bash
+curl -X POST https://api.tupana.ai/v2/connect-sessions/ \
+  -H "Authorization: Api-Key $TUPANA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "capabilities": ["banking"],
+    "app_name": "Mi SaaS",
+    "tax_id": "76.543.210-3",
+    "external_customer_id": "cus_912"
+  }'
+```
+
+La respuesta trae un `client_token` de un solo uso que dura 30 minutos. Con una API key de sandbox la sesión es de sandbox y nada toca un banco real.
+
+### 2. Abre el widget en tu frontend
+
+```html
+<iframe src="https://developers.tupana.ai/connect?token=cst_9f2b…"
+        width="460" height="660" frameborder="0"></iframe>
+```
+
+Tu cliente elige su banco, escribe el RUT de la persona que entra a la cuenta y su clave. El widget espera la respuesta del banco y le muestra sus cuentas. El detalle de eventos (`open`, `success`, `exit`) está en [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link).
+
+### 3. Confirma la conexión por webhook
+
+`success` en el widget solo mueve tu interfaz. La confirmación llega a tu backend:
+
+| Evento | Qué significa |
+|---|---|
+| `connection.active` | El banco aceptó la clave y listó las cuentas. Guarda el `connection_id` y el `company_id` |
+| `connection.requires_action` | La clave no sirvió. El widget deja reintentar |
+
+```json
+{
+  "event": "connection.active",
+  "data": {
+    "connection_id": "cred_5028174639201",
+    "company_id": "ment_4829301923847",
+    "type": "bank",
+    "status": "active",
+    "external_customer_id": "cus_912"
+  }
+}
+```
+
+Suscríbete a estos eventos con [`POST /v2/webhooks/`](https://docs.tupana.ai/api-reference/v2/webhooks-pages/create). Responde 2xx y procesa después: el mismo aviso puede llegar dos veces.
+
+### 4. Lee los movimientos
+
+Cada movimiento sincronizado queda como un documento de pago de la empresa: tipo `100` para los abonos (entradas de dinero) y tipo `101` para los cargos (salidas). Se leen con el mismo endpoint de documentos:
+
+```bash
+curl "https://api.tupana.ai/v2/documents/?master_entity_id=ment_4829301923847&dte_type__code__in=100,101&issue_date_gte=2026-10-01&page_size=100" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "docu_9f2a7c1b8e4d0",
+      "dte_type_code": "100",
+      "folio": null,
+      "date_issued": "2026-10-14",
+      "amount_with_iva": 595000
+    }
+  ],
+  "meta": { "page": 1, "page_size": 100, "total": 1, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+Con los SDKs oficiales es la misma llamada:
+
+```ts Node.js
+
+const tupana = new Tupana(); // lee TUPANA_API_KEY
+for await (const mov of tupana.documents.listAutoPaging({
+  master_entity_id: "ment_4829301923847",
+  dte_type__code__in: ["100", "101"],
+  issue_date_gte: "2026-10-01",
+})) {
+  console.log(mov.date_issued, mov.dte_type_code, mov.amount_with_iva);
+}
+```
+
+```python Python
+from tupana import Tupana
+
+tupana = Tupana()  # lee TUPANA_API_KEY
+for mov in tupana.documents.list_auto_paging(
+    "ment_4829301923847",
+    dte_type__code__in=["100", "101"],
+    issue_date_gte="2026-10-01",
+):
+    print(mov["date_issued"], mov["dte_type_code"], mov["amount_with_iva"])
+```
+
+### Cada cuánto se actualizan
+
+Tupana sincroniza las cuentas conectadas cada hora y deduplica los movimientos, así que leer dos veces el mismo rango no trae repetidos. Lee por fecha (`issue_date_gte`) desde la última vez que consultaste.
+
+### 5. Entérate cuando una factura queda pagada
+
+Cuando un abono se concilia con una factura emitida, Tupana envía `document.paid` con la factura pagada. Si la conciliación se revierte, llega `document.unpaid`. Así tu sistema marca la factura como cobrada sin cruzar montos por su cuenta. Detalle de los payloads en la [guía de webhooks](https://docs.tupana.ai/user-guide/webhooks).
+
+### Cortar la conexión
+
+[`DELETE /v2/connections/{connection_id}/`](https://docs.tupana.ai/api-reference/v2/connections/delete) la deja `inactive` y suelta la clave. Para listar las conexiones de tus clientes usa [`GET /v2/connections/`](https://docs.tupana.ai/api-reference/v2/connections/list).
+
+### Precio
+
+La lectura bancaria cuesta **0,35 UF al mes por banco** conectado, más IVA, con movimientos sincronizados sin límite. El sandbox es gratis. Detalle en [Precios](https://docs.tupana.ai/precios).
+
+**[Leer el SII por API](https://docs.tupana.ai/guias/lectura-sii)**:
+    Registro de compras y ventas, DTE emitidos y recibidos y boletas de honorarios.
+
+**[Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link)**:
+    Sesión, widget, eventos y confirmación por webhook.
 
 ---
 
@@ -4797,7 +5071,7 @@ _Esto ve tu usuario. Tú solo recibes el cred_…._
     y el widget no lo vuelve a pedir.
 
 ```bash
-curl -X POST "https://app.tupana.ai/api/v2/connect-sessions/" \
+curl -X POST "https://api.tupana.ai/v2/connect-sessions/" \
   -H "Authorization: Api-Key TU_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -4845,7 +5119,7 @@ window.addEventListener('message', (event) => {
     | `success` | El flujo terminó. Cierra el modal. **No** es la fuente de verdad |
     | `exit` | El usuario cerró antes de terminar |
 
-> **Importante:** Igual que el widget de Fintoc: `success` y `exit` solo mueven tu
+> **Importante:** `success` y `exit` solo mueven tu
     interfaz. La conexión existe cuando tu backend recibe
     `connection.active` o
     `GET /api/v2/connections/enrollments/{enrollment_id}/` la muestra lista.
@@ -4931,15 +5205,12 @@ _3. El banco aceptó la clave: cuentas y saldos. Ahí sale success._
 
 ### Cuándo el enrolamiento es exitoso
 
-El widget de Fintoc no avisa éxito al recibir la clave. Se queda en
-pantalla mientras el banco responde. Si la clave está mala, el error queda
-adentro y el usuario reintenta: no hay `onSuccess`. `onSuccess` sale cuando
-el flujo terminó (el banco aceptó y existe el Link). `onExit` sale solo si
-la persona cierra antes. Fintoc pide no usar esos callbacks para saber si el
-Link existe: eso lo confirma el webhook `link.created` en el `webhookUrl`,
-que trae el `link_token`.
+El widget no avisa éxito al recibir la clave. Se queda en pantalla
+mientras la institución responde. Si la clave está mala, el error queda
+adentro y el usuario reintenta: no hay `success`. `success` sale cuando el
+flujo terminó; `exit` sale solo si la persona cierra antes.
 
-Tupana Link funciona igual. El `postMessage` mueve tu modal. El webhook
+El `postMessage` mueve tu modal. El webhook
 dice si la credencial quedó.
 
 | Qué ves | Qué significa |
