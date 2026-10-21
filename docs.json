@@ -650,5 +650,35 @@
   },
   "search": {
     "prompt": "Busca en la documentación de Tupana..."
-  }
+  },
+  "redirects": [
+    {
+      "source": "/webhooks",
+      "destination": "/user-guide/webhooks"
+    },
+    {
+      "source": "/webhooks/tupana",
+      "destination": "/user-guide/webhooks"
+    },
+    {
+      "source": "/documents",
+      "destination": "/api-reference/v2/documents/list"
+    },
+    {
+      "source": "/scheduled-documents",
+      "destination": "/api-reference/scheduled-documents/list"
+    },
+    {
+      "source": "/scheduled-documents/:id",
+      "destination": "/api-reference/scheduled-documents/get"
+    },
+    {
+      "source": "/api-reference/documents-batch",
+      "destination": "/api-reference/v2/documents/batch"
+    },
+    {
+      "source": "/honorary/authorized-users",
+      "destination": "/api-reference/v2/honorary/authorized-users"
+    }
+  ]
 }
