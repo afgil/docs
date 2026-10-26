@@ -681,6 +681,30 @@
     {
       "source": "/honorary/authorized-users",
       "destination": "/api-reference/v2/honorary/authorized-users"
+    },
+    {
+      "source": "/master-entities/:id/settlements/:path*",
+      "destination": "/api-reference/payment-requests/settlements-list"
+    },
+    {
+      "source": "/master-entities/:path*",
+      "destination": "/api-reference/v2/entities/master-entity"
+    },
+    {
+      "source": "/api/master-entities/:id/banking-info",
+      "destination": "/api-reference/payment-requests/banking-info-get"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api-reference/v2/introduction"
+    },
+    {
+      "source": "/v1/honorary/:path*",
+      "destination": "/api-reference/v2/honorary/introduction"
+    },
+    {
+      "source": "/v1/:path*",
+      "destination": "/api-reference/v2/introduction"
     }
   ]
 }
