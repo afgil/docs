@@ -5437,6 +5437,220 @@
           }
         }
       }
+    },
+    "/institutions/": {
+      "get": {
+        "operationId": "listInstitutions_v2",
+        "tags": [
+          "Instituciones"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar instituciones",
+        "description": "Los bancos que se pueden conectar con Tupana Link y qué entrega cada uno.",
+        "responses": {
+          "200": {
+            "description": "Catálogo de bancos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "example": "cl_banco_santander",
+                            "description": "Identifica al banco en toda la API."
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "Banco Santander"
+                          },
+                          "source": {
+                            "type": "string",
+                            "enum": [
+                              "fintoc",
+                              "scraper"
+                            ],
+                            "description": "Por dónde lee Tupana este banco."
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "available",
+                              "coming_soon"
+                            ],
+                            "description": "`coming_soon`: Tupana guarda la credencial pero todavía no entrega datos."
+                          },
+                          "capabilities": {
+                            "type": "object",
+                            "properties": {
+                              "balances": {
+                                "type": "boolean"
+                              },
+                              "movements": {
+                                "type": "boolean"
+                              },
+                              "cards": {
+                                "type": "boolean",
+                                "description": "Siempre falso por ahora."
+                              },
+                              "payments": {
+                                "type": "boolean",
+                                "description": "Siempre falso: la API bancaria no mueve dinero."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connections/{connection_id}/reauthorizations/": {
+      "post": {
+        "operationId": "reauthorizeConnection_v2",
+        "tags": [
+          "Conexiones"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Reautorizar una conexión de banco",
+        "description": "Abre Tupana Link para volver a entrar al banco de una conexión existente. La conexión conserva su `connection_id` y queda en `requires_action` hasta que el usuario reconecte.",
+        "parameters": [
+          {
+            "name": "connection_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "cred_5028174639201"
+            },
+            "description": "Id de la conexión de banco (`cred_…`)."
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "company_id": {
+                    "type": "string",
+                    "example": "ment_3672486436546233854",
+                    "description": "Obligatorio si la conexión cubre varias empresas."
+                  },
+                  "external_customer_id": {
+                    "type": "string",
+                    "description": "Tu id de cliente. Vuelve en el webhook."
+                  },
+                  "return_url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "app_name": {
+                    "type": "string"
+                  },
+                  "environment": {
+                    "type": "string",
+                    "enum": [
+                      "sandbox",
+                      "production"
+                    ],
+                    "description": "Default: el de la API key."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sesión de Tupana Link lista para abrir",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "connection_id": {
+                      "type": "string",
+                      "example": "cred_5028174639201"
+                    },
+                    "company_id": {
+                      "type": "string",
+                      "example": "ment_3672486436546233854"
+                    },
+                    "provider": {
+                      "type": "string",
+                      "example": "santander"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "bank"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "requires_action"
+                      ]
+                    },
+                    "connect_session_id": {
+                      "type": "string",
+                      "example": "cses_8831027465012"
+                    },
+                    "client_token": {
+                      "type": "string",
+                      "description": "Un solo uso, 30 minutos."
+                    },
+                    "widget_url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "environment": {
+                      "type": "string",
+                      "enum": [
+                        "sandbox",
+                        "production"
+                      ]
+                    },
+                    "expires_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Conexión tributaria, sin banco asociado, o falta `company_id`"
+          },
+          "403": {
+            "description": "Una API key de sandbox no abre producción"
+          },
+          "404": {
+            "description": "La conexión no existe para esta API key"
+          }
+        }
+      }
     }
   },
   "components": {

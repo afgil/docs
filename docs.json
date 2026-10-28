@@ -104,6 +104,7 @@
                 "pages": [
                   "api-reference/v2/connect/tupana-link",
                   "api-reference/v2/connections/list",
+                  "api-reference/v2/connections/reauthorize",
                   "api-reference/v2/connections/delete"
                 ]
               },
@@ -141,6 +142,38 @@
                   "api-reference/v2/webhooks-pages/get",
                   "api-reference/v2/webhooks-pages/update",
                   "api-reference/v2/webhooks-pages/delete"
+                ]
+              },
+              {
+                "group": "Errores",
+                "pages": [
+                  "api-reference/v2/errors"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "API Bancaria",
+            "groups": [
+              {
+                "group": "Introducción",
+                "pages": [
+                  "api-reference/v2/banking/introduction"
+                ]
+              },
+              {
+                "group": "Conexiones",
+                "pages": [
+                  "api-reference/v2/connect/tupana-link",
+                  "api-reference/v2/connections/list",
+                  "api-reference/v2/connections/reauthorize",
+                  "api-reference/v2/connections/delete"
+                ]
+              },
+              {
+                "group": "Instituciones",
+                "pages": [
+                  "api-reference/v2/institutions/list"
                 ]
               },
               {

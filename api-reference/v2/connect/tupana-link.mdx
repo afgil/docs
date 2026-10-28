@@ -122,6 +122,13 @@ El `client_token` es de un solo uso y dura 30 minutos. Créalo cuando el
 usuario va a conectar, no antes. Una API key de sandbox no abre producción.
 </Warning>
 
+## Reautorizar un banco
+
+Cuando una conexión de banco queda en `requires_action`, no abras una sesión
+desde cero: [`POST /connections/{connection_id}/reauthorizations/`](/api-reference/v2/connections/reauthorize)
+te devuelve un `client_token` con la empresa y el banco ya elegidos, y la
+conexión conserva su `connection_id` al terminar.
+
 ## Lo que ve tu usuario
 
 <Tabs>

@@ -103,6 +103,7 @@ Detalle: https://docs.tupana.ai/precios · https://developers.tupana.ai/pricing
 - [Buscar empresa por RUT (API v2)](https://docs.tupana.ai/api-reference/v2/entities/master-entity): Obtén razón social, actividades económicas y direcciones de un contribuyente chileno a partir de su RUT con la API v2 de Tupana.
 - [Tupana Link: conectar empresas al SII desde tu SaaS](https://docs.tupana.ai/api-reference/v2/connect/tupana-link): Tupana Link es el widget con el que tus usuarios conectan su empresa (SII, facturador de mercado o banco) a tu SaaS sin que veas su clave. Sesión, iframe, eventos y webhook connection.active.
 - [Listar conexiones de empresas (API v2)](https://docs.tupana.ai/api-reference/v2/connections/list): Lista las empresas conectadas a tu integración con Tupana: RUT, giro, dirección, ambiente sandbox o producción y estado de la conexión al SII.
+- [Reautorizar una conexión](https://docs.tupana.ai/api-reference/v2/connections/reauthorize)
 - [Desactivar una conexión de empresa (API v2)](https://docs.tupana.ai/api-reference/v2/connections/delete): Desactiva la conexión de una empresa a tu integración de facturación electrónica con la API v2 de Tupana.
 - [Listar documentos tributarios electrónicos (API v2)](https://docs.tupana.ai/api-reference/v2/documents/list): Lista facturas, boletas y otros DTE emitidos o recibidos por una empresa en Chile, con filtros por folio, fechas, tipo, emisor, json_param y trazas del SII.
 - [Emisión masiva de facturas electrónicas al SII (API v2)](https://docs.tupana.ai/api-reference/v2/documents/batch): POST /v2/documents/batch/: emite hasta 200 facturas, boletas, notas de crédito, guías de despacho o facturas de exportación al SII en una llamada, con Idempotency-Key y resultados por webhook.
@@ -121,6 +122,11 @@ Detalle: https://docs.tupana.ai/precios · https://developers.tupana.ai/pricing
 - [Actualizar un webhook (API v2)](https://docs.tupana.ai/api-reference/v2/webhooks-pages/update): Cambia la URL, los eventos, el ambiente o la versión de ids (api_version) de un webhook de Tupana.
 - [Eliminar un webhook (API v2)](https://docs.tupana.ai/api-reference/v2/webhooks-pages/delete): Elimina un webhook de Tupana para dejar de recibir eventos.
 - [Errores de la API v2](https://docs.tupana.ai/api-reference/v2/errors): Taxonomía de errores de la API v2 de facturación electrónica de Tupana: estructura estable, tipos, códigos, validación de documentos (422) y qué hacer en cada caso.
+
+### API Bancaria
+
+- [API Bancaria — Introducción](https://docs.tupana.ai/api-reference/v2/banking/introduction): Lee las conexiones bancarias de tus empresas: qué bancos existen, cómo se conectan con Tupana Link y qué significa cada estado — API v2
+- [Listar instituciones](https://docs.tupana.ai/api-reference/v2/institutions/list)
 
 ### API Cesiones
 
