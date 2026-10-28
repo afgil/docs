@@ -1,0 +1,49 @@
+---
+title: "Listar instituciones"
+openapi: "api-reference/openapi-v2.json GET /institutions/"
+---
+
+Los bancos que una empresa puede conectar con
+[Tupana Link](/api-reference/v2/connect/tupana-link) y qué entrega cada uno. Es
+el mismo catálogo que ve el usuario final en el widget.
+
+```bash
+curl https://api.tupana.ai/v2/institutions/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "code": "cl_banco_santander",
+      "name": "Banco Santander",
+      "source": "fintoc",
+      "status": "available",
+      "capabilities": {
+        "balances": true,
+        "movements": true,
+        "cards": false,
+        "payments": false
+      }
+    }
+  ]
+}
+```
+
+## Qué dice cada campo
+
+- `code` identifica al banco en toda la API: es el que verás en las conexiones y,
+  más adelante, en cada cuenta y movimiento.
+- `source` es por dónde lee Tupana ese banco: `fintoc` (proveedor de bancos) o
+  `scraper` (conector propio). No cambia lo que recibes.
+- `status` es `available` cuando el banco entrega datos, y `coming_soon` cuando
+  Tupana todavía solo guarda la credencial para integrarlo después.
+- `capabilities` dice qué se lee: `balances` y `movements` hoy; `cards` y
+  `payments` vienen en falso hasta que existan, para que tu integración ya
+  tenga el contrato.
+
+<Info>
+El banco de pruebas de sandbox no aparece acá: con una API key de sandbox las
+conexiones se fabrican sin elegir banco.
+</Info>

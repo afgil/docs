@@ -5172,6 +5172,13 @@ window.addEventListener('message', (event) => {
 > **Importante:** El `client_token` es de un solo uso y dura 30 minutos. Créalo cuando el
 usuario va a conectar, no antes. Una API key de sandbox no abre producción.
 
+### Reautorizar un banco
+
+Cuando una conexión de banco queda en `requires_action`, no abras una sesión
+desde cero: [`POST /connections/{connection_id}/reauthorizations/`](https://docs.tupana.ai/api-reference/v2/connections/reauthorize)
+te devuelve un `client_token` con la empresa y el banco ya elegidos, y la
+conexión conserva su `connection_id` al terminar.
+
 ### Lo que ve tu usuario
 
 **SII gratuito**
@@ -5348,6 +5355,80 @@ y los movimientos se leen igual venga de donde venga.
 En las conexiones de banco el estado sale de la conexión bancaria misma, no
 solo de la clave guardada: un link al que el banco le pidió volver a entrar es
 `requires_action` aunque la clave no haya cambiado.
+
+---
+
+## Reautorizar una conexión
+
+Fuente: https://docs.tupana.ai/api-reference/v2/connections/reauthorize · Sección: API Facturación / Conexiones
+
+Endpoint: `POST /connections/{connection_id}/reauthorizations/` (detalle completo en la Parte 2).
+
+Vuelve a abrir [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link) para que el
+usuario final entre de nuevo al banco de una conexión que ya existe. La sesión
+sale apuntando a esa empresa y ese banco, así que el usuario se salta esos
+pasos, y la conexión **conserva su `connection_id`**: cuando termine, sigue
+siendo la misma `cred_…` en tu base.
+
+Es lo que corresponde cuando una conexión de banco está en `requires_action`:
+el banco pidió volver a entrar, o la clave cambió.
+
+```bash
+curl -X POST https://api.tupana.ai/v2/connections/cred_5028174639201/reauthorizations/ \
+  -H "Authorization: Api-Key TU_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "external_customer_id": "cus_9", "return_url": "https://tusaas.cl/bancos" }'
+```
+
+```json
+{
+  "connection_id": "cred_5028174639201",
+  "company_id": "ment_3672486436546233854",
+  "provider": "santander",
+  "type": "bank",
+  "status": "requires_action",
+  "connect_session_id": "cses_8831027465012",
+  "client_token": "cst_…",
+  "widget_url": "https://developers.tupana.ai/connect?token=cst_…",
+  "environment": "production",
+  "expires_at": "2026-10-28T21:05:00-03:00"
+}
+```
+
+Abre `widget_url` (o pasa `client_token` al widget, igual que en una sesión
+nueva). El `client_token` es de un solo uso y dura 30 minutos.
+
+### Qué pasa con la conexión
+
+- Queda en `requires_action` hasta que el usuario reconecte, aunque la lectura
+  anterior siguiera funcionando. Si no estaba ya en ese estado, recibes
+  `connection.requires_action` una vez.
+- Cuando el banco acepta la clave llega `connection.active` con el mismo
+  `connection_id`.
+- Si el usuario cierra el widget sin terminar, la conexión sigue en
+  `requires_action`: puedes pedir otra reautorización.
+
+### Conexión compartida
+
+Una persona que opera varias empresas con el mismo login tiene **una**
+conexión asociada a varias `company_id`. En ese caso indica cuál en el body:
+
+```json
+{ "company_id": "ment_3672486436546233854" }
+```
+
+Sin `company_id` responde `400` diciendo que la conexión cubre varias empresas.
+
+### Errores
+
+- `404`: esa conexión no existe para tu API key.
+- `400`: la conexión es tributaria (una conexión del SII se vuelve a conectar
+  con una sesión nueva de Tupana Link), la conexión no tiene banco asociado, o
+  falta `company_id`.
+- `403`: una API key de sandbox no abre sesiones de producción.
+
+> **Importante:** Solo conexiones de banco. Para el SII, crea una sesión de Tupana Link con
+`capabilities: ["invoicing"]` o `["sii_data"]`.
 
 ---
 
@@ -7866,6 +7947,119 @@ Los endpoints de escritura (emisión, cobros) aceptan el header `Idempotency-Key
 Si reintentas **con la misma key y el mismo body**, la API devuelve la respuesta
 original **sin repetir la operación** (no se re-emite al SII). Si reutilizas la
 misma key con un **body distinto**, obtienes `idempotency_key_reused` (409).
+
+---
+
+## API Bancaria — Introducción
+
+Fuente: https://docs.tupana.ai/api-reference/v2/banking/introduction · Sección: API Bancaria / Introducción
+
+> Lee las conexiones bancarias de tus empresas: qué bancos existen, cómo se conectan con Tupana Link y qué significa cada estado — API v2
+
+## API Bancaria
+
+La **API Bancaria** te da lectura de lo que las empresas conectadas a tu
+integración tienen en el banco. El usuario final conecta su banco dentro de
+[Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link); tu SaaS nunca ve la clave,
+y desde ahí Tupana lee el banco todos los días.
+
+Hoy publica **instituciones** y **conexiones**. Las cuentas con sus saldos y los
+movimientos son la siguiente entrega de esta API.
+
+### El modelo
+
+| Recurso | Qué es | Id |
+| --- | --- | --- |
+| Empresa | La empresa cuyos datos lees. Es la misma de toda la API. | `ment_…` |
+| Conexión | Un login de una persona en una institución. Una empresa puede tener una conexión por banco; una misma persona puede cubrir varias empresas con una sola conexión. | `cred_…` |
+| Institución | Un banco que se puede conectar y lo que entrega. | `code` (`cl_banco_santander`) |
+
+La conexión de banco es la misma `connection_id` que devuelve Tupana Link y que
+lista [`GET /connections/`](https://docs.tupana.ai/api-reference/v2/connections/list) con `type: "bank"`.
+Su `provider` es el banco (`santander`, `estado`, `bci`…) y su `source` dice por
+dónde lee Tupana: `fintoc` (proveedor de bancos), `scraper` (conector propio) o
+`manual_upload` (cartolas subidas a mano). Para ti es informativo: los datos se
+leen igual.
+
+### Quién es el titular
+
+La conexión pertenece a la persona que entró al banco, no a la empresa. Por eso
+una gestora que opera varias empresas con el mismo login tiene **una** conexión
+asociada a varias `company_id`, y por eso al reautorizar una conexión
+compartida hay que decir a qué empresa te refieres.
+
+### Estados
+
+| `status` | Qué significa | Qué hacer |
+| --- | --- | --- |
+| `active` | La conexión sirve y se está leyendo. | Nada. |
+| `pending` | Conector propio: todavía no terminó la primera lectura. | Esperar `connection.active`. |
+| `requires_action` | El banco pidió volver a entrar, o la clave dejó de servir. | [Reautorizar](https://docs.tupana.ai/api-reference/v2/connections/reauthorize): el usuario final vuelve a entrar en Tupana Link y la conexión conserva su id. |
+| `degraded` | Alguna cuenta quedó detenida tras fallos repetidos; las demás siguen. | Nada por tu lado; Tupana la revisa. Si persiste, reautorizar. |
+| `inactive` | Alguien la desactivó con [`DELETE`](https://docs.tupana.ai/api-reference/v2/connections/delete). | Volver a conectar con Tupana Link si hace falta. |
+
+Los cambios de estado llegan por webhook: `connection.active` y
+`connection.requires_action`.
+
+### Lo que nunca se expone
+
+- La clave del banco. Viaja del usuario final a Tupana dentro del widget.
+- Los tokens con que Tupana lee el banco.
+- Conexiones de empresas que no son de tu integración: para tu API key no existen (`404`).
+
+> **Nota:** Todo lo de esta API vive en **v2**. Los identificadores son public IDs con
+prefijo (`cred_…`, `ment_…`); las listas van en `data`.
+
+---
+
+## Listar instituciones
+
+Fuente: https://docs.tupana.ai/api-reference/v2/institutions/list · Sección: API Bancaria / Instituciones
+
+Endpoint: `GET /institutions/` (detalle completo en la Parte 2).
+
+Los bancos que una empresa puede conectar con
+[Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link) y qué entrega cada uno. Es
+el mismo catálogo que ve el usuario final en el widget.
+
+```bash
+curl https://api.tupana.ai/v2/institutions/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "code": "cl_banco_santander",
+      "name": "Banco Santander",
+      "source": "fintoc",
+      "status": "available",
+      "capabilities": {
+        "balances": true,
+        "movements": true,
+        "cards": false,
+        "payments": false
+      }
+    }
+  ]
+}
+```
+
+### Qué dice cada campo
+
+- `code` identifica al banco en toda la API: es el que verás en las conexiones y,
+  más adelante, en cada cuenta y movimiento.
+- `source` es por dónde lee Tupana ese banco: `fintoc` (proveedor de bancos) o
+  `scraper` (conector propio). No cambia lo que recibes.
+- `status` es `available` cuando el banco entrega datos, y `coming_soon` cuando
+  Tupana todavía solo guarda la credencial para integrarlo después.
+- `capabilities` dice qué se lee: `balances` y `movements` hoy; `cards` y
+  `payments` vienen en falso hasta que existan, para que tu integración ya
+  tenga el contrato.
+
+> **Info:** El banco de pruebas de sandbox no aparece acá: con una API key de sandbox las
+conexiones se fabrican sin elegir banco.
 
 ---
 
@@ -11393,6 +11587,48 @@ Esquema: object
 Respuesta `403`: Sin acceso a la entidad, o la API key no tiene el permiso book_summary:access
 
 Esquema: object
+
+### GET /v2/institutions/
+
+**Listar instituciones**
+
+Los bancos que se pueden conectar con Tupana Link y qué entrega cada uno.
+
+URL completa: `GET https://api.tupana.ai/v2/institutions/`
+
+Respuesta `200`: Catálogo de bancos
+
+Esquema: object
+
+### POST /v2/connections/{connection_id}/reauthorizations/
+
+**Reautorizar una conexión de banco**
+
+Abre Tupana Link para volver a entrar al banco de una conexión existente. La conexión conserva su `connection_id` y queda en `requires_action` hasta que el usuario reconecte.
+
+URL completa: `POST https://api.tupana.ai/v2/connections/{connection_id}/reauthorizations/`
+
+Parámetros:
+
+- `connection_id` (path, string; requerido): Id de la conexión de banco (`cred_…`).
+
+Cuerpo (`application/json`): object
+
+- `company_id` (string; ej: `ment_3672486436546233854`): Obligatorio si la conexión cubre varias empresas.
+- `external_customer_id` (string): Tu id de cliente. Vuelve en el webhook.
+- `return_url` (string (uri))
+- `app_name` (string)
+- `environment` (string; valores: `sandbox`, `production`): Default: el de la API key.
+
+Respuesta `201`: Sesión de Tupana Link lista para abrir
+
+Esquema: object
+
+Respuesta `400`: Conexión tributaria, sin banco asociado, o falta `company_id`
+
+Respuesta `403`: Una API key de sandbox no abre producción
+
+Respuesta `404`: La conexión no existe para esta API key
 
 ### Esquemas de Tupana API — v2
 

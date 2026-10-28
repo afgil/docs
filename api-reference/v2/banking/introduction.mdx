@@ -1,0 +1,60 @@
+---
+title: 'API Bancaria — Introducción'
+description: 'Lee las conexiones bancarias de tus empresas: qué bancos existen, cómo se conectan con Tupana Link y qué significa cada estado — API v2'
+---
+
+# API Bancaria
+
+La **API Bancaria** te da lectura de lo que las empresas conectadas a tu
+integración tienen en el banco. El usuario final conecta su banco dentro de
+[Tupana Link](/api-reference/v2/connect/tupana-link); tu SaaS nunca ve la clave,
+y desde ahí Tupana lee el banco todos los días.
+
+Hoy publica **instituciones** y **conexiones**. Las cuentas con sus saldos y los
+movimientos son la siguiente entrega de esta API.
+
+## El modelo
+
+| Recurso | Qué es | Id |
+| --- | --- | --- |
+| Empresa | La empresa cuyos datos lees. Es la misma de toda la API. | `ment_…` |
+| Conexión | Un login de una persona en una institución. Una empresa puede tener una conexión por banco; una misma persona puede cubrir varias empresas con una sola conexión. | `cred_…` |
+| Institución | Un banco que se puede conectar y lo que entrega. | `code` (`cl_banco_santander`) |
+
+La conexión de banco es la misma `connection_id` que devuelve Tupana Link y que
+lista [`GET /connections/`](/api-reference/v2/connections/list) con `type: "bank"`.
+Su `provider` es el banco (`santander`, `estado`, `bci`…) y su `source` dice por
+dónde lee Tupana: `fintoc` (proveedor de bancos), `scraper` (conector propio) o
+`manual_upload` (cartolas subidas a mano). Para ti es informativo: los datos se
+leen igual.
+
+## Quién es el titular
+
+La conexión pertenece a la persona que entró al banco, no a la empresa. Por eso
+una gestora que opera varias empresas con el mismo login tiene **una** conexión
+asociada a varias `company_id`, y por eso al reautorizar una conexión
+compartida hay que decir a qué empresa te refieres.
+
+## Estados
+
+| `status` | Qué significa | Qué hacer |
+| --- | --- | --- |
+| `active` | La conexión sirve y se está leyendo. | Nada. |
+| `pending` | Conector propio: todavía no terminó la primera lectura. | Esperar `connection.active`. |
+| `requires_action` | El banco pidió volver a entrar, o la clave dejó de servir. | [Reautorizar](/api-reference/v2/connections/reauthorize): el usuario final vuelve a entrar en Tupana Link y la conexión conserva su id. |
+| `degraded` | Alguna cuenta quedó detenida tras fallos repetidos; las demás siguen. | Nada por tu lado; Tupana la revisa. Si persiste, reautorizar. |
+| `inactive` | Alguien la desactivó con [`DELETE`](/api-reference/v2/connections/delete). | Volver a conectar con Tupana Link si hace falta. |
+
+Los cambios de estado llegan por webhook: `connection.active` y
+`connection.requires_action`.
+
+## Lo que nunca se expone
+
+- La clave del banco. Viaja del usuario final a Tupana dentro del widget.
+- Los tokens con que Tupana lee el banco.
+- Conexiones de empresas que no son de tu integración: para tu API key no existen (`404`).
+
+<Note>
+Todo lo de esta API vive en **v2**. Los identificadores son public IDs con
+prefijo (`cred_…`, `ment_…`); las listas van en `data`.
+</Note>
