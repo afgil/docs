@@ -10,8 +10,9 @@ integración tienen en el banco. El usuario final conecta su banco dentro de
 [Tupana Link](/api-reference/v2/connect/tupana-link); tu SaaS nunca ve la clave,
 y desde ahí Tupana lee el banco todos los días.
 
-Hoy publica **instituciones**, **conexiones** y **cuentas** con sus saldos. Los
-movimientos son la siguiente entrega de esta API.
+Publica **instituciones**, **conexiones**, **cuentas** con sus saldos y
+**movimientos** con la contraparte resuelta. Para empezar, sigue la guía
+[Primera lectura de un banco](/api-reference/v2/banking/guides/first-sync).
 
 ## Permiso
 
@@ -28,6 +29,7 @@ con código `banking_permission_required`.
 | Conexión | Un login de una persona en una institución. Una empresa puede tener una conexión por banco; una misma persona puede cubrir varias empresas con una sola conexión. | `cred_…` |
 | Institución | Un banco que se puede conectar y lo que entrega. | `code` (`cl_banco_santander`) |
 | Cuenta | Una cuenta en una institución: corriente, vista, ahorro, tarjeta o línea. Cuelga de una conexión y de una empresa. | `bacc_…` |
+| Movimiento | Un abono o cargo en una cuenta, con la glosa cruda del banco y la contraparte que Tupana resuelve. | `move_…` |
 
 La conexión de banco es la misma `connection_id` que devuelve Tupana Link y que
 lista [`GET /connections/`](/api-reference/v2/connections/list) con `type: "bank"`.

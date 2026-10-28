@@ -1,0 +1,86 @@
+---
+title: "Listar movimientos de una cuenta"
+openapi: "api-reference/openapi-v2.json GET /bank-accounts/{account_id}/movements/"
+---
+
+Los movimientos de una cuenta bancaria tal como quedaron en la última lectura
+del banco, los más nuevos primero. El GET nunca toca al banco.
+
+```bash
+curl "https://api.tupana.ai/v2/bank-accounts/bacc_7Hk2938475610293/movements/?since=2026-10-01&until=2026-10-31" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "move_Qm8102938475612",
+      "account_id": "bacc_7Hk2938475610293",
+      "company_id": "ment_3672486436546233854",
+      "amount": 450000,
+      "direction": "inbound",
+      "currency": "CLP",
+      "status": "posted",
+      "posted_movement_id": null,
+      "transaction_date": "2026-10-24",
+      "post_date": "2026-10-25",
+      "description": "TRANSFERENCIA DE COMERCIAL ANDINA SPA",
+      "balance_after": null,
+      "counterparty": {
+        "tax_id": "76.543.169-7",
+        "name": "Comercial Andina SpA",
+        "institution": { "code": "cl_banco_de_chile", "name": "Banco de Chile" },
+        "account_number_mask": "0912"
+      },
+      "category": "customer_payment"
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 1, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+Necesitas `banking:read` explícito en la API key (ver
+[Introducción](/api-reference/v2/banking/introduction#permiso)). Una cuenta de
+otra empresa responde `404`.
+
+## Filtros
+
+| Parámetro | Qué hace |
+| --- | --- |
+| `since`, `until` | Rango de `transaction_date`, inclusivo, `YYYY-MM-DD`. |
+| `direction` | `inbound` (entra dinero) o `outbound` (sale). |
+| `status` | `pending` o `posted`. |
+| `min_amount`, `max_amount` | Sobre el monto sin signo. |
+
+Un valor inválido responde `400` con `code: parameter_invalid` y `param`.
+`page` y `page_size` (tope 200) paginan; `?fields=` recorta los campos.
+
+## El dato crudo
+
+- `amount` nunca lleva signo; `direction` dice si entró o salió. Es el mismo
+  contrato de Fintoc v2, así que si ya integraste un agregador no cambias nada.
+  Entero en CLP; con decimales en otras monedas.
+- `status`: `pending` mientras el banco no lo contabiliza, `posted` cuando sí,
+  `removed` si el banco lo revirtió. `posted_movement_id` enlazará una
+  pendiente con la posteada que la reemplazó cuando llegue la sincronización
+  por cursor; hoy viene `null`, igual que `balance_after`.
+- `description` es la glosa tal cual la entrega el banco. No la normalizamos.
+
+## Lo que Tupana agrega
+
+- `counterparty`: la contraparte resuelta. Un agregador entrega la glosa;
+  Tupana además identifica el RUT, la razón social, el banco y la cuenta
+  enmascarada de quien pagó o cobró, con el dato estructurado del banco o, si
+  no viene, con lo que dice la glosa. `null` cuando no hay nada que resolver.
+  El número de cuenta de la contraparte completo nunca sale.
+- `category`: qué es el dinero según la clasificación de Tupana:
+  `customer_payment`, `supplier_payment`, `payroll`, `taxes`, `bank_fees`,
+  `internal_transfer`, `card_settlement`. `null` si todavía no se clasificó o
+  no se identificó.
+
+<Info>
+Acá no hay nada de documentos tributarios ni de conciliación: ni facturas
+asociadas, ni estado contable. La API bancaria habla de dinero.
+</Info>
