@@ -1,0 +1,14 @@
+---
+title: "Obtener un estado de cuenta"
+openapi: "api-reference/openapi-v2.json GET /bank-accounts/{account_id}/statements/{statement_id}/"
+---
+
+Un estado de cuenta por su id (`ccs_…` en una tarjeta, `bsu_…` en una cuenta
+corriente), con la misma forma que en [el listado](/api-reference/v2/statements/list).
+Si el estado de cuenta no es de esa cuenta, o la cuenta no es de tu
+integración, responde `404`.
+
+```bash
+curl https://api.tupana.ai/v2/bank-accounts/bacc_7Hk2938475610293/statements/ccs_7382910465728/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```

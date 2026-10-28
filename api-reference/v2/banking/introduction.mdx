@@ -15,7 +15,8 @@ Publica **instituciones**, **conexiones**, **cuentas** con sus saldos,
 y los **eventos** consultables. Para empezar, sigue la guía
 [Primera lectura de un banco](/api-reference/v2/banking/guides/first-sync);
 para mantener una copia al día, [Sincronizar con cursor](/api-reference/v2/banking/guides/sync);
-para probar sin un banco real, [Sandbox bancario](/api-reference/v2/banking/guides/sandbox).
+para probar sin un banco real, [Sandbox bancario](/api-reference/v2/banking/guides/sandbox);
+para las tarjetas, [Tarjetas de crédito](/api-reference/v2/banking/guides/credit-cards).
 
 ## Permiso
 
@@ -33,6 +34,7 @@ con código `banking_permission_required`.
 | Institución | Un banco que se puede conectar y lo que entrega. | `code` (`cl_banco_santander`) |
 | Cuenta | Una cuenta en una institución: corriente, vista, ahorro, tarjeta o línea. Cuelga de una conexión y de una empresa. | `bacc_…` |
 | Movimiento | Un abono o cargo en una cuenta, con la glosa cruda del banco y la contraparte que Tupana resuelve. | `move_…` |
+| Estado de cuenta | La cartola de un período: de una tarjeta o importada a una cuenta corriente, con su PDF original. | `ccs_…` / `bsu_…` |
 
 La conexión de banco es la misma `connection_id` que devuelve Tupana Link y que
 lista [`GET /connections/`](/api-reference/v2/connections/list) con `type: "bank"`.

@@ -71,8 +71,9 @@ Un valor fuera de ese vocabulario responde `400` con `code: parameter_invalid` y
 - `balances.refreshed_at` es la última lectura del banco. **El GET nunca toca
   al banco**: la frescura la define el ciclo de sincronización de Tupana, no
   tus llamadas.
-- `credit` viene `null` hoy. Con las tarjetas traerá período de facturación,
-  vencimiento y pago mínimo.
+- `credit` solo viene en cuentas de crédito: período de facturación, total
+  facturado y el id del estado de cuenta; vencimiento y pago mínimo llegan
+  cuando la fuente los entregue. Ver [Tarjetas de crédito](/api-reference/v2/banking/guides/credit-cards).
 - `status` es `open` mientras la cuenta sigue en la conexión y
   `removed_from_connection` cuando el banco dejó de listarla. Sus movimientos
   se conservan.
