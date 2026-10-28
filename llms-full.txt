@@ -4965,6 +4965,13 @@ Además de operar por API, puedes revisar todo en la plataforma:
 
 Puedes activar/usar Sandbox o Producción según el entorno que estés integrando.
 
+### Sandbox bancario
+
+La [API Bancaria](https://docs.tupana.ai/api-reference/v2/banking/introduction) se prueba con una API
+key de sandbox contra los mismos endpoints: en tus propias empresas aparece un
+set de datos sintético que cambia todos los días. Ver
+[Sandbox bancario](https://docs.tupana.ai/api-reference/v2/banking/guides/sandbox).
+
 ### Convenciones v2
 
 Estas convenciones aplican a **todos** los endpoints v2, de forma uniforme.
@@ -7981,9 +7988,12 @@ integración tienen en el banco. El usuario final conecta su banco dentro de
 [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link); tu SaaS nunca ve la clave,
 y desde ahí Tupana lee el banco todos los días.
 
-Publica **instituciones**, **conexiones**, **cuentas** con sus saldos y
-**movimientos** con la contraparte resuelta. Para empezar, sigue la guía
-[Primera lectura de un banco](https://docs.tupana.ai/api-reference/v2/banking/guides/first-sync).
+Publica **instituciones**, **conexiones**, **cuentas** con sus saldos,
+**movimientos** con la contraparte resuelta, la **sincronización por cursor**
+y los **eventos** consultables. Para empezar, sigue la guía
+[Primera lectura de un banco](https://docs.tupana.ai/api-reference/v2/banking/guides/first-sync);
+para mantener una copia al día, [Sincronizar con cursor](https://docs.tupana.ai/api-reference/v2/banking/guides/sync);
+para probar sin un banco real, [Sandbox bancario](https://docs.tupana.ai/api-reference/v2/banking/guides/sandbox).
 
 ### Permiso
 
@@ -8037,6 +8047,14 @@ cuenta del usuario, así que no hay un botón para forzarla. La frescura la marc
 el ciclo de sincronización de Tupana, y tu backend se entera por webhook:
 suscríbete a `bank_account.refreshed` y `movement.created` (ver
 [Webhooks bancarios](https://docs.tupana.ai/api-reference/v2/banking/webhooks)).
+
+### Sandbox
+
+Con una API key de sandbox, los mismos endpoints responden con un set de datos
+sintético en tus propias empresas: tres cuentas y ~120 movimientos que cambian
+todos los días, con webhooks, eventos y cursor funcionando igual que en
+producción. Nada de eso existe para una key de producción. Ver
+[Sandbox bancario](https://docs.tupana.ai/api-reference/v2/banking/guides/sandbox).
 
 ### Lo que nunca se expone
 
@@ -8109,6 +8127,121 @@ Tupana lee cada banco en su propio ciclo y `refreshed_at` te dice cuándo fue la
 última vez. Llamar más seguido no trae datos más frescos. Si una conexión pasa
 a `requires_action`, el usuario tiene que
 [reautorizarla](https://docs.tupana.ai/api-reference/v2/connections/reauthorize).
+
+---
+
+## Sincronizar con cursor
+
+Fuente: https://docs.tupana.ai/api-reference/v2/banking/guides/sync · Sección: API Bancaria / Introducción
+
+> Por qué un cursor y no rangos de fechas, cómo persistirlo, qué hacer ante cursor_expired y cómo tratar pending y posted
+
+## Sincronizar con cursor
+
+Los movimientos de un banco **cambian después de creados**: una pendiente se
+postea, el banco retira una fila, Tupana resuelve la contraparte o reclasifica.
+Si relees por rango de fechas, acumulas basura y pierdes las correcciones.
+[`GET /movements/sync/`](https://docs.tupana.ai/api-reference/v2/movements/sync) te entrega esos
+cambios en orden, con un cursor que dice hasta dónde llegaste.
+
+**Carga inicial, sin cursor**
+
+    Llama sin `cursor` y recorre la historia visible de tu key página a página
+    con `limit=500`, siguiendo `next_cursor` mientras `has_more` sea `true`.
+    Cada página trae solo `added`.
+
+**Persiste el cursor**
+
+    Guarda el último `next_cursor` junto a tu copia, en la misma transacción
+    con la que aplicas la página. Es opaco: no lo interpretes ni lo recortes.
+
+**Cada vez que vuelvas, trae solo lo que cambió**
+
+    Llama con el cursor guardado. Aplica en este orden: `removed` (marca o
+    borra), `modified` (reemplaza la fila completa), `added` (inserta). Guarda
+    el nuevo cursor. Repite mientras `has_more`.
+
+**Deja que el webhook marque el ritmo**
+
+    Suscríbete a `movement.created` y `bank_account.refreshed`
+    ([webhooks bancarios](https://docs.tupana.ai/api-reference/v2/banking/webhooks)) y sincroniza al
+    recibirlos. También puedes consultar [`/events/`](https://docs.tupana.ai/api-reference/v2/events/list)
+    si un webhook no llegó. Llamar más seguido no trae datos más frescos.
+
+### `pending` y `posted`
+
+- Un movimiento `pending` todavía no está contabilizado. Puede desaparecer o
+  convertirse en `posted`. Para cerrar el mes, trabaja con `posted`.
+- Si el banco lo postea **con el mismo id**, te llega en `modified` con
+  `status: "posted"`.
+- Si lo postea **con un id nuevo**, la pendiente te llega en `removed` y la
+  posteada en `added`; en el detalle de la pendiente retirada,
+  `posted_movement_id` apunta a la que la reemplazó.
+- Si el banco la retiró sin más, llega en `removed`.
+
+### Si recibes `410 cursor_expired`
+
+Tu cursor es más antiguo que la retención de cambios (400 días) y pudo perder
+cambios ya purgados. Vuelve al paso 1: sincroniza sin cursor y reconstruye la
+copia. No intentes "arreglar" el cursor.
+
+### Idempotencia
+
+Aplicar una página dos veces no rompe nada si usas el `id` del movimiento como
+llave: `added` hace upsert, `modified` reemplaza y `removed` es idempotente.
+
+---
+
+## Sandbox bancario
+
+Fuente: https://docs.tupana.ai/api-reference/v2/banking/guides/sandbox · Sección: API Bancaria / Introducción
+
+> Prueba la API bancaria con una key sandbox contra los mismos endpoints: un set de datos sintético en tus propias empresas, que cambia todos los días
+
+## Sandbox bancario
+
+No hay endpoints de sandbox ni simulaciones que disparar. Con una **API key de
+sandbox**, los mismos endpoints responden con un set de datos sintético que
+cuelga de **tus propias empresas**: no de una empresa demo. Con una key de
+producción esos datos no existen.
+
+### Qué contiene
+
+Por cada empresa que tu key alcanza, la primera vez que la consultas Tupana
+crea una conexión bancaria de prueba (`provider: "sandbox"`,
+`source: "sandbox"`, `environment: "sandbox"`) con:
+
+| Cuenta | `type` / `subtype` | Qué trae |
+| --- | --- | --- |
+| Cuenta Corriente | `depository` / `checking` | La mayoría de los movimientos: abonos de clientes, pagos a proveedores, comisiones, remuneraciones |
+| Cuenta Vista | `depository` / `sight` | Movimientos menores |
+| Visa Empresas | `credit` / `credit_card` | Cargos, con `limit` |
+
+Unos 120 movimientos de los últimos 60 días, con `counterparty` resuelta (RUT,
+razón social, banco, cuenta enmascarada) y `category`. El contenido es el mismo
+para todas las empresas; cambia solo el `company_id`.
+
+Las tres cuentas cuelgan de **una sola conexión** compartida (`connection_id`
+igual en todas tus empresas), como una persona que opera varias empresas con un
+mismo login bancario.
+
+### Cambia todos los días
+
+A las 07:00 de Chile, cada conexión sandbox recibe un día más de datos: la
+pendiente de ayer se postea, entran dos movimientos posteados y uno pendiente,
+y el saldo de la cuenta corriente cambia. Esa corrida emite
+`bank_account.refreshed` y `movement.created` a los webhooks de **ambiente
+sandbox** de esa empresa, queda en [`/events/`](https://docs.tupana.ai/api-reference/v2/events/list)
+y aparece en el siguiente [`/movements/sync/`](https://docs.tupana.ai/api-reference/v2/movements/sync)
+con cursor. Así pruebas el ciclo completo sin un banco real.
+
+### Solo lectura
+
+Con una key sandbox, `DELETE /connections/{id}/` y
+`POST /connections/{id}/reauthorizations/` responden `403 sandbox_read_only`.
+
+> **Info:** La key sandbox también necesita el permiso `banking:read`. Para los webhooks,
+crea el webhook con `environment: "sandbox"` (o `"both"`).
 
 ---
 
@@ -8375,6 +8508,144 @@ curl https://api.tupana.ai/v2/movements/move_Qm8102938475612/ \
 
 Si el movimiento es de una cuenta de una empresa que no está conectada a tu
 integración, o no existe, responde `404`.
+
+---
+
+## Sincronizar movimientos (cursor)
+
+Fuente: https://docs.tupana.ai/api-reference/v2/movements/sync · Sección: API Bancaria / Movimientos
+
+Endpoint: `GET /movements/sync/` (detalle completo en la Parte 2).
+
+Mantén una copia fiel de los movimientos sin releer rangos. Sin cursor, la
+primera llamada recorre la historia visible de tu API key, página a página;
+cuando se agota, el `next_cursor` pasa a apuntar al registro de cambios y cada
+llamada siguiente entrega solo lo que cambió desde la anterior.
+
+```bash
+# Primera vez: sin cursor
+curl "https://api.tupana.ai/v2/movements/sync/?limit=200" \
+  -H "Authorization: Api-Key TU_API_KEY"
+
+# Después: siempre con el next_cursor de la respuesta anterior
+curl "https://api.tupana.ai/v2/movements/sync/?cursor=Yzo0ODEyOjE3NjE2ODk..." \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "added": [ { "id": "move_Qm8102938475612", "status": "posted", "...": "..." } ],
+  "modified": [ { "id": "move_Qm8102938475001", "category": "customer_payment", "...": "..." } ],
+  "removed": [
+    { "id": "move_Qm8102938474990", "account_id": "bacc_7Hk2938475610293", "removed_at": "2026-10-28T09:12:03Z" }
+  ],
+  "next_cursor": "Yzo0ODEzOjE3NjE2ODk...",
+  "has_more": false,
+  "limit": 100
+}
+```
+
+### Qué trae cada lista
+
+- `added`: movimientos nuevos, con la [misma forma](https://docs.tupana.ai/api-reference/v2/movements/list) del listado.
+- `modified`: movimientos que cambiaron algo visible después de creados: una
+  pendiente que se posteó, una contraparte que se resolvió, una categoría nueva.
+  Vienen completos; reemplaza tu copia.
+- `removed`: movimientos que el banco retiró o que fueron reemplazados por una
+  posteada (`posted_movement_id` en el detalle). Solo `id`, `account_id` y `removed_at`.
+
+Un movimiento aparece **una vez por página**: si en el mismo tramo se creó y se
+modificó, viene en `added`; si se retiró, solo en `removed`.
+
+### El cursor
+
+Es opaco: guárdalo tal cual y mándalo en la próxima llamada. Mientras
+`has_more` sea `true`, sigue llamando con el `next_cursor` que recibes; cuando
+sea `false`, guarda el cursor y vuelve cuando quieras (o cuando llegue
+`movement.created` por webhook).
+
+| Respuesta | Qué significa | Qué hacer |
+| --- | --- | --- |
+| `400 cursor_invalid` | El cursor no es uno que emitimos. | Revisa que lo guardaste completo. |
+| `410 cursor_expired` | El cursor es más antiguo que la retención de cambios (400 días): pudo perder cambios ya purgados. | Vuelve a sincronizar sin cursor y reconstruye la copia. |
+
+`limit` va de 1 a 500 (default 100). La sincronización respeta el ambiente de tu
+key: una key sandbox recorre solo el [dataset sandbox](https://docs.tupana.ai/api-reference/v2/banking/guides/sandbox).
+
+> **Info:** Lee la guía [Sincronizar con cursor](https://docs.tupana.ai/api-reference/v2/banking/guides/sync)
+para la receta completa: persistencia del cursor, qué hacer ante `cursor_expired`
+y cómo tratar `pending` y `posted`.
+
+---
+
+## Listar eventos
+
+Fuente: https://docs.tupana.ai/api-reference/v2/events/list · Sección: API Bancaria / Eventos
+
+Endpoint: `GET /events/` (detalle completo en la Parte 2).
+
+Todo lo que los webhooks bancarios y de conexión avisaron, consultable. Un
+webhook que falló, o que nunca configuraste, no te deja sin saber qué pasó:
+cada evento queda registrado con el mismo `data` que viaja en el webhook.
+
+```bash
+curl "https://api.tupana.ai/v2/events/?type=movement.created&since=2026-10-28T00:00:00Z" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "evnt_8102938475612001",
+      "type": "movement.created",
+      "api_version": 2,
+      "created_at": "2026-10-28T09:12:04Z",
+      "company_id": "ment_3672486436546233854",
+      "resource_type": "bank_account",
+      "resource_id": "bacc_7Hk2938475610293",
+      "data": {
+        "account_id": "bacc_7Hk2938475610293",
+        "connection_id": "cred_9Pq5028174639201",
+        "company_id": "ment_3672486436546233854",
+        "movement_ids": ["move_Qm8102938475612"],
+        "count": 1
+      }
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 1, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+### Filtros
+
+| Parámetro | Qué hace |
+| --- | --- |
+| `type` | Un evento bancario (`bank_account.refreshed`, `movement.created`, `bank_account.refresh_failed`, `connection.degraded`) o de conexión (`connection.active`, `connection.requires_action`). |
+| `resource_id` | Los eventos de ese recurso (`bacc_…`, `cred_…`). |
+| `since`, `until` | Rango de `created_at`, ISO 8601. |
+
+Más nuevos primero. Se conservan 400 días. Una key sandbox ve solo los eventos
+del [dataset sandbox](https://docs.tupana.ai/api-reference/v2/banking/guides/sandbox); una de
+producción, solo los reales.
+
+---
+
+## Obtener un evento
+
+Fuente: https://docs.tupana.ai/api-reference/v2/events/get · Sección: API Bancaria / Eventos
+
+Endpoint: `GET /events/{event_id}/` (detalle completo en la Parte 2).
+
+Un evento por su id (`evnt_…`), con la misma forma que en
+[el listado](https://docs.tupana.ai/api-reference/v2/events/list). Un evento de una empresa que no
+es de tu integración, o de otro ambiente, responde `404`.
+
+```bash
+curl https://api.tupana.ai/v2/events/evnt_8102938475612001/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
 
 ---
 
@@ -12041,6 +12312,72 @@ Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_p
 
 Respuesta `404`: El movimiento no existe para esta API key
 
+### GET /v2/movements/sync/
+
+**Sincronizar movimientos con cursor**
+
+Sin cursor recorre la historia visible; con cursor entrega `added`, `modified` y `removed` desde la última llamada. El cursor es opaco.
+
+URL completa: `GET https://api.tupana.ai/v2/movements/sync/`
+
+Parámetros:
+
+- `cursor` (query, string): El `next_cursor` de la respuesta anterior.
+- `limit` (query, integer; default: `100`)
+
+Respuesta `200`: Cambios desde el cursor
+
+Esquema: object
+
+Respuesta `400`: `cursor_invalid`: el cursor no es uno emitido por la API
+
+Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+
+Respuesta `410`: `cursor_expired`: el cursor es más antiguo que la retención; resincroniza sin cursor
+
+### GET /v2/events/
+
+**Listar eventos**
+
+Lo que los webhooks bancarios y de conexión avisaron, consultable. Más nuevos primero. Retención 400 días.
+
+URL completa: `GET https://api.tupana.ai/v2/events/`
+
+Parámetros:
+
+- `type` (query, string)
+- `resource_id` (query, string)
+- `since` (query, string (date-time))
+- `until` (query, string (date-time))
+- `page` (query, integer; default: `1`)
+- `page_size` (query, integer; default: `50`)
+
+Respuesta `200`: Eventos
+
+Esquema: object
+
+Respuesta `400`: Filtro inválido (`parameter_invalid`)
+
+Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+
+### GET /v2/events/{event_id}/
+
+**Obtener un evento**
+
+URL completa: `GET https://api.tupana.ai/v2/events/{event_id}/`
+
+Parámetros:
+
+- `event_id` (path, string; requerido)
+
+Respuesta `200`: Evento
+
+Esquema: `ApiEvent`
+
+Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+
+Respuesta `404`: El evento no existe para esta API key
+
 ### Esquemas de Tupana API — v2
 
 #### `BookSummaryItem`
@@ -12935,13 +13272,26 @@ Tipo: object
 - `direction` (string; valores: `inbound`, `outbound`)
 - `currency` (string; ej: `CLP`)
 - `status` (string; valores: `pending`, `posted`, `removed`)
-- `posted_movement_id` (string, nullable): En una pendiente, el id de la posteada que la reemplazó. `null` por ahora.
+- `posted_movement_id` (string, nullable): En una pendiente retirada: el id del movimiento posteado que la reemplazó.
 - `transaction_date` (string (date), nullable)
 - `post_date` (string (date), nullable)
 - `description` (string): La glosa tal cual la entrega el banco.
-- `balance_after` (number, nullable): `null` por ahora.
+- `balance_after` (number, nullable): Saldo de la cuenta tras el movimiento, cuando la fuente lo entrega (cartolas).
 - `counterparty` (`Counterparty`)
 - `category` (string, nullable; valores: `customer_payment`, `supplier_payment`, `payroll`, `taxes`, `bank_fees`, `internal_transfer`, `card_settlement`): Clasificación Tupana del movimiento. `null` si no se clasificó o no se identificó.
+
+#### `ApiEvent`
+
+Tipo: object
+
+- `id` (string; ej: `evnt_8102938475612001`)
+- `type` (string; valores: `bank_account.refreshed`, `bank_account.refresh_failed`, `movement.created`, `movement.updated`, `connection.degraded`, `connection.active`, `connection.requires_action`)
+- `api_version` (integer; ej: `2`)
+- `created_at` (string (date-time))
+- `company_id` (string; ej: `ment_3672486436546233854`)
+- `resource_type` (string; ej: `bank_account`)
+- `resource_id` (string; ej: `bacc_7Hk2938475610293`)
+- `data` (object): El mismo `data` del webhook.
 
 ## Tupana API - Recaudación (OpenAPI 1.0.0)
 

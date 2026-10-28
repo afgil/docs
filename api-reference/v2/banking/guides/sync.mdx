@@ -1,0 +1,57 @@
+---
+title: 'Sincronizar con cursor'
+description: 'Por qué un cursor y no rangos de fechas, cómo persistirlo, qué hacer ante cursor_expired y cómo tratar pending y posted'
+---
+
+# Sincronizar con cursor
+
+Los movimientos de un banco **cambian después de creados**: una pendiente se
+postea, el banco retira una fila, Tupana resuelve la contraparte o reclasifica.
+Si relees por rango de fechas, acumulas basura y pierdes las correcciones.
+[`GET /movements/sync/`](/api-reference/v2/movements/sync) te entrega esos
+cambios en orden, con un cursor que dice hasta dónde llegaste.
+
+<Steps>
+  <Step title="Carga inicial, sin cursor">
+    Llama sin `cursor` y recorre la historia visible de tu key página a página
+    con `limit=500`, siguiendo `next_cursor` mientras `has_more` sea `true`.
+    Cada página trae solo `added`.
+  </Step>
+  <Step title="Persiste el cursor">
+    Guarda el último `next_cursor` junto a tu copia, en la misma transacción
+    con la que aplicas la página. Es opaco: no lo interpretes ni lo recortes.
+  </Step>
+  <Step title="Cada vez que vuelvas, trae solo lo que cambió">
+    Llama con el cursor guardado. Aplica en este orden: `removed` (marca o
+    borra), `modified` (reemplaza la fila completa), `added` (inserta). Guarda
+    el nuevo cursor. Repite mientras `has_more`.
+  </Step>
+  <Step title="Deja que el webhook marque el ritmo">
+    Suscríbete a `movement.created` y `bank_account.refreshed`
+    ([webhooks bancarios](/api-reference/v2/banking/webhooks)) y sincroniza al
+    recibirlos. También puedes consultar [`/events/`](/api-reference/v2/events/list)
+    si un webhook no llegó. Llamar más seguido no trae datos más frescos.
+  </Step>
+</Steps>
+
+## `pending` y `posted`
+
+- Un movimiento `pending` todavía no está contabilizado. Puede desaparecer o
+  convertirse en `posted`. Para cerrar el mes, trabaja con `posted`.
+- Si el banco lo postea **con el mismo id**, te llega en `modified` con
+  `status: "posted"`.
+- Si lo postea **con un id nuevo**, la pendiente te llega en `removed` y la
+  posteada en `added`; en el detalle de la pendiente retirada,
+  `posted_movement_id` apunta a la que la reemplazó.
+- Si el banco la retiró sin más, llega en `removed`.
+
+## Si recibes `410 cursor_expired`
+
+Tu cursor es más antiguo que la retención de cambios (400 días) y pudo perder
+cambios ya purgados. Vuelve al paso 1: sincroniza sin cursor y reconstruye la
+copia. No intentes "arreglar" el cursor.
+
+## Idempotencia
+
+Aplicar una página dos veces no rompe nada si usas el `id` del movimiento como
+llave: `added` hace upsert, `modified` reemplaza y `removed` es idempotente.

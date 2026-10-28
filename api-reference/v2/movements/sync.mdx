@@ -1,0 +1,65 @@
+---
+title: "Sincronizar movimientos (cursor)"
+openapi: "api-reference/openapi-v2.json GET /movements/sync/"
+---
+
+Mantén una copia fiel de los movimientos sin releer rangos. Sin cursor, la
+primera llamada recorre la historia visible de tu API key, página a página;
+cuando se agota, el `next_cursor` pasa a apuntar al registro de cambios y cada
+llamada siguiente entrega solo lo que cambió desde la anterior.
+
+```bash
+# Primera vez: sin cursor
+curl "https://api.tupana.ai/v2/movements/sync/?limit=200" \
+  -H "Authorization: Api-Key TU_API_KEY"
+
+# Después: siempre con el next_cursor de la respuesta anterior
+curl "https://api.tupana.ai/v2/movements/sync/?cursor=Yzo0ODEyOjE3NjE2ODk..." \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "added": [ { "id": "move_Qm8102938475612", "status": "posted", "...": "..." } ],
+  "modified": [ { "id": "move_Qm8102938475001", "category": "customer_payment", "...": "..." } ],
+  "removed": [
+    { "id": "move_Qm8102938474990", "account_id": "bacc_7Hk2938475610293", "removed_at": "2026-10-28T09:12:03Z" }
+  ],
+  "next_cursor": "Yzo0ODEzOjE3NjE2ODk...",
+  "has_more": false,
+  "limit": 100
+}
+```
+
+## Qué trae cada lista
+
+- `added`: movimientos nuevos, con la [misma forma](/api-reference/v2/movements/list) del listado.
+- `modified`: movimientos que cambiaron algo visible después de creados: una
+  pendiente que se posteó, una contraparte que se resolvió, una categoría nueva.
+  Vienen completos; reemplaza tu copia.
+- `removed`: movimientos que el banco retiró o que fueron reemplazados por una
+  posteada (`posted_movement_id` en el detalle). Solo `id`, `account_id` y `removed_at`.
+
+Un movimiento aparece **una vez por página**: si en el mismo tramo se creó y se
+modificó, viene en `added`; si se retiró, solo en `removed`.
+
+## El cursor
+
+Es opaco: guárdalo tal cual y mándalo en la próxima llamada. Mientras
+`has_more` sea `true`, sigue llamando con el `next_cursor` que recibes; cuando
+sea `false`, guarda el cursor y vuelve cuando quieras (o cuando llegue
+`movement.created` por webhook).
+
+| Respuesta | Qué significa | Qué hacer |
+| --- | --- | --- |
+| `400 cursor_invalid` | El cursor no es uno que emitimos. | Revisa que lo guardaste completo. |
+| `410 cursor_expired` | El cursor es más antiguo que la retención de cambios (400 días): pudo perder cambios ya purgados. | Vuelve a sincronizar sin cursor y reconstruye la copia. |
+
+`limit` va de 1 a 500 (default 100). La sincronización respeta el ambiente de tu
+key: una key sandbox recorre solo el [dataset sandbox](/api-reference/v2/banking/guides/sandbox).
+
+<Info>
+Lee la guía [Sincronizar con cursor](/api-reference/v2/banking/guides/sync)
+para la receta completa: persistencia del cursor, qué hacer ante `cursor_expired`
+y cómo tratar `pending` y `posted`.
+</Info>

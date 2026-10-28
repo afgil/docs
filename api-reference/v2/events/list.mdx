@@ -1,0 +1,50 @@
+---
+title: "Listar eventos"
+openapi: "api-reference/openapi-v2.json GET /events/"
+---
+
+Todo lo que los webhooks bancarios y de conexión avisaron, consultable. Un
+webhook que falló, o que nunca configuraste, no te deja sin saber qué pasó:
+cada evento queda registrado con el mismo `data` que viaja en el webhook.
+
+```bash
+curl "https://api.tupana.ai/v2/events/?type=movement.created&since=2026-10-28T00:00:00Z" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "evnt_8102938475612001",
+      "type": "movement.created",
+      "api_version": 2,
+      "created_at": "2026-10-28T09:12:04Z",
+      "company_id": "ment_3672486436546233854",
+      "resource_type": "bank_account",
+      "resource_id": "bacc_7Hk2938475610293",
+      "data": {
+        "account_id": "bacc_7Hk2938475610293",
+        "connection_id": "cred_9Pq5028174639201",
+        "company_id": "ment_3672486436546233854",
+        "movement_ids": ["move_Qm8102938475612"],
+        "count": 1
+      }
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 1, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+## Filtros
+
+| Parámetro | Qué hace |
+| --- | --- |
+| `type` | Un evento bancario (`bank_account.refreshed`, `movement.created`, `bank_account.refresh_failed`, `connection.degraded`) o de conexión (`connection.active`, `connection.requires_action`). |
+| `resource_id` | Los eventos de ese recurso (`bacc_…`, `cred_…`). |
+| `since`, `until` | Rango de `created_at`, ISO 8601. |
+
+Más nuevos primero. Se conservan 400 días. Una key sandbox ve solo los eventos
+del [dataset sandbox](/api-reference/v2/banking/guides/sandbox); una de
+producción, solo los reales.
