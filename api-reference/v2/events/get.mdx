@@ -1,0 +1,13 @@
+---
+title: "Obtener un evento"
+openapi: "api-reference/openapi-v2.json GET /events/{event_id}/"
+---
+
+Un evento por su id (`evnt_…`), con la misma forma que en
+[el listado](/api-reference/v2/events/list). Un evento de una empresa que no
+es de tu integración, o de otro ambiente, responde `404`.
+
+```bash
+curl https://api.tupana.ai/v2/events/evnt_8102938475612001/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```

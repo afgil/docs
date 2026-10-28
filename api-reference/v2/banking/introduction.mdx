@@ -10,9 +10,12 @@ integración tienen en el banco. El usuario final conecta su banco dentro de
 [Tupana Link](/api-reference/v2/connect/tupana-link); tu SaaS nunca ve la clave,
 y desde ahí Tupana lee el banco todos los días.
 
-Publica **instituciones**, **conexiones**, **cuentas** con sus saldos y
-**movimientos** con la contraparte resuelta. Para empezar, sigue la guía
-[Primera lectura de un banco](/api-reference/v2/banking/guides/first-sync).
+Publica **instituciones**, **conexiones**, **cuentas** con sus saldos,
+**movimientos** con la contraparte resuelta, la **sincronización por cursor**
+y los **eventos** consultables. Para empezar, sigue la guía
+[Primera lectura de un banco](/api-reference/v2/banking/guides/first-sync);
+para mantener una copia al día, [Sincronizar con cursor](/api-reference/v2/banking/guides/sync);
+para probar sin un banco real, [Sandbox bancario](/api-reference/v2/banking/guides/sandbox).
 
 ## Permiso
 
@@ -66,6 +69,14 @@ cuenta del usuario, así que no hay un botón para forzarla. La frescura la marc
 el ciclo de sincronización de Tupana, y tu backend se entera por webhook:
 suscríbete a `bank_account.refreshed` y `movement.created` (ver
 [Webhooks bancarios](/api-reference/v2/banking/webhooks)).
+
+## Sandbox
+
+Con una API key de sandbox, los mismos endpoints responden con un set de datos
+sintético en tus propias empresas: tres cuentas y ~120 movimientos que cambian
+todos los días, con webhooks, eventos y cursor funcionando igual que en
+producción. Nada de eso existe para una key de producción. Ver
+[Sandbox bancario](/api-reference/v2/banking/guides/sandbox).
 
 ## Lo que nunca se expone
 

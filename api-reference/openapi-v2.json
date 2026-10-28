@@ -6072,6 +6072,275 @@
           }
         }
       }
+    },
+    "/movements/sync/": {
+      "get": {
+        "operationId": "syncMovements_v2",
+        "tags": [
+          "Movimientos"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Sincronizar movimientos con cursor",
+        "description": "Sin cursor recorre la historia visible; con cursor entrega `added`, `modified` y `removed` desde la última llamada. El cursor es opaco.",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "El `next_cursor` de la respuesta anterior."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "minimum": 1,
+              "maximum": 500
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cambios desde el cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "added": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Movement"
+                      }
+                    },
+                    "modified": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Movement"
+                      }
+                    },
+                    "removed": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "account_id": {
+                            "type": "string"
+                          },
+                          "removed_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          }
+                        }
+                      }
+                    },
+                    "next_cursor": {
+                      "type": "string"
+                    },
+                    "has_more": {
+                      "type": "boolean"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`cursor_invalid`: el cursor no es uno emitido por la API"
+          },
+          "403": {
+            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+          },
+          "410": {
+            "description": "`cursor_expired`: el cursor es más antiguo que la retención; resincroniza sin cursor"
+          }
+        }
+      }
+    },
+    "/events/": {
+      "get": {
+        "operationId": "listEvents_v2",
+        "tags": [
+          "Eventos"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar eventos",
+        "description": "Lo que los webhooks bancarios y de conexión avisaron, consultable. Más nuevos primero. Retención 400 días.",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "resource_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "maximum": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Eventos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ApiEvent"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer"
+                        },
+                        "page_size": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "next": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "prev": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Filtro inválido (`parameter_invalid`)"
+          },
+          "403": {
+            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+          }
+        }
+      }
+    },
+    "/events/{event_id}/": {
+      "get": {
+        "operationId": "getEvent_v2",
+        "tags": [
+          "Eventos"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Obtener un evento",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "evnt_8102938475612001"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Evento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiEvent"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+          },
+          "404": {
+            "description": "El evento no existe para esta API key"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -9888,7 +10157,7 @@
           "posted_movement_id": {
             "type": "string",
             "nullable": true,
-            "description": "En una pendiente, el id de la posteada que la reemplazó. `null` por ahora."
+            "description": "En una pendiente retirada: el id del movimiento posteado que la reemplazó."
           },
           "transaction_date": {
             "type": "string",
@@ -9907,7 +10176,7 @@
           "balance_after": {
             "type": "number",
             "nullable": true,
-            "description": "`null` por ahora."
+            "description": "Saldo de la cuenta tras el movimiento, cuando la fuente lo entrega (cartolas)."
           },
           "counterparty": {
             "$ref": "#/components/schemas/Counterparty"
@@ -9925,6 +10194,51 @@
               "card_settlement"
             ],
             "description": "Clasificación Tupana del movimiento. `null` si no se clasificó o no se identificó."
+          }
+        }
+      },
+      "ApiEvent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "evnt_8102938475612001"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_account.refreshed",
+              "bank_account.refresh_failed",
+              "movement.created",
+              "movement.updated",
+              "connection.degraded",
+              "connection.active",
+              "connection.requires_action"
+            ]
+          },
+          "api_version": {
+            "type": "integer",
+            "example": 2
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "company_id": {
+            "type": "string",
+            "example": "ment_3672486436546233854"
+          },
+          "resource_type": {
+            "type": "string",
+            "example": "bank_account"
+          },
+          "resource_id": {
+            "type": "string",
+            "example": "bacc_7Hk2938475610293"
+          },
+          "data": {
+            "type": "object",
+            "description": "El mismo `data` del webhook."
           }
         }
       }

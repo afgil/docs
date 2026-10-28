@@ -159,7 +159,9 @@
                 "group": "Introducción",
                 "pages": [
                   "api-reference/v2/banking/introduction",
-                  "api-reference/v2/banking/guides/first-sync"
+                  "api-reference/v2/banking/guides/first-sync",
+                  "api-reference/v2/banking/guides/sync",
+                  "api-reference/v2/banking/guides/sandbox"
                 ]
               },
               {
@@ -188,7 +190,8 @@
                 "group": "Movimientos",
                 "pages": [
                   "api-reference/v2/movements/list",
-                  "api-reference/v2/movements/get"
+                  "api-reference/v2/movements/get",
+                  "api-reference/v2/movements/sync"
                 ]
               },
               {
@@ -196,6 +199,13 @@
                 "pages": [
                   "api-reference/v2/banking/webhooks",
                   "api-reference/v2/webhooks-pages/create"
+                ]
+              },
+              {
+                "group": "Eventos",
+                "pages": [
+                  "api-reference/v2/events/list",
+                  "api-reference/v2/events/get"
                 ]
               },
               {

@@ -1,0 +1,51 @@
+---
+title: 'Sandbox bancario'
+description: 'Prueba la API bancaria con una key sandbox contra los mismos endpoints: un set de datos sintético en tus propias empresas, que cambia todos los días'
+---
+
+# Sandbox bancario
+
+No hay endpoints de sandbox ni simulaciones que disparar. Con una **API key de
+sandbox**, los mismos endpoints responden con un set de datos sintético que
+cuelga de **tus propias empresas**: no de una empresa demo. Con una key de
+producción esos datos no existen.
+
+## Qué contiene
+
+Por cada empresa que tu key alcanza, la primera vez que la consultas Tupana
+crea una conexión bancaria de prueba (`provider: "sandbox"`,
+`source: "sandbox"`, `environment: "sandbox"`) con:
+
+| Cuenta | `type` / `subtype` | Qué trae |
+| --- | --- | --- |
+| Cuenta Corriente | `depository` / `checking` | La mayoría de los movimientos: abonos de clientes, pagos a proveedores, comisiones, remuneraciones |
+| Cuenta Vista | `depository` / `sight` | Movimientos menores |
+| Visa Empresas | `credit` / `credit_card` | Cargos, con `limit` |
+
+Unos 120 movimientos de los últimos 60 días, con `counterparty` resuelta (RUT,
+razón social, banco, cuenta enmascarada) y `category`. El contenido es el mismo
+para todas las empresas; cambia solo el `company_id`.
+
+Las tres cuentas cuelgan de **una sola conexión** compartida (`connection_id`
+igual en todas tus empresas), como una persona que opera varias empresas con un
+mismo login bancario.
+
+## Cambia todos los días
+
+A las 07:00 de Chile, cada conexión sandbox recibe un día más de datos: la
+pendiente de ayer se postea, entran dos movimientos posteados y uno pendiente,
+y el saldo de la cuenta corriente cambia. Esa corrida emite
+`bank_account.refreshed` y `movement.created` a los webhooks de **ambiente
+sandbox** de esa empresa, queda en [`/events/`](/api-reference/v2/events/list)
+y aparece en el siguiente [`/movements/sync/`](/api-reference/v2/movements/sync)
+con cursor. Así pruebas el ciclo completo sin un banco real.
+
+## Solo lectura
+
+Con una key sandbox, `DELETE /connections/{id}/` y
+`POST /connections/{id}/reauthorizations/` responden `403 sandbox_read_only`.
+
+<Info>
+La key sandbox también necesita el permiso `banking:read`. Para los webhooks,
+crea el webhook con `environment: "sandbox"` (o `"both"`).
+</Info>
