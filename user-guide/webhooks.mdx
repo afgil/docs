@@ -135,6 +135,16 @@ Cada notificación incluye los siguientes headers:
 - **`credential.validated`**: Una credencial SII fue validada exitosamente contra el SII
 - **`credential.invalid`**: Una credencial SII quedó inválida (clave incorrecta o cuenta bloqueada)
 
+### Eventos bancarios
+
+- **`bank_account.refreshed`**: Una corrida de sincronización leyó la cuenta bancaria; trae el saldo y cuántos movimientos nuevos hubo
+- **`movement.created`**: Esa corrida trajo movimientos nuevos; un evento por cuenta y corrida con la lista de ids
+- **`bank_account.refresh_failed`**: La lectura de la cuenta falló en esa corrida
+- **`connection.degraded`**: Una cuenta quedó detenida tras fallos repetidos; las demás siguen
+- **`movement.updated`**: Reservado para la sincronización por cursor (hoy no se emite)
+
+Los payloads están en [Webhooks bancarios](/api-reference/v2/banking/webhooks). No existe refresh bajo demanda: estos eventos son la forma de enterarse de datos nuevos.
+
 ### Eventos operacionales
 
 - **`webhook.test`**: Evento de prueba para verificar que tu endpoint funciona correctamente
@@ -164,6 +174,7 @@ Cada evento tiene una estructura de payload específica. Navega a cada evento pa
 - [Eventos de Credenciales](#eventos-de-credenciales)
   - [credential.validated](#credentialvalidated)
   - [credential.invalid](#credentialinvalid)
+- [Eventos Bancarios](/api-reference/v2/banking/webhooks)
 - [Eventos Operacionales](#eventos-operacionales)
   - [webhook.test](#webhooktest)
 

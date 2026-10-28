@@ -3834,6 +3834,16 @@ Cada notificación incluye los siguientes headers:
 - **`credential.validated`**: Una credencial SII fue validada exitosamente contra el SII
 - **`credential.invalid`**: Una credencial SII quedó inválida (clave incorrecta o cuenta bloqueada)
 
+#### Eventos bancarios
+
+- **`bank_account.refreshed`**: Una corrida de sincronización leyó la cuenta bancaria; trae el saldo y cuántos movimientos nuevos hubo
+- **`movement.created`**: Esa corrida trajo movimientos nuevos; un evento por cuenta y corrida con la lista de ids
+- **`bank_account.refresh_failed`**: La lectura de la cuenta falló en esa corrida
+- **`connection.degraded`**: Una cuenta quedó detenida tras fallos repetidos; las demás siguen
+- **`movement.updated`**: Reservado para la sincronización por cursor (hoy no se emite)
+
+Los payloads están en [Webhooks bancarios](https://docs.tupana.ai/api-reference/v2/banking/webhooks). No existe refresh bajo demanda: estos eventos son la forma de enterarse de datos nuevos.
+
 #### Eventos operacionales
 
 - **`webhook.test`**: Evento de prueba para verificar que tu endpoint funciona correctamente
@@ -3863,6 +3873,7 @@ Cada evento tiene una estructura de payload específica. Navega a cada evento pa
 - [Eventos de Credenciales](#eventos-de-credenciales)
   - [credential.validated](#credentialvalidated)
   - [credential.invalid](#credentialinvalid)
+- [Eventos Bancarios](https://docs.tupana.ai/api-reference/v2/banking/webhooks)
 - [Eventos Operacionales](#eventos-operacionales)
   - [webhook.test](#webhooktest)
 
@@ -7533,6 +7544,13 @@ No puede existir un webhook con la misma URL para la misma entidad. Si intentas 
 - `folio_request.authorized_without_caf` - El SII autorizó un rango y no entregó el archivo
 - `document.unpaid` - Documento revertido de pagado a no pagado
 - `document.cancelled` - Documento cancelado
+- `connection.active` / `connection.requires_action` - Estado de una conexión de Tupana Link
+- `bank_account.refreshed` - Una corrida de sync leyó la cuenta bancaria (saldo nuevo)
+- `movement.created` - Esa corrida trajo movimientos nuevos (lista de ids, uno por cuenta y corrida)
+- `bank_account.refresh_failed` - La lectura de la cuenta falló
+- `connection.degraded` - Una cuenta quedó detenida tras fallos repetidos
+
+Los eventos bancarios se detallan en [Webhooks bancarios](https://docs.tupana.ai/api-reference/v2/banking/webhooks).
 
 ---
 
@@ -7963,8 +7981,9 @@ integración tienen en el banco. El usuario final conecta su banco dentro de
 [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link); tu SaaS nunca ve la clave,
 y desde ahí Tupana lee el banco todos los días.
 
-Hoy publica **instituciones**, **conexiones** y **cuentas** con sus saldos. Los
-movimientos son la siguiente entrega de esta API.
+Publica **instituciones**, **conexiones**, **cuentas** con sus saldos y
+**movimientos** con la contraparte resuelta. Para empezar, sigue la guía
+[Primera lectura de un banco](https://docs.tupana.ai/api-reference/v2/banking/guides/first-sync).
 
 ### Permiso
 
@@ -7981,6 +8000,7 @@ con código `banking_permission_required`.
 | Conexión | Un login de una persona en una institución. Una empresa puede tener una conexión por banco; una misma persona puede cubrir varias empresas con una sola conexión. | `cred_…` |
 | Institución | Un banco que se puede conectar y lo que entrega. | `code` (`cl_banco_santander`) |
 | Cuenta | Una cuenta en una institución: corriente, vista, ahorro, tarjeta o línea. Cuelga de una conexión y de una empresa. | `bacc_…` |
+| Movimiento | Un abono o cargo en una cuenta, con la glosa cruda del banco y la contraparte que Tupana resuelve. | `move_…` |
 
 La conexión de banco es la misma `connection_id` que devuelve Tupana Link y que
 lista [`GET /connections/`](https://docs.tupana.ai/api-reference/v2/connections/list) con `type: "bank"`.
@@ -8006,8 +8026,17 @@ compartida hay que decir a qué empresa te refieres.
 | `degraded` | Alguna cuenta quedó detenida tras fallos repetidos; las demás siguen. | Nada por tu lado; Tupana la revisa. Si persiste, reautorizar. |
 | `inactive` | Alguien la desactivó con [`DELETE`](https://docs.tupana.ai/api-reference/v2/connections/delete). | Volver a conectar con Tupana Link si hace falta. |
 
-Los cambios de estado llegan por webhook: `connection.active` y
-`connection.requires_action`.
+Los cambios de estado llegan por webhook: `connection.active`,
+`connection.requires_action` y `connection.degraded`.
+
+### Por qué no hay refresh bajo demanda
+
+Ningún `GET` de esta API toca al banco: devuelve lo que dejó la última lectura,
+con `balances.refreshed_at`. Cada lectura extra es riesgo de bloqueo para la
+cuenta del usuario, así que no hay un botón para forzarla. La frescura la marca
+el ciclo de sincronización de Tupana, y tu backend se entera por webhook:
+suscríbete a `bank_account.refreshed` y `movement.created` (ver
+[Webhooks bancarios](https://docs.tupana.ai/api-reference/v2/banking/webhooks)).
 
 ### Lo que nunca se expone
 
@@ -8017,6 +8046,69 @@ Los cambios de estado llegan por webhook: `connection.active` y
 
 > **Nota:** Todo lo de esta API vive en **v2**. Los identificadores son public IDs con
 prefijo (`cred_…`, `ment_…`); las listas van en `data`.
+
+---
+
+## Primera lectura de un banco
+
+Fuente: https://docs.tupana.ai/api-reference/v2/banking/guides/first-sync · Sección: API Bancaria / Introducción
+
+> Conecta un banco con Tupana Link, lista las cuentas y trae los movimientos del mes
+
+## Primera lectura de un banco
+
+De cero a los movimientos del mes en cuatro llamadas. Necesitas una API key
+con el permiso `banking:read` escrito en ella.
+
+**Conecta el banco con Tupana Link**
+
+    Crea una sesión con `capabilities: ["banking"]` y abre el widget para tu
+    usuario. Él elige el banco y entra con su clave; tú nunca la ves.
+
+    ```bash
+    curl -X POST https://api.tupana.ai/v2/connect-sessions/ \
+      -H "Authorization: Api-Key TU_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{ "capabilities": ["banking"], "tax_id": "76.830.546-3", "app_name": "Mi SaaS" }'
+    ```
+
+    Cuando el banco acepta la clave recibes `connection.active` con el
+    `connection_id` (`cred_…`). Guárdalo: es la conexión.
+
+**Lista las cuentas de esa conexión**
+
+    ```bash
+    curl "https://api.tupana.ai/v2/bank-accounts/?connection_id=cred_9Pq5028174639201" \
+      -H "Authorization: Api-Key TU_API_KEY"
+    ```
+
+    Cada cuenta trae `type`/`subtype`, `number_mask` y `balances` con
+    `refreshed_at`. Ese es el saldo de la última lectura: la API nunca va al
+    banco cuando la llamas.
+
+**Trae los movimientos del mes**
+
+    ```bash
+    curl "https://api.tupana.ai/v2/bank-accounts/bacc_7Hk2938475610293/movements/?since=2026-10-01&until=2026-10-31" \
+      -H "Authorization: Api-Key TU_API_KEY"
+    ```
+
+    Pagina con `page` hasta que `links.next` sea `null`.
+
+**Interpreta direction, status y counterparty**
+
+    - `amount` no lleva signo: `direction: "inbound"` entró, `"outbound"` salió.
+    - `status: "pending"` todavía no está contabilizado; puede desaparecer o
+      volver como `posted`. Trabaja con `posted` para cerrar el mes.
+    - `counterparty` trae a quien pagó o cobró, con RUT cuando Tupana lo
+      resuelve. `category` dice qué es el dinero.
+
+### Cuándo volver a leer
+
+Tupana lee cada banco en su propio ciclo y `refreshed_at` te dice cuándo fue la
+última vez. Llamar más seguido no trae datos más frescos. Si una conexión pasa
+a `requires_action`, el usuario tiene que
+[reautorizarla](https://docs.tupana.ai/api-reference/v2/connections/reauthorize).
 
 ---
 
@@ -8176,6 +8268,113 @@ existe, responde `404`: para tu API key esa cuenta no existe.
 > **Nota:** Los ids de cuenta que la plataforma entregaba con prefijo `liac_…` siguen
 funcionando en esta ruta. Guarda siempre el `id` que devuelve la API, que es
 `bacc_…`.
+
+---
+
+## Listar movimientos de una cuenta
+
+Fuente: https://docs.tupana.ai/api-reference/v2/movements/list · Sección: API Bancaria / Movimientos
+
+Endpoint: `GET /bank-accounts/{account_id}/movements/` (detalle completo en la Parte 2).
+
+Los movimientos de una cuenta bancaria tal como quedaron en la última lectura
+del banco, los más nuevos primero. El GET nunca toca al banco.
+
+```bash
+curl "https://api.tupana.ai/v2/bank-accounts/bacc_7Hk2938475610293/movements/?since=2026-10-01&until=2026-10-31" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "move_Qm8102938475612",
+      "account_id": "bacc_7Hk2938475610293",
+      "company_id": "ment_3672486436546233854",
+      "amount": 450000,
+      "direction": "inbound",
+      "currency": "CLP",
+      "status": "posted",
+      "posted_movement_id": null,
+      "transaction_date": "2026-10-24",
+      "post_date": "2026-10-25",
+      "description": "TRANSFERENCIA DE COMERCIAL ANDINA SPA",
+      "balance_after": null,
+      "counterparty": {
+        "tax_id": "76.543.169-7",
+        "name": "Comercial Andina SpA",
+        "institution": { "code": "cl_banco_de_chile", "name": "Banco de Chile" },
+        "account_number_mask": "0912"
+      },
+      "category": "customer_payment"
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 1, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+Necesitas `banking:read` explícito en la API key (ver
+[Introducción](https://docs.tupana.ai/api-reference/v2/banking/introduction#permiso)). Una cuenta de
+otra empresa responde `404`.
+
+### Filtros
+
+| Parámetro | Qué hace |
+| --- | --- |
+| `since`, `until` | Rango de `transaction_date`, inclusivo, `YYYY-MM-DD`. |
+| `direction` | `inbound` (entra dinero) o `outbound` (sale). |
+| `status` | `pending` o `posted`. |
+| `min_amount`, `max_amount` | Sobre el monto sin signo. |
+
+Un valor inválido responde `400` con `code: parameter_invalid` y `param`.
+`page` y `page_size` (tope 200) paginan; `?fields=` recorta los campos.
+
+### El dato crudo
+
+- `amount` nunca lleva signo; `direction` dice si entró o salió. Es el mismo
+  contrato de Fintoc v2, así que si ya integraste un agregador no cambias nada.
+  Entero en CLP; con decimales en otras monedas.
+- `status`: `pending` mientras el banco no lo contabiliza, `posted` cuando sí,
+  `removed` si el banco lo revirtió. `posted_movement_id` enlazará una
+  pendiente con la posteada que la reemplazó cuando llegue la sincronización
+  por cursor; hoy viene `null`, igual que `balance_after`.
+- `description` es la glosa tal cual la entrega el banco. No la normalizamos.
+
+### Lo que Tupana agrega
+
+- `counterparty`: la contraparte resuelta. Un agregador entrega la glosa;
+  Tupana además identifica el RUT, la razón social, el banco y la cuenta
+  enmascarada de quien pagó o cobró, con el dato estructurado del banco o, si
+  no viene, con lo que dice la glosa. `null` cuando no hay nada que resolver.
+  El número de cuenta de la contraparte completo nunca sale.
+- `category`: qué es el dinero según la clasificación de Tupana:
+  `customer_payment`, `supplier_payment`, `payroll`, `taxes`, `bank_fees`,
+  `internal_transfer`, `card_settlement`. `null` si todavía no se clasificó o
+  no se identificó.
+
+> **Info:** Acá no hay nada de documentos tributarios ni de conciliación: ni facturas
+asociadas, ni estado contable. La API bancaria habla de dinero.
+
+---
+
+## Obtener un movimiento
+
+Fuente: https://docs.tupana.ai/api-reference/v2/movements/get · Sección: API Bancaria / Movimientos
+
+Endpoint: `GET /movements/{movement_id}/` (detalle completo en la Parte 2).
+
+Un movimiento por su id (`move_…`), con la misma forma que en
+[el listado](https://docs.tupana.ai/api-reference/v2/movements/list).
+
+```bash
+curl https://api.tupana.ai/v2/movements/move_Qm8102938475612/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+Si el movimiento es de una cuenta de una empresa que no está conectada a tu
+integración, o no existe, responde `404`.
 
 ---
 
@@ -11793,6 +11992,55 @@ Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_p
 
 Respuesta `404`: La cuenta no existe para esta API key
 
+### GET /v2/bank-accounts/{account_id}/movements/
+
+**Listar movimientos de una cuenta**
+
+Los movimientos de la cuenta como quedaron en la última lectura del banco, más nuevos primero. Exige `banking:read` explícito.
+
+URL completa: `GET https://api.tupana.ai/v2/bank-accounts/{account_id}/movements/`
+
+Parámetros:
+
+- `account_id` (path, string; requerido)
+- `since` (query, string (date)): Desde esta `transaction_date`, inclusive.
+- `until` (query, string (date)): Hasta esta `transaction_date`, inclusive.
+- `direction` (query, string; valores: `inbound`, `outbound`)
+- `status` (query, string; valores: `pending`, `posted`)
+- `min_amount` (query, number): Sobre el monto sin signo.
+- `max_amount` (query, number): Sobre el monto sin signo.
+- `page` (query, integer; default: `1`)
+- `page_size` (query, integer; default: `50`)
+- `fields` (query, string)
+
+Respuesta `200`: Movimientos
+
+Esquema: object
+
+Respuesta `400`: Un filtro inválido (`code: parameter_invalid`, `param`)
+
+Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+
+Respuesta `404`: La cuenta no existe para esta API key
+
+### GET /v2/movements/{movement_id}/
+
+**Obtener un movimiento**
+
+URL completa: `GET https://api.tupana.ai/v2/movements/{movement_id}/`
+
+Parámetros:
+
+- `movement_id` (path, string; requerido)
+
+Respuesta `200`: Movimiento
+
+Esquema: `Movement`
+
+Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+
+Respuesta `404`: El movimiento no existe para esta API key
+
 ### Esquemas de Tupana API — v2
 
 #### `BookSummaryItem`
@@ -12007,7 +12255,7 @@ Notificación enviada a la URL del webhook. Headers: `X-Pana-Event-Id`, `X-Pana-
 
 Tipo: object
 
-- `event` (string; valores: `document.issued`, `document.delivered`, `document.rejected`, `document.trace_updated`, `document.paid`, `document.unpaid`, `document.cancelled`, `scheduled_document.created`, `scheduled_document.updated`, `scheduled_document.executed`, `scheduled_document.failed`, `folio_request.completed`, `folio_request.failed`, `folio_request.authorized_without_caf`, `credential.validated`, `credential.invalid`, `webhook.test`): Tipo de evento
+- `event` (string; valores: `document.issued`, `document.delivered`, `document.rejected`, `document.trace_updated`, `document.paid`, `document.unpaid`, `document.cancelled`, `scheduled_document.created`, `scheduled_document.updated`, `scheduled_document.executed`, `scheduled_document.failed`, `folio_request.completed`, `folio_request.failed`, `folio_request.authorized_without_caf`, `credential.validated`, `credential.invalid`, `webhook.test`, `bank_account.refreshed`, `bank_account.refresh_failed`, `movement.created`, `movement.updated`, `connection.degraded`): Tipo de evento
 - `created_at` (string (date-time)): Fecha y hora del evento (ISO 8601)
 - `data` (object): Datos del evento. Para `document.*`:
   - `id` (string; ej: `docu_8371029384756`): public_id del documento (`api_version` 2). Con `api_version` 1 es el id entero.
@@ -12662,6 +12910,38 @@ Tipo: object
   - `refreshed_at` (string (date-time), nullable): Última lectura del banco. El GET nunca toca al banco.
 - `credit` (object, nullable): `null` por ahora; con las tarjetas traerá período, vencimiento y pago mínimo.
 - `status` (string; valores: `open`, `closed`, `removed_from_connection`)
+
+#### `Counterparty`
+
+La contraparte resuelta por Tupana. `null` cuando no hay nada que resolver.
+
+Tipo: object, nullable
+
+- `tax_id` (string, nullable; ej: `76.543.169-7`)
+- `name` (string, nullable; ej: `Comercial Andina SpA`)
+- `institution` (object, nullable)
+  - `code` (string; ej: `cl_banco_de_chile`)
+  - `name` (string; ej: `Banco de Chile`)
+- `account_number_mask` (string, nullable; ej: `0912`): Últimos 4 dígitos. El número completo nunca sale.
+
+#### `Movement`
+
+Tipo: object
+
+- `id` (string; ej: `move_Qm8102938475612`)
+- `account_id` (string; ej: `bacc_7Hk2938475610293`)
+- `company_id` (string; ej: `ment_3672486436546233854`)
+- `amount` (number; ej: `450000`): Sin signo. Entero en CLP.
+- `direction` (string; valores: `inbound`, `outbound`)
+- `currency` (string; ej: `CLP`)
+- `status` (string; valores: `pending`, `posted`, `removed`)
+- `posted_movement_id` (string, nullable): En una pendiente, el id de la posteada que la reemplazó. `null` por ahora.
+- `transaction_date` (string (date), nullable)
+- `post_date` (string (date), nullable)
+- `description` (string): La glosa tal cual la entrega el banco.
+- `balance_after` (number, nullable): `null` por ahora.
+- `counterparty` (`Counterparty`)
+- `category` (string, nullable; valores: `customer_payment`, `supplier_payment`, `payroll`, `taxes`, `bank_fees`, `internal_transfer`, `card_settlement`): Clasificación Tupana del movimiento. `null` si no se clasificó o no se identificó.
 
 ## Tupana API - Recaudación (OpenAPI 1.0.0)
 

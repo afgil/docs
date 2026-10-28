@@ -1,0 +1,15 @@
+---
+title: "Obtener un movimiento"
+openapi: "api-reference/openapi-v2.json GET /movements/{movement_id}/"
+---
+
+Un movimiento por su id (`move_…`), con la misma forma que en
+[el listado](/api-reference/v2/movements/list).
+
+```bash
+curl https://api.tupana.ai/v2/movements/move_Qm8102938475612/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+Si el movimiento es de una cuenta de una empresa que no está conectada a tu
+integración, o no existe, responde `404`.

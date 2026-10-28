@@ -158,7 +158,8 @@
               {
                 "group": "Introducción",
                 "pages": [
-                  "api-reference/v2/banking/introduction"
+                  "api-reference/v2/banking/introduction",
+                  "api-reference/v2/banking/guides/first-sync"
                 ]
               },
               {
@@ -181,6 +182,20 @@
                 "pages": [
                   "api-reference/v2/bank-accounts/list",
                   "api-reference/v2/bank-accounts/get"
+                ]
+              },
+              {
+                "group": "Movimientos",
+                "pages": [
+                  "api-reference/v2/movements/list",
+                  "api-reference/v2/movements/get"
+                ]
+              },
+              {
+                "group": "Webhooks",
+                "pages": [
+                  "api-reference/v2/banking/webhooks",
+                  "api-reference/v2/webhooks-pages/create"
                 ]
               },
               {
