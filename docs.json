@@ -161,7 +161,8 @@
                   "api-reference/v2/banking/introduction",
                   "api-reference/v2/banking/guides/first-sync",
                   "api-reference/v2/banking/guides/sync",
-                  "api-reference/v2/banking/guides/sandbox"
+                  "api-reference/v2/banking/guides/sandbox",
+                  "api-reference/v2/banking/guides/credit-cards"
                 ]
               },
               {
@@ -192,6 +193,13 @@
                   "api-reference/v2/movements/list",
                   "api-reference/v2/movements/get",
                   "api-reference/v2/movements/sync"
+                ]
+              },
+              {
+                "group": "Estados de cuenta",
+                "pages": [
+                  "api-reference/v2/statements/list",
+                  "api-reference/v2/statements/get"
                 ]
               },
               {

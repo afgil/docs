@@ -1,0 +1,53 @@
+---
+title: "Listar estados de cuenta"
+openapi: "api-reference/openapi-v2.json GET /bank-accounts/{account_id}/statements/"
+---
+
+Los estados de cuenta de una cuenta: las cartolas de una tarjeta
+(`kind: "credit_card"`) o las cartolas importadas de una cuenta corriente
+(`kind: "bank_account"`), con la misma forma, más nuevos primero.
+
+```bash
+curl "https://api.tupana.ai/v2/bank-accounts/bacc_7Hk2938475610293/statements/?period=202610" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "ccs_7382910465728",
+      "account_id": "bacc_7Hk2938475610293",
+      "kind": "credit_card",
+      "period": "2026-10",
+      "period_start": null,
+      "period_end": "2026-10-25",
+      "statement_date": "2026-10-25",
+      "opening_balance": null,
+      "closing_balance": 968146,
+      "total_billed": 968146,
+      "due_date": null,
+      "minimum_payment": null,
+      "items_count": 3,
+      "file_url": "https://....s3.amazonaws.com/bank_statements/...?X-Amz-Expires=3600&..."
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 1, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+## Qué trae
+
+- `period` es el mes del estado de cuenta (`YYYY-MM`); `?period=YYYYMM` filtra.
+- En una tarjeta, `closing_balance` y `total_billed` son lo facturado del
+  período; `opening_balance` no aplica. En una cuenta corriente, `opening_balance`
+  y `closing_balance` son los saldos inicial y final de la cartola y
+  `total_billed` es `null`.
+- `due_date` y `minimum_payment` vienen `null` hasta que la fuente los entregue.
+- `items_count` es cuántos cargos o movimientos trajo.
+- `file_url` es un enlace al **PDF original**, firmado por tiempo (una hora).
+  Pídelo cuando lo vayas a usar; no lo guardes. `null` si no hay archivo.
+
+Solo salen las cartolas confirmadas y vigentes: una cartola reemplazada por una
+re-subida del mismo mes no aparece.

@@ -6341,6 +6341,173 @@
           }
         }
       }
+    },
+    "/bank-accounts/{account_id}/statements/": {
+      "get": {
+        "operationId": "listBankAccountStatements_v2",
+        "tags": [
+          "Estados de cuenta"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar estados de cuenta",
+        "description": "Las cartolas de una tarjeta o las cartolas importadas de una cuenta corriente, con la misma forma, más nuevas primero.",
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "bacc_7Hk2938475610293"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{6}$",
+              "example": "202610"
+            },
+            "description": "Mes, `YYYYMM`."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "maximum": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estados de cuenta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Statement"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer"
+                        },
+                        "page_size": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "next": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "prev": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`period` inválido (`parameter_invalid`)"
+          },
+          "403": {
+            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+          },
+          "404": {
+            "description": "La cuenta no existe para esta API key"
+          }
+        }
+      }
+    },
+    "/bank-accounts/{account_id}/statements/{statement_id}/": {
+      "get": {
+        "operationId": "getBankAccountStatement_v2",
+        "tags": [
+          "Estados de cuenta"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Obtener un estado de cuenta",
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "bacc_7Hk2938475610293"
+            }
+          },
+          {
+            "name": "statement_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "ccs_7382910465728"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado de cuenta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Statement"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+          },
+          "404": {
+            "description": "El estado de cuenta no es de esa cuenta, o la cuenta no existe para esta API key"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -10066,7 +10233,34 @@
           "credit": {
             "type": "object",
             "nullable": true,
-            "description": "`null` por ahora; con las tarjetas traerá período, vencimiento y pago mínimo."
+            "description": "Solo en cuentas de crédito; `null` en el resto.",
+            "properties": {
+              "billing_period_end": {
+                "type": "string",
+                "format": "date",
+                "nullable": true
+              },
+              "payment_due_date": {
+                "type": "string",
+                "format": "date",
+                "nullable": true,
+                "description": "`null` hasta que la fuente lo entregue."
+              },
+              "minimum_payment": {
+                "type": "number",
+                "nullable": true,
+                "description": "`null` hasta que la fuente lo entregue."
+              },
+              "total_billed": {
+                "type": "number",
+                "nullable": true
+              },
+              "statement_id": {
+                "type": "string",
+                "nullable": true,
+                "example": "ccs_7382910465728"
+              }
+            }
           },
           "status": {
             "type": "string",
@@ -10194,6 +10388,27 @@
               "card_settlement"
             ],
             "description": "Clasificación Tupana del movimiento. `null` si no se clasificó o no se identificó."
+          },
+          "card": {
+            "type": "object",
+            "nullable": true,
+            "description": "Solo en movimientos de una cuenta de crédito.",
+            "properties": {
+              "last_four": {
+                "type": "string",
+                "example": "2105"
+              },
+              "merchant": {
+                "type": "string",
+                "nullable": true,
+                "example": "AMAZON WEB SERVICES"
+              },
+              "installments": {
+                "type": "integer",
+                "nullable": true,
+                "description": "`null` hasta que la fuente lo entregue."
+              }
+            }
           }
         }
       },
@@ -10239,6 +10454,77 @@
           "data": {
             "type": "object",
             "description": "El mismo `data` del webhook."
+          }
+        }
+      },
+      "Statement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "ccs_7382910465728",
+            "description": "`ccs_…` en una tarjeta, `bsu_…` en una cuenta corriente."
+          },
+          "account_id": {
+            "type": "string",
+            "example": "bacc_7Hk2938475610293"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "credit_card",
+              "bank_account"
+            ]
+          },
+          "period": {
+            "type": "string",
+            "example": "2026-10"
+          },
+          "period_start": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "statement_date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "opening_balance": {
+            "type": "number",
+            "nullable": true
+          },
+          "closing_balance": {
+            "type": "number",
+            "nullable": true,
+            "description": "En una tarjeta, lo facturado del período."
+          },
+          "total_billed": {
+            "type": "number",
+            "nullable": true
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "minimum_payment": {
+            "type": "number",
+            "nullable": true
+          },
+          "items_count": {
+            "type": "integer"
+          },
+          "file_url": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "PDF original, firmado por tiempo (1 h)."
           }
         }
       }

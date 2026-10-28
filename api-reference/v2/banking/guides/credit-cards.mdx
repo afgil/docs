@@ -1,0 +1,66 @@
+---
+title: 'Tarjetas de crédito'
+description: 'Una tarjeta es una cuenta con type credit: qué significa cada saldo, de dónde sale el dato y cómo leer sus cargos y estados de cuenta'
+---
+
+# Tarjetas de crédito
+
+Una tarjeta de crédito es una cuenta más en
+[`GET /bank-accounts/`](/api-reference/v2/bank-accounts/list), con
+`type: "credit"` y `subtype: "credit_card"`. No hay un recurso aparte: los mismos
+endpoints de cuentas, movimientos y estados de cuenta sirven para la tarjeta.
+
+## Qué significa cada saldo
+
+| Campo | En una tarjeta |
+| --- | --- |
+| `balances.current` | Lo **adeudado**: el total del último estado de cuenta. |
+| `balances.available` | Cupo disponible, cuando se conoce el cupo (`limit - current`). |
+| `balances.limit` | El cupo total de la tarjeta, cuando la fuente lo entrega. |
+| `balances.refreshed_at` | Cuándo se leyó por última vez. |
+
+## El bloque `credit`
+
+Solo las cuentas de crédito lo traen; en el resto es `null`.
+
+```json
+"credit": {
+  "billing_period_end": "2026-10-25",
+  "payment_due_date": null,
+  "minimum_payment": null,
+  "total_billed": 968146,
+  "statement_id": "ccs_7382910465728"
+}
+```
+
+- `billing_period_end` y `total_billed` salen del último estado de cuenta.
+- `payment_due_date` y `minimum_payment` vienen `null` por ahora: las cartolas
+  cargadas por PDF no los traen de forma confiable. El contrato ya tiene los
+  campos para cuando la fuente los entregue.
+- `statement_id` apunta al estado de cuenta en
+  [`/bank-accounts/{id}/statements/`](/api-reference/v2/statements/list).
+
+## Los cargos son movimientos
+
+Cada cargo de la tarjeta es un movimiento `outbound` de la cuenta de crédito,
+con un bloque `card`:
+
+```json
+"card": { "last_four": "2105", "merchant": "AMAZON WEB SERVICES", "installments": null }
+```
+
+`installments` (cuotas) viene `null` hasta que la fuente lo entregue. En
+movimientos de cuentas que no son de crédito, `card` es `null`.
+
+## De dónde sale el dato
+
+Hoy las tarjetas entran por **cartola en PDF** (o por la integración con el
+emisor cuando existe), y la API lo dice en la conexión: `source: "manual_upload"`.
+Cuando se carga una cartola, la tarjeta aparece como cuenta, sus cargos como
+movimientos y la cartola como estado de cuenta, con el PDF original
+descargable. La lectura automática desde el banco es un proyecto aparte.
+
+<Info>
+Una misma tarjeta se reconoce por banco y últimos cuatro dígitos: cargar la
+cartola del mes siguiente agrega movimientos a la misma cuenta, no crea otra.
+</Info>

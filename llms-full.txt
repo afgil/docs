@@ -7993,7 +7993,8 @@ Publica **instituciones**, **conexiones**, **cuentas** con sus saldos,
 y los **eventos** consultables. Para empezar, sigue la guía
 [Primera lectura de un banco](https://docs.tupana.ai/api-reference/v2/banking/guides/first-sync);
 para mantener una copia al día, [Sincronizar con cursor](https://docs.tupana.ai/api-reference/v2/banking/guides/sync);
-para probar sin un banco real, [Sandbox bancario](https://docs.tupana.ai/api-reference/v2/banking/guides/sandbox).
+para probar sin un banco real, [Sandbox bancario](https://docs.tupana.ai/api-reference/v2/banking/guides/sandbox);
+para las tarjetas, [Tarjetas de crédito](https://docs.tupana.ai/api-reference/v2/banking/guides/credit-cards).
 
 ### Permiso
 
@@ -8011,6 +8012,7 @@ con código `banking_permission_required`.
 | Institución | Un banco que se puede conectar y lo que entrega. | `code` (`cl_banco_santander`) |
 | Cuenta | Una cuenta en una institución: corriente, vista, ahorro, tarjeta o línea. Cuelga de una conexión y de una empresa. | `bacc_…` |
 | Movimiento | Un abono o cargo en una cuenta, con la glosa cruda del banco y la contraparte que Tupana resuelve. | `move_…` |
+| Estado de cuenta | La cartola de un período: de una tarjeta o importada a una cuenta corriente, con su PDF original. | `ccs_…` / `bsu_…` |
 
 La conexión de banco es la misma `connection_id` que devuelve Tupana Link y que
 lista [`GET /connections/`](https://docs.tupana.ai/api-reference/v2/connections/list) con `type: "bank"`.
@@ -8245,6 +8247,74 @@ crea el webhook con `environment: "sandbox"` (o `"both"`).
 
 ---
 
+## Tarjetas de crédito
+
+Fuente: https://docs.tupana.ai/api-reference/v2/banking/guides/credit-cards · Sección: API Bancaria / Introducción
+
+> Una tarjeta es una cuenta con type credit: qué significa cada saldo, de dónde sale el dato y cómo leer sus cargos y estados de cuenta
+
+## Tarjetas de crédito
+
+Una tarjeta de crédito es una cuenta más en
+[`GET /bank-accounts/`](https://docs.tupana.ai/api-reference/v2/bank-accounts/list), con
+`type: "credit"` y `subtype: "credit_card"`. No hay un recurso aparte: los mismos
+endpoints de cuentas, movimientos y estados de cuenta sirven para la tarjeta.
+
+### Qué significa cada saldo
+
+| Campo | En una tarjeta |
+| --- | --- |
+| `balances.current` | Lo **adeudado**: el total del último estado de cuenta. |
+| `balances.available` | Cupo disponible, cuando se conoce el cupo (`limit - current`). |
+| `balances.limit` | El cupo total de la tarjeta, cuando la fuente lo entrega. |
+| `balances.refreshed_at` | Cuándo se leyó por última vez. |
+
+### El bloque `credit`
+
+Solo las cuentas de crédito lo traen; en el resto es `null`.
+
+```json
+"credit": {
+  "billing_period_end": "2026-10-25",
+  "payment_due_date": null,
+  "minimum_payment": null,
+  "total_billed": 968146,
+  "statement_id": "ccs_7382910465728"
+}
+```
+
+- `billing_period_end` y `total_billed` salen del último estado de cuenta.
+- `payment_due_date` y `minimum_payment` vienen `null` por ahora: las cartolas
+  cargadas por PDF no los traen de forma confiable. El contrato ya tiene los
+  campos para cuando la fuente los entregue.
+- `statement_id` apunta al estado de cuenta en
+  [`/bank-accounts/{id}/statements/`](https://docs.tupana.ai/api-reference/v2/statements/list).
+
+### Los cargos son movimientos
+
+Cada cargo de la tarjeta es un movimiento `outbound` de la cuenta de crédito,
+con un bloque `card`:
+
+```json
+"card": { "last_four": "2105", "merchant": "AMAZON WEB SERVICES", "installments": null }
+```
+
+`installments` (cuotas) viene `null` hasta que la fuente lo entregue. En
+movimientos de cuentas que no son de crédito, `card` es `null`.
+
+### De dónde sale el dato
+
+Hoy las tarjetas entran por **cartola en PDF** (o por la integración con el
+emisor cuando existe), y la API lo dice en la conexión: `source: "manual_upload"`.
+Cuando se carga una cartola, la tarjeta aparece como cuenta, sus cargos como
+movimientos y la cartola como estado de cuenta, con el PDF original
+descargable. La lectura automática desde el banco es un proyecto aparte.
+
+> **Info:** Una misma tarjeta se reconoce por banco y últimos cuatro dígitos: cargar la
+cartola del mes siguiente agrega movimientos a la misma cuenta, no crea otra.
+
+---
+
 ## Listar instituciones
 
 Fuente: https://docs.tupana.ai/api-reference/v2/institutions/list · Sección: API Bancaria / Instituciones
@@ -8370,8 +8440,9 @@ Un valor fuera de ese vocabulario responde `400` con `code: parameter_invalid` y
 - `balances.refreshed_at` es la última lectura del banco. **El GET nunca toca
   al banco**: la frescura la define el ciclo de sincronización de Tupana, no
   tus llamadas.
-- `credit` viene `null` hoy. Con las tarjetas traerá período de facturación,
-  vencimiento y pago mínimo.
+- `credit` solo viene en cuentas de crédito: período de facturación, total
+  facturado y el id del estado de cuenta; vencimiento y pago mínimo llegan
+  cuando la fuente los entregue. Ver [Tarjetas de crédito](https://docs.tupana.ai/api-reference/v2/banking/guides/credit-cards).
 - `status` es `open` mientras la cuenta sigue en la conexión y
   `removed_from_connection` cuando el banco dejó de listarla. Sus movimientos
   se conservan.
@@ -8575,6 +8646,81 @@ key: una key sandbox recorre solo el [dataset sandbox](https://docs.tupana.ai/ap
 > **Info:** Lee la guía [Sincronizar con cursor](https://docs.tupana.ai/api-reference/v2/banking/guides/sync)
 para la receta completa: persistencia del cursor, qué hacer ante `cursor_expired`
 y cómo tratar `pending` y `posted`.
+
+---
+
+## Listar estados de cuenta
+
+Fuente: https://docs.tupana.ai/api-reference/v2/statements/list · Sección: API Bancaria / Estados de cuenta
+
+Endpoint: `GET /bank-accounts/{account_id}/statements/` (detalle completo en la Parte 2).
+
+Los estados de cuenta de una cuenta: las cartolas de una tarjeta
+(`kind: "credit_card"`) o las cartolas importadas de una cuenta corriente
+(`kind: "bank_account"`), con la misma forma, más nuevos primero.
+
+```bash
+curl "https://api.tupana.ai/v2/bank-accounts/bacc_7Hk2938475610293/statements/?period=202610" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "ccs_7382910465728",
+      "account_id": "bacc_7Hk2938475610293",
+      "kind": "credit_card",
+      "period": "2026-10",
+      "period_start": null,
+      "period_end": "2026-10-25",
+      "statement_date": "2026-10-25",
+      "opening_balance": null,
+      "closing_balance": 968146,
+      "total_billed": 968146,
+      "due_date": null,
+      "minimum_payment": null,
+      "items_count": 3,
+      "file_url": "https://....s3.amazonaws.com/bank_statements/...?X-Amz-Expires=3600&..."
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 1, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+### Qué trae
+
+- `period` es el mes del estado de cuenta (`YYYY-MM`); `?period=YYYYMM` filtra.
+- En una tarjeta, `closing_balance` y `total_billed` son lo facturado del
+  período; `opening_balance` no aplica. En una cuenta corriente, `opening_balance`
+  y `closing_balance` son los saldos inicial y final de la cartola y
+  `total_billed` es `null`.
+- `due_date` y `minimum_payment` vienen `null` hasta que la fuente los entregue.
+- `items_count` es cuántos cargos o movimientos trajo.
+- `file_url` es un enlace al **PDF original**, firmado por tiempo (una hora).
+  Pídelo cuando lo vayas a usar; no lo guardes. `null` si no hay archivo.
+
+Solo salen las cartolas confirmadas y vigentes: una cartola reemplazada por una
+re-subida del mismo mes no aparece.
+
+---
+
+## Obtener un estado de cuenta
+
+Fuente: https://docs.tupana.ai/api-reference/v2/statements/get · Sección: API Bancaria / Estados de cuenta
+
+Endpoint: `GET /bank-accounts/{account_id}/statements/{statement_id}/` (detalle completo en la Parte 2).
+
+Un estado de cuenta por su id (`ccs_…` en una tarjeta, `bsu_…` en una cuenta
+corriente), con la misma forma que en [el listado](https://docs.tupana.ai/api-reference/v2/statements/list).
+Si el estado de cuenta no es de esa cuenta, o la cuenta no es de tu
+integración, responde `404`.
+
+```bash
+curl https://api.tupana.ai/v2/bank-accounts/bacc_7Hk2938475610293/statements/ccs_7382910465728/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
 
 ---
 
@@ -12378,6 +12524,50 @@ Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_p
 
 Respuesta `404`: El evento no existe para esta API key
 
+### GET /v2/bank-accounts/{account_id}/statements/
+
+**Listar estados de cuenta**
+
+Las cartolas de una tarjeta o las cartolas importadas de una cuenta corriente, con la misma forma, más nuevas primero.
+
+URL completa: `GET https://api.tupana.ai/v2/bank-accounts/{account_id}/statements/`
+
+Parámetros:
+
+- `account_id` (path, string; requerido)
+- `period` (query, string): Mes, `YYYYMM`.
+- `page` (query, integer; default: `1`)
+- `page_size` (query, integer; default: `50`)
+
+Respuesta `200`: Estados de cuenta
+
+Esquema: object
+
+Respuesta `400`: `period` inválido (`parameter_invalid`)
+
+Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+
+Respuesta `404`: La cuenta no existe para esta API key
+
+### GET /v2/bank-accounts/{account_id}/statements/{statement_id}/
+
+**Obtener un estado de cuenta**
+
+URL completa: `GET https://api.tupana.ai/v2/bank-accounts/{account_id}/statements/{statement_id}/`
+
+Parámetros:
+
+- `account_id` (path, string; requerido)
+- `statement_id` (path, string; requerido)
+
+Respuesta `200`: Estado de cuenta
+
+Esquema: `Statement`
+
+Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+
+Respuesta `404`: El estado de cuenta no es de esa cuenta, o la cuenta no existe para esta API key
+
 ### Esquemas de Tupana API — v2
 
 #### `BookSummaryItem`
@@ -13245,7 +13435,12 @@ Tipo: object
   - `available` (number, nullable; ej: `1200000`)
   - `limit` (number, nullable): Cupo (tarjetas y líneas).
   - `refreshed_at` (string (date-time), nullable): Última lectura del banco. El GET nunca toca al banco.
-- `credit` (object, nullable): `null` por ahora; con las tarjetas traerá período, vencimiento y pago mínimo.
+- `credit` (object, nullable): Solo en cuentas de crédito; `null` en el resto.
+  - `billing_period_end` (string (date), nullable)
+  - `payment_due_date` (string (date), nullable): `null` hasta que la fuente lo entregue.
+  - `minimum_payment` (number, nullable): `null` hasta que la fuente lo entregue.
+  - `total_billed` (number, nullable)
+  - `statement_id` (string, nullable; ej: `ccs_7382910465728`)
 - `status` (string; valores: `open`, `closed`, `removed_from_connection`)
 
 #### `Counterparty`
@@ -13279,6 +13474,10 @@ Tipo: object
 - `balance_after` (number, nullable): Saldo de la cuenta tras el movimiento, cuando la fuente lo entrega (cartolas).
 - `counterparty` (`Counterparty`)
 - `category` (string, nullable; valores: `customer_payment`, `supplier_payment`, `payroll`, `taxes`, `bank_fees`, `internal_transfer`, `card_settlement`): Clasificación Tupana del movimiento. `null` si no se clasificó o no se identificó.
+- `card` (object, nullable): Solo en movimientos de una cuenta de crédito.
+  - `last_four` (string; ej: `2105`)
+  - `merchant` (string, nullable; ej: `AMAZON WEB SERVICES`)
+  - `installments` (integer, nullable): `null` hasta que la fuente lo entregue.
 
 #### `ApiEvent`
 
@@ -13292,6 +13491,25 @@ Tipo: object
 - `resource_type` (string; ej: `bank_account`)
 - `resource_id` (string; ej: `bacc_7Hk2938475610293`)
 - `data` (object): El mismo `data` del webhook.
+
+#### `Statement`
+
+Tipo: object
+
+- `id` (string; ej: `ccs_7382910465728`): `ccs_…` en una tarjeta, `bsu_…` en una cuenta corriente.
+- `account_id` (string; ej: `bacc_7Hk2938475610293`)
+- `kind` (string; valores: `credit_card`, `bank_account`)
+- `period` (string; ej: `2026-10`)
+- `period_start` (string (date), nullable)
+- `period_end` (string (date), nullable)
+- `statement_date` (string (date), nullable)
+- `opening_balance` (number, nullable)
+- `closing_balance` (number, nullable): En una tarjeta, lo facturado del período.
+- `total_billed` (number, nullable)
+- `due_date` (string (date), nullable)
+- `minimum_payment` (number, nullable)
+- `items_count` (integer)
+- `file_url` (string (uri), nullable): PDF original, firmado por tiempo (1 h).
 
 ## Tupana API - Recaudación (OpenAPI 1.0.0)
 
