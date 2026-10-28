@@ -29,8 +29,36 @@ curl https://api.tupana.ai/v2/connections/?search=arquitectura \
 a propósito: si tienes más conexiones de las que pediste, te enteras en vez de
 recibir un corte silencioso.
 
+## Tipos de conexión
+
+Una empresa puede tener una conexión tributaria (`type: "tax"`, `provider: "sii"`)
+y una o más conexiones de banco (`type: "bank"`, `provider` con el banco:
+`santander`, `estado`, `bci`…). `?type=tax` o `?type=bank` trae solo unas u
+otras; `total` cuenta las empresas que tienen una conexión de ese tipo. Otro
+valor responde `400`.
+
+```bash
+curl "https://api.tupana.ai/v2/connections/?type=bank" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+`source` dice de dónde salen los datos: `sii` en la conexión tributaria; en el
+banco, `fintoc` (proveedor de bancos), `scraper` (conector propio de Tupana) o
+`manual_upload` (cartolas subidas a mano). Para ti es informativo: las cuentas
+y los movimientos se leen igual venga de donde venga.
+
 ## Estado
 
-`status` es `active` mientras la conexión sirve, y `requires_action` cuando la
-clave dejó de funcionar. En ese caso no hay nada que reintentar desde tu lado:
-el usuario final tiene que reconectar la empresa con Tupana Link.
+`status` es lo que le pasa a la conexión, en tu idioma:
+
+| `status` | Qué significa | Qué hacer |
+| --- | --- | --- |
+| `active` | La conexión sirve y se está leyendo. | Nada. |
+| `pending` | Banco por conector propio: todavía no terminó la primera lectura. | Esperar. |
+| `requires_action` | La clave dejó de servir, o el banco pidió reconectar. | El usuario final reconecta la empresa con [Tupana Link](/api-reference/v2/connect/tupana-link). No hay nada que reintentar desde tu lado. |
+| `degraded` | Banco: alguna cuenta quedó detenida tras fallos repetidos; las demás siguen. | Nada por tu lado; Tupana la revisa. Si persiste, reconectar. |
+| `inactive` | Alguien la desactivó con `DELETE`. | Volver a conectar con Tupana Link si hace falta. |
+
+En las conexiones de banco el estado sale de la conexión bancaria misma, no
+solo de la clave guardada: un link al que el banco le pidió volver a entrar es
+`requires_action` aunque la clave no haya cambiado.

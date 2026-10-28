@@ -4921,6 +4921,19 @@
               "maximum": 100
             },
             "description": "Conexiones por página. Se acota a 100."
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "tax",
+                "bank"
+              ]
+            },
+            "description": "Solo las conexiones tributarias (`tax`) o solo las de banco (`bank`). `total` cuenta las empresas con una conexión de ese tipo."
           }
         ],
         "responses": {
@@ -4946,11 +4959,27 @@
                           },
                           "provider": {
                             "type": "string",
-                            "example": "sii"
+                            "example": "sii",
+                            "description": "`sii` en la conexión tributaria; el banco (`santander`, `estado`, `bci`…) en una conexión de banco."
                           },
                           "type": {
                             "type": "string",
+                            "enum": [
+                              "tax",
+                              "bank"
+                            ],
                             "example": "tax"
+                          },
+                          "source": {
+                            "type": "string",
+                            "nullable": true,
+                            "enum": [
+                              "sii",
+                              "fintoc",
+                              "scraper",
+                              "manual_upload"
+                            ],
+                            "description": "De dónde salen los datos: `sii` en la conexión tributaria; `fintoc`, `scraper` (conector propio) o `manual_upload` (cartolas subidas a mano) en el banco."
                           },
                           "name": {
                             "type": "string",
@@ -4971,9 +5000,12 @@
                             "type": "string",
                             "enum": [
                               "active",
-                              "requires_action"
+                              "pending",
+                              "requires_action",
+                              "degraded",
+                              "inactive"
                             ],
-                            "description": "`requires_action`: la clave dejó de servir y el usuario final tiene que reconectar."
+                            "description": "`requires_action`: la clave dejó de servir o el banco pidió reconectar; el usuario final reconecta con Tupana Link. `degraded`: alguna cuenta del banco quedó detenida. `inactive`: desactivada con DELETE. `pending`: conector propio leyendo por primera vez."
                           },
                           "last_verified_at": {
                             "type": "string",
