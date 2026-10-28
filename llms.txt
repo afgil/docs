@@ -126,9 +126,12 @@ Detalle: https://docs.tupana.ai/precios · https://developers.tupana.ai/pricing
 ### API Bancaria
 
 - [API Bancaria — Introducción](https://docs.tupana.ai/api-reference/v2/banking/introduction): Lee las conexiones bancarias de tus empresas: qué bancos existen, cómo se conectan con Tupana Link y qué significa cada estado — API v2
+- [Primera lectura de un banco](https://docs.tupana.ai/api-reference/v2/banking/guides/first-sync): Conecta un banco con Tupana Link, lista las cuentas y trae los movimientos del mes
 - [Listar instituciones](https://docs.tupana.ai/api-reference/v2/institutions/list)
 - [Listar cuentas bancarias](https://docs.tupana.ai/api-reference/v2/bank-accounts/list)
 - [Obtener una cuenta bancaria](https://docs.tupana.ai/api-reference/v2/bank-accounts/get)
+- [Listar movimientos de una cuenta](https://docs.tupana.ai/api-reference/v2/movements/list)
+- [Obtener un movimiento](https://docs.tupana.ai/api-reference/v2/movements/get)
 
 ### API Cesiones
 

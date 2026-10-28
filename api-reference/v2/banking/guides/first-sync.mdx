@@ -1,0 +1,58 @@
+---
+title: 'Primera lectura de un banco'
+description: 'Conecta un banco con Tupana Link, lista las cuentas y trae los movimientos del mes'
+---
+
+# Primera lectura de un banco
+
+De cero a los movimientos del mes en cuatro llamadas. Necesitas una API key
+con el permiso `banking:read` escrito en ella.
+
+<Steps>
+  <Step title="Conecta el banco con Tupana Link">
+    Crea una sesión con `capabilities: ["banking"]` y abre el widget para tu
+    usuario. Él elige el banco y entra con su clave; tú nunca la ves.
+
+    ```bash
+    curl -X POST https://api.tupana.ai/v2/connect-sessions/ \
+      -H "Authorization: Api-Key TU_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{ "capabilities": ["banking"], "tax_id": "76.830.546-3", "app_name": "Mi SaaS" }'
+    ```
+
+    Cuando el banco acepta la clave recibes `connection.active` con el
+    `connection_id` (`cred_…`). Guárdalo: es la conexión.
+  </Step>
+  <Step title="Lista las cuentas de esa conexión">
+    ```bash
+    curl "https://api.tupana.ai/v2/bank-accounts/?connection_id=cred_9Pq5028174639201" \
+      -H "Authorization: Api-Key TU_API_KEY"
+    ```
+
+    Cada cuenta trae `type`/`subtype`, `number_mask` y `balances` con
+    `refreshed_at`. Ese es el saldo de la última lectura: la API nunca va al
+    banco cuando la llamas.
+  </Step>
+  <Step title="Trae los movimientos del mes">
+    ```bash
+    curl "https://api.tupana.ai/v2/bank-accounts/bacc_7Hk2938475610293/movements/?since=2026-10-01&until=2026-10-31" \
+      -H "Authorization: Api-Key TU_API_KEY"
+    ```
+
+    Pagina con `page` hasta que `links.next` sea `null`.
+  </Step>
+  <Step title="Interpreta direction, status y counterparty">
+    - `amount` no lleva signo: `direction: "inbound"` entró, `"outbound"` salió.
+    - `status: "pending"` todavía no está contabilizado; puede desaparecer o
+      volver como `posted`. Trabaja con `posted` para cerrar el mes.
+    - `counterparty` trae a quien pagó o cobró, con RUT cuando Tupana lo
+      resuelve. `category` dice qué es el dinero.
+  </Step>
+</Steps>
+
+## Cuándo volver a leer
+
+Tupana lee cada banco en su propio ciclo y `refreshed_at` te dice cuándo fue la
+última vez. Llamar más seguido no trae datos más frescos. Si una conexión pasa
+a `requires_action`, el usuario tiene que
+[reautorizarla](/api-reference/v2/connections/reauthorize).
