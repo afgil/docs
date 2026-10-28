@@ -5855,6 +5855,223 @@
           }
         }
       }
+    },
+    "/bank-accounts/{account_id}/movements/": {
+      "get": {
+        "operationId": "listBankAccountMovements_v2",
+        "tags": [
+          "Movimientos"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar movimientos de una cuenta",
+        "description": "Los movimientos de la cuenta como quedaron en la última lectura del banco, más nuevos primero. Exige `banking:read` explícito.",
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "bacc_7Hk2938475610293"
+            }
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Desde esta `transaction_date`, inclusive."
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Hasta esta `transaction_date`, inclusive."
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "inbound",
+                "outbound"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "posted"
+              ]
+            }
+          },
+          {
+            "name": "min_amount",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Sobre el monto sin signo."
+          },
+          {
+            "name": "max_amount",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Sobre el monto sin signo."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "maximum": 200
+            }
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Movimientos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Movement"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer"
+                        },
+                        "page_size": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "next": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "prev": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Un filtro inválido (`code: parameter_invalid`, `param`)"
+          },
+          "403": {
+            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+          },
+          "404": {
+            "description": "La cuenta no existe para esta API key"
+          }
+        }
+      }
+    },
+    "/movements/{movement_id}/": {
+      "get": {
+        "operationId": "getMovement_v2",
+        "tags": [
+          "Movimientos"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Obtener un movimiento",
+        "parameters": [
+          {
+            "name": "movement_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "move_Qm8102938475612"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Movimiento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Movement"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+          },
+          "404": {
+            "description": "El movimiento no existe para esta API key"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -9589,6 +9806,125 @@
               "closed",
               "removed_from_connection"
             ]
+          }
+        }
+      },
+      "Counterparty": {
+        "type": "object",
+        "nullable": true,
+        "description": "La contraparte resuelta por Tupana. `null` cuando no hay nada que resolver.",
+        "properties": {
+          "tax_id": {
+            "type": "string",
+            "nullable": true,
+            "example": "76.543.169-7"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "example": "Comercial Andina SpA"
+          },
+          "institution": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "code": {
+                "type": "string",
+                "example": "cl_banco_de_chile"
+              },
+              "name": {
+                "type": "string",
+                "example": "Banco de Chile"
+              }
+            }
+          },
+          "account_number_mask": {
+            "type": "string",
+            "nullable": true,
+            "example": "0912",
+            "description": "Últimos 4 dígitos. El número completo nunca sale."
+          }
+        }
+      },
+      "Movement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "move_Qm8102938475612"
+          },
+          "account_id": {
+            "type": "string",
+            "example": "bacc_7Hk2938475610293"
+          },
+          "company_id": {
+            "type": "string",
+            "example": "ment_3672486436546233854"
+          },
+          "amount": {
+            "type": "number",
+            "example": 450000,
+            "description": "Sin signo. Entero en CLP."
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "inbound",
+              "outbound"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "example": "CLP"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "posted",
+              "removed"
+            ]
+          },
+          "posted_movement_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "En una pendiente, el id de la posteada que la reemplazó. `null` por ahora."
+          },
+          "transaction_date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "post_date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "description": "La glosa tal cual la entrega el banco."
+          },
+          "balance_after": {
+            "type": "number",
+            "nullable": true,
+            "description": "`null` por ahora."
+          },
+          "counterparty": {
+            "$ref": "#/components/schemas/Counterparty"
+          },
+          "category": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "customer_payment",
+              "supplier_payment",
+              "payroll",
+              "taxes",
+              "bank_fees",
+              "internal_transfer",
+              "card_settlement"
+            ],
+            "description": "Clasificación Tupana del movimiento. `null` si no se clasificó o no se identificó."
           }
         }
       }
