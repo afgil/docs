@@ -1455,12 +1455,35 @@
           {
             "name": "master_entity_id",
             "in": "query",
-            "description": "ID de la entidad emisora o receptora cuyos documentos quieres consultar. El public ID de la entidad (`ment_...`).",
-            "required": true,
+            "description": "Tupana ID (`ment_…`) de la empresa cuyos documentos quieres consultar. Obligatorio, salvo que envíes `connection_id`: en ese caso la empresa sale de la conexión. Si envías ambos, la conexión tiene que ser de esa empresa.",
+            "required": false,
             "schema": {
               "type": "string",
               "example": "ment_4829301923847"
             }
+          },
+          {
+            "name": "connection_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "cred_3895279275110346203"
+            },
+            "description": "Credencial de la conexión (`cred_…`), la que te entrega Tupana Connect y el webhook `connection.active`. Una conexión de banco devuelve solo los abonos (100) y cargos (101) de las cuentas de ese banco; una conexión tributaria (SII) devuelve los documentos tributarios de la empresa, sin movimientos bancarios. Con `connection_id` no necesitas `master_entity_id` (salvo que la credencial cubra varias de tus empresas)."
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "tax",
+                "bank"
+              ]
+            },
+            "description": "`tax`: solo documentos tributarios (todo excepto los movimientos bancarios 100 y 101). `bank`: solo movimientos del banco (100 abonos y 101 cargos), de todos los bancos de la empresa."
           },
           {
             "name": "document_type",

@@ -64,12 +64,21 @@ Suscríbete a estos eventos con [`POST /v2/webhooks/`](/api-reference/v2/webhook
 
 ## 4. Lee los movimientos
 
-Cada movimiento sincronizado queda como un documento de pago de la empresa: tipo `100` para los abonos (entradas de dinero) y tipo `101` para los cargos (salidas). Se leen con el mismo endpoint de documentos:
+Cada movimiento sincronizado queda como un documento de pago de la empresa: tipo `100` para los abonos (entradas de dinero) y tipo `101` para los cargos (salidas). Se leen con el mismo endpoint de documentos, usando el `connection_id` que guardaste en el paso 3:
 
 ```bash
-curl "https://api.tupana.ai/v2/documents/?master_entity_id=ment_4829301923847&dte_type__code__in=100,101&issue_date_gte=2026-10-01&page_size=100" \
+curl "https://api.tupana.ai/v2/documents/?connection_id=cred_5028174639201&issue_date_gte=2026-10-01&page_size=100" \
   -H "Authorization: Api-Key $TUPANA_API_KEY"
 ```
+
+Con `connection_id` llegan solo los movimientos de las cuentas de ese banco, y no necesitas el `master_entity_id`. Si la empresa conectó varios bancos y quieres todos sus movimientos juntos, usa el Tupana ID de la empresa con `category=bank`:
+
+```bash
+curl "https://api.tupana.ai/v2/documents/?master_entity_id=ment_4829301923847&category=bank&issue_date_gte=2026-10-01&page_size=100" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+<Note>La primera lectura de la cartola no es instantánea: termina unos minutos después de `connection.active`. Si consultas justo al conectar, la lista puede venir vacía.</Note>
 
 ```json
 {
@@ -87,7 +96,7 @@ curl "https://api.tupana.ai/v2/documents/?master_entity_id=ment_4829301923847&dt
 }
 ```
 
-Con los SDKs oficiales es la misma llamada:
+Con los SDKs oficiales, por Tupana ID de la empresa:
 
 <CodeGroup>
 ```ts Node.js
