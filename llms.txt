@@ -127,6 +127,8 @@ Detalle: https://docs.tupana.ai/precios · https://developers.tupana.ai/pricing
 
 - [API Bancaria — Introducción](https://docs.tupana.ai/api-reference/v2/banking/introduction): Lee las conexiones bancarias de tus empresas: qué bancos existen, cómo se conectan con Tupana Link y qué significa cada estado — API v2
 - [Listar instituciones](https://docs.tupana.ai/api-reference/v2/institutions/list)
+- [Listar cuentas bancarias](https://docs.tupana.ai/api-reference/v2/bank-accounts/list)
+- [Obtener una cuenta bancaria](https://docs.tupana.ai/api-reference/v2/bank-accounts/get)
 
 ### API Cesiones
 

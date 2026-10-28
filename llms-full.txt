@@ -7963,8 +7963,15 @@ integración tienen en el banco. El usuario final conecta su banco dentro de
 [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link); tu SaaS nunca ve la clave,
 y desde ahí Tupana lee el banco todos los días.
 
-Hoy publica **instituciones** y **conexiones**. Las cuentas con sus saldos y los
+Hoy publica **instituciones**, **conexiones** y **cuentas** con sus saldos. Los
 movimientos son la siguiente entrega de esta API.
+
+### Permiso
+
+Las cuentas y los movimientos exigen una API key con **`banking:read`** escrito
+en ella. El comodín `*` que traen las keys al crearse no lo concede: los saldos
+son de un tercero y no salen por una key que nunca pidió verlos. Sin él, `403`
+con código `banking_permission_required`.
 
 ### El modelo
 
@@ -7973,6 +7980,7 @@ movimientos son la siguiente entrega de esta API.
 | Empresa | La empresa cuyos datos lees. Es la misma de toda la API. | `ment_…` |
 | Conexión | Un login de una persona en una institución. Una empresa puede tener una conexión por banco; una misma persona puede cubrir varias empresas con una sola conexión. | `cred_…` |
 | Institución | Un banco que se puede conectar y lo que entrega. | `code` (`cl_banco_santander`) |
+| Cuenta | Una cuenta en una institución: corriente, vista, ahorro, tarjeta o línea. Cuelga de una conexión y de una empresa. | `bacc_…` |
 
 La conexión de banco es la misma `connection_id` que devuelve Tupana Link y que
 lista [`GET /connections/`](https://docs.tupana.ai/api-reference/v2/connections/list) con `type: "bank"`.
@@ -8060,6 +8068,114 @@ curl https://api.tupana.ai/v2/institutions/ \
 
 > **Info:** El banco de pruebas de sandbox no aparece acá: con una API key de sandbox las
 conexiones se fabrican sin elegir banco.
+
+---
+
+## Listar cuentas bancarias
+
+Fuente: https://docs.tupana.ai/api-reference/v2/bank-accounts/list · Sección: API Bancaria / Cuentas
+
+Endpoint: `GET /bank-accounts/` (detalle completo en la Parte 2).
+
+Las cuentas bancarias de las empresas conectadas a tu integración, con los
+saldos tal como quedaron en la última lectura. Es una lista plana: filtras por
+empresa o por conexión en vez de navegar por ellas.
+
+```bash
+curl "https://api.tupana.ai/v2/bank-accounts/?company_id=ment_3672486436546233854" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "bacc_7Hk2938475610293",
+      "connection_id": "cred_9Pq5028174639201",
+      "company_id": "ment_3672486436546233854",
+      "institution": { "code": "cl_banco_santander", "name": "Banco Santander" },
+      "type": "depository",
+      "subtype": "checking",
+      "name": "Cuenta Corriente",
+      "number_mask": "5678",
+      "currency": "CLP",
+      "balances": {
+        "current": 1250000,
+        "available": 1200000,
+        "limit": null,
+        "refreshed_at": "2026-10-28T09:12:00Z"
+      },
+      "credit": null,
+      "status": "open"
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 1, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+### Permiso
+
+Necesitas una API key con el permiso **`banking:read`** escrito en ella. El
+comodín `*` no lo concede: los saldos son de un tercero y no salen por una key
+que nunca pidió verlos. Sin él, `403` con código `banking_permission_required`.
+
+### Filtros
+
+| Parámetro | Qué hace |
+| --- | --- |
+| `company_id` | Solo las cuentas de esa empresa (`ment_…`). |
+| `connection_id` | Solo las cuentas que alimenta esa conexión (`cred_…`, el id de [`GET /connections/`](https://docs.tupana.ai/api-reference/v2/connections/list)). |
+| `type` | `depository` (corriente, vista, ahorro) o `credit` (tarjeta, línea). |
+| `subtype` | `checking`, `savings`, `sight`, `credit_card`, `line_of_credit`. |
+| `status` | `open` o `removed_from_connection`. |
+
+Un valor fuera de ese vocabulario responde `400` con `code: parameter_invalid` y
+`param` con el filtro culpable. `page` y `page_size` (tope 200) paginan;
+`?fields=id,balances` recorta cada cuenta a esos campos.
+
+### Lo que trae cada cuenta
+
+- `type` y `subtype` son estables aunque cada banco nombre sus productos a su
+  manera. Cuando Tupana no reconoce el producto, `subtype` viene `null`.
+- `number_mask` son los últimos 4 dígitos. El número completo nunca sale por la API.
+- `balances` son números: enteros en CLP, con decimales en otras monedas.
+  `current` es el saldo contable, `available` el disponible y `limit` el cupo
+  (tarjetas y líneas). En una tarjeta, `current` es lo adeudado.
+- `balances.refreshed_at` es la última lectura del banco. **El GET nunca toca
+  al banco**: la frescura la define el ciclo de sincronización de Tupana, no
+  tus llamadas.
+- `credit` viene `null` hoy. Con las tarjetas traerá período de facturación,
+  vencimiento y pago mínimo.
+- `status` es `open` mientras la cuenta sigue en la conexión y
+  `removed_from_connection` cuando el banco dejó de listarla. Sus movimientos
+  se conservan.
+
+> **Info:** Cada lectura queda registrada con tu API key y la cuenta consultada. Es lo que
+permite responder al titular de la cuenta qué integraciones la han visto.
+
+---
+
+## Obtener una cuenta bancaria
+
+Fuente: https://docs.tupana.ai/api-reference/v2/bank-accounts/get · Sección: API Bancaria / Cuentas
+
+Endpoint: `GET /bank-accounts/{account_id}/` (detalle completo en la Parte 2).
+
+Una cuenta por su id (`bacc_…`), con la misma forma que en
+[el listado](https://docs.tupana.ai/api-reference/v2/bank-accounts/list).
+
+```bash
+curl https://api.tupana.ai/v2/bank-accounts/bacc_7Hk2938475610293/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+Si la cuenta es de una empresa que no está conectada a tu integración, o no
+existe, responde `404`: para tu API key esa cuenta no existe.
+
+> **Nota:** Los ids de cuenta que la plataforma entregaba con prefijo `liac_…` siguen
+funcionando en esta ruta. Guarda siempre el `id` que devuelve la API, que es
+`bacc_…`.
 
 ---
 
@@ -11630,6 +11746,53 @@ Respuesta `403`: Una API key de sandbox no abre producción
 
 Respuesta `404`: La conexión no existe para esta API key
 
+### GET /v2/bank-accounts/
+
+**Listar cuentas bancarias**
+
+Las cuentas de las empresas conectadas, con los saldos de la última lectura. Exige `banking:read` explícito.
+
+URL completa: `GET https://api.tupana.ai/v2/bank-accounts/`
+
+Parámetros:
+
+- `company_id` (query, string): Solo las cuentas de esa empresa.
+- `connection_id` (query, string): Solo las cuentas que alimenta esa conexión.
+- `type` (query, string; valores: `depository`, `credit`)
+- `subtype` (query, string; valores: `checking`, `savings`, `sight`, `credit_card`, `line_of_credit`)
+- `status` (query, string; valores: `open`, `removed_from_connection`)
+- `page` (query, integer; default: `1`)
+- `page_size` (query, integer; default: `50`)
+- `fields` (query, string): Campos a devolver, separados por coma. `id` siempre va.
+
+Respuesta `200`: Cuentas bancarias
+
+Esquema: object
+
+Respuesta `400`: Un filtro con un valor fuera del vocabulario (`code: parameter_invalid`, `param`)
+
+Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+
+### GET /v2/bank-accounts/{account_id}/
+
+**Obtener una cuenta bancaria**
+
+Una cuenta por su id. Una cuenta de otra empresa es `404`.
+
+URL completa: `GET https://api.tupana.ai/v2/bank-accounts/{account_id}/`
+
+Parámetros:
+
+- `account_id` (path, string; requerido)
+
+Respuesta `200`: Cuenta bancaria
+
+Esquema: `BankAccount`
+
+Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+
+Respuesta `404`: La cuenta no existe para esta API key
+
 ### Esquemas de Tupana API — v2
 
 #### `BookSummaryItem`
@@ -12476,6 +12639,29 @@ Tipo: object
 - `out_of_term_vat` (integer, nullable): IVA fuera de plazo.
 - `other_taxes_amount` (integer, nullable): Otros impuestos (DTOI), por ejemplo impuestos adicionales.
 - `tax_rate` (string, nullable; ej: `19`): Tasa de IVA aplicada.
+
+#### `BankAccount`
+
+Tipo: object
+
+- `id` (string; ej: `bacc_7Hk2938475610293`)
+- `connection_id` (string, nullable; ej: `cred_9Pq5028174639201`): La conexión (`cred_…`) que alimenta esta cuenta.
+- `company_id` (string; ej: `ment_3672486436546233854`)
+- `institution` (object)
+  - `code` (string; ej: `cl_banco_santander`)
+  - `name` (string; ej: `Banco Santander`)
+- `type` (string; valores: `depository`, `credit`)
+- `subtype` (string, nullable; valores: `checking`, `savings`, `sight`, `credit_card`, `line_of_credit`): `null` cuando Tupana no reconoce el producto del banco.
+- `name` (string; ej: `Cuenta Corriente`)
+- `number_mask` (string, nullable; ej: `5678`): Últimos 4 dígitos. El número completo nunca sale.
+- `currency` (string; ej: `CLP`)
+- `balances` (object)
+  - `current` (number, nullable; ej: `1250000`): Saldo contable. En una tarjeta, lo adeudado.
+  - `available` (number, nullable; ej: `1200000`)
+  - `limit` (number, nullable): Cupo (tarjetas y líneas).
+  - `refreshed_at` (string (date-time), nullable): Última lectura del banco. El GET nunca toca al banco.
+- `credit` (object, nullable): `null` por ahora; con las tarjetas traerá período, vencimiento y pago mínimo.
+- `status` (string; valores: `open`, `closed`, `removed_from_connection`)
 
 ## Tupana API - Recaudación (OpenAPI 1.0.0)
 

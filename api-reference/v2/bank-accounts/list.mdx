@@ -1,0 +1,83 @@
+---
+title: "Listar cuentas bancarias"
+openapi: "api-reference/openapi-v2.json GET /bank-accounts/"
+---
+
+Las cuentas bancarias de las empresas conectadas a tu integración, con los
+saldos tal como quedaron en la última lectura. Es una lista plana: filtras por
+empresa o por conexión en vez de navegar por ellas.
+
+```bash
+curl "https://api.tupana.ai/v2/bank-accounts/?company_id=ment_3672486436546233854" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "bacc_7Hk2938475610293",
+      "connection_id": "cred_9Pq5028174639201",
+      "company_id": "ment_3672486436546233854",
+      "institution": { "code": "cl_banco_santander", "name": "Banco Santander" },
+      "type": "depository",
+      "subtype": "checking",
+      "name": "Cuenta Corriente",
+      "number_mask": "5678",
+      "currency": "CLP",
+      "balances": {
+        "current": 1250000,
+        "available": 1200000,
+        "limit": null,
+        "refreshed_at": "2026-10-28T09:12:00Z"
+      },
+      "credit": null,
+      "status": "open"
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 1, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+## Permiso
+
+Necesitas una API key con el permiso **`banking:read`** escrito en ella. El
+comodín `*` no lo concede: los saldos son de un tercero y no salen por una key
+que nunca pidió verlos. Sin él, `403` con código `banking_permission_required`.
+
+## Filtros
+
+| Parámetro | Qué hace |
+| --- | --- |
+| `company_id` | Solo las cuentas de esa empresa (`ment_…`). |
+| `connection_id` | Solo las cuentas que alimenta esa conexión (`cred_…`, el id de [`GET /connections/`](/api-reference/v2/connections/list)). |
+| `type` | `depository` (corriente, vista, ahorro) o `credit` (tarjeta, línea). |
+| `subtype` | `checking`, `savings`, `sight`, `credit_card`, `line_of_credit`. |
+| `status` | `open` o `removed_from_connection`. |
+
+Un valor fuera de ese vocabulario responde `400` con `code: parameter_invalid` y
+`param` con el filtro culpable. `page` y `page_size` (tope 200) paginan;
+`?fields=id,balances` recorta cada cuenta a esos campos.
+
+## Lo que trae cada cuenta
+
+- `type` y `subtype` son estables aunque cada banco nombre sus productos a su
+  manera. Cuando Tupana no reconoce el producto, `subtype` viene `null`.
+- `number_mask` son los últimos 4 dígitos. El número completo nunca sale por la API.
+- `balances` son números: enteros en CLP, con decimales en otras monedas.
+  `current` es el saldo contable, `available` el disponible y `limit` el cupo
+  (tarjetas y líneas). En una tarjeta, `current` es lo adeudado.
+- `balances.refreshed_at` es la última lectura del banco. **El GET nunca toca
+  al banco**: la frescura la define el ciclo de sincronización de Tupana, no
+  tus llamadas.
+- `credit` viene `null` hoy. Con las tarjetas traerá período de facturación,
+  vencimiento y pago mínimo.
+- `status` es `open` mientras la cuenta sigue en la conexión y
+  `removed_from_connection` cuando el banco dejó de listarla. Sus movimientos
+  se conservan.
+
+<Info>
+Cada lectura queda registrada con tu API key y la cuenta consultada. Es lo que
+permite responder al titular de la cuenta qué integraciones la han visto.
+</Info>

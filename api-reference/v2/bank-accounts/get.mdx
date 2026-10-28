@@ -1,0 +1,21 @@
+---
+title: "Obtener una cuenta bancaria"
+openapi: "api-reference/openapi-v2.json GET /bank-accounts/{account_id}/"
+---
+
+Una cuenta por su id (`bacc_…`), con la misma forma que en
+[el listado](/api-reference/v2/bank-accounts/list).
+
+```bash
+curl https://api.tupana.ai/v2/bank-accounts/bacc_7Hk2938475610293/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+Si la cuenta es de una empresa que no está conectada a tu integración, o no
+existe, responde `404`: para tu API key esa cuenta no existe.
+
+<Note>
+Los ids de cuenta que la plataforma entregaba con prefijo `liac_…` siguen
+funcionando en esta ruta. Guarda siempre el `id` que devuelve la API, que es
+`bacc_…`.
+</Note>
