@@ -177,6 +177,13 @@
                 ]
               },
               {
+                "group": "Cuentas",
+                "pages": [
+                  "api-reference/v2/bank-accounts/list",
+                  "api-reference/v2/bank-accounts/get"
+                ]
+              },
+              {
                 "group": "Errores",
                 "pages": [
                   "api-reference/v2/errors"

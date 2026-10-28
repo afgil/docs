@@ -5651,6 +5651,210 @@
           }
         }
       }
+    },
+    "/bank-accounts/": {
+      "get": {
+        "operationId": "listBankAccounts_v2",
+        "tags": [
+          "Cuentas bancarias"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar cuentas bancarias",
+        "description": "Las cuentas de las empresas conectadas, con los saldos de la última lectura. Exige `banking:read` explícito.",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "ment_3672486436546233854"
+            },
+            "description": "Solo las cuentas de esa empresa."
+          },
+          {
+            "name": "connection_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "cred_9Pq5028174639201"
+            },
+            "description": "Solo las cuentas que alimenta esa conexión."
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "depository",
+                "credit"
+              ]
+            }
+          },
+          {
+            "name": "subtype",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "checking",
+                "savings",
+                "sight",
+                "credit_card",
+                "line_of_credit"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "open",
+                "removed_from_connection"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "maximum": 200
+            }
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Campos a devolver, separados por coma. `id` siempre va."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cuentas bancarias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BankAccount"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer"
+                        },
+                        "page_size": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "next": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "prev": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Un filtro con un valor fuera del vocabulario (`code: parameter_invalid`, `param`)"
+          },
+          "403": {
+            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+          }
+        }
+      }
+    },
+    "/bank-accounts/{account_id}/": {
+      "get": {
+        "operationId": "getBankAccount_v2",
+        "tags": [
+          "Cuentas bancarias"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Obtener una cuenta bancaria",
+        "description": "Una cuenta por su id. Una cuenta de otra empresa es `404`.",
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "bacc_7Hk2938475610293"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cuenta bancaria",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankAccount"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+          },
+          "404": {
+            "description": "La cuenta no existe para esta API key"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -9275,6 +9479,111 @@
             "nullable": true,
             "description": "Tasa de IVA aplicada.",
             "example": "19"
+          }
+        }
+      },
+      "BankAccount": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "bacc_7Hk2938475610293"
+          },
+          "connection_id": {
+            "type": "string",
+            "nullable": true,
+            "example": "cred_9Pq5028174639201",
+            "description": "La conexión (`cred_…`) que alimenta esta cuenta."
+          },
+          "company_id": {
+            "type": "string",
+            "example": "ment_3672486436546233854"
+          },
+          "institution": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "example": "cl_banco_santander"
+              },
+              "name": {
+                "type": "string",
+                "example": "Banco Santander"
+              }
+            }
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "depository",
+              "credit"
+            ]
+          },
+          "subtype": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "checking",
+              "savings",
+              "sight",
+              "credit_card",
+              "line_of_credit"
+            ],
+            "description": "`null` cuando Tupana no reconoce el producto del banco."
+          },
+          "name": {
+            "type": "string",
+            "example": "Cuenta Corriente"
+          },
+          "number_mask": {
+            "type": "string",
+            "nullable": true,
+            "example": "5678",
+            "description": "Últimos 4 dígitos. El número completo nunca sale."
+          },
+          "currency": {
+            "type": "string",
+            "example": "CLP"
+          },
+          "balances": {
+            "type": "object",
+            "properties": {
+              "current": {
+                "type": "number",
+                "nullable": true,
+                "example": 1250000,
+                "description": "Saldo contable. En una tarjeta, lo adeudado."
+              },
+              "available": {
+                "type": "number",
+                "nullable": true,
+                "example": 1200000
+              },
+              "limit": {
+                "type": "number",
+                "nullable": true,
+                "description": "Cupo (tarjetas y líneas)."
+              },
+              "refreshed_at": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true,
+                "description": "Última lectura del banco. El GET nunca toca al banco."
+              }
+            }
+          },
+          "credit": {
+            "type": "object",
+            "nullable": true,
+            "description": "`null` por ahora; con las tarjetas traerá período, vencimiento y pago mínimo."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "closed",
+              "removed_from_connection"
+            ]
           }
         }
       }
