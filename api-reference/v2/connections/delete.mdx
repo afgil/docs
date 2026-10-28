@@ -26,6 +26,10 @@ La conexión sigue apareciendo en el listado con `status: inactive`. Es a
 propósito: así se entiende por qué esa empresa dejó de sincronizar, en vez de
 desaparecer sin explicación. La empresa y sus documentos no se tocan.
 
+En una conexión de banco (`type: "bank"`) se desactiva la conexión con el
+banco y sus cuentas salen de la cola de lectura: no se vuelven a consultar
+saldos ni cartolas. Los movimientos que ya se leyeron se conservan.
+
 <Info>
 `inactive` es una conexión que alguien cortó. No se confunde con
 `requires_action`, que es una clave que dejó de funcionar y hay que reconectar
