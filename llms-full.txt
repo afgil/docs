@@ -1163,12 +1163,21 @@ Suscríbete a estos eventos con [`POST /v2/webhooks/`](https://docs.tupana.ai/ap
 
 ### 4. Lee los movimientos
 
-Cada movimiento sincronizado queda como un documento de pago de la empresa: tipo `100` para los abonos (entradas de dinero) y tipo `101` para los cargos (salidas). Se leen con el mismo endpoint de documentos:
+Cada movimiento sincronizado queda como un documento de pago de la empresa: tipo `100` para los abonos (entradas de dinero) y tipo `101` para los cargos (salidas). Se leen con el mismo endpoint de documentos, usando el `connection_id` que guardaste en el paso 3:
 
 ```bash
-curl "https://api.tupana.ai/v2/documents/?master_entity_id=ment_4829301923847&dte_type__code__in=100,101&issue_date_gte=2026-10-01&page_size=100" \
+curl "https://api.tupana.ai/v2/documents/?connection_id=cred_5028174639201&issue_date_gte=2026-10-01&page_size=100" \
   -H "Authorization: Api-Key $TUPANA_API_KEY"
 ```
+
+Con `connection_id` llegan solo los movimientos de las cuentas de ese banco, y no necesitas el `master_entity_id`. Si la empresa conectó varios bancos y quieres todos sus movimientos juntos, usa el Tupana ID de la empresa con `category=bank`:
+
+```bash
+curl "https://api.tupana.ai/v2/documents/?master_entity_id=ment_4829301923847&category=bank&issue_date_gte=2026-10-01&page_size=100" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+> **Nota:** La primera lectura de la cartola no es instantánea: termina unos minutos después de `connection.active`. Si consultas justo al conectar, la lista puede venir vacía.
 
 ```json
 {
@@ -1186,7 +1195,7 @@ curl "https://api.tupana.ai/v2/documents/?master_entity_id=ment_4829301923847&dt
 }
 ```
 
-Con los SDKs oficiales es la misma llamada:
+Con los SDKs oficiales, por Tupana ID de la empresa:
 
 ```ts Node.js
 
@@ -5377,6 +5386,23 @@ Endpoint: `GET /documents/` (detalle completo en la Parte 2).
 - Filtrar documentos por fecha de emisión
 - Consultar documentos por tipo (factura, boleta, etc.)
 - Obtener documentos recibidos o emitidos por separado
+
+### Filtrar por conexión o por categoría
+
+Si conectaste la empresa con [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-link), consulta directo con el `connection_id` (`cred_…`) que te llegó en el webhook `connection.active`. No necesitas el `master_entity_id`.
+
+| Quieres | Usa |
+|---|---|
+| Los movimientos de UN banco (abonos y cargos de sus cuentas) | `connection_id=cred_…` de esa conexión de banco |
+| Los documentos tributarios de la empresa | `connection_id=cred_…` de la conexión del SII, o `category=tax` |
+| Los movimientos de todos los bancos de la empresa | `master_entity_id=ment_…&category=bank` |
+
+```http
+GET /v2/documents/?connection_id=cred_3895279275110346203
+GET /v2/documents/?master_entity_id=ment_4829301923847&category=tax&document_type=received
+```
+
+`master_entity_id` sigue funcionando igual. Si envías los dos, la conexión tiene que ser de esa empresa; si una credencial cubre varias de tus empresas, indica cuál con `master_entity_id`.
 
 ### Eventos de la traza (opt-in)
 
@@ -9929,7 +9955,9 @@ URL completa: `GET https://api.tupana.ai/v2/documents/`
 
 Parámetros:
 
-- `master_entity_id` (query, string; requerido): ID de la entidad emisora o receptora cuyos documentos quieres consultar. El public ID de la entidad (`ment_...`).
+- `master_entity_id` (query, string): Tupana ID (`ment_…`) de la empresa cuyos documentos quieres consultar. Obligatorio, salvo que envíes `connection_id`: en ese caso la empresa sale de la conexión. Si envías ambos, la conexión tiene que ser de esa empresa.
+- `connection_id` (query, string): Credencial de la conexión (`cred_…`), la que te entrega Tupana Connect y el webhook `connection.active`. Una conexión de banco devuelve solo los abonos (100) y cargos (101) de las cuentas de ese banco; una conexión tributaria (SII) devuelve los documentos tributarios de la empresa, sin movimientos bancarios. Con `connection_id` no necesitas `master_entity_id` (salvo que la credencial cubra varias de tus empresas).
+- `category` (query, string; valores: `tax`, `bank`): `tax`: solo documentos tributarios (todo excepto los movimientos bancarios 100 y 101). `bank`: solo movimientos del banco (100 abonos y 101 cargos), de todos los bancos de la empresa.
 - `document_type` (query, string; valores: `issued`, `received`; default: `"issued"`): `issued` (por defecto) o `received`. `issued` devuelve documentos donde la entidad es el **emisor**. `received` devuelve documentos donde la entidad es el **receptor** (cuando usas `received`, el parámetro `search` buscará en el nombre y RUT del emisor, y `issuer_tax_id` permite filtrar por RUT del emisor específico).
 - `folio` (query, integer): Folio exacto del documento. Si se envía, se ignoran otros filtros y se devuelve el documento específico.
 - `search` (query, string): Busca por nombre o RUT del receptor (cuando `document_type=issued`) o del emisor (cuando `document_type=received`).
