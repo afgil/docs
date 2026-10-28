@@ -129,6 +129,7 @@ Detalle: https://docs.tupana.ai/precios · https://developers.tupana.ai/pricing
 - [Listar instituciones](https://docs.tupana.ai/api-reference/v2/institutions/list)
 - [Listar cuentas bancarias](https://docs.tupana.ai/api-reference/v2/bank-accounts/list)
 - [Obtener una cuenta bancaria](https://docs.tupana.ai/api-reference/v2/bank-accounts/get)
+- [api-reference/v2/banking/webhooks](https://docs.tupana.ai/api-reference/v2/banking/webhooks)
 
 ### API Cesiones
 

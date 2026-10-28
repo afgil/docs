@@ -184,6 +184,13 @@
                 ]
               },
               {
+                "group": "Webhooks",
+                "pages": [
+                  "api-reference/v2/banking/webhooks",
+                  "api-reference/v2/webhooks-pages/create"
+                ]
+              },
+              {
                 "group": "Errores",
                 "pages": [
                   "api-reference/v2/errors"

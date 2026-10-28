@@ -12007,7 +12007,7 @@ Notificación enviada a la URL del webhook. Headers: `X-Pana-Event-Id`, `X-Pana-
 
 Tipo: object
 
-- `event` (string; valores: `document.issued`, `document.delivered`, `document.rejected`, `document.trace_updated`, `document.paid`, `document.unpaid`, `document.cancelled`, `scheduled_document.created`, `scheduled_document.updated`, `scheduled_document.executed`, `scheduled_document.failed`, `folio_request.completed`, `folio_request.failed`, `folio_request.authorized_without_caf`, `credential.validated`, `credential.invalid`, `webhook.test`): Tipo de evento
+- `event` (string; valores: `document.issued`, `document.delivered`, `document.rejected`, `document.trace_updated`, `document.paid`, `document.unpaid`, `document.cancelled`, `scheduled_document.created`, `scheduled_document.updated`, `scheduled_document.executed`, `scheduled_document.failed`, `folio_request.completed`, `folio_request.failed`, `folio_request.authorized_without_caf`, `credential.validated`, `credential.invalid`, `webhook.test`, `bank_account.refreshed`, `bank_account.refresh_failed`, `movement.created`, `movement.updated`, `connection.degraded`): Tipo de evento
 - `created_at` (string (date-time)): Fecha y hora del evento (ISO 8601)
 - `data` (object): Datos del evento. Para `document.*`:
   - `id` (string; ej: `docu_8371029384756`): public_id del documento (`api_version` 2). Con `api_version` 1 es el id entero.

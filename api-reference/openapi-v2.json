@@ -6724,7 +6724,12 @@
               "folio_request.authorized_without_caf",
               "credential.validated",
               "credential.invalid",
-              "webhook.test"
+              "webhook.test",
+              "bank_account.refreshed",
+              "bank_account.refresh_failed",
+              "movement.created",
+              "movement.updated",
+              "connection.degraded"
             ]
           },
           "created_at": {
