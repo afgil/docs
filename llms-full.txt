@@ -5308,6 +5308,40 @@ que la deja `inactive` y suelta la clave.
 
 ---
 
+## Crear sesión de Tupana Connect (API v2)
+
+Fuente: https://docs.tupana.ai/api-reference/v2/connect/create-session · Sección: API Facturación / Conexiones
+
+> Crea la sesión de corta duración con la que tu frontend abre el widget de Tupana Connect. La llama tu backend con tu API key; al navegador solo llega el client_token.
+
+Endpoint: `POST /connect-sessions/` (detalle completo en la Parte 2).
+
+Es el primer paso de [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect):
+tu backend crea la sesión con su API key y le pasa al frontend solo el
+`client_token`. Tu API key nunca va al navegador y la clave del SII de tu
+usuario nunca pasa por tu código.
+
+### Abrir el widget
+
+Con el token abres `https://developers.tupana.ai/connect?token=…` en un iframe
+o en una ventana. El token dura 30 minutos y sirve una sola vez: créalo justo
+cuando tu usuario hace clic en "Conectar empresa".
+
+```html
+<iframe src="https://developers.tupana.ai/connect?token=cst_9f2b…"
+        width="460" height="660" frameborder="0"></iframe>
+```
+
+### Confirmar la conexión
+
+El widget te avisa por `postMessage` con `event: "success"` cuando el usuario
+termina, pero eso solo sirve para cerrar tu modal. La conexión es real cuando
+tu backend recibe el webhook `connection.active`; si la clave estaba mala,
+llega `connection.requires_action`. Después la ves en
+[Listar conexiones](https://docs.tupana.ai/api-reference/v2/connections/list) con su `company_id`.
+
+---
+
 ## Listar conexiones de empresas (API v2)
 
 Fuente: https://docs.tupana.ai/api-reference/v2/connections/list · Sección: API Facturación / Conexiones
@@ -12163,6 +12197,33 @@ Esquema: `Error`
 Respuesta `403`: Usuario sin acceso a entidades
 
 Esquema: `Error`
+
+### POST /v2/connect-sessions/
+
+**Crear sesión de Tupana Connect**
+
+Crea una sesión de corta duración para abrir el widget de Tupana Connect. La llama tu backend con tu API key; al frontend solo le pasas el `client_token`, que dura 30 minutos y sirve una sola vez. La conexión queda confirmada cuando recibes el webhook `connection.active`, no con el evento `success` del widget.
+
+URL completa: `POST https://api.tupana.ai/v2/connect-sessions/`
+
+Cuerpo (`application/json`): object
+
+- `capabilities` (array de string; default: `["invoicing"]`): Qué podrá hacer la conexión: `invoicing` emite documentos, `sii_data` lee el registro de compras y ventas, `banking` lee cuentas y movimientos. Puedes pedir varias.
+- `tax_id` (string; ej: `78.152.641-K`): RUT de la empresa a conectar. Si lo mandas, el widget no lo vuelve a pedir.
+- `app_name` (string; ej: `Mi ERP`; máx. largo 120): Nombre de tu app, se muestra dentro del widget.
+- `external_customer_id` (string; ej: `cust_8841`; máx. largo 120): Tu identificador del cliente. Vuelve en los webhooks de la conexión.
+- `return_url` (string (uri); ej: `https://mi-erp.cl/integraciones/tupana`): Si abres el widget en una ventana en vez de un iframe, adónde vuelve al terminar.
+- `environment` (string; valores: `sandbox`, `production`): Por defecto sigue al ambiente de tu API key. Una key de sandbox solo puede abrir sesiones sandbox.
+
+Respuesta `201`: Sesión creada
+
+Esquema: object
+
+Respuesta `400`: Payload inválido (capability desconocida, lista vacía, ambiente no permitido para la key)
+
+Esquema: object
+
+Respuesta `402`: Developer sin tarjeta registrada abriendo Connect en producción
 
 ### GET /v2/connections/
 
