@@ -13,14 +13,14 @@ Este archivo resume qué es Tupana, cuándo conviene usarla y dónde está cada 
 - Precio de la API (developers): Facturación 0,5 UF al mes por empresa enrolada (100 documentos o 1.000 boletas), Lectura SII 0,2 UF, bancos 0,35 UF por banco, recaudación 2% + IVA. Sandbox gratis, sin mínimo, solo API. Los planes web (desde 0,3 UF) son otro producto. Detalle: https://developers.tupana.ai/pricing
 - API keys en https://developers.tupana.ai/console. Las keys nuevas nacen en sandbox: la emisión se simula (folio `SANDBOX-{n}`) y nada llega al SII. El sandbox es gratis.
 - Emisión masiva: `POST /v2/documents/batch/`, hasta 500 documentos por llamada, con header `Idempotency-Key` (reintentar con la misma clave no vuelve a emitir) y `X-Use-Defaults: true`. El resultado llega por webhook (`document.issued`, `document.rejected`, `document.issue_failed`), firmado con HMAC-SHA256 en `X-Pana-Signature` sobre el cuerpo crudo.
-- Las empresas se conectan con Tupana Link (widget); el integrador nunca ve la clave del SII. Una API key opera sobre todas las empresas conectadas a su usuario.
+- Las empresas se conectan con Tupana Connect (widget); el integrador nunca ve la clave del SII. Una API key opera sobre todas las empresas conectadas a su usuario.
 - Documentos: factura 33, factura exenta 34, boleta 39, boleta exenta 41, factura de compra 46, guía de despacho 52, nota de débito 56, nota de crédito 61, boleta de honorarios 80 y 90, exportación 110, 111 y 112.
 - Ids de la API v2: strings opacos con prefijo (`docu_…` documento, `ment_…` empresa, `cred_…` conexión, `dowe_…` webhook).
 
 ## Cuándo usar Tupana
 
 - Necesitas emitir DTE al SII de Chile desde tu software (SaaS, ERP, e-commerce, marketplace, sistema de reservas) por API.
-- Facturas para muchas empresas con una sola integración (multiempresa): cada cliente conecta su empresa con Tupana Link y tú emites eligiendo el emisor por RUT.
+- Facturas para muchas empresas con una sola integración (multiempresa): cada cliente conecta su empresa con Tupana Connect y tú emites eligiendo el emisor por RUT.
 - Necesitas volumen o formato que el facturador gratuito del SII no permite: Tupana es facturador de mercado, sin sus límites de referencias, líneas, monto o volumen.
 - Quieres emitir en lote (hasta 500 documentos por llamada) con idempotencia y webhooks.
 - Quieres cobrar con link de pago (Transbank) y que la boleta o factura se emita al pagar.
@@ -112,7 +112,7 @@ Factura electrónica (33), factura exenta (34), boleta electrónica (39), boleta
 ### Cómo funciona
 
 1. **Crea una API key** en [developers.tupana.ai](https://developers.tupana.ai/console). Nace en sandbox: simula la emisión y no envía nada al SII.
-2. **Conecta la empresa emisora** con [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link). Tu cliente entrega su clave dentro del widget; tu backend nunca la ve.
+2. **Conecta la empresa emisora** con [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect). Tu cliente entrega su clave dentro del widget; tu backend nunca la ve.
 3. **Emite** con [`POST /v2/documents/batch/`](https://docs.tupana.ai/api-reference/v2/documents/batch): hasta 500 documentos por llamada, con `Idempotency-Key`.
 4. **Recibe el resultado** por [webhook](https://docs.tupana.ai/guias/webhooks): folio, estado del SII, XML y PDF.
 
@@ -209,7 +209,7 @@ Si recibes `401`, revisa que el header sea exactamente `Authorization: Api-Key <
 
 Con una key de sandbox, `POST /v2/documents/batch/` **simula** la emisión: el documento se crea y se puede consultar, pero no va al SII y su folio tiene la forma `SANDBOX-{n}`. En sandbox no se exige la clave del SII de la empresa emisora.
 
-Usa como emisor (`document_issuer.rut`) el RUT de una empresa que tengas conectada en tu cuenta. Para conectar una, mira [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link) (en sandbox, la conexión también es de prueba).
+Usa como emisor (`document_issuer.rut`) el RUT de una empresa que tengas conectada en tu cuenta. Para conectar una, mira [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect) (en sandbox, la conexión también es de prueba).
 
 Puedes hacerlo con curl o con los SDKs oficiales (`npm install tupana` o `pip install tupana`, ver [SDKs](https://docs.tupana.ai/sdks/introduccion)):
 
@@ -607,7 +607,7 @@ Para SaaS, ERP y plataformas que facturan por API para sus clientes. Pagas por e
 | **Lectura SII** | **0,2 UF** al mes por empresa | Registro de compra y venta, boletas de honorarios emitidas y recibidas. Solo lectura; requiere la clave del SII de la empresa. |
 | **Lectura bancaria** | **0,35 UF** al mes por banco que enroles | Cuentas, saldos y movimientos sincronizados sin límite. |
 | **Recaudación** | **2% + IVA** de lo recaudado | Link de pago integrado a Transbank y webhook cuando llega el dinero. Sin costo fijo. |
-| **Sandbox** | **Gratis** | APIs, MCP, Tupana Link, facturas y webhooks de prueba. |
+| **Sandbox** | **Gratis** | APIs, MCP, Tupana Connect, facturas y webhooks de prueba. |
 | **Bases de datos gratuitas** | **Gratis** | [Nómina de empresas del SII](https://docs.tupana.ai/api-reference/v2/free-databases/introduction), con cualquier API key. No consume cupo. |
 
 ¿Necesitas más de 100 documentos o 1.000 boletas al mes por empresa? Pide un plan a la medida en [developers.tupana.ai](https://developers.tupana.ai/pricing).
@@ -677,7 +677,7 @@ Esta guía arma una emisión masiva de punta a punta: preparar el lote, enviarlo
 ### Antes de empezar
 
 - Una API key (empieza con una de **sandbox**: simula la emisión y no envía nada al SII). Ver [Tu primera llamada](https://docs.tupana.ai/quickstart).
-- La empresa emisora conectada con [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link). En producción, sin una conexión activa la API responde `400` (credenciales no activas).
+- La empresa emisora conectada con [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect). En producción, sin una conexión activa la API responde `400` (credenciales no activas).
 - Un [webhook](https://docs.tupana.ai/guias/webhooks) para la empresa, para recibir el estado final y los archivos.
 
 ### 1. Arma el lote
@@ -748,7 +748,7 @@ La API acepta el lote y lo procesa en segundo plano. La respuesta trae un `batch
 | Código | Qué significa | Qué hacer |
 |---|---|---|
 | `202` / `201` | Lote aceptado | Espera el webhook o consulta los documentos |
-| `400` | La empresa emisora no tiene una conexión activa | Conéctala con Tupana Link |
+| `400` | La empresa emisora no tiene una conexión activa | Conéctala con Tupana Connect |
 | `413` | Más de 500 documentos | Divide el lote |
 | `422` | Error de validación, con la posición del documento y la ruta del campo | Corrige y reenvía con una **nueva** `Idempotency-Key` |
 
@@ -895,13 +895,13 @@ Desde la plataforma (**Configuración → Webhooks → Probar**) se envía un `w
 
 Fuente: https://docs.tupana.ai/guias/multiempresa · Sección: Guía de Usuario / Guías por tarea
 
-> Cómo un SaaS, ERP o estudio contable emite facturas electrónicas al SII para muchas empresas con una sola API key de Tupana: conexiones con Tupana Link, emisor por RUT, webhooks por empresa y reconexión.
+> Cómo un SaaS, ERP o estudio contable emite facturas electrónicas al SII para muchas empresas con una sola API key de Tupana: conexiones con Tupana Connect, emisor por RUT, webhooks por empresa y reconexión.
 
 Si eres un SaaS, un ERP o un estudio contable, no integras una empresa: integras cientos. En Tupana eso es una sola integración. La API key es **por usuario** y opera sobre todas las empresas conectadas a ese usuario; cada empresa se conecta una vez (una conexión o credencial por empresa, por eso se le dice multicredencial) y desde ahí la eliges por su RUT en cada documento.
 
 ### Cómo se arma
 
-**Cada cliente conecta su empresa con Tupana Link**
+**Cada cliente conecta su empresa con Tupana Connect**
 
     Tu backend abre una sesión (`POST /v2/connect-sessions/`) y tu frontend muestra el widget. Tu cliente entrega su clave adentro del widget: tú nunca la ves. Manda tu propio id de cliente en `external_customer_id` para cruzarlo después.
 
@@ -912,7 +912,7 @@ curl -X POST https://api.tupana.ai/v2/connect-sessions/ \
   -d '{"capabilities": ["invoicing"], "app_name": "Mi SaaS", "tax_id": "78.152.641-K", "external_customer_id": "cus_912"}'
 ```
 
-    El detalle del widget y sus eventos está en [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link).
+    El detalle del widget y sus eventos está en [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect).
 
 **Guardas la conexión cuando queda activa**
 
@@ -942,7 +942,7 @@ curl -X POST https://api.tupana.ai/v2/connect-sessions/ \
 ### Mantener las conexiones sanas
 
 - [`GET /v2/connections/`](https://docs.tupana.ai/api-reference/v2/connections/list) lista todas las empresas conectadas, con su giro, dirección, ambiente (`sandbox` o `production`) y `status`.
-- Cuando una clave deja de funcionar, la conexión pasa a `requires_action` y llega el webhook `connection.requires_action`. No hay nada que reintentar desde tu lado: pide a tu cliente que reconecte con Tupana Link.
+- Cuando una clave deja de funcionar, la conexión pasa a `requires_action` y llega el webhook `connection.requires_action`. No hay nada que reintentar desde tu lado: pide a tu cliente que reconecte con Tupana Connect.
 - Para dar de baja una empresa, usa [Desactivar una conexión](https://docs.tupana.ai/api-reference/v2/connections/delete).
 
 ### Permisos
@@ -957,7 +957,7 @@ Facturación por API cuesta **0,5 UF al mes por empresa que enroles**, sin preci
 
 ### Relacionado
 
-- [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link)
+- [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect)
 - [Listar conexiones](https://docs.tupana.ai/api-reference/v2/connections/list)
 - [Emitir facturas en lote](https://docs.tupana.ai/guias/emision-masiva)
 
@@ -967,9 +967,9 @@ Facturación por API cuesta **0,5 UF al mes por empresa que enroles**, sin preci
 
 Fuente: https://docs.tupana.ai/guias/lectura-sii · Sección: Guía de Usuario / Guías por tarea
 
-> Conecta la empresa de tu cliente con Tupana Link y lee su registro de compras y ventas, sus DTE emitidos y recibidos y sus boletas de honorarios por la API v2.
+> Conecta la empresa de tu cliente con Tupana Connect y lee su registro de compras y ventas, sus DTE emitidos y recibidos y sus boletas de honorarios por la API v2.
 
-Esta guía conecta la empresa de un cliente y lee sus datos del SII desde tu backend: el Registro de Compras y Ventas (RCV), los documentos emitidos y recibidos y las boletas de honorarios. Es solo lectura. Para emitir, la conexión es otra (`invoicing`) y pide la clave del representante; ver [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link).
+Esta guía conecta la empresa de un cliente y lee sus datos del SII desde tu backend: el Registro de Compras y Ventas (RCV), los documentos emitidos y recibidos y las boletas de honorarios. Es solo lectura. Para emitir, la conexión es otra (`invoicing`) y pide la clave del representante; ver [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect).
 
 ### 1. Conecta la empresa con `sii_data`
 
@@ -985,7 +985,7 @@ curl -X POST https://api.tupana.ai/v2/connect-sessions/ \
   }'
 ```
 
-Abre el widget con el `client_token` (igual que en [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link)). Tu cliente escribe la clave del SII de su empresa dentro del widget. Cuando el SII la valida, tu backend recibe `connection.active` con el `company_id` (`ment_…`) que usarás en todas las lecturas.
+Abre el widget con el `client_token` (igual que en [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect)). Tu cliente escribe la clave del SII de su empresa dentro del widget. Cuando el SII la valida, tu backend recibe `connection.active` con el `company_id` (`ment_…`) que usarás en todas las lecturas.
 
 > **Nota:** `sii_data` lee con la clave de la empresa. `invoicing` emite y necesita la clave del representante legal con permisos. Si vas a hacer las dos cosas, pide `["invoicing", "sii_data"]` en la misma sesión.
 
@@ -1102,11 +1102,11 @@ La lectura del SII cuesta **0,2 UF al mes por empresa**, más IVA: registro de c
 
 Fuente: https://docs.tupana.ai/guias/movimientos-bancarios · Sección: Guía de Usuario / Guías por tarea
 
-> Conecta el banco de cada cliente con Tupana Link y lee sus abonos y cargos por la API v2: sesión, webhook connection.active, documentos 100 y 101 y aviso document.paid.
+> Conecta el banco de cada cliente con Tupana Connect y lee sus abonos y cargos por la API v2: sesión, webhook connection.active, documentos 100 y 101 y aviso document.paid.
 
-Esta guía conecta el banco de un cliente de tu SaaS y lee sus movimientos desde tu backend. La clave del banco la escribe tu cliente dentro de Tupana Link: tu sistema nunca la ve y solo guarda un `connection_id` (`cred_…`). La conexión es de solo lectura: no puede mover dinero.
+Esta guía conecta el banco de un cliente de tu SaaS y lee sus movimientos desde tu backend. La clave del banco la escribe tu cliente dentro de Tupana Connect: tu sistema nunca la ve y solo guarda un `connection_id` (`cred_…`). La conexión es de solo lectura: no puede mover dinero.
 
-### Bancos disponibles en Tupana Link
+### Bancos disponibles en Tupana Connect
 
 Banco de Chile, Santander, BancoEstado, BCI, Itaú, Scotiabank, Security, BICE y Falabella. Para cuentas de empresa y de persona.
 
@@ -1135,7 +1135,7 @@ La respuesta trae un `client_token` de un solo uso que dura 30 minutos. Con una 
         width="460" height="660" frameborder="0"></iframe>
 ```
 
-Tu cliente elige su banco, escribe el RUT de la persona que entra a la cuenta y su clave. El widget espera la respuesta del banco y le muestra sus cuentas. El detalle de eventos (`open`, `success`, `exit`) está en [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link).
+Tu cliente elige su banco, escribe el RUT de la persona que entra a la cuenta y su clave. El widget espera la respuesta del banco y le muestra sus cuentas. El detalle de eventos (`open`, `success`, `exit`) está en [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect).
 
 ### 3. Confirma la conexión por webhook
 
@@ -1240,7 +1240,7 @@ La lectura bancaria cuesta **0,35 UF al mes por banco** conectado, más IVA, con
 **[Leer el SII por API](https://docs.tupana.ai/guias/lectura-sii)**:
     Registro de compras y ventas, DTE emitidos y recibidos y boletas de honorarios.
 
-**[Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link)**:
+**[Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect)**:
     Sesión, widget, eventos y confirmación por webhook.
 
 ---
@@ -4676,7 +4676,7 @@ Si tienes problemas con tus webhooks:
 
 Fuente: https://docs.tupana.ai/changelog · Sección: Guía de Usuario / Novedades
 
-> Historial completo de cambios de la API de facturación electrónica de Tupana para Chile: API v1 y v2, emisión de DTE al SII, webhooks, sandbox, Tupana Link, cesiones, recaudación, folios, libros del SII, servidor MCP y SDKs.
+> Historial completo de cambios de la API de facturación electrónica de Tupana para Chile: API v1 y v2, emisión de DTE al SII, webhooks, sandbox, Tupana Connect, cesiones, recaudación, folios, libros del SII, servidor MCP y SDKs.
 
 Aquí registramos cada cambio de la API de Tupana que se nota desde tu integración: endpoints nuevos, campos, eventos de webhook, tipos de documento, límites y cambios de comportamiento. Las fechas son las de salida a producción. Suscríbete por RSS para enterarte de cada novedad.
 
@@ -4707,13 +4707,13 @@ Aquí registramos cada cambio de la API de Tupana que se nota desde tu integraci
   - Nuevo campo `environment` en los webhooks: `production`, `sandbox` o `both` (por defecto). Así un mismo endpoint recibe sólo los eventos del ambiente que elijas. Ver [Webhooks](https://docs.tupana.ai/user-guide/webhooks).
 
   - Nuevos endpoints de [conexiones](https://docs.tupana.ai/api-reference/v2/connections/list): listar y [desactivar](https://docs.tupana.ai/api-reference/v2/connections/delete) las empresas conectadas. `/v2/connections/` acepta API key y sesión de usuario.
-  - La conexión de un banco por Tupana Link se da por activa cuando el banco entrega las cuentas, y en ese momento se envía el webhook `connection.active` (o `connection.requires_action`).
+  - La conexión de un banco por Tupana Connect se da por activa cuando el banco entrega las cuentas, y en ese momento se envía el webhook `connection.active` (o `connection.requires_action`).
   - Consola de developers en [developers.tupana.ai/console](https://developers.tupana.ai/console): crea tu cuenta y tus API keys.
 
   - [Bases de datos gratuitas](https://docs.tupana.ai/api-reference/v2/free-databases/introduction): nómina de empresas del SII consultable con cualquier API key, con [búsqueda](https://docs.tupana.ai/api-reference/v2/free-databases/companies-search), [historia por RUT](https://docs.tupana.ai/api-reference/v2/free-databases/company-history), [resumen](https://docs.tupana.ai/api-reference/v2/free-databases/companies-summary) y [metadatos](https://docs.tupana.ai/api-reference/v2/free-databases/companies-metadata).
   - El servidor MCP enseña a construir facturación dentro de otro SaaS: flujo de emisión, especificación de la interfaz, búsqueda de clientes por RUT y reglas de validación. Ver [Agentes de IA](https://docs.tupana.ai/agentes/introduccion).
 
-  - [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link): el widget hospedado con el que tus usuarios conectan su empresa (SII y bancos). En v2 reemplaza la creación de credenciales por API. Nuevos eventos de webhook `connection.active` y `connection.requires_action`.
+  - [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect): el widget hospedado con el que tus usuarios conectan su empresa (SII y bancos). En v2 reemplaza la creación de credenciales por API. Nuevos eventos de webhook `connection.active` y `connection.requires_action`.
   - `additional_info` en documentos (creación, detalle, listado y webhooks). Se imprime en el PDF y queda fija cuando el documento tiene folio.
   - [Emisión v2](https://docs.tupana.ai/api-reference/v2/documents/batch): ya no es necesario enviar `master_entity_id`; el emisor se toma de `document_issuer`. En sandbox no se exige credencial del SII y la vista previa del borrador funciona igual que en producción.
 
@@ -4843,7 +4843,7 @@ Aquí registramos cada cambio de la API de Tupana que se nota desde tu integraci
 
 Fuente: https://docs.tupana.ai/api-reference/v2/introduction · Sección: API Facturación / Introducción
 
-> API REST v2 de Tupana para emitir facturas, boletas, notas de crédito y guías (DTE) al SII de Chile en lote: autenticación, sandbox, Tupana Link, webhooks, paginación y errores.
+> API REST v2 de Tupana para emitir facturas, boletas, notas de crédito y guías (DTE) al SII de Chile en lote: autenticación, sandbox, Tupana Connect, webhooks, paginación y errores.
 
 ## Introducción a la API de Facturación
 
@@ -4851,7 +4851,7 @@ La API de Facturación emite directo al SII como **facturador de mercado** y tam
 
 1. **obtener tu API Key**
 2. **partir en modo Sandbox** (recomendado)
-3. **conectar la empresa con [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link)** (el widget; en v2 no se crean credenciales por API)
+3. **conectar la empresa con [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect)** (el widget; en v2 no se crean credenciales por API)
 4. **crear batches para emitir documentos**
 5. **configurar webhooks por empresa para recibir los resultados**
 6. **(opcional) usar campos avanzados** como direcciones y actividades económicas personalizadas
@@ -4871,11 +4871,11 @@ Existe operación en **Sandbox** y en **Producción**.
 
 Se recomienda comenzar en Sandbox para validar el flujo completo sin riesgos. Las keys que creas en [developers.tupana.ai](https://developers.tupana.ai/console) nacen en sandbox: la emisión se simula (folio `SANDBOX-{n}`) y nada llega al SII. Se autentican con el header `Authorization: Api-Key <tu_key>`. Ver [Tu primera llamada en 2 minutos](https://docs.tupana.ai/quickstart).
 
-### 2) Conectar la empresa con Tupana Link
+### 2) Conectar la empresa con Tupana Connect
 
 Antes de emitir, cada empresa tiene que estar conectada, y en v2 la clave no
 viaja por API: abres el widget de
-[Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link). Tu backend pide un
+[Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect). Tu backend pide un
 `client_token`, el usuario entrega la clave adentro del widget, y tú guardas el
 `connection_id` (`cred_…`) cuando la conexión queda activa. Las conexiones se
 listan y se quitan en
@@ -5024,7 +5024,7 @@ Ver [Errores](https://docs.tupana.ai/api-reference/v2/errors).
 
 ### Endpoints relacionados
 
-- **[Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link)** — Conectar una empresa (widget)
+- **[Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect)** — Conectar una empresa (widget)
 - **[Listar conexiones](https://docs.tupana.ai/api-reference/v2/connections/list)** — Ver empresas ya conectadas
 - **[Emisión masiva](https://docs.tupana.ai/api-reference/v2/documents/batch)** — Crear un lote de documentos
 - **[Listar documentos](https://docs.tupana.ai/api-reference/v2/documents/list)** — Consultar documentos emitidos o recibidos
@@ -5070,13 +5070,13 @@ Esta información es esencial para validar que estás emitiendo el tipo correcto
 
 ---
 
-## Tupana Link: conectar empresas al SII desde tu SaaS
+## Tupana Connect: conectar empresas al SII desde tu SaaS
 
-Fuente: https://docs.tupana.ai/api-reference/v2/connect/tupana-link · Sección: API Facturación / Conexiones
+Fuente: https://docs.tupana.ai/api-reference/v2/connect/tupana-connect · Sección: API Facturación / Conexiones
 
-> Tupana Link es el widget con el que tus usuarios conectan su empresa (SII, facturador de mercado o banco) a tu SaaS sin que veas su clave. Sesión, iframe, eventos y webhook connection.active.
+> Tupana Connect es el widget con el que tus usuarios conectan su empresa (SII, facturador de mercado o banco) a tu SaaS sin que veas su clave. Sesión, iframe, eventos y webhook connection.active.
 
-## Tupana Link
+## Tupana Connect
 
 El widget que abres en tu app para que **tu usuario final** conecte su
 empresa. La clave del SII (o del facturador, o del banco) viaja a Tupana.
@@ -5087,7 +5087,7 @@ En v2 la clave no se manda por API: conectas con este widget y guardas el
 
 _Esto ve tu usuario. Tú solo recibes el cred_…._
 
-  [Imagen: Tupana Link — SII gratuito]
+  [Imagen: Tupana Connect — SII gratuito]
 
 ### Integra en tres llamadas
 
@@ -5318,7 +5318,7 @@ Endpoint: `GET /connections/` (detalle completo en la Parte 2).
 
 Las empresas conectadas a tu integración. Una conexión es lo único que tu SaaS
 conoce de una empresa: nunca ves la clave del SII, porque la entrega el usuario
-final dentro de [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link).
+final dentro de [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect).
 
 Es además el paso **empresa emisora** de cualquier flujo. Cada conexión trae el
 giro, su código y la dirección, así que no necesitas guardarlos: mandas
@@ -5366,9 +5366,9 @@ y los movimientos se leen igual venga de donde venga.
 | --- | --- | --- |
 | `active` | La conexión sirve y se está leyendo. | Nada. |
 | `pending` | Banco por conector propio: todavía no terminó la primera lectura. | Esperar. |
-| `requires_action` | La clave dejó de servir, o el banco pidió reconectar. | El usuario final reconecta la empresa con [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link). No hay nada que reintentar desde tu lado. |
+| `requires_action` | La clave dejó de servir, o el banco pidió reconectar. | El usuario final reconecta la empresa con [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect). No hay nada que reintentar desde tu lado. |
 | `degraded` | Banco: alguna cuenta quedó detenida tras fallos repetidos; las demás siguen. | Nada por tu lado; Tupana la revisa. Si persiste, reconectar. |
-| `inactive` | Alguien la desactivó con `DELETE`. | Volver a conectar con Tupana Link si hace falta. |
+| `inactive` | Alguien la desactivó con `DELETE`. | Volver a conectar con Tupana Connect si hace falta. |
 
 En las conexiones de banco el estado sale de la conexión bancaria misma, no
 solo de la clave guardada: un link al que el banco le pidió volver a entrar es
@@ -5382,7 +5382,7 @@ Fuente: https://docs.tupana.ai/api-reference/v2/connections/reauthorize · Secci
 
 Endpoint: `POST /connections/{connection_id}/reauthorizations/` (detalle completo en la Parte 2).
 
-Vuelve a abrir [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link) para que el
+Vuelve a abrir [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect) para que el
 usuario final entre de nuevo al banco de una conexión que ya existe. La sesión
 sale apuntando a esa empresa y ese banco, así que el usuario se salta esos
 pasos, y la conexión **conserva su `connection_id`**: cuando termine, sigue
@@ -5441,11 +5441,11 @@ Sin `company_id` responde `400` diciendo que la conexión cubre varias empresas.
 
 - `404`: esa conexión no existe para tu API key.
 - `400`: la conexión es tributaria (una conexión del SII se vuelve a conectar
-  con una sesión nueva de Tupana Link), la conexión no tiene banco asociado, o
+  con una sesión nueva de Tupana Connect), la conexión no tiene banco asociado, o
   falta `company_id`.
 - `403`: una API key de sandbox no abre sesiones de producción.
 
-> **Importante:** Solo conexiones de banco. Para el SII, crea una sesión de Tupana Link con
+> **Importante:** Solo conexiones de banco. Para el SII, crea una sesión de Tupana Connect con
 `capabilities: ["invoicing"]` o `["sii_data"]`.
 
 ---
@@ -5485,9 +5485,9 @@ saldos ni cartolas. Los movimientos que ya se leyeron se conservan.
 
 > **Info:** `inactive` es una conexión que alguien cortó. No se confunde con
 `requires_action`, que es una clave que dejó de funcionar y hay que reconectar
-con [Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link).
+con [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect).
 
-Volver a operar esa empresa significa conectarla de nuevo con Tupana Link: la
+Volver a operar esa empresa significa conectarla de nuevo con Tupana Connect: la
 clave no se recupera.
 
 > **Importante:** Desactivar es idempotente —llamarlo dos veces responde `204` las dos— pero no
@@ -5520,7 +5520,7 @@ Endpoint: `GET /documents/` (detalle completo en la Parte 2).
 
 ### Filtrar por conexión o por categoría
 
-Si conectaste la empresa con [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-link), consulta directo con el `connection_id` (`cred_…`) que te llegó en el webhook `connection.active`. No necesitas el `master_entity_id`.
+Si conectaste la empresa con [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect), consulta directo con el `connection_id` (`cred_…`) que te llegó en el webhook `connection.active`. No necesitas el `master_entity_id`.
 
 | Quieres | Usa |
 |---|---|
@@ -7551,7 +7551,7 @@ No puede existir un webhook con la misma URL para la misma entidad. Si intentas 
 - `folio_request.authorized_without_caf` - El SII autorizó un rango y no entregó el archivo
 - `document.unpaid` - Documento revertido de pagado a no pagado
 - `document.cancelled` - Documento cancelado
-- `connection.active` / `connection.requires_action` - Estado de una conexión de Tupana Link
+- `connection.active` / `connection.requires_action` - Estado de una conexión de Tupana Connect
 - `bank_account.refreshed` - Una corrida de sync leyó la cuenta bancaria (saldo nuevo)
 - `movement.created` - Esa corrida trajo movimientos nuevos (lista de ids, uno por cuenta y corrida)
 - `bank_account.refresh_failed` - La lectura de la cuenta falló
@@ -7979,13 +7979,13 @@ misma key con un **body distinto**, obtienes `idempotency_key_reused` (409).
 
 Fuente: https://docs.tupana.ai/api-reference/v2/banking/introduction · Sección: API Bancaria / Introducción
 
-> Lee las conexiones bancarias de tus empresas: qué bancos existen, cómo se conectan con Tupana Link y qué significa cada estado — API v2
+> Lee las conexiones bancarias de tus empresas: qué bancos existen, cómo se conectan con Tupana Connect y qué significa cada estado — API v2
 
 ## API Bancaria
 
 La **API Bancaria** te da lectura de lo que las empresas conectadas a tu
 integración tienen en el banco. El usuario final conecta su banco dentro de
-[Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link); tu SaaS nunca ve la clave,
+[Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect); tu SaaS nunca ve la clave,
 y desde ahí Tupana lee el banco todos los días.
 
 Publica **instituciones**, **conexiones**, **cuentas** con sus saldos,
@@ -8014,7 +8014,7 @@ con código `banking_permission_required`.
 | Movimiento | Un abono o cargo en una cuenta, con la glosa cruda del banco y la contraparte que Tupana resuelve. | `move_…` |
 | Estado de cuenta | La cartola de un período: de una tarjeta o importada a una cuenta corriente, con su PDF original. | `ccs_…` / `bsu_…` |
 
-La conexión de banco es la misma `connection_id` que devuelve Tupana Link y que
+La conexión de banco es la misma `connection_id` que devuelve Tupana Connect y que
 lista [`GET /connections/`](https://docs.tupana.ai/api-reference/v2/connections/list) con `type: "bank"`.
 Su `provider` es el banco (`santander`, `estado`, `bci`…) y su `source` dice por
 dónde lee Tupana: `fintoc` (proveedor de bancos), `scraper` (conector propio) o
@@ -8034,9 +8034,9 @@ compartida hay que decir a qué empresa te refieres.
 | --- | --- | --- |
 | `active` | La conexión sirve y se está leyendo. | Nada. |
 | `pending` | Conector propio: todavía no terminó la primera lectura. | Esperar `connection.active`. |
-| `requires_action` | El banco pidió volver a entrar, o la clave dejó de servir. | [Reautorizar](https://docs.tupana.ai/api-reference/v2/connections/reauthorize): el usuario final vuelve a entrar en Tupana Link y la conexión conserva su id. |
+| `requires_action` | El banco pidió volver a entrar, o la clave dejó de servir. | [Reautorizar](https://docs.tupana.ai/api-reference/v2/connections/reauthorize): el usuario final vuelve a entrar en Tupana Connect y la conexión conserva su id. |
 | `degraded` | Alguna cuenta quedó detenida tras fallos repetidos; las demás siguen. | Nada por tu lado; Tupana la revisa. Si persiste, reautorizar. |
-| `inactive` | Alguien la desactivó con [`DELETE`](https://docs.tupana.ai/api-reference/v2/connections/delete). | Volver a conectar con Tupana Link si hace falta. |
+| `inactive` | Alguien la desactivó con [`DELETE`](https://docs.tupana.ai/api-reference/v2/connections/delete). | Volver a conectar con Tupana Connect si hace falta. |
 
 Los cambios de estado llegan por webhook: `connection.active`,
 `connection.requires_action` y `connection.degraded`.
@@ -8073,14 +8073,14 @@ prefijo (`cred_…`, `ment_…`); las listas van en `data`.
 
 Fuente: https://docs.tupana.ai/api-reference/v2/banking/guides/first-sync · Sección: API Bancaria / Introducción
 
-> Conecta un banco con Tupana Link, lista las cuentas y trae los movimientos del mes
+> Conecta un banco con Tupana Connect, lista las cuentas y trae los movimientos del mes
 
 ## Primera lectura de un banco
 
 De cero a los movimientos del mes en cuatro llamadas. Necesitas una API key
 con el permiso `banking:read` escrito en ella.
 
-**Conecta el banco con Tupana Link**
+**Conecta el banco con Tupana Connect**
 
     Crea una sesión con `capabilities: ["banking"]` y abre el widget para tu
     usuario. Él elige el banco y entra con su clave; tú nunca la ves.
@@ -8322,7 +8322,7 @@ Fuente: https://docs.tupana.ai/api-reference/v2/institutions/list · Sección: A
 Endpoint: `GET /institutions/` (detalle completo en la Parte 2).
 
 Los bancos que una empresa puede conectar con
-[Tupana Link](https://docs.tupana.ai/api-reference/v2/connect/tupana-link) y qué entrega cada uno. Es
+[Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect) y qué entrega cada uno. Es
 el mismo catálogo que ve el usuario final en el widget.
 
 ```bash
@@ -12188,7 +12188,7 @@ Respuesta `400`: La búsqueda trae menos de 2 caracteres
 
 **Desactivar una conexión**
 
-Corta una conexión: deja de servir para operar y Tupana suelta la clave que guardaba. No es un borrado — la conexión sigue en el listado con `status: inactive`, que es lo que explica por qué esa empresa dejó de sincronizar. La empresa y sus documentos no se tocan. Se identifica por `connection_id` (el `cred_…` del listado), no por la empresa. Es idempotente y no tiene vuelta atrás: volver a operar esa empresa significa conectarla de nuevo con Tupana Link.
+Corta una conexión: deja de servir para operar y Tupana suelta la clave que guardaba. No es un borrado — la conexión sigue en el listado con `status: inactive`, que es lo que explica por qué esa empresa dejó de sincronizar. La empresa y sus documentos no se tocan. Se identifica por `connection_id` (el `cred_…` del listado), no por la empresa. Es idempotente y no tiene vuelta atrás: volver a operar esa empresa significa conectarla de nuevo con Tupana Connect.
 
 URL completa: `DELETE https://api.tupana.ai/v2/connections/{connection_id}/`
 
@@ -12324,7 +12324,7 @@ Esquema: object
 
 **Listar instituciones**
 
-Los bancos que se pueden conectar con Tupana Link y qué entrega cada uno.
+Los bancos que se pueden conectar con Tupana Connect y qué entrega cada uno.
 
 URL completa: `GET https://api.tupana.ai/v2/institutions/`
 
@@ -12336,7 +12336,7 @@ Esquema: object
 
 **Reautorizar una conexión de banco**
 
-Abre Tupana Link para volver a entrar al banco de una conexión existente. La conexión conserva su `connection_id` y queda en `requires_action` hasta que el usuario reconecte.
+Abre Tupana Connect para volver a entrar al banco de una conexión existente. La conexión conserva su `connection_id` y queda en `requires_action` hasta que el usuario reconecte.
 
 URL completa: `POST https://api.tupana.ai/v2/connections/{connection_id}/reauthorizations/`
 
@@ -12352,7 +12352,7 @@ Cuerpo (`application/json`): object
 - `app_name` (string)
 - `environment` (string; valores: `sandbox`, `production`): Default: el de la API key.
 
-Respuesta `201`: Sesión de Tupana Link lista para abrir
+Respuesta `201`: Sesión de Tupana Connect lista para abrir
 
 Esquema: object
 

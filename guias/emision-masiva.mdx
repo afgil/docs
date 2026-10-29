@@ -10,7 +10,7 @@ Esta guía arma una emisión masiva de punta a punta: preparar el lote, enviarlo
 ## Antes de empezar
 
 - Una API key (empieza con una de **sandbox**: simula la emisión y no envía nada al SII). Ver [Tu primera llamada](/quickstart).
-- La empresa emisora conectada con [Tupana Link](/api-reference/v2/connect/tupana-link). En producción, sin una conexión activa la API responde `400` (credenciales no activas).
+- La empresa emisora conectada con [Tupana Connect](/api-reference/v2/connect/tupana-connect). En producción, sin una conexión activa la API responde `400` (credenciales no activas).
 - Un [webhook](/guias/webhooks) para la empresa, para recibir el estado final y los archivos.
 
 ## 1. Arma el lote
@@ -81,7 +81,7 @@ La API acepta el lote y lo procesa en segundo plano. La respuesta trae un `batch
 | Código | Qué significa | Qué hacer |
 |---|---|---|
 | `202` / `201` | Lote aceptado | Espera el webhook o consulta los documentos |
-| `400` | La empresa emisora no tiene una conexión activa | Conéctala con Tupana Link |
+| `400` | La empresa emisora no tiene una conexión activa | Conéctala con Tupana Connect |
 | `413` | Más de 500 documentos | Divide el lote |
 | `422` | Error de validación, con la posición del documento y la ruta del campo | Corrige y reenvía con una **nueva** `Idempotency-Key` |
 

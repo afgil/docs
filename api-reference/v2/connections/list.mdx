@@ -7,7 +7,7 @@ openapi: "api-reference/openapi-v2.json GET /connections/"
 
 Las empresas conectadas a tu integración. Una conexión es lo único que tu SaaS
 conoce de una empresa: nunca ves la clave del SII, porque la entrega el usuario
-final dentro de [Tupana Link](/api-reference/v2/connect/tupana-link).
+final dentro de [Tupana Connect](/api-reference/v2/connect/tupana-connect).
 
 Es además el paso **empresa emisora** de cualquier flujo. Cada conexión trae el
 giro, su código y la dirección, así que no necesitas guardarlos: mandas
@@ -55,9 +55,9 @@ y los movimientos se leen igual venga de donde venga.
 | --- | --- | --- |
 | `active` | La conexión sirve y se está leyendo. | Nada. |
 | `pending` | Banco por conector propio: todavía no terminó la primera lectura. | Esperar. |
-| `requires_action` | La clave dejó de servir, o el banco pidió reconectar. | El usuario final reconecta la empresa con [Tupana Link](/api-reference/v2/connect/tupana-link). No hay nada que reintentar desde tu lado. |
+| `requires_action` | La clave dejó de servir, o el banco pidió reconectar. | El usuario final reconecta la empresa con [Tupana Connect](/api-reference/v2/connect/tupana-connect). No hay nada que reintentar desde tu lado. |
 | `degraded` | Banco: alguna cuenta quedó detenida tras fallos repetidos; las demás siguen. | Nada por tu lado; Tupana la revisa. Si persiste, reconectar. |
-| `inactive` | Alguien la desactivó con `DELETE`. | Volver a conectar con Tupana Link si hace falta. |
+| `inactive` | Alguien la desactivó con `DELETE`. | Volver a conectar con Tupana Connect si hace falta. |
 
 En las conexiones de banco el estado sale de la conexión bancaria misma, no
 solo de la clave guardada: un link al que el banco le pidió volver a entrar es

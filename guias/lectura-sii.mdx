@@ -1,11 +1,11 @@
 ---
 title: 'Leer el RCV, DTE y boletas de honorarios del SII por API'
 sidebarTitle: 'Leer datos del SII'
-description: 'Conecta la empresa de tu cliente con Tupana Link y lee su registro de compras y ventas, sus DTE emitidos y recibidos y sus boletas de honorarios por la API v2.'
+description: 'Conecta la empresa de tu cliente con Tupana Connect y lee su registro de compras y ventas, sus DTE emitidos y recibidos y sus boletas de honorarios por la API v2.'
 keywords: ['api sii chile', 'leer rcv api', 'registro de compras y ventas api', 'dte recibidos api', 'boletas de honorarios api']
 ---
 
-Esta guía conecta la empresa de un cliente y lee sus datos del SII desde tu backend: el Registro de Compras y Ventas (RCV), los documentos emitidos y recibidos y las boletas de honorarios. Es solo lectura. Para emitir, la conexión es otra (`invoicing`) y pide la clave del representante; ver [Tupana Link](/api-reference/v2/connect/tupana-link).
+Esta guía conecta la empresa de un cliente y lee sus datos del SII desde tu backend: el Registro de Compras y Ventas (RCV), los documentos emitidos y recibidos y las boletas de honorarios. Es solo lectura. Para emitir, la conexión es otra (`invoicing`) y pide la clave del representante; ver [Tupana Connect](/api-reference/v2/connect/tupana-connect).
 
 ## 1. Conecta la empresa con `sii_data`
 
@@ -21,7 +21,7 @@ curl -X POST https://api.tupana.ai/v2/connect-sessions/ \
   }'
 ```
 
-Abre el widget con el `client_token` (igual que en [Tupana Link](/api-reference/v2/connect/tupana-link)). Tu cliente escribe la clave del SII de su empresa dentro del widget. Cuando el SII la valida, tu backend recibe `connection.active` con el `company_id` (`ment_…`) que usarás en todas las lecturas.
+Abre el widget con el `client_token` (igual que en [Tupana Connect](/api-reference/v2/connect/tupana-connect)). Tu cliente escribe la clave del SII de su empresa dentro del widget. Cuando el SII la valida, tu backend recibe `connection.active` con el `company_id` (`ment_…`) que usarás en todas las lecturas.
 
 <Note>
 `sii_data` lee con la clave de la empresa. `invoicing` emite y necesita la clave del representante legal con permisos. Si vas a hacer las dos cosas, pide `["invoicing", "sii_data"]` en la misma sesión.

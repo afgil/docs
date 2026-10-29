@@ -1,7 +1,7 @@
 ---
 title: 'Facturar para varias empresas con una sola integración (multiempresa)'
 sidebarTitle: 'Facturar para varias empresas'
-description: 'Cómo un SaaS, ERP o estudio contable emite facturas electrónicas al SII para muchas empresas con una sola API key de Tupana: conexiones con Tupana Link, emisor por RUT, webhooks por empresa y reconexión.'
+description: 'Cómo un SaaS, ERP o estudio contable emite facturas electrónicas al SII para muchas empresas con una sola API key de Tupana: conexiones con Tupana Connect, emisor por RUT, webhooks por empresa y reconexión.'
 keywords: ['multiempresa', 'multicredencial', 'saas', 'erp', 'contadores', 'tupana link', 'api facturación electrónica']
 ---
 
@@ -10,7 +10,7 @@ Si eres un SaaS, un ERP o un estudio contable, no integras una empresa: integras
 ## Cómo se arma
 
 <Steps>
-  <Step title="Cada cliente conecta su empresa con Tupana Link">
+  <Step title="Cada cliente conecta su empresa con Tupana Connect">
     Tu backend abre una sesión (`POST /v2/connect-sessions/`) y tu frontend muestra el widget. Tu cliente entrega su clave adentro del widget: tú nunca la ves. Manda tu propio id de cliente en `external_customer_id` para cruzarlo después.
 
 ```bash
@@ -20,7 +20,7 @@ curl -X POST https://api.tupana.ai/v2/connect-sessions/ \
   -d '{"capabilities": ["invoicing"], "app_name": "Mi SaaS", "tax_id": "78.152.641-K", "external_customer_id": "cus_912"}'
 ```
 
-    El detalle del widget y sus eventos está en [Tupana Link](/api-reference/v2/connect/tupana-link).
+    El detalle del widget y sus eventos está en [Tupana Connect](/api-reference/v2/connect/tupana-connect).
   </Step>
   <Step title="Guardas la conexión cuando queda activa">
     El webhook `connection.active` trae `connection_id` (`cred_…`), `company_id` (`ment_…`) y tu `external_customer_id`. Guarda los tres. El evento `success` del widget solo sirve para cerrar el modal; la fuente de verdad es el webhook.
@@ -49,7 +49,7 @@ curl -X POST https://api.tupana.ai/v2/connect-sessions/ \
 ## Mantener las conexiones sanas
 
 - [`GET /v2/connections/`](/api-reference/v2/connections/list) lista todas las empresas conectadas, con su giro, dirección, ambiente (`sandbox` o `production`) y `status`.
-- Cuando una clave deja de funcionar, la conexión pasa a `requires_action` y llega el webhook `connection.requires_action`. No hay nada que reintentar desde tu lado: pide a tu cliente que reconecte con Tupana Link.
+- Cuando una clave deja de funcionar, la conexión pasa a `requires_action` y llega el webhook `connection.requires_action`. No hay nada que reintentar desde tu lado: pide a tu cliente que reconecte con Tupana Connect.
 - Para dar de baja una empresa, usa [Desactivar una conexión](/api-reference/v2/connections/delete).
 
 ## Permisos
@@ -64,6 +64,6 @@ Facturación por API cuesta **0,5 UF al mes por empresa que enroles**, sin preci
 
 ## Relacionado
 
-- [Tupana Link](/api-reference/v2/connect/tupana-link)
+- [Tupana Connect](/api-reference/v2/connect/tupana-connect)
 - [Listar conexiones](/api-reference/v2/connections/list)
 - [Emitir facturas en lote](/guias/emision-masiva)

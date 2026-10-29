@@ -3,7 +3,7 @@ title: "Reautorizar una conexión"
 openapi: "api-reference/openapi-v2.json POST /connections/{connection_id}/reauthorizations/"
 ---
 
-Vuelve a abrir [Tupana Link](/api-reference/v2/connect/tupana-link) para que el
+Vuelve a abrir [Tupana Connect](/api-reference/v2/connect/tupana-connect) para que el
 usuario final entre de nuevo al banco de una conexión que ya existe. La sesión
 sale apuntando a esa empresa y ese banco, así que el usuario se salta esos
 pasos, y la conexión **conserva su `connection_id`**: cuando termine, sigue
@@ -62,11 +62,11 @@ Sin `company_id` responde `400` diciendo que la conexión cubre varias empresas.
 
 - `404`: esa conexión no existe para tu API key.
 - `400`: la conexión es tributaria (una conexión del SII se vuelve a conectar
-  con una sesión nueva de Tupana Link), la conexión no tiene banco asociado, o
+  con una sesión nueva de Tupana Connect), la conexión no tiene banco asociado, o
   falta `company_id`.
 - `403`: una API key de sandbox no abre sesiones de producción.
 
 <Warning>
-Solo conexiones de banco. Para el SII, crea una sesión de Tupana Link con
+Solo conexiones de banco. Para el SII, crea una sesión de Tupana Connect con
 `capabilities: ["invoicing"]` o `["sii_data"]`.
 </Warning>
