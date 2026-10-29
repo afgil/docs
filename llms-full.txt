@@ -5370,8 +5370,10 @@ curl https://api.tupana.ai/v2/connections/?search=arquitectura \
 
 ### Paginar
 
-`limit` viene en 25 y se acota a 100. El `total` va aparte del largo de `data`
-a propósito: si tienes más conexiones de las que pediste, te enteras en vez de
+`limit` viene en 25 y se acota a 100 y corta conexiones, no empresas. El
+`total` es cuántas conexiones calzan con tus filtros (una empresa con su
+conexión tributaria y una de banco son dos) y va aparte del largo de `data` a
+propósito: si tienes más conexiones de las que pediste, te enteras en vez de
 recibir un corte silencioso.
 
 ### Tipos de conexión
@@ -5379,7 +5381,7 @@ recibir un corte silencioso.
 Una empresa puede tener una conexión tributaria (`type: "tax"`, `provider: "sii"`)
 y una o más conexiones de banco (`type: "bank"`, `provider` con el banco:
 `santander`, `estado`, `bci`…). `?type=tax` o `?type=bank` trae solo unas u
-otras; `total` cuenta las empresas que tienen una conexión de ese tipo. Otro
+otras; `total` cuenta las conexiones de ese tipo. Otro
 valor responde `400`.
 
 ```bash
@@ -5787,7 +5789,7 @@ Iguales a la Factura Electrónica (DTE 33), pero el documento no incluye IVA en 
   "documents": [
     {
       "dte_type": { "code": "39" },
-      "document_issuer": { "rut": "12345678-9" },
+      "document_issuer": { "rut": "76.123.456-0" },
       "document_receiver": { "rut": "1-9" },
       "details": [
         {
@@ -6424,18 +6426,21 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
       "dte_type": {
         "code": "33"
       },
-      "date_issued": "2024-01-15",
+      "date_issued": "2026-10-29",
       "document_issuer": {
-        "rut": "12345678-9",
-        "business_name": "Mi Empresa SpA"
+        "rut": "76.123.456-0"
       },
       "document_receiver": {
-        "rut": "98765432-1",
-        "business_name": "Cliente Importante Ltda"
+        "rut": "76.543.210-3",
+        "business_name": "Cliente Demo SpA",
+        "business_activity": "Servicios informáticos",
+        "address": "Av. Providencia 1234",
+        "district": "Providencia",
+        "city": "Santiago"
       },
       "details": [
         {
-          "item_name": "Servicio de Consultoría",
+          "item_name": "Servicio de consultoría",
           "quantity": 1,
           "unit_price": 100000
         }
@@ -6444,6 +6449,12 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
   ]
 }
 ```
+
+Cambia `document_issuer.rut` por el RUT de tu empresa: es el `tax_id` de tu
+conexión en `GET /v2/connections/` (en sandbox, el de tu Empresa Demo). En una
+factura el receptor necesita `rut`, `business_name`, `business_activity`,
+`address`, `district` y `city`. Con una API key sandbox no se valida el dígito
+verificador de los RUT, porque el documento no llega al SII.
 
 ##### Factura de Compra (DTE 46)
 
@@ -6456,11 +6467,11 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
       },
       "date_issued": "2024-01-15",
       "document_issuer": {
-        "rut": "98765432-1",
+        "rut": "76.543.210-3",
         "business_name": "Proveedor SpA"
       },
       "document_receiver": {
-        "rut": "12345678-9",
+        "rut": "76.123.456-0",
         "business_name": "Mi Empresa SpA"
       },
       "header": {
@@ -6492,10 +6503,10 @@ Guía que acompaña una venta, despachada por el emisor a una bodega del cliente
       },
       "date_issued": "2026-09-15",
       "document_issuer": {
-        "rut": "12345678-9"
+        "rut": "76.123.456-0"
       },
       "document_receiver": {
-        "rut": "98765432-1",
+        "rut": "76.543.210-3",
         "business_name": "Cliente Importante Ltda"
       },
       "transport_data": {
@@ -6545,7 +6556,7 @@ Traslado de mercadería de exportación desde la fábrica al aeropuerto. La vent
       },
       "date_issued": "2026-09-15",
       "document_issuer": {
-        "rut": "12345678-9"
+        "rut": "76.123.456-0"
       },
       "document_receiver": {
         "rut": "76123456-0",
@@ -6604,7 +6615,7 @@ La guía queda con `exempt_amount` 4.050.000, IVA 0 y total 4.050.000.
       },
       "date_issued": "2024-01-15",
       "document_issuer": {
-        "rut": "12345678-9",
+        "rut": "76.123.456-0",
         "business_name": "Exportadora SpA"
       },
       "document_receiver": {
@@ -6648,11 +6659,11 @@ La guía queda con `exempt_amount` 4.050.000, IVA 0 y total 4.050.000.
       },
       "date_issued": "2024-01-16",
       "document_issuer": {
-        "rut": "12345678-9",
+        "rut": "76.123.456-0",
         "business_name": "Mi Empresa SpA"
       },
       "document_receiver": {
-        "rut": "98765432-1",
+        "rut": "76.543.210-3",
         "business_name": "Cliente Importante Ltda"
       },
       "references": [
@@ -6690,7 +6701,7 @@ El emisor de la boleta es `document_issuer.rut`, pero la emite un **usuario auto
         "rut": "76543210-3"
       },
       "document_receiver": {
-        "rut": "12345678-9"
+        "rut": "76.123.456-0"
       },
       "header": {
         "retention_type": "RETRECEPTOR",
@@ -6723,7 +6734,7 @@ Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y 
         "rut": "76543210-3"
       },
       "document_receiver": {
-        "rut": "12345678-9"
+        "rut": "76.123.456-0"
       },
       "header": {
         "retention_type": "RETRECEPTOR"
@@ -8039,7 +8050,9 @@ para las tarjetas, [Tarjetas de crédito](https://docs.tupana.ai/api-reference/v
 Las cuentas y los movimientos exigen una API key con **`banking:read`** escrito
 en ella. El comodín `*` que traen las keys al crearse no lo concede: los saldos
 son de un tercero y no salen por una key que nunca pidió verlos. Sin él, `403`
-con código `banking_permission_required`.
+con código `banking_permission_required`. Se activa en la consola de
+developers, en API Keys. Las keys sandbox lo traen siempre: sus datos
+bancarios son de prueba.
 
 ### El modelo
 
@@ -8116,7 +8129,8 @@ Fuente: https://docs.tupana.ai/api-reference/v2/banking/guides/first-sync · Sec
 ## Primera lectura de un banco
 
 De cero a los movimientos del mes en cuatro llamadas. Necesitas una API key
-con el permiso `banking:read` escrito en ella.
+con el permiso `banking:read` escrito en ella (se activa en la consola de
+developers, en API Keys; las keys sandbox lo traen siempre).
 
 **Conecta el banco con Tupana Connect**
 
@@ -8280,7 +8294,7 @@ con cursor. Así pruebas el ciclo completo sin un banco real.
 Con una key sandbox, `DELETE /connections/{id}/` y
 `POST /connections/{id}/reauthorizations/` responden `403 sandbox_read_only`.
 
-> **Info:** La key sandbox también necesita el permiso `banking:read`. Para los webhooks,
+> **Info:** La key sandbox trae el permiso `banking:read` siempre: no hay que pedirlo. Para los webhooks,
 crea el webhook con `environment: "sandbox"` (o `"both"`).
 
 ---
@@ -8451,7 +8465,9 @@ curl "https://api.tupana.ai/v2/bank-accounts/?company_id=ment_367248643654623385
 
 Necesitas una API key con el permiso **`banking:read`** escrito en ella. El
 comodín `*` no lo concede: los saldos son de un tercero y no salen por una key
-que nunca pidió verlos. Sin él, `403` con código `banking_permission_required`.
+que nunca pidió verlos. Sin él, `403` con código `banking_permission_required`;
+se activa en la consola de developers, en API Keys. Las keys sandbox lo traen
+siempre.
 
 ### Filtros
 
@@ -10818,6 +10834,8 @@ Esquema: `Error`
 
 Crea hasta 500 documentos en una sola llamada. La respuesta incluye información completa de cada documento creado, incluyendo PDF cuando está disponible. Los resultados también se enviarán por webhook si está configurado.
 
+**Antes de copiar el ejemplo:** cambia `document_issuer.rut` por el RUT de tu empresa (es el `tax_id` de tu conexión en `GET /connections/`; en sandbox, el de tu Empresa Demo). En una factura (33 y 34) el receptor necesita `rut`, `business_name`, `business_activity`, `address`, `district` y `city`. Con una API key sandbox no se valida el dígito verificador de los RUT: el documento no llega al SII.
+
 **Permisos requeridos:** La API Key debe tener el permiso `document:create` o permisos completos (`*`). Además, la entidad emisora debe tener credenciales SII válidas configuradas.
 
 URL completa: `POST https://api.tupana.ai/v2/documents/batch/`
@@ -10840,18 +10858,21 @@ Ejemplo de cuerpo:
       "dte_type": {
         "code": "33"
       },
-      "date_issued": "2024-01-15",
+      "date_issued": "2026-10-29",
       "document_issuer": {
-        "rut": "12345678-9",
-        "business_name": "Mi Empresa SpA"
+        "rut": "76.123.456-0"
       },
       "document_receiver": {
-        "rut": "98765432-1",
-        "business_name": "Cliente Importante Ltda"
+        "rut": "76.543.210-3",
+        "business_name": "Cliente Demo SpA",
+        "business_activity": "Servicios informáticos",
+        "address": "Av. Providencia 1234",
+        "district": "Providencia",
+        "city": "Santiago"
       },
       "details": [
         {
-          "item_name": "Servicio de Consultoría",
+          "item_name": "Servicio de consultoría",
           "quantity": 1,
           "unit_price": 100000
         }
@@ -10952,6 +10973,7 @@ URL completa: `GET https://api.tupana.ai/v2/documents/`
 Parámetros:
 
 - `master_entity_id` (query, string): Tupana ID (`ment_…`) de la empresa cuyos documentos quieres consultar. Obligatorio, salvo que envíes `connection_id`: en ese caso la empresa sale de la conexión. Si envías ambos, la conexión tiene que ser de esa empresa.
+- `company_id` (query, string): Alias de `master_entity_id`, con el nombre que usa el resto de la API v2 (conexiones, cuentas, webhooks). Si envías los dos, manda `master_entity_id`.
 - `connection_id` (query, string): Credencial de la conexión (`cred_…`), la que te entrega Tupana Connect y el webhook `connection.active`. Una conexión de banco devuelve solo los abonos (100) y cargos (101) de las cuentas de ese banco; una conexión tributaria (SII) devuelve los documentos tributarios de la empresa, sin movimientos bancarios. Con `connection_id` no necesitas `master_entity_id` (salvo que la credencial cubra varias de tus empresas).
 - `category` (query, string; valores: `tax`, `bank`): `tax`: solo documentos tributarios (todo excepto los movimientos bancarios 100 y 101). `bank`: solo movimientos del banco (100 abonos y 101 cargos), de todos los bancos de la empresa.
 - `document_type` (query, string; valores: `issued`, `received`; default: `"issued"`): `issued` (por defecto) o `received`. `issued` devuelve documentos donde la entidad es el **emisor**. `received` devuelve documentos donde la entidad es el **receptor** (cuando usas `received`, el parámetro `search` buscará en el nombre y RUT del emisor, y `issuer_tax_id` permite filtrar por RUT del emisor específico).
@@ -12452,7 +12474,7 @@ Esquema: object
 
 Respuesta `400`: Un filtro con un valor fuera del vocabulario (`code: parameter_invalid`, `param`)
 
-Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
 
 ### GET /v2/bank-accounts/{account_id}/
 
@@ -12470,7 +12492,7 @@ Respuesta `200`: Cuenta bancaria
 
 Esquema: `BankAccount`
 
-Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
 
 Respuesta `404`: La cuenta no existe para esta API key
 
@@ -12501,7 +12523,7 @@ Esquema: object
 
 Respuesta `400`: Un filtro inválido (`code: parameter_invalid`, `param`)
 
-Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
 
 Respuesta `404`: La cuenta no existe para esta API key
 
@@ -12519,7 +12541,7 @@ Respuesta `200`: Movimiento
 
 Esquema: `Movement`
 
-Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
 
 Respuesta `404`: El movimiento no existe para esta API key
 
@@ -12542,7 +12564,7 @@ Esquema: object
 
 Respuesta `400`: `cursor_invalid`: el cursor no es uno emitido por la API
 
-Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
 
 Respuesta `410`: `cursor_expired`: el cursor es más antiguo que la retención; resincroniza sin cursor
 
@@ -12569,7 +12591,7 @@ Esquema: object
 
 Respuesta `400`: Filtro inválido (`parameter_invalid`)
 
-Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
 
 ### GET /v2/events/{event_id}/
 
@@ -12585,7 +12607,7 @@ Respuesta `200`: Evento
 
 Esquema: `ApiEvent`
 
-Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
 
 Respuesta `404`: El evento no existe para esta API key
 
@@ -12610,7 +12632,7 @@ Esquema: object
 
 Respuesta `400`: `period` inválido (`parameter_invalid`)
 
-Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
 
 Respuesta `404`: La cuenta no existe para esta API key
 
@@ -12629,7 +12651,7 @@ Respuesta `200`: Estado de cuenta
 
 Esquema: `Statement`
 
-Respuesta `403`: La API key no tiene `banking:read` explícito (`code: banking_permission_required`)
+Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
 
 Respuesta `404`: El estado de cuenta no es de esa cuenta, o la cuenta no existe para esta API key
 
