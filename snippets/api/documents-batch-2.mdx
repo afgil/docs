@@ -247,18 +247,21 @@ Este campo solo tiene efecto si tu empresa usa el **PDF propio** (PDF personaliz
       "dte_type": {
         "code": "33"
       },
-      "date_issued": "2024-01-15",
+      "date_issued": "2026-10-29",
       "document_issuer": {
-        "rut": "12345678-9",
-        "business_name": "Mi Empresa SpA"
+        "rut": "76.123.456-0"
       },
       "document_receiver": {
-        "rut": "98765432-1",
-        "business_name": "Cliente Importante Ltda"
+        "rut": "76.543.210-3",
+        "business_name": "Cliente Demo SpA",
+        "business_activity": "Servicios informáticos",
+        "address": "Av. Providencia 1234",
+        "district": "Providencia",
+        "city": "Santiago"
       },
       "details": [
         {
-          "item_name": "Servicio de Consultoría",
+          "item_name": "Servicio de consultoría",
           "quantity": 1,
           "unit_price": 100000
         }
@@ -267,6 +270,12 @@ Este campo solo tiene efecto si tu empresa usa el **PDF propio** (PDF personaliz
   ]
 }
 ```
+
+Cambia `document_issuer.rut` por el RUT de tu empresa: es el `tax_id` de tu
+conexión en `GET /v2/connections/` (en sandbox, el de tu Empresa Demo). En una
+factura el receptor necesita `rut`, `business_name`, `business_activity`,
+`address`, `district` y `city`. Con una API key sandbox no se valida el dígito
+verificador de los RUT, porque el documento no llega al SII.
 
 
 
@@ -281,11 +290,11 @@ Este campo solo tiene efecto si tu empresa usa el **PDF propio** (PDF personaliz
       },
       "date_issued": "2024-01-15",
       "document_issuer": {
-        "rut": "98765432-1",
+        "rut": "76.543.210-3",
         "business_name": "Proveedor SpA"
       },
       "document_receiver": {
-        "rut": "12345678-9",
+        "rut": "76.123.456-0",
         "business_name": "Mi Empresa SpA"
       },
       "header": {
@@ -319,10 +328,10 @@ Guía que acompaña una venta, despachada por el emisor a una bodega del cliente
       },
       "date_issued": "2026-09-15",
       "document_issuer": {
-        "rut": "12345678-9"
+        "rut": "76.123.456-0"
       },
       "document_receiver": {
-        "rut": "98765432-1",
+        "rut": "76.543.210-3",
         "business_name": "Cliente Importante Ltda"
       },
       "transport_data": {
@@ -372,7 +381,7 @@ Traslado de mercadería de exportación desde la fábrica al aeropuerto. La vent
       },
       "date_issued": "2026-09-15",
       "document_issuer": {
-        "rut": "12345678-9"
+        "rut": "76.123.456-0"
       },
       "document_receiver": {
         "rut": "76123456-0",
@@ -431,7 +440,7 @@ La guía queda con `exempt_amount` 4.050.000, IVA 0 y total 4.050.000.
       },
       "date_issued": "2024-01-15",
       "document_issuer": {
-        "rut": "12345678-9",
+        "rut": "76.123.456-0",
         "business_name": "Exportadora SpA"
       },
       "document_receiver": {
@@ -477,11 +486,11 @@ La guía queda con `exempt_amount` 4.050.000, IVA 0 y total 4.050.000.
       },
       "date_issued": "2024-01-16",
       "document_issuer": {
-        "rut": "12345678-9",
+        "rut": "76.123.456-0",
         "business_name": "Mi Empresa SpA"
       },
       "document_receiver": {
-        "rut": "98765432-1",
+        "rut": "76.543.210-3",
         "business_name": "Cliente Importante Ltda"
       },
       "references": [
@@ -519,7 +528,7 @@ El emisor de la boleta es `document_issuer.rut`, pero la emite un **usuario auto
         "rut": "76543210-3"
       },
       "document_receiver": {
-        "rut": "12345678-9"
+        "rut": "76.123.456-0"
       },
       "header": {
         "retention_type": "RETRECEPTOR",
@@ -552,7 +561,7 @@ Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y 
         "rut": "76543210-3"
       },
       "document_receiver": {
-        "rut": "12345678-9"
+        "rut": "76.123.456-0"
       },
       "header": {
         "retention_type": "RETRECEPTOR"

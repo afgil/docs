@@ -12,7 +12,8 @@ description: 'Listar y obtener documentos — API v2 (public IDs con prefijo)'
 | Parámetro | Tipo | Requerido | Descripción |
 |-----------|------|-----------|-------------|
 | `master_entity_id` | string | ✓ | Public ID de la empresa (`ment_...`) |
-| `document_type` | string | — | `issued` o `received` |
+| `company_id` | string | — | Alias de `master_entity_id`, como lo nombra el resto de la API v2 |
+| `document_type` | string | — | `issued` (por defecto) o `received` |
 | `dte_type` | int | — | Tipo de DTE (33=Factura, 39=Boleta, etc.) |
 | `folio` | int | — | Buscar por folio |
 | `page` | int | — | Página (default: 1) |
