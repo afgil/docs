@@ -79,7 +79,11 @@ Con `X-Use-Defaults: true`, solo necesitas proporcionar el `rut` del receptor. E
 
 **Campos específicos:**
 
-**document_issuer (Obligatorio)**
+**company_id (Opcional, reemplaza a `document_issuer`)**
+- **Tipo:** String, el `company_id` de [Listar conexiones](/api-reference/v2/connections/list) (prefijo `ment_`)
+- Con él Tupana completa el emisor (RUT, razón social, giro, dirección, comuna y ciudad) desde la empresa conectada. Es la forma recomendada para un SaaS: no necesitas guardar los datos del emisor.
+
+**document_issuer (Obligatorio si no mandas `company_id`)**
 - **Tipo:** Object
 - **Campos obligatorios:**
   - `rut` (String): RUT del emisor

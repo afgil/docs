@@ -7632,10 +7632,11 @@
         "properties": {
           "documents": {
             "type": "array",
-            "description": "Array de documentos a crear (máximo 200)",
+            "description": "Array de documentos a crear (máximo 500)",
             "items": {
               "$ref": "#/components/schemas/Document"
-            }
+            },
+            "maxItems": 500
           }
         }
       },
@@ -7643,7 +7644,6 @@
         "type": "object",
         "required": [
           "dte_type",
-          "document_issuer",
           "document_receiver",
           "details"
         ],
@@ -7660,8 +7660,14 @@
           "dte_type": {
             "$ref": "#/components/schemas/DteType"
           },
+          "company_id": {
+            "type": "string",
+            "example": "ment_2133425900906160655",
+            "description": "Id de la empresa emisora, el `company_id` que devuelve Listar conexiones (prefijo `ment_`). Con él Tupana completa `document_issuer` (RUT, razón social, giro, dirección) y no necesitas mandarlo. Si lo mandas junto a `document_issuer`, lo que envíes pisa el dato de la empresa."
+          },
           "document_issuer": {
-            "$ref": "#/components/schemas/DocumentIssuer"
+            "$ref": "#/components/schemas/DocumentIssuer",
+            "description": "Datos del emisor. Obligatorio salvo que mandes `company_id`; con `X-Use-Defaults: true` basta el `rut`."
           },
           "document_receiver": {
             "$ref": "#/components/schemas/DocumentReceiver"
