@@ -7644,24 +7644,32 @@
         "type": "object",
         "required": [
           "dte_type",
+          "company_id",
           "document_receiver",
           "details"
         ],
         "properties": {
+          "dte_type": {
+            "$ref": "#/components/schemas/DteType"
+          },
           "company_id": {
             "type": "string",
             "example": "ment_2133425900906160655",
-            "description": "Id de la empresa emisora, el `company_id` que devuelve Listar conexiones (prefijo `ment_`). Con él Tupana completa `document_issuer` (RUT, razón social, giro, dirección) y no necesitas mandarlo. Si lo mandas junto a `document_issuer`, lo que envíes pisa el dato de la empresa."
+            "description": "Id de la empresa emisora: el `company_id` que devuelve Listar conexiones (prefijo `ment_`). Con él Tupana completa el emisor (RUT, razón social, giro, dirección) desde la empresa conectada. Alternativa: omitirlo y mandar `document_issuer.rut`; si mandas ambos, lo que envíes en `document_issuer` pisa el dato de la empresa."
           },
           "document_issuer": {
             "$ref": "#/components/schemas/DocumentIssuer",
-            "description": "Datos del emisor. Obligatorio salvo que mandes `company_id`; con `X-Use-Defaults: true` basta el `rut`."
+            "description": "Datos del emisor. Solo hace falta si no mandas `company_id`; con `X-Use-Defaults: true` basta el `rut`. Lo que envíes acá pisa lo que Tupana completa desde la empresa."
           },
           "document_receiver": {
             "$ref": "#/components/schemas/DocumentReceiver"
           },
-          "dte_type": {
-            "$ref": "#/components/schemas/DteType"
+          "details": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/DetailItem"
+            }
           },
           "date_issued": {
             "type": "string",
@@ -7671,13 +7679,6 @@
           "folio": {
             "type": "string",
             "description": "Folio del documento. Si X-Use-Defaults es true y no se proporciona, se genera automáticamente."
-          },
-          "details": {
-            "type": "array",
-            "minItems": 1,
-            "items": {
-              "$ref": "#/components/schemas/DetailItem"
-            }
           },
           "header": {
             "$ref": "#/components/schemas/DocumentHeader"
