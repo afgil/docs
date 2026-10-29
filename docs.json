@@ -103,6 +103,7 @@
                 "group": "Conexiones",
                 "pages": [
                   "api-reference/v2/connect/tupana-connect",
+                  "api-reference/v2/connect/create-session",
                   "api-reference/v2/connections/list",
                   "api-reference/v2/connections/reauthorize",
                   "api-reference/v2/connections/delete"
@@ -169,6 +170,7 @@
                 "group": "Conexiones",
                 "pages": [
                   "api-reference/v2/connect/tupana-connect",
+                  "api-reference/v2/connect/create-session",
                   "api-reference/v2/connections/list",
                   "api-reference/v2/connections/reauthorize",
                   "api-reference/v2/connections/delete"
