@@ -493,10 +493,11 @@
                   "$ref": "#/components/schemas/BankingInfoResponse"
                 },
                 "example": {
-                  "id": 456,
-                  "bank": 7,
+                  "id": "bain_6627310984512377",
+                  "master_entity": "ment_4829301923847",
+                  "bank": "ban2_3904107090450018022",
                   "bank_detail": {
-                    "id": 7,
+                    "id": "ban2_3904107090450018022",
                     "name": "BANCO SANTANDER-CHILE",
                     "sbif_code": "037",
                     "additional_brands": "Banefe",
@@ -569,10 +570,11 @@
                   "$ref": "#/components/schemas/BankingInfoResponse"
                 },
                 "example": {
-                  "id": 456,
-                  "bank": 7,
+                  "id": "bain_6627310984512377",
+                  "master_entity": "ment_4829301923847",
+                  "bank": "ban2_3904107090450018022",
                   "bank_detail": {
-                    "id": 7,
+                    "id": "ban2_3904107090450018022",
                     "name": "BANCO SANTANDER-CHILE",
                     "sbif_code": "037",
                     "additional_brands": "Banefe",
@@ -695,7 +697,7 @@
                       "card_expiration": "12/2030",
                       "provider": "transbank_oneclick",
                       "payer": {
-                        "id": 482,
+                        "id": "ment_4829301923847",
                         "tax_id": "11.111.111-1",
                         "name": "Juan Soto"
                       },
@@ -875,7 +877,7 @@
                   "paid_at": "2026-05-02T15:00:00+00:00",
                   "items": [
                     {
-                      "id": 9871,
+                      "id": "pait_8812093847561",
                       "date": "2026-04-29",
                       "payer": {
                         "name": "Juan Soto"
@@ -1226,9 +1228,9 @@
             "example": "037"
           },
           "bank": {
-            "type": "integer",
-            "description": "ID en BD del banco. Obtenible vía `GET /api/banks/`. Si envías `sbif_code` no es necesario.",
-            "example": 7
+            "type": "string",
+            "description": "ID del banco (`ban2_…`), el mismo `id` que devuelve `GET /v2/banks/`. Si envías `sbif_code` no es necesario.",
+            "example": "ban2_3904107090450018022"
           },
           "account_type": {
             "type": "string",
@@ -1278,8 +1280,9 @@
             "example": "037"
           },
           "bank": {
-            "type": "integer",
-            "example": 7
+            "type": "string",
+            "description": "ID del banco (`ban2_…`).",
+            "example": "ban2_3904107090450018022"
           },
           "account_type": {
             "type": "string",
@@ -1301,22 +1304,28 @@
       "BankingInfoResponse": {
         "type": "object",
         "properties": {
+          "master_entity": {
+            "type": "string",
+            "description": "ID de la empresa dueña de la cuenta (`ment_…`).",
+            "example": "ment_4829301923847"
+          },
           "id": {
-            "type": "integer",
-            "example": 456
+            "type": "string",
+            "description": "ID de la cuenta bancaria (`bain_…`).",
+            "example": "bain_6627310984512377"
           },
           "bank": {
-            "type": "integer",
-            "description": "ID en BD del banco.",
-            "example": 7
+            "type": "string",
+            "description": "ID del banco (`ban2_…`), el mismo `id` que devuelve `GET /v2/banks/`. Si envías `sbif_code` no es necesario.",
+            "example": "ban2_3904107090450018022"
           },
           "bank_detail": {
             "type": "object",
             "description": "Información expandida del banco.",
             "properties": {
               "id": {
-                "type": "integer",
-                "example": 7
+                "type": "string",
+                "example": "ban2_3904107090450018022"
               },
               "name": {
                 "type": "string",
@@ -1389,8 +1398,8 @@
         "description": "Pagador (dueño de la tarjeta).",
         "properties": {
           "id": {
-            "type": "integer",
-            "example": 482
+            "type": "string",
+            "example": "ment_4829301923847"
           },
           "tax_id": {
             "type": "string",
@@ -1406,9 +1415,9 @@
         "type": "object",
         "properties": {
           "payment_method_id": {
-            "type": "integer",
+            "type": "string",
             "description": "ID único del medio de pago.",
-            "example": 814
+            "example": "pame_5561203948571"
           },
           "type": {
             "type": "string",
@@ -1514,8 +1523,8 @@
         "type": "object",
         "properties": {
           "settlement_id": {
-            "type": "integer",
-            "example": 1042
+            "type": "string",
+            "example": "sett_7719203845512"
           },
           "period_date": {
             "type": "string",
@@ -1627,10 +1636,10 @@
             "example": "Juan Soto"
           },
           "document_id": {
-            "type": "integer",
+            "type": "string",
             "nullable": true,
             "description": "ID del DTE en la API de Facturación.",
-            "example": 5523
+            "example": "docu_9182736455555"
           }
         }
       },
@@ -1638,8 +1647,9 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "example": 9871
+            "type": "string",
+            "description": "ID del ítem de la liquidación (`pait_…`).",
+            "example": "pait_8812093847561"
           },
           "date": {
             "type": "string",
@@ -1689,8 +1699,8 @@
         "type": "object",
         "properties": {
           "settlement_id": {
-            "type": "integer",
-            "example": 1042
+            "type": "string",
+            "example": "sett_7719203845512"
           },
           "period_date": {
             "type": "string",
