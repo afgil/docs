@@ -25,8 +25,10 @@ curl https://api.tupana.ai/v2/connections/?search=arquitectura \
 
 ## Paginar
 
-`limit` viene en 25 y se acota a 100. El `total` va aparte del largo de `data`
-a propósito: si tienes más conexiones de las que pediste, te enteras en vez de
+`limit` viene en 25 y se acota a 100 y corta conexiones, no empresas. El
+`total` es cuántas conexiones calzan con tus filtros (una empresa con su
+conexión tributaria y una de banco son dos) y va aparte del largo de `data` a
+propósito: si tienes más conexiones de las que pediste, te enteras en vez de
 recibir un corte silencioso.
 
 ## Tipos de conexión
@@ -34,7 +36,7 @@ recibir un corte silencioso.
 Una empresa puede tener una conexión tributaria (`type: "tax"`, `provider: "sii"`)
 y una o más conexiones de banco (`type: "bank"`, `provider` con el banco:
 `santander`, `estado`, `bci`…). `?type=tax` o `?type=bank` trae solo unas u
-otras; `total` cuenta las empresas que tienen una conexión de ese tipo. Otro
+otras; `total` cuenta las conexiones de ese tipo. Otro
 valor responde `400`.
 
 ```bash

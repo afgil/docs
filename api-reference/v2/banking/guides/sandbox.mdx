@@ -46,6 +46,6 @@ Con una key sandbox, `DELETE /connections/{id}/` y
 `POST /connections/{id}/reauthorizations/` responden `403 sandbox_read_only`.
 
 <Info>
-La key sandbox también necesita el permiso `banking:read`. Para los webhooks,
+La key sandbox trae el permiso `banking:read` siempre: no hay que pedirlo. Para los webhooks,
 crea el webhook con `environment: "sandbox"` (o `"both"`).
 </Info>

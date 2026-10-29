@@ -1273,7 +1273,7 @@
       "post": {
         "operationId": "createDocumentsBatch_v2",
         "summary": "Envío de documentos en lote",
-        "description": "Crea hasta 500 documentos en una sola llamada. La respuesta incluye información completa de cada documento creado, incluyendo PDF cuando está disponible. Los resultados también se enviarán por webhook si está configurado.\n\n**Permisos requeridos:** La API Key debe tener el permiso `document:create` o permisos completos (`*`). Además, la entidad emisora debe tener credenciales SII válidas configuradas.",
+        "description": "Crea hasta 500 documentos en una sola llamada. La respuesta incluye información completa de cada documento creado, incluyendo PDF cuando está disponible. Los resultados también se enviarán por webhook si está configurado.\n\n**Antes de copiar el ejemplo:** cambia `document_issuer.rut` por el RUT de tu empresa (es el `tax_id` de tu conexión en `GET /connections/`; en sandbox, el de tu Empresa Demo). En una factura (33 y 34) el receptor necesita `rut`, `business_name`, `business_activity`, `address`, `district` y `city`. Con una API key sandbox no se valida el dígito verificador de los RUT: el documento no llega al SII.\n\n**Permisos requeridos:** La API Key debe tener el permiso `document:create` o permisos completos (`*`). Además, la entidad emisora debe tener credenciales SII válidas configuradas.",
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -1308,18 +1308,21 @@
                     "dte_type": {
                       "code": "33"
                     },
-                    "date_issued": "2024-01-15",
+                    "date_issued": "2026-10-29",
                     "document_issuer": {
-                      "rut": "12345678-9",
-                      "business_name": "Mi Empresa SpA"
+                      "rut": "76.123.456-0"
                     },
                     "document_receiver": {
-                      "rut": "98765432-1",
-                      "business_name": "Cliente Importante Ltda"
+                      "rut": "76.543.210-3",
+                      "business_name": "Cliente Demo SpA",
+                      "business_activity": "Servicios informáticos",
+                      "address": "Av. Providencia 1234",
+                      "district": "Providencia",
+                      "city": "Santiago"
                     },
                     "details": [
                       {
-                        "item_name": "Servicio de Consultoría",
+                        "item_name": "Servicio de consultoría",
                         "quantity": 1,
                         "unit_price": 100000
                       }
@@ -1456,6 +1459,16 @@
             "name": "master_entity_id",
             "in": "query",
             "description": "Tupana ID (`ment_…`) de la empresa cuyos documentos quieres consultar. Obligatorio, salvo que envíes `connection_id`: en ese caso la empresa sale de la conexión. Si envías ambos, la conexión tiene que ser de esa empresa.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "ment_4829301923847"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Alias de `master_entity_id`, con el nombre que usa el resto de la API v2 (conexiones, cuentas, webhooks). Si envías los dos, manda `master_entity_id`.",
             "required": false,
             "schema": {
               "type": "string",
@@ -5930,7 +5943,7 @@
             "description": "Un filtro con un valor fuera del vocabulario (`code: parameter_invalid`, `param`)"
           },
           "403": {
-            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
           }
         }
       }
@@ -5971,7 +5984,7 @@
             }
           },
           "403": {
-            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
           },
           "404": {
             "description": "La cuenta no existe para esta API key"
@@ -6145,7 +6158,7 @@
             "description": "Un filtro inválido (`code: parameter_invalid`, `param`)"
           },
           "403": {
-            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
           },
           "404": {
             "description": "La cuenta no existe para esta API key"
@@ -6188,7 +6201,7 @@
             }
           },
           "403": {
-            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
           },
           "404": {
             "description": "El movimiento no existe para esta API key"
@@ -6288,7 +6301,7 @@
             "description": "`cursor_invalid`: el cursor no es uno emitido por la API"
           },
           "403": {
-            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
           },
           "410": {
             "description": "`cursor_expired`: el cursor es más antiguo que la retención; resincroniza sin cursor"
@@ -6417,7 +6430,7 @@
             "description": "Filtro inválido (`parameter_invalid`)"
           },
           "403": {
-            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
           }
         }
       }
@@ -6457,7 +6470,7 @@
             }
           },
           "403": {
-            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
           },
           "404": {
             "description": "El evento no existe para esta API key"
@@ -6572,7 +6585,7 @@
             "description": "`period` inválido (`parameter_invalid`)"
           },
           "403": {
-            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
           },
           "404": {
             "description": "La cuenta no existe para esta API key"
@@ -6624,7 +6637,7 @@
             }
           },
           "403": {
-            "description": "La API key no tiene `banking:read` explícito (`code: banking_permission_required`)"
+            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
           },
           "404": {
             "description": "El estado de cuenta no es de esa cuenta, o la cuenta no existe para esta API key"

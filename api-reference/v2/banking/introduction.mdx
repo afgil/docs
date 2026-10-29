@@ -23,7 +23,9 @@ para las tarjetas, [Tarjetas de crédito](/api-reference/v2/banking/guides/credi
 Las cuentas y los movimientos exigen una API key con **`banking:read`** escrito
 en ella. El comodín `*` que traen las keys al crearse no lo concede: los saldos
 son de un tercero y no salen por una key que nunca pidió verlos. Sin él, `403`
-con código `banking_permission_required`.
+con código `banking_permission_required`. Se activa en la consola de
+developers, en API Keys. Las keys sandbox lo traen siempre: sus datos
+bancarios son de prueba.
 
 ## El modelo
 
