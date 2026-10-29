@@ -12884,12 +12884,12 @@ Tipo: object
 
 Tipo: object
 
-- `date_issued` (string (date)): Fecha de emisión (YYYY-MM-DD). Si X-Use-Defaults es true y no se proporciona, se usa la fecha actual.
-- `folio` (string): Folio del documento. Si X-Use-Defaults es true y no se proporciona, se genera automáticamente.
-- `dte_type` (`DteType`; requerido)
 - `company_id` (string; ej: `ment_2133425900906160655`): Id de la empresa emisora, el `company_id` que devuelve Listar conexiones (prefijo `ment_`). Con él Tupana completa `document_issuer` (RUT, razón social, giro, dirección) y no necesitas mandarlo. Si lo mandas junto a `document_issuer`, lo que envíes pisa el dato de la empresa.
 - `document_issuer` (`DocumentIssuer`): Datos del emisor. Obligatorio salvo que mandes `company_id`; con `X-Use-Defaults: true` basta el `rut`.
 - `document_receiver` (`DocumentReceiver`; requerido)
+- `dte_type` (`DteType`; requerido)
+- `date_issued` (string (date)): Fecha de emisión (YYYY-MM-DD). Si X-Use-Defaults es true y no se proporciona, se usa la fecha actual.
+- `folio` (string): Folio del documento. Si X-Use-Defaults es true y no se proporciona, se genera automáticamente.
 - `details` (array de `DetailItem`; requerido)
 - `header` (`DocumentHeader`)
 - `references` (array de `ReferenceItem`)
