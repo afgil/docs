@@ -1,0 +1,30 @@
+---
+title: 'Crear sesión de Tupana Connect (API v2)'
+sidebarTitle: 'Crear sesión'
+description: 'Crea la sesión de corta duración con la que tu frontend abre el widget de Tupana Connect. La llama tu backend con tu API key; al navegador solo llega el client_token.'
+openapi: "api-reference/openapi-v2.json POST /connect-sessions/"
+---
+
+Es el primer paso de [Tupana Connect](/api-reference/v2/connect/tupana-connect):
+tu backend crea la sesión con su API key y le pasa al frontend solo el
+`client_token`. Tu API key nunca va al navegador y la clave del SII de tu
+usuario nunca pasa por tu código.
+
+## Abrir el widget
+
+Con el token abres `https://developers.tupana.ai/connect?token=…` en un iframe
+o en una ventana. El token dura 30 minutos y sirve una sola vez: créalo justo
+cuando tu usuario hace clic en "Conectar empresa".
+
+```html
+<iframe src="https://developers.tupana.ai/connect?token=cst_9f2b…"
+        width="460" height="660" frameborder="0"></iframe>
+```
+
+## Confirmar la conexión
+
+El widget te avisa por `postMessage` con `event: "success"` cuando el usuario
+termina, pero eso solo sirve para cerrar tu modal. La conexión es real cuando
+tu backend recibe el webhook `connection.active`; si la clave estaba mala,
+llega `connection.requires_action`. Después la ves en
+[Listar conexiones](/api-reference/v2/connections/list) con su `company_id`.
