@@ -4891,6 +4891,129 @@
         }
       }
     },
+    "/connect-sessions/": {
+      "post": {
+        "tags": [
+          "Conexiones"
+        ],
+        "summary": "Crear sesión de Tupana Connect",
+        "operationId": "createConnectSession_v2",
+        "description": "Crea una sesión de corta duración para abrir el widget de Tupana Connect. La llama tu backend con tu API key; al frontend solo le pasas el `client_token`, que dura 30 minutos y sirve una sola vez. La conexión queda confirmada cuando recibes el webhook `connection.active`, no con el evento `success` del widget.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "capabilities": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "invoicing",
+                        "sii_data",
+                        "banking"
+                      ]
+                    },
+                    "default": [
+                      "invoicing"
+                    ],
+                    "description": "Qué podrá hacer la conexión: `invoicing` emite documentos, `sii_data` lee el registro de compras y ventas, `banking` lee cuentas y movimientos. Puedes pedir varias."
+                  },
+                  "tax_id": {
+                    "type": "string",
+                    "example": "78.152.641-K",
+                    "description": "RUT de la empresa a conectar. Si lo mandas, el widget no lo vuelve a pedir."
+                  },
+                  "app_name": {
+                    "type": "string",
+                    "maxLength": 120,
+                    "example": "Mi ERP",
+                    "description": "Nombre de tu app, se muestra dentro del widget."
+                  },
+                  "external_customer_id": {
+                    "type": "string",
+                    "maxLength": 120,
+                    "example": "cust_8841",
+                    "description": "Tu identificador del cliente. Vuelve en los webhooks de la conexión."
+                  },
+                  "return_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://mi-erp.cl/integraciones/tupana",
+                    "description": "Si abres el widget en una ventana en vez de un iframe, adónde vuelve al terminar."
+                  },
+                  "environment": {
+                    "type": "string",
+                    "enum": [
+                      "sandbox",
+                      "production"
+                    ],
+                    "description": "Por defecto sigue al ambiente de tu API key. Una key de sandbox solo puede abrir sesiones sandbox."
+                  }
+                },
+                "example": {
+                  "capabilities": [
+                    "invoicing"
+                  ],
+                  "app_name": "Mi ERP",
+                  "external_customer_id": "cust_8841"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sesión creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "connect_session_id": {
+                      "type": "string",
+                      "example": "cses_4829301923847120394",
+                      "description": "Id de la sesión, con prefijo `cses_`."
+                    },
+                    "client_token": {
+                      "type": "string",
+                      "example": "cst_9f2b7c1e4d8a...",
+                      "description": "Token para abrir el widget: `https://developers.tupana.ai/connect?token=…`. Se muestra una sola vez."
+                    },
+                    "expires_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2026-10-29T19:45:00+00:00"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido (capability desconocida, lista vacía, ambiente no permitido para la key)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "capabilities debe ser una lista con al menos un valor."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Developer sin tarjeta registrada abriendo Connect en producción"
+          }
+        }
+      }
+    },
     "/connections/": {
       "get": {
         "operationId": "listConnections_v2",
