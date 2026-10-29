@@ -42,9 +42,10 @@ curl "https://api.tupana.ai/v2/bank-accounts/?company_id=ment_367248643654623385
 
 ## Permiso
 
-Necesitas una API key con el permiso **`banking:read`** escrito en ella. El
-comodín `*` no lo concede: los saldos son de un tercero y no salen por una key
-que nunca pidió verlos. Sin él, `403` con código `banking_permission_required`.
+En producción necesitas una API key con el permiso **`banking:read`** escrito
+en ella. El comodín `*` no lo concede: los saldos son de un tercero y no salen
+por una key que nunca pidió verlos. Sin él, `403` con código
+`banking_permission_required`. Una key sandbox lo trae incluido.
 
 ## Filtros
 
