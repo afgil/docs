@@ -152,19 +152,19 @@ Detalle: https://docs.tupana.ai/precios · https://developers.tupana.ai/pricing
 
 ### API Recaudación
 
-- [API de Recaudación: link de pago con emisión de DTE](https://docs.tupana.ai/api-reference/payment-requests/introduction): Cobra con link de pago (Transbank) desde tu plataforma: Tupana procesa el pago, deposita al destinatario y emite la boleta o factura electrónica al SII automáticamente.
-- [Consultar cuenta bancaria de depósito (API Recaudación)](https://docs.tupana.ai/api-reference/payment-requests/banking-info-get): Consulta la cuenta bancaria donde Tupana deposita lo recaudado para una empresa.
-- [Registrar cuenta bancaria de depósito (API Recaudación)](https://docs.tupana.ai/api-reference/payment-requests/banking-info-create): Registra la cuenta bancaria chilena donde Tupana deposita los pagos recaudados con link de pago.
-- [Actualizar cuenta bancaria de depósito (API Recaudación)](https://docs.tupana.ai/api-reference/payment-requests/banking-info-update): Actualiza la cuenta bancaria donde Tupana deposita lo recaudado.
-- [Listar tarjetas inscritas (API Recaudación)](https://docs.tupana.ai/api-reference/payment-requests/payment-methods-list): Lista las tarjetas inscritas por un pagador en la API de Recaudación de Tupana.
-- [Listar liquidaciones de recaudación](https://docs.tupana.ai/api-reference/payment-requests/settlements-list): Lista las liquidaciones y depósitos de lo recaudado con link de pago en Tupana.
-- [Consultar una liquidación de recaudación](https://docs.tupana.ai/api-reference/payment-requests/settlements-get): Detalle de una liquidación: cobros incluidos, comisión y monto depositado.
-- [Crear un link de pago (API Recaudación)](https://docs.tupana.ai/api-reference/payment-requests/create): Crea una sesión de cobro con payment_url (Transbank) que emite la boleta o factura electrónica al pagar, o cobra documentos ya emitidos.
-- [Consultar estado de un cobro (API Recaudación)](https://docs.tupana.ai/api-reference/payment-requests/get): Estado de una sesión de cobro con link de pago: pendiente, pagada, expirada y documento emitido.
-- [Listar cobros (API Recaudación)](https://docs.tupana.ai/api-reference/payment-requests/list): Lista las sesiones de cobro con link de pago creadas en Tupana.
-- [Emitir el DTE de un cobro manualmente (API Recaudación)](https://docs.tupana.ai/api-reference/payment-requests/issue): Emite la boleta o factura electrónica de un cobro pagado cuando creaste la sesión con auto_issue en false.
-- [Webhooks de Recaudación (link de pago)](https://docs.tupana.ai/api-reference/payment-requests/webhooks): Eventos de la API de Recaudación de Tupana (pagado, documento emitido, expirado), payload y verificación de la firma HMAC-SHA256.
-- [Referencia de la API de Recaudación](https://docs.tupana.ai/api-reference/payment-requests/reference): Tipos de DTE, métodos de pago y códigos de error de la API de Recaudación de Tupana.
+- [API de Recaudación: link de pago con emisión de DTE](https://docs.tupana.ai/api-reference/v2/payment-requests/introduction): Cobra con link de pago (Transbank) desde tu plataforma: Tupana procesa el pago, deposita al destinatario y emite la boleta o factura electrónica al SII automáticamente.
+- [Consultar cuenta bancaria de depósito (API Recaudación)](https://docs.tupana.ai/api-reference/v2/payment-requests/banking-info-get): Consulta la cuenta bancaria donde Tupana deposita lo recaudado para una empresa.
+- [Registrar cuenta bancaria de depósito (API Recaudación)](https://docs.tupana.ai/api-reference/v2/payment-requests/banking-info-create): Registra la cuenta bancaria chilena donde Tupana deposita los pagos recaudados con link de pago.
+- [Actualizar cuenta bancaria de depósito (API Recaudación)](https://docs.tupana.ai/api-reference/v2/payment-requests/banking-info-update): Actualiza la cuenta bancaria donde Tupana deposita lo recaudado.
+- [Listar tarjetas inscritas (API Recaudación)](https://docs.tupana.ai/api-reference/v2/payment-requests/payment-methods-list): Lista las tarjetas inscritas por un pagador en la API de Recaudación de Tupana.
+- [Listar liquidaciones de recaudación](https://docs.tupana.ai/api-reference/v2/payment-requests/settlements-list): Lista las liquidaciones y depósitos de lo recaudado con link de pago en Tupana.
+- [Consultar una liquidación de recaudación](https://docs.tupana.ai/api-reference/v2/payment-requests/settlements-get): Detalle de una liquidación: cobros incluidos, comisión y monto depositado.
+- [Crear un link de pago (API Recaudación)](https://docs.tupana.ai/api-reference/v2/payment-requests/create): Crea una sesión de cobro con payment_url (Transbank) que emite la boleta o factura electrónica al pagar, o cobra documentos ya emitidos.
+- [Consultar estado de un cobro (API Recaudación)](https://docs.tupana.ai/api-reference/v2/payment-requests/get): Estado de una sesión de cobro con link de pago: pendiente, pagada, expirada y documento emitido.
+- [Listar cobros (API Recaudación)](https://docs.tupana.ai/api-reference/v2/payment-requests/list): Lista las sesiones de cobro con link de pago creadas en Tupana.
+- [Emitir el DTE de un cobro manualmente (API Recaudación)](https://docs.tupana.ai/api-reference/v2/payment-requests/issue): Emite la boleta o factura electrónica de un cobro pagado cuando creaste la sesión con auto_issue en false.
+- [Webhooks de Recaudación (link de pago)](https://docs.tupana.ai/api-reference/v2/payment-requests/webhooks): Eventos de la API de Recaudación de Tupana (pagado, documento emitido, expirado), payload y verificación de la firma HMAC-SHA256.
+- [Referencia de la API de Recaudación](https://docs.tupana.ai/api-reference/v2/payment-requests/reference): Tipos de DTE, métodos de pago y códigos de error de la API de Recaudación de Tupana.
 
 ### API Consultas
 

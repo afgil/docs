@@ -8990,7 +8990,7 @@ Antes de este endpoint, si el SII fallaba (incluso de forma transitoria) al gene
 
 ## API de Recaudación: link de pago con emisión de DTE
 
-Fuente: https://docs.tupana.ai/api-reference/payment-requests/introduction · Sección: API Recaudación / Introducción
+Fuente: https://docs.tupana.ai/api-reference/v2/payment-requests/introduction · Sección: API Recaudación / Introducción
 
 > Cobra con link de pago (Transbank) desde tu plataforma: Tupana procesa el pago, deposita al destinatario y emite la boleta o factura electrónica al SII automáticamente.
 
@@ -9007,7 +9007,7 @@ Con un solo endpoint, Tupana:
 
 ### Flujo general
 
-1. **Tu plataforma crea una sesión de cobro** llamando a `POST /v1/payment-requests/`. Tupana retorna una `payment_url`.
+1. **Tu plataforma crea una sesión de cobro** llamando a `POST /v2/payment-requests/`. Tupana retorna una `payment_url`.
 2. **Redirige al usuario** a esa URL. El usuario paga en el checkout de Tupana (o directo a Transbank si usas `skip_portal: true`).
 3. **Tupana procesa el pago** con Transbank, actualiza el estado de la sesión y emite el DTE (si corresponde).
 4. **Tupana te notifica vía webhook** con un `POST` firmado a tu endpoint registrado.
@@ -9015,7 +9015,7 @@ Con un solo endpoint, Tupana:
 
 ### Dos modos: emisión vs. cobro directo
 
-El mismo endpoint `POST /v1/payment-requests/` soporta dos escenarios:
+El mismo endpoint `POST /v2/payment-requests/` soporta dos escenarios:
 
 | Modo | Cuándo usarlo | Campos del request |
 |------|---------------|---------------------|
@@ -9066,19 +9066,19 @@ CVV: `123` · Vencimiento: cualquier fecha futura · RUT: `11.111.111-1` · Clav
 
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| `POST` | `/v1/payment-requests/` | Crear sesión de cobro |
-| `GET` | `/v1/payment-requests/` | Listar cobros |
-| `GET` | `/v1/payment-requests/{id}/` | Consultar estado de un cobro |
-| `PATCH` | `/v1/payment-requests/{id}/` | Emitir DTE manualmente (cuando `auto_issue=false`; no aplica en modo cobro directo) |
-| `GET` | `/v1/master-entities/{id}/banking-info/` | Consultar cuenta bancaria del destinatario |
-| `POST` | `/v1/master-entities/{id}/banking-info/` | Registrar cuenta bancaria |
-| `PUT` | `/v1/master-entities/{id}/banking-info/` | Actualizar cuenta bancaria |
+| `POST` | `/v2/payment-requests/` | Crear sesión de cobro |
+| `GET` | `/v2/payment-requests/` | Listar cobros |
+| `GET` | `/v2/payment-requests/{id}/` | Consultar estado de un cobro |
+| `PATCH` | `/v2/payment-requests/{id}/` | Emitir DTE manualmente (cuando `auto_issue=false`; no aplica en modo cobro directo) |
+| `GET` | `/v2/master-entities/{id}/banking-info/` | Consultar cuenta bancaria del destinatario |
+| `POST` | `/v2/master-entities/{id}/banking-info/` | Registrar cuenta bancaria |
+| `PUT` | `/v2/master-entities/{id}/banking-info/` | Actualizar cuenta bancaria |
 
 ---
 
 ## Consultar cuenta bancaria de depósito (API Recaudación)
 
-Fuente: https://docs.tupana.ai/api-reference/payment-requests/banking-info-get · Sección: API Recaudación / Cuenta Bancaria
+Fuente: https://docs.tupana.ai/api-reference/v2/payment-requests/banking-info-get · Sección: API Recaudación / Cuenta Bancaria
 
 > Consulta la cuenta bancaria donde Tupana deposita lo recaudado para una empresa.
 
@@ -9096,13 +9096,13 @@ Consulta la cuenta bancaria registrada para un destinatario. Útil para verifica
 ### Consideraciones importantes
 
 #### Requisito previo para crear cobros
-Para crear una sesión de cobro, el destinatario debe tener una cuenta bancaria registrada. Si no la tiene, `POST /v1/payment-requests/` retornará el error `RECIPIENT_MISSING_BANKING_INFO`.
+Para crear una sesión de cobro, el destinatario debe tener una cuenta bancaria registrada. Si no la tiene, `POST /v2/payment-requests/` retornará el error `RECIPIENT_MISSING_BANKING_INFO`.
 
 ---
 
 ## Registrar cuenta bancaria de depósito (API Recaudación)
 
-Fuente: https://docs.tupana.ai/api-reference/payment-requests/banking-info-create · Sección: API Recaudación / Cuenta Bancaria
+Fuente: https://docs.tupana.ai/api-reference/v2/payment-requests/banking-info-create · Sección: API Recaudación / Cuenta Bancaria
 
 > Registra la cuenta bancaria chilena donde Tupana deposita los pagos recaudados con link de pago.
 
@@ -9115,7 +9115,7 @@ Registra la cuenta bancaria a la que Tupana depositará los fondos una vez confi
 ### Qué hace
 
 - Registra una cuenta bancaria para el destinatario identificado por `master_entity_id`.
-- Cada destinatario tiene **una sola** cuenta bancaria activa. Para cambiar los datos, usa `PUT /v1/master-entities/{master_entity_id}/banking-info/`.
+- Cada destinatario tiene **una sola** cuenta bancaria activa. Para cambiar los datos, usa `PUT /v2/master-entities/{master_entity_id}/banking-info/`.
 - El titular de la cuenta es el propio destinatario (la `master_entity` con `master_entity_id`).
 
 ### Cómo identificar el banco
@@ -9160,7 +9160,7 @@ Envía uno de los dos. Si enviás ambos, deben referirse al mismo banco.
 
 ## Actualizar cuenta bancaria de depósito (API Recaudación)
 
-Fuente: https://docs.tupana.ai/api-reference/payment-requests/banking-info-update · Sección: API Recaudación / Cuenta Bancaria
+Fuente: https://docs.tupana.ai/api-reference/v2/payment-requests/banking-info-update · Sección: API Recaudación / Cuenta Bancaria
 
 > Actualiza la cuenta bancaria donde Tupana deposita lo recaudado.
 
@@ -9173,7 +9173,7 @@ Actualiza uno o más campos de la cuenta bancaria registrada para un destinatari
 ### Qué hace
 
 - Actualiza parcialmente los datos de la cuenta bancaria. Como cada destinatario tiene una sola cuenta, no hace falta enviar un id de cuenta en la URL.
-- Para cambiar el banco puedes enviar `sbif_code` (ej `"037"`) o `bank` (ID interno). Mira la [tabla de códigos SBIF](https://docs.tupana.ai/api-reference/payment-requests/banking-info-create#códigos-sbif-disponibles) en el endpoint de creación.
+- Para cambiar el banco puedes enviar `sbif_code` (ej `"037"`) o `bank` (ID interno). Mira la [tabla de códigos SBIF](https://docs.tupana.ai/api-reference/v2/payment-requests/banking-info-create#códigos-sbif-disponibles) en el endpoint de creación.
 
 ### Consideraciones importantes
 
@@ -9184,7 +9184,7 @@ Las sesiones de cobro creadas antes de actualizar la cuenta no se ven afectadas.
 
 ## Listar tarjetas inscritas (API Recaudación)
 
-Fuente: https://docs.tupana.ai/api-reference/payment-requests/payment-methods-list · Sección: API Recaudación / Medios de pago
+Fuente: https://docs.tupana.ai/api-reference/v2/payment-requests/payment-methods-list · Sección: API Recaudación / Medios de pago
 
 > Lista las tarjetas inscritas por un pagador en la API de Recaudación de Tupana.
 
@@ -9216,7 +9216,7 @@ Una tarjeta puede quedar inactiva si el pagador la dio de baja, si Transbank rec
 
 ## Listar liquidaciones de recaudación
 
-Fuente: https://docs.tupana.ai/api-reference/payment-requests/settlements-list · Sección: API Recaudación / Liquidaciones
+Fuente: https://docs.tupana.ai/api-reference/v2/payment-requests/settlements-list · Sección: API Recaudación / Liquidaciones
 
 > Lista las liquidaciones y depósitos de lo recaudado con link de pago en Tupana.
 
@@ -9254,7 +9254,7 @@ La API Key debe pertenecer a un usuario con acceso a la master entity indicada e
 
 ## Consultar una liquidación de recaudación
 
-Fuente: https://docs.tupana.ai/api-reference/payment-requests/settlements-get · Sección: API Recaudación / Liquidaciones
+Fuente: https://docs.tupana.ai/api-reference/v2/payment-requests/settlements-get · Sección: API Recaudación / Liquidaciones
 
 > Detalle de una liquidación: cobros incluidos, comisión y monto depositado.
 
@@ -9291,7 +9291,7 @@ La API Key debe pertenecer a un usuario con acceso a la master entity indicada e
 
 ## Crear un link de pago (API Recaudación)
 
-Fuente: https://docs.tupana.ai/api-reference/payment-requests/create · Sección: API Recaudación / Cobros
+Fuente: https://docs.tupana.ai/api-reference/v2/payment-requests/create · Sección: API Recaudación / Cobros
 
 > Crea una sesión de cobro con payment_url (Transbank) que emite la boleta o factura electrónica al pagar, o cobra documentos ya emitidos.
 
@@ -9322,9 +9322,9 @@ Los modos son mutuamente excluyentes: si envías `document_ids`, no puedes inclu
 
 ```json
 {
-  "recipient_id": 789,
+  "recipient_id": "ment_4829301923847",
   "redirect_url": "https://tuapp.com/confirmation",
-  "document_ids": [9871, 9872],
+  "document_ids": ["docu_9182736455123", "docu_9182736455124"],
   "expires_in_minutes": 30,
   "external_id": "collection_session_001",
   "metadata": {
@@ -9342,7 +9342,7 @@ Reglas de validación en este modo:
 - El monto del cobro se calcula automáticamente como la suma de los `amount_with_iva` de los documentos.
 - **Si usas una API key de sandbox**, el `folio` de cada documento debe empezar con `SANDBOX`. Esto evita que cobres documentos reales con una key de prueba — si la regla no se cumple, el endpoint retorna `DOCUMENT_NOT_SANDBOX`.
 
-En modo cobro directo no hay emisión posterior, por lo que `PATCH /v1/payment-requests/{id}/` con `status=issued` retorna `NOT_APPLICABLE`.
+En modo cobro directo no hay emisión posterior, por lo que `PATCH /v2/payment-requests/{id}/` con `status=issued` retorna `NOT_APPLICABLE`.
 
 ### Ejemplos de uso
 
@@ -9368,20 +9368,20 @@ Si enviaste `redirect_url`, Tupana redirige al usuario a esa URL después del pa
 
 ```
 # Pago exitoso
-https://tuapp.com/confirmation?payment_request_id=pr_abc123&status=paid
+https://tuapp.com/confirmation?payment_request_id=pare_4829301923847&status=paid
 
 # Pago fallido
-https://tuapp.com/confirmation?payment_request_id=pr_abc123&status=failed&error_code=CARD_DECLINED
+https://tuapp.com/confirmation?payment_request_id=pare_4829301923847&status=failed&error_code=CARD_DECLINED
 
 # Sesión vencida
-https://tuapp.com/confirmation?payment_request_id=pr_abc123&status=expired
+https://tuapp.com/confirmation?payment_request_id=pare_4829301923847&status=expired
 ```
 
-> **Importante:** No uses los parámetros del redirect como fuente de verdad del estado del pago. Un usuario podría modificarlos en el browser. Siempre verifica el estado real vía el webhook recibido o consultando `GET /v1/payment-requests/{id}/`.
+> **Importante:** No uses los parámetros del redirect como fuente de verdad del estado del pago. Un usuario podría modificarlos en el browser. Siempre verifica el estado real vía el webhook recibido o consultando `GET /v2/payment-requests/{id}/`.
 
 #### Emisión automática de DTE (`auto_issue`)
 
-Por defecto (`auto_issue=true`), Tupana emite el DTE automáticamente al confirmarse el pago. Si necesitas controlar el momento de la emisión, envía `auto_issue=false` y emite el DTE cuando lo necesites con [`PATCH /v1/payment-requests/{id}/`](https://docs.tupana.ai/api-reference/payment-requests/issue) enviando `{"status": "issued"}`.
+Por defecto (`auto_issue=true`), Tupana emite el DTE automáticamente al confirmarse el pago. Si necesitas controlar el momento de la emisión, envía `auto_issue=false` y emite el DTE cuando lo necesites con [`PATCH /v2/payment-requests/{id}/`](https://docs.tupana.ai/api-reference/v2/payment-requests/issue) enviando `{"status": "issued"}`.
 
 Esto es útil cuando quieres validar datos adicionales antes de emitir la boleta o factura.
 
@@ -9399,7 +9399,7 @@ El destinatario debe estar habilitado para emitir ese tipo de documento en Tupan
 
 ## Consultar estado de un cobro (API Recaudación)
 
-Fuente: https://docs.tupana.ai/api-reference/payment-requests/get · Sección: API Recaudación / Cobros
+Fuente: https://docs.tupana.ai/api-reference/v2/payment-requests/get · Sección: API Recaudación / Cobros
 
 > Estado de una sesión de cobro con link de pago: pendiente, pagada, expirada y documento emitido.
 
@@ -9433,7 +9433,7 @@ El GET es un mecanismo de respaldo. El flujo recomendado es:
 
 ## Listar cobros (API Recaudación)
 
-Fuente: https://docs.tupana.ai/api-reference/payment-requests/list · Sección: API Recaudación / Cobros
+Fuente: https://docs.tupana.ai/api-reference/v2/payment-requests/list · Sección: API Recaudación / Cobros
 
 > Lista las sesiones de cobro con link de pago creadas en Tupana.
 
@@ -9459,7 +9459,7 @@ Obtiene todas las sesiones de cobro creadas por tu integración, ordenadas por f
 
 ## Emitir el DTE de un cobro manualmente (API Recaudación)
 
-Fuente: https://docs.tupana.ai/api-reference/payment-requests/issue · Sección: API Recaudación / Cobros
+Fuente: https://docs.tupana.ai/api-reference/v2/payment-requests/issue · Sección: API Recaudación / Cobros
 
 > Emite la boleta o factura electrónica de un cobro pagado cuando creaste la sesión con auto_issue en false.
 
@@ -9504,7 +9504,7 @@ Si llamas este endpoint dos veces sobre la misma sesión, la segunda llamada ret
 
 ## Webhooks de Recaudación (link de pago)
 
-Fuente: https://docs.tupana.ai/api-reference/payment-requests/webhooks · Sección: API Recaudación / Webhooks
+Fuente: https://docs.tupana.ai/api-reference/v2/payment-requests/webhooks · Sección: API Recaudación / Webhooks
 
 > Eventos de la API de Recaudación de Tupana (pagado, documento emitido, expirado), payload y verificación de la firma HMAC-SHA256.
 
@@ -9519,7 +9519,7 @@ Para registrar o gestionar tus endpoints de webhook, consulta la sección de [We
 | Evento | Cuándo se emite |
 |--------|-----------------|
 | `payment_request.paid` | El pago fue confirmado exitosamente. Único evento que se dispara en modo cobro directo. |
-| `payment_request.document_issued` | El DTE fue emitido (automáticamente o vía `PATCH /v1/payment-requests/{id}/` con `status=issued`). No se dispara en modo cobro directo. |
+| `payment_request.document_issued` | El DTE fue emitido (automáticamente o vía `PATCH /v2/payment-requests/{id}/` con `status=issued`). No se dispara en modo cobro directo. |
 | `payment_request.expired` | La sesión venció sin pagarse. |
 
 ### Estructura del payload
@@ -9548,7 +9548,7 @@ Todos los eventos de cobro siguen la estructura estándar de webhooks de Tupana.
 
 | Campo | Descripción |
 |-------|-------------|
-| `payment_request_id` | ID numérico de la sesión de cobro. |
+| `payment_request_id` | ID de la sesión de cobro (`pare_…`). |
 | `status` | Estado resultante (`paid`, `expired`). |
 | `external_id` | Tu ID propio para esta sesión. `null` si no enviaste uno. |
 | `amount` | Monto del cobro en CLP. |
@@ -9573,7 +9573,7 @@ Todos los eventos de cobro siguen la estructura estándar de webhooks de Tupana.
     "payment_url": "https://www.tupana.ai/pagos/tok_def",
     "issued_document_id": null,
     "metadata": { "campaign": "cobranza-abril" },
-    "document_ids": [9871, 9872]
+    "document_ids": ["docu_9182736455123", "docu_9182736455124"]
   }
 }
 ```
@@ -9650,7 +9650,7 @@ Cada entrega tiene un `X-Pana-Delivery` único. Si recibes el mismo ID dos veces
 
 ## Referencia de la API de Recaudación
 
-Fuente: https://docs.tupana.ai/api-reference/payment-requests/reference · Sección: API Recaudación / Referencia
+Fuente: https://docs.tupana.ai/api-reference/v2/payment-requests/reference · Sección: API Recaudación / Referencia
 
 > Tipos de DTE, métodos de pago y códigos de error de la API de Recaudación de Tupana.
 
@@ -9676,7 +9676,7 @@ Moneda soportada: **CLP** (peso chileno), sin decimales.
 
 ### Códigos de banco (`sbif_code`)
 
-Para registrar la cuenta bancaria del destinatario (`POST /v1/master-entities/{id}/banking-info/`), envía el código SBIF del banco.
+Para registrar la cuenta bancaria del destinatario (`POST /v2/master-entities/{id}/banking-info/`), envía el código SBIF del banco.
 
 | `sbif_code` | Banco |
 |---|---|
@@ -9712,7 +9712,7 @@ Para registrar la cuenta bancaria del destinatario (`POST /v1/master-entities/{i
 | `400` | `DOCUMENT_ALREADY_PAID` | Un documento de `document_ids` ya está pagado. |
 | `400` | `DOCUMENT_NOT_PAYABLE` | Un documento de `document_ids` no es de un tipo cobrable (33, 34, 39, 41, 80, 110). |
 | `400` | `DOCUMENT_NOT_SANDBOX` | Estás usando una API key de sandbox y un documento de `document_ids` no tiene folio que empiece con `SANDBOX`. |
-| `400` | `INVALID_STATUS` | El body de `PATCH /v1/payment-requests/{id}/` no contiene `{"status": "issued"}`. |
+| `400` | `INVALID_STATUS` | El body de `PATCH /v2/payment-requests/{id}/` no contiene `{"status": "issued"}`. |
 | `400` | `ALREADY_ISSUED` | El DTE ya fue emitido para esta sesión (`PATCH` con `status=issued`). |
 | `400` | `NOT_PAID` | La sesión no está pagada aún (`PATCH` con `status=issued`). |
 | `400` | `NOT_APPLICABLE` | Llamaste a `PATCH` con `status=issued` sobre una sesión en modo cobro directo (no hay DTE a emitir). |
