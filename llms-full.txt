@@ -5617,7 +5617,7 @@ GET /v2/documents/?master_entity_id=ment_4829301923847&json_param__external_orde
 
 Fuente: https://docs.tupana.ai/api-reference/v2/documents/batch · Sección: API Facturación / Documentos
 
-> POST /v2/documents/batch/: emite hasta 200 facturas, boletas, notas de crédito, guías de despacho o facturas de exportación al SII en una llamada, con Idempotency-Key y resultados por webhook.
+> POST /v2/documents/batch/: emite hasta 500 facturas, boletas, notas de crédito, guías de despacho o facturas de exportación al SII en una llamada, con Idempotency-Key y resultados por webhook.
 
 Endpoint: `POST /documents/batch/` (detalle completo en la Parte 2).
 
@@ -5701,7 +5701,11 @@ Con `X-Use-Defaults: true`, solo necesitas proporcionar el `rut` del receptor. E
 
 **Campos específicos:**
 
-**document_issuer (Obligatorio)**
+**company_id (Opcional, reemplaza a `document_issuer`)**
+- **Tipo:** String, el `company_id` de [Listar conexiones](https://docs.tupana.ai/api-reference/v2/connections/list) (prefijo `ment_`)
+- Con él Tupana completa el emisor (RUT, razón social, giro, dirección, comuna y ciudad) desde la empresa conectada. Es la forma recomendada para un SaaS: no necesitas guardar los datos del emisor.
+
+**document_issuer (Obligatorio si no mandas `company_id`)**
 - **Tipo:** Object
 - **Campos obligatorios:**
   - `rut` (String): RUT del emisor
@@ -10825,7 +10829,7 @@ Parámetros:
 
 Cuerpo (`application/json`): `DocumentBatch`
 
-- `documents` (array de `Document`; requerido): Array de documentos a crear (máximo 200)
+- `documents` (array de `Document`; requerido; máx. ítems 500): Array de documentos a crear (máximo 500)
 
 Ejemplo de cuerpo:
 
@@ -12874,7 +12878,7 @@ Tipo: object
 
 Tipo: object
 
-- `documents` (array de `Document`; requerido): Array de documentos a crear (máximo 200)
+- `documents` (array de `Document`; requerido; máx. ítems 500): Array de documentos a crear (máximo 500)
 
 #### `Document`
 
@@ -12883,7 +12887,8 @@ Tipo: object
 - `date_issued` (string (date)): Fecha de emisión (YYYY-MM-DD). Si X-Use-Defaults es true y no se proporciona, se usa la fecha actual.
 - `folio` (string): Folio del documento. Si X-Use-Defaults es true y no se proporciona, se genera automáticamente.
 - `dte_type` (`DteType`; requerido)
-- `document_issuer` (`DocumentIssuer`; requerido)
+- `company_id` (string; ej: `ment_2133425900906160655`): Id de la empresa emisora, el `company_id` que devuelve Listar conexiones (prefijo `ment_`). Con él Tupana completa `document_issuer` (RUT, razón social, giro, dirección) y no necesitas mandarlo. Si lo mandas junto a `document_issuer`, lo que envíes pisa el dato de la empresa.
+- `document_issuer` (`DocumentIssuer`): Datos del emisor. Obligatorio salvo que mandes `company_id`; con `X-Use-Defaults: true` basta el `rut`.
 - `document_receiver` (`DocumentReceiver`; requerido)
 - `details` (array de `DetailItem`; requerido)
 - `header` (`DocumentHeader`)
