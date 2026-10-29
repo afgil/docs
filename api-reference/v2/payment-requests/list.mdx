@@ -1,0 +1,22 @@
+---
+title: 'Listar cobros (API Recaudación)'
+sidebarTitle: 'Listar cobros'
+description: 'Lista las sesiones de cobro con link de pago creadas en Tupana.'
+openapi: 'api-reference/openapi-payment-requests-v2.json GET /payment-requests/'
+---
+
+## ¿Para qué se usa?
+
+Obtiene todas las sesiones de cobro creadas por tu integración, ordenadas por fecha de creación descendente.
+
+## Qué hace
+
+- Retorna todas las sesiones de cobro del cliente API autenticado.
+- Soporta filtro por `status`.
+- Incluye los mismos campos que el endpoint de detalle.
+
+## Ejemplos de uso
+
+- **Cobros pendientes**: Filtrar por `?status=pending` para hacer seguimiento de sesiones sin pagar.
+- **Cobros pagados**: Filtrar por `?status=paid` para procesar liquidaciones.
+- **Historial completo**: Sin filtros para obtener todas las sesiones.

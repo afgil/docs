@@ -1,0 +1,20 @@
+---
+title: 'Actualizar cuenta bancaria de depósito (API Recaudación)'
+sidebarTitle: 'Actualizar cuenta bancaria'
+description: 'Actualiza la cuenta bancaria donde Tupana deposita lo recaudado.'
+openapi: 'api-reference/openapi-payment-requests-v2.json PUT /master-entities/{master_entity_id}/banking-info/'
+---
+
+## ¿Para qué se usa?
+
+Actualiza uno o más campos de la cuenta bancaria registrada para un destinatario. Solo se modifican los campos que incluís en el request.
+
+## Qué hace
+
+- Actualiza parcialmente los datos de la cuenta bancaria. Como cada destinatario tiene una sola cuenta, no hace falta enviar un id de cuenta en la URL.
+- Para cambiar el banco puedes enviar `sbif_code` (ej `"037"`) o `bank` (ID interno). Mira la [tabla de códigos SBIF](/api-reference/v2/payment-requests/banking-info-create#códigos-sbif-disponibles) en el endpoint de creación.
+
+## Consideraciones importantes
+
+### Impacto en cobros activos
+Las sesiones de cobro creadas antes de actualizar la cuenta no se ven afectadas. Los nuevos depósitos van a la cuenta actualizada.
