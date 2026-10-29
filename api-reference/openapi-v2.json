@@ -7648,18 +7648,6 @@
           "details"
         ],
         "properties": {
-          "date_issued": {
-            "type": "string",
-            "format": "date",
-            "description": "Fecha de emisión (YYYY-MM-DD). Si X-Use-Defaults es true y no se proporciona, se usa la fecha actual."
-          },
-          "folio": {
-            "type": "string",
-            "description": "Folio del documento. Si X-Use-Defaults es true y no se proporciona, se genera automáticamente."
-          },
-          "dte_type": {
-            "$ref": "#/components/schemas/DteType"
-          },
           "company_id": {
             "type": "string",
             "example": "ment_2133425900906160655",
@@ -7671,6 +7659,18 @@
           },
           "document_receiver": {
             "$ref": "#/components/schemas/DocumentReceiver"
+          },
+          "dte_type": {
+            "$ref": "#/components/schemas/DteType"
+          },
+          "date_issued": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha de emisión (YYYY-MM-DD). Si X-Use-Defaults es true y no se proporciona, se usa la fecha actual."
+          },
+          "folio": {
+            "type": "string",
+            "description": "Folio del documento. Si X-Use-Defaults es true y no se proporciona, se genera automáticamente."
           },
           "details": {
             "type": "array",
