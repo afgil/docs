@@ -1,13 +1,13 @@
 ---
 title: 'API Bancaria — Introducción'
-description: 'Lee las conexiones bancarias de tus empresas: qué bancos existen, cómo se conectan con Tupana Link y qué significa cada estado — API v2'
+description: 'Lee las conexiones bancarias de tus empresas: qué bancos existen, cómo se conectan con Tupana Connect y qué significa cada estado — API v2'
 ---
 
 # API Bancaria
 
 La **API Bancaria** te da lectura de lo que las empresas conectadas a tu
 integración tienen en el banco. El usuario final conecta su banco dentro de
-[Tupana Link](/api-reference/v2/connect/tupana-link); tu SaaS nunca ve la clave,
+[Tupana Connect](/api-reference/v2/connect/tupana-connect); tu SaaS nunca ve la clave,
 y desde ahí Tupana lee el banco todos los días.
 
 Publica **instituciones**, **conexiones**, **cuentas** con sus saldos,
@@ -36,7 +36,7 @@ con código `banking_permission_required`.
 | Movimiento | Un abono o cargo en una cuenta, con la glosa cruda del banco y la contraparte que Tupana resuelve. | `move_…` |
 | Estado de cuenta | La cartola de un período: de una tarjeta o importada a una cuenta corriente, con su PDF original. | `ccs_…` / `bsu_…` |
 
-La conexión de banco es la misma `connection_id` que devuelve Tupana Link y que
+La conexión de banco es la misma `connection_id` que devuelve Tupana Connect y que
 lista [`GET /connections/`](/api-reference/v2/connections/list) con `type: "bank"`.
 Su `provider` es el banco (`santander`, `estado`, `bci`…) y su `source` dice por
 dónde lee Tupana: `fintoc` (proveedor de bancos), `scraper` (conector propio) o
@@ -56,9 +56,9 @@ compartida hay que decir a qué empresa te refieres.
 | --- | --- | --- |
 | `active` | La conexión sirve y se está leyendo. | Nada. |
 | `pending` | Conector propio: todavía no terminó la primera lectura. | Esperar `connection.active`. |
-| `requires_action` | El banco pidió volver a entrar, o la clave dejó de servir. | [Reautorizar](/api-reference/v2/connections/reauthorize): el usuario final vuelve a entrar en Tupana Link y la conexión conserva su id. |
+| `requires_action` | El banco pidió volver a entrar, o la clave dejó de servir. | [Reautorizar](/api-reference/v2/connections/reauthorize): el usuario final vuelve a entrar en Tupana Connect y la conexión conserva su id. |
 | `degraded` | Alguna cuenta quedó detenida tras fallos repetidos; las demás siguen. | Nada por tu lado; Tupana la revisa. Si persiste, reautorizar. |
-| `inactive` | Alguien la desactivó con [`DELETE`](/api-reference/v2/connections/delete). | Volver a conectar con Tupana Link si hace falta. |
+| `inactive` | Alguien la desactivó con [`DELETE`](/api-reference/v2/connections/delete). | Volver a conectar con Tupana Connect si hace falta. |
 
 Los cambios de estado llegan por webhook: `connection.active`,
 `connection.requires_action` y `connection.degraded`.

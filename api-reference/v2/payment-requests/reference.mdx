@@ -1,0 +1,77 @@
+---
+title: 'Referencia de la API de Recaudación'
+sidebarTitle: 'Referencia'
+description: 'Tipos de DTE, métodos de pago y códigos de error de la API de Recaudación de Tupana.'
+---
+
+## Tipos de DTE (`target_dte_type`)
+
+| Código | Documento emitido |
+|--------|-------------------|
+| `39` | Boleta afecta electrónica |
+| `41` | Boleta exenta electrónica |
+| `33` | Factura afecta electrónica |
+
+El destinatario debe estar habilitado en Tupana para emitir el tipo de documento especificado. Si no lo está, la creación de la sesión retornará error.
+
+## Métodos de pago
+
+| Método | `payment_method` en respuesta |
+|--------|-------------------------------|
+| Tarjeta de débito | `card` |
+| Tarjeta de crédito | `card` |
+| Transferencia bancaria | `bank_transfer` |
+
+Moneda soportada: **CLP** (peso chileno), sin decimales.
+
+## Códigos de banco (`sbif_code`)
+
+Para registrar la cuenta bancaria del destinatario (`POST /v2/master-entities/{id}/banking-info/`), envía el código SBIF del banco.
+
+| `sbif_code` | Banco |
+|---|---|
+| `001` | Banco de Chile |
+| `009` | Banco Internacional |
+| `014` | Scotiabank Chile |
+| `016` | Banco de Crédito e Inversiones (BCI) |
+| `028` | Banco BICE |
+| `031` | HSBC Bank (Chile) |
+| `037` | Banco Santander-Chile |
+| `039` | Banco Itaú Chile |
+| `049` | Banco Security |
+| `051` | Banco Falabella |
+| `053` | Banco Ripley |
+| `055` | Banco Consorcio |
+| `059` | Banco BTG Pactual Chile |
+| `062` | Tanner Banco Digital |
+| `730` | Tenpo |
+| `875` | MercadoPago |
+
+## Códigos de error
+
+| HTTP | Código | Descripción |
+|------|--------|-------------|
+| `400` | `RECIPIENT_NOT_FOUND` | El `recipient_id` no existe. |
+| `400` | `RECIPIENT_MISSING_BANKING_INFO` | El destinatario no tiene cuenta bancaria registrada. |
+| `400` | `INVALID_TARGET_DTE_TYPE` | El `target_dte_type` no es uno de los valores permitidos (33, 39, 41). |
+| `400` | `CANNOT_MIX_MODES` | Enviaste `document_ids` junto con `amount`, `target_dte_type`, `dte_recipient` o `items`. Los modos son mutuamente excluyentes. |
+| `400` | `EMPTY_DOCUMENT_IDS` | Enviaste `document_ids` como lista vacía. Debe contener al menos un documento. |
+| `400` | `DOCUMENT_NOT_FOUND` | Uno o más IDs de `document_ids` no existen. |
+| `400` | `DOCUMENT_NOT_OWNED_BY_RECIPIENT` | Un documento de `document_ids` no pertenece al `recipient_id` indicado. |
+| `400` | `MIXED_PAYERS` | Los documentos de `document_ids` tienen distintos receptores (pagadores). Cada sesión debe tener un solo pagador. |
+| `400` | `DOCUMENT_ALREADY_PAID` | Un documento de `document_ids` ya está pagado. |
+| `400` | `DOCUMENT_NOT_PAYABLE` | Un documento de `document_ids` no es de un tipo cobrable (33, 34, 39, 41, 80, 110). |
+| `400` | `DOCUMENT_NOT_SANDBOX` | Estás usando una API key de sandbox y un documento de `document_ids` no tiene folio que empiece con `SANDBOX`. |
+| `400` | `INVALID_STATUS` | El body de `PATCH /v2/payment-requests/{id}/` no contiene `{"status": "issued"}`. |
+| `400` | `ALREADY_ISSUED` | El DTE ya fue emitido para esta sesión (`PATCH` con `status=issued`). |
+| `400` | `NOT_PAID` | La sesión no está pagada aún (`PATCH` con `status=issued`). |
+| `400` | `NOT_APPLICABLE` | Llamaste a `PATCH` con `status=issued` sobre una sesión en modo cobro directo (no hay DTE a emitir). |
+
+## Estados de una sesión de cobro
+
+| Estado | Descripción |
+|--------|-------------|
+| `pending` | Sesión creada, el usuario aún no ha pagado. |
+| `paid` | Pago confirmado, pero el DTE aún no fue emitido (sesión creada con `auto_issue=false`). |
+| `issued` | Pago confirmado y DTE emitido. El depósito está en proceso. |
+| `expired` | La sesión venció sin pagarse. |

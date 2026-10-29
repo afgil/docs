@@ -84,7 +84,7 @@ Si recibes `401`, revisa que el header sea exactamente `Authorization: Api-Key <
 
 Con una key de sandbox, `POST /v2/documents/batch/` **simula** la emisión: el documento se crea y se puede consultar, pero no va al SII y su folio tiene la forma `SANDBOX-{n}`. En sandbox no se exige la clave del SII de la empresa emisora.
 
-Usa como emisor (`document_issuer.rut`) el RUT de una empresa que tengas conectada en tu cuenta. Para conectar una, mira [Tupana Link](/api-reference/v2/connect/tupana-link) (en sandbox, la conexión también es de prueba).
+Usa como emisor (`document_issuer.rut`) el RUT de una empresa que tengas conectada en tu cuenta. Para conectar una, mira [Tupana Connect](/api-reference/v2/connect/tupana-connect) (en sandbox, la conexión también es de prueba).
 
 Puedes hacerlo con curl o con los SDKs oficiales (`npm install tupana` o `pip install tupana`, ver [SDKs](/sdks/introduccion)):
 

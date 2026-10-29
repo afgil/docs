@@ -1,7 +1,7 @@
 ---
 title: 'Novedades de la API (changelog)'
 sidebarTitle: 'Novedades (changelog)'
-description: 'Historial completo de cambios de la API de facturación electrónica de Tupana para Chile: API v1 y v2, emisión de DTE al SII, webhooks, sandbox, Tupana Link, cesiones, recaudación, folios, libros del SII, servidor MCP y SDKs.'
+description: 'Historial completo de cambios de la API de facturación electrónica de Tupana para Chile: API v1 y v2, emisión de DTE al SII, webhooks, sandbox, Tupana Connect, cesiones, recaudación, folios, libros del SII, servidor MCP y SDKs.'
 keywords: ['changelog api', 'novedades api tupana', 'api facturación electrónica chile', 'api sii', 'api v2', 'webhooks', 'sandbox', 'dte', 'guía de despacho', 'factura de exportación', 'boleta electrónica', 'cesión de facturas', 'mcp', 'sdk node', 'sdk python']
 rss: true
 ---
@@ -50,7 +50,7 @@ Aquí registramos cada cambio de la API de Tupana que se nota desde tu integraci
 
 <Update label="28 de septiembre de 2026" description="Conexiones y consola de developers">
   - Nuevos endpoints de [conexiones](/api-reference/v2/connections/list): listar y [desactivar](/api-reference/v2/connections/delete) las empresas conectadas. `/v2/connections/` acepta API key y sesión de usuario.
-  - La conexión de un banco por Tupana Link se da por activa cuando el banco entrega las cuentas, y en ese momento se envía el webhook `connection.active` (o `connection.requires_action`).
+  - La conexión de un banco por Tupana Connect se da por activa cuando el banco entrega las cuentas, y en ese momento se envía el webhook `connection.active` (o `connection.requires_action`).
   - Consola de developers en [developers.tupana.ai/console](https://developers.tupana.ai/console): crea tu cuenta y tus API keys.
 </Update>
 
@@ -59,8 +59,8 @@ Aquí registramos cada cambio de la API de Tupana que se nota desde tu integraci
   - El servidor MCP enseña a construir facturación dentro de otro SaaS: flujo de emisión, especificación de la interfaz, búsqueda de clientes por RUT y reglas de validación. Ver [Agentes de IA](/agentes/introduccion).
 </Update>
 
-<Update label="24 de septiembre de 2026" description="Tupana Link y emisión v2">
-  - [Tupana Link](/api-reference/v2/connect/tupana-link): el widget hospedado con el que tus usuarios conectan su empresa (SII y bancos). En v2 reemplaza la creación de credenciales por API. Nuevos eventos de webhook `connection.active` y `connection.requires_action`.
+<Update label="24 de septiembre de 2026" description="Tupana Connect y emisión v2">
+  - [Tupana Connect](/api-reference/v2/connect/tupana-connect): el widget hospedado con el que tus usuarios conectan su empresa (SII y bancos). En v2 reemplaza la creación de credenciales por API. Nuevos eventos de webhook `connection.active` y `connection.requires_action`.
   - `additional_info` en documentos (creación, detalle, listado y webhooks). Se imprime en el PDF y queda fija cuando el documento tiene folio.
   - [Emisión v2](/api-reference/v2/documents/batch): ya no es necesario enviar `master_entity_id`; el emisor se toma de `document_issuer`. En sandbox no se exige credencial del SII y la vista previa del borrador funciona igual que en producción.
 </Update>

@@ -5005,7 +5005,7 @@
                               "degraded",
                               "inactive"
                             ],
-                            "description": "`requires_action`: la clave dejó de servir o el banco pidió reconectar; el usuario final reconecta con Tupana Link. `degraded`: alguna cuenta del banco quedó detenida. `inactive`: desactivada con DELETE. `pending`: conector propio leyendo por primera vez."
+                            "description": "`requires_action`: la clave dejó de servir o el banco pidió reconectar; el usuario final reconecta con Tupana Connect. `degraded`: alguna cuenta del banco quedó detenida. `inactive`: desactivada con DELETE. `pending`: conector propio leyendo por primera vez."
                           },
                           "last_verified_at": {
                             "type": "string",
@@ -5053,7 +5053,7 @@
       "delete": {
         "operationId": "deactivateConnection_v2",
         "summary": "Desactivar una conexión",
-        "description": "Corta una conexión: deja de servir para operar y Tupana suelta la clave que guardaba. No es un borrado — la conexión sigue en el listado con `status: inactive`, que es lo que explica por qué esa empresa dejó de sincronizar. La empresa y sus documentos no se tocan. Se identifica por `connection_id` (el `cred_…` del listado), no por la empresa. Es idempotente y no tiene vuelta atrás: volver a operar esa empresa significa conectarla de nuevo con Tupana Link.",
+        "description": "Corta una conexión: deja de servir para operar y Tupana suelta la clave que guardaba. No es un borrado — la conexión sigue en el listado con `status: inactive`, que es lo que explica por qué esa empresa dejó de sincronizar. La empresa y sus documentos no se tocan. Se identifica por `connection_id` (el `cred_…` del listado), no por la empresa. Es idempotente y no tiene vuelta atrás: volver a operar esa empresa significa conectarla de nuevo con Tupana Connect.",
         "tags": [
           "Conexiones"
         ],
@@ -5450,7 +5450,7 @@
           }
         ],
         "summary": "Listar instituciones",
-        "description": "Los bancos que se pueden conectar con Tupana Link y qué entrega cada uno.",
+        "description": "Los bancos que se pueden conectar con Tupana Connect y qué entrega cada uno.",
         "responses": {
           "200": {
             "description": "Catálogo de bancos",
@@ -5531,7 +5531,7 @@
           }
         ],
         "summary": "Reautorizar una conexión de banco",
-        "description": "Abre Tupana Link para volver a entrar al banco de una conexión existente. La conexión conserva su `connection_id` y queda en `requires_action` hasta que el usuario reconecte.",
+        "description": "Abre Tupana Connect para volver a entrar al banco de una conexión existente. La conexión conserva su `connection_id` y queda en `requires_action` hasta que el usuario reconecte.",
         "parameters": [
           {
             "name": "connection_id",
@@ -5582,7 +5582,7 @@
         },
         "responses": {
           "201": {
-            "description": "Sesión de Tupana Link lista para abrir",
+            "description": "Sesión de Tupana Connect lista para abrir",
             "content": {
               "application/json": {
                 "schema": {

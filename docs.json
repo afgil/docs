@@ -102,7 +102,7 @@
               {
                 "group": "Conexiones",
                 "pages": [
-                  "api-reference/v2/connect/tupana-link",
+                  "api-reference/v2/connect/tupana-connect",
                   "api-reference/v2/connections/list",
                   "api-reference/v2/connections/reauthorize",
                   "api-reference/v2/connections/delete"
@@ -168,7 +168,7 @@
               {
                 "group": "Conexiones",
                 "pages": [
-                  "api-reference/v2/connect/tupana-link",
+                  "api-reference/v2/connect/tupana-connect",
                   "api-reference/v2/connections/list",
                   "api-reference/v2/connections/reauthorize",
                   "api-reference/v2/connections/delete"
@@ -256,49 +256,49 @@
               {
                 "group": "Introducción",
                 "pages": [
-                  "api-reference/payment-requests/introduction"
+                  "api-reference/v2/payment-requests/introduction"
                 ]
               },
               {
                 "group": "Cuenta Bancaria",
                 "pages": [
-                  "api-reference/payment-requests/banking-info-get",
-                  "api-reference/payment-requests/banking-info-create",
-                  "api-reference/payment-requests/banking-info-update"
+                  "api-reference/v2/payment-requests/banking-info-get",
+                  "api-reference/v2/payment-requests/banking-info-create",
+                  "api-reference/v2/payment-requests/banking-info-update"
                 ]
               },
               {
                 "group": "Medios de pago",
                 "pages": [
-                  "api-reference/payment-requests/payment-methods-list"
+                  "api-reference/v2/payment-requests/payment-methods-list"
                 ]
               },
               {
                 "group": "Liquidaciones",
                 "pages": [
-                  "api-reference/payment-requests/settlements-list",
-                  "api-reference/payment-requests/settlements-get"
+                  "api-reference/v2/payment-requests/settlements-list",
+                  "api-reference/v2/payment-requests/settlements-get"
                 ]
               },
               {
                 "group": "Cobros",
                 "pages": [
-                  "api-reference/payment-requests/create",
-                  "api-reference/payment-requests/get",
-                  "api-reference/payment-requests/list",
-                  "api-reference/payment-requests/issue"
+                  "api-reference/v2/payment-requests/create",
+                  "api-reference/v2/payment-requests/get",
+                  "api-reference/v2/payment-requests/list",
+                  "api-reference/v2/payment-requests/issue"
                 ]
               },
               {
                 "group": "Webhooks",
                 "pages": [
-                  "api-reference/payment-requests/webhooks"
+                  "api-reference/v2/payment-requests/webhooks"
                 ]
               },
               {
                 "group": "Referencia",
                 "pages": [
-                  "api-reference/payment-requests/reference"
+                  "api-reference/v2/payment-requests/reference"
                 ]
               },
               {
@@ -778,6 +778,10 @@
     {
       "source": "/v1/:path*",
       "destination": "/api-reference/v2/introduction"
+    },
+    {
+      "source": "/api-reference/v2/connect/tupana-link",
+      "destination": "/api-reference/v2/connect/tupana-connect"
     }
   ]
 }

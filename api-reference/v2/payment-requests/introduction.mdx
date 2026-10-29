@@ -1,0 +1,85 @@
+---
+title: 'API de Recaudación: link de pago con emisión de DTE'
+sidebarTitle: 'API de Recaudación'
+description: 'Cobra con link de pago (Transbank) desde tu plataforma: Tupana procesa el pago, deposita al destinatario y emite la boleta o factura electrónica al SII automáticamente.'
+---
+
+## ¿Para qué sirve?
+
+La API de Recaudación permite crear sesiones de pago para que tus usuarios paguen directamente, sin que tu plataforma intermedie los fondos.
+
+Con un solo endpoint, Tupana:
+
+- **Procesa el pago** vía tarjeta de débito, crédito o transferencia bancaria (Transbank).
+- **Deposita el monto neto** al destinatario directamente.
+- **Emite el DTE** (boleta o factura electrónica) al confirmar el pago.
+- **Te notifica vía webhook** con el resultado.
+
+## Flujo general
+
+1. **Tu plataforma crea una sesión de cobro** llamando a `POST /v2/payment-requests/`. Tupana retorna una `payment_url`.
+2. **Redirige al usuario** a esa URL. El usuario paga en el checkout de Tupana (o directo a Transbank si usas `skip_portal: true`).
+3. **Tupana procesa el pago** con Transbank, actualiza el estado de la sesión y emite el DTE (si corresponde).
+4. **Tupana te notifica vía webhook** con un `POST` firmado a tu endpoint registrado.
+5. **Tu plataforma confirma** la cita, orden o servicio del lado tuyo.
+
+## Dos modos: emisión vs. cobro directo
+
+El mismo endpoint `POST /v2/payment-requests/` soporta dos escenarios:
+
+| Modo | Cuándo usarlo | Campos del request |
+|------|---------------|---------------------|
+| **Emisión** (default) | Cobras un servicio nuevo y necesitas que se emita un DTE al pago. | `amount`, `target_dte_type`, `dte_recipient`, `items` |
+| **Cobro directo** | Tienes uno o más DTEs ya emitidos y quieres cobrarlos. | `document_ids` (lista de IDs de documentos) |
+
+Los dos modos son mutuamente excluyentes — si envías `document_ids`, omite `amount`, `target_dte_type`, `dte_recipient` e `items`. En modo cobro directo:
+
+- El monto del cobro es la suma de los `amount_with_iva` de los documentos.
+- Todos los documentos deben pertenecer al `recipient_id`, compartir el mismo pagador (`receiver`), ser de un tipo cobrable (33, 34, 39, 41, 80, 110) y no estar pagados.
+- No hay emisión de DTE al confirmarse el pago — los documentos ya existen.
+
+## Autenticación
+
+Todos los endpoints requieren tu API key en el header de autorización:
+
+```http
+Authorization: Api-Key {tu_api_key}
+```
+
+Puedes encontrar tu API key en **Configuración → Integraciones API** dentro de tu cuenta Tupana. Tienes dos API keys: una de producción y una de sandbox.
+
+## Ambiente de pruebas (Sandbox)
+
+El sandbox usa el ambiente de integración de Transbank. Puedes probar el flujo completo — pagos, webhooks y emisión de documentos — sin mover dinero real ni emitir DTEs al SII.
+
+El mismo código funciona en producción y sandbox: solo cambia la API key que usas.
+
+| Componente   | Comportamiento en sandbox                                    |
+|--------------|--------------------------------------------------------------|
+| Pago         | Procesado en Transbank integración. Sin dinero real.         |
+| Webhooks     | Se envían normalmente a tu endpoint registrado.              |
+| DTE          | El documento se crea y es consultable, pero no va al SII. El folio es `SANDBOX-{id}` para distinguirlo de documentos reales. |
+| `document_ids` | En modo cobro directo, solo se aceptan documentos cuyo folio empiece con `SANDBOX` — de lo contrario el endpoint retorna `DOCUMENT_NOT_SANDBOX`. |
+| Depósitos    | No se generan liquidaciones ni depósitos bancarios.          |
+
+### Tarjetas de prueba (Transbank integración)
+
+| Número de tarjeta       | Tipo    | Resultado  |
+|-------------------------|---------|------------|
+| `4051 8856 0044 6623`   | Débito  | Aprobado   |
+| `5186 0595 5959 0568`   | Crédito | Aprobado   |
+| `4197 0200 0000 0000`   | Crédito | Rechazado  |
+
+CVV: `123` · Vencimiento: cualquier fecha futura · RUT: `11.111.111-1` · Clave banco: `123`
+
+## Endpoints disponibles
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `POST` | `/v2/payment-requests/` | Crear sesión de cobro |
+| `GET` | `/v2/payment-requests/` | Listar cobros |
+| `GET` | `/v2/payment-requests/{id}/` | Consultar estado de un cobro |
+| `PATCH` | `/v2/payment-requests/{id}/` | Emitir DTE manualmente (cuando `auto_issue=false`; no aplica en modo cobro directo) |
+| `GET` | `/v2/master-entities/{id}/banking-info/` | Consultar cuenta bancaria del destinatario |
+| `POST` | `/v2/master-entities/{id}/banking-info/` | Registrar cuenta bancaria |
+| `PUT` | `/v2/master-entities/{id}/banking-info/` | Actualizar cuenta bancaria |

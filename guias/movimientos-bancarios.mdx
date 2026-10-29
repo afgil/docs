@@ -1,13 +1,13 @@
 ---
 title: 'Leer movimientos bancarios de tus clientes por API'
 sidebarTitle: 'Leer movimientos bancarios'
-description: 'Conecta el banco de cada cliente con Tupana Link y lee sus abonos y cargos por la API v2: sesión, webhook connection.active, documentos 100 y 101 y aviso document.paid.'
+description: 'Conecta el banco de cada cliente con Tupana Connect y lee sus abonos y cargos por la API v2: sesión, webhook connection.active, documentos 100 y 101 y aviso document.paid.'
 keywords: ['api bancaria chile', 'movimientos bancarios api', 'tupana link banco', 'conciliación bancaria api', 'cartola api']
 ---
 
-Esta guía conecta el banco de un cliente de tu SaaS y lee sus movimientos desde tu backend. La clave del banco la escribe tu cliente dentro de Tupana Link: tu sistema nunca la ve y solo guarda un `connection_id` (`cred_…`). La conexión es de solo lectura: no puede mover dinero.
+Esta guía conecta el banco de un cliente de tu SaaS y lee sus movimientos desde tu backend. La clave del banco la escribe tu cliente dentro de Tupana Connect: tu sistema nunca la ve y solo guarda un `connection_id` (`cred_…`). La conexión es de solo lectura: no puede mover dinero.
 
-## Bancos disponibles en Tupana Link
+## Bancos disponibles en Tupana Connect
 
 Banco de Chile, Santander, BancoEstado, BCI, Itaú, Scotiabank, Security, BICE y Falabella. Para cuentas de empresa y de persona.
 
@@ -36,7 +36,7 @@ La respuesta trae un `client_token` de un solo uso que dura 30 minutos. Con una 
         width="460" height="660" frameborder="0"></iframe>
 ```
 
-Tu cliente elige su banco, escribe el RUT de la persona que entra a la cuenta y su clave. El widget espera la respuesta del banco y le muestra sus cuentas. El detalle de eventos (`open`, `success`, `exit`) está en [Tupana Link](/api-reference/v2/connect/tupana-link).
+Tu cliente elige su banco, escribe el RUT de la persona que entra a la cuenta y su clave. El widget espera la respuesta del banco y le muestra sus cuentas. El detalle de eventos (`open`, `success`, `exit`) está en [Tupana Connect](/api-reference/v2/connect/tupana-connect).
 
 ## 3. Confirma la conexión por webhook
 
@@ -145,7 +145,7 @@ La lectura bancaria cuesta **0,35 UF al mes por banco** conectado, más IVA, con
   <Card title="Leer el SII por API" icon="file-lines" href="/guias/lectura-sii">
     Registro de compras y ventas, DTE emitidos y recibidos y boletas de honorarios.
   </Card>
-  <Card title="Tupana Link" icon="link" href="/api-reference/v2/connect/tupana-link">
+  <Card title="Tupana Connect" icon="link" href="/api-reference/v2/connect/tupana-connect">
     Sesión, widget, eventos y confirmación por webhook.
   </Card>
 </CardGroup>

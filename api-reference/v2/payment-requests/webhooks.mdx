@@ -1,0 +1,145 @@
+---
+title: 'Webhooks de Recaudación (link de pago)'
+sidebarTitle: 'Webhooks de Recaudación'
+description: 'Eventos de la API de Recaudación de Tupana (pagado, documento emitido, expirado), payload y verificación de la firma HMAC-SHA256.'
+---
+
+## ¿Cómo funcionan los webhooks de cobros?
+
+Cuando cambia el estado de una sesión de cobro, Tupana envía un `POST` firmado a tu endpoint registrado. El sistema de webhooks es el mismo que usan el resto de las APIs — si ya tienes uno configurado, solo necesitas suscribirte a los nuevos eventos.
+
+Para registrar o gestionar tus endpoints de webhook, consulta la sección de [Webhooks](/api-reference/webhooks/webhooks).
+
+## Eventos disponibles
+
+| Evento | Cuándo se emite |
+|--------|-----------------|
+| `payment_request.paid` | El pago fue confirmado exitosamente. Único evento que se dispara en modo cobro directo. |
+| `payment_request.document_issued` | El DTE fue emitido (automáticamente o vía `PATCH /v2/payment-requests/{id}/` con `status=issued`). No se dispara en modo cobro directo. |
+| `payment_request.expired` | La sesión venció sin pagarse. |
+
+## Estructura del payload
+
+Todos los eventos de cobro siguen la estructura estándar de webhooks de Tupana. Los ids (`payment_request_id`, `issued_document_id`, `document_ids`) son públicos (`pare_…`, `docu_…`) en webhooks con `api_version` 2, el default; un webhook en `api_version` 1 los recibe como enteros. Ver [Identificadores en el payload](/user-guide/webhooks#identificadores-en-el-payload).
+
+```json
+{
+  "event": "payment_request.paid",
+  "created_at": "2026-04-15T14:03:45Z",
+  "data": {
+    "payment_request_id": "pare_1042837465192",
+    "status": "paid",
+    "external_id": "booking_abc123",
+    "amount": 50000,
+    "target_dte_type": "39",
+    "payment_url": "https://www.tupana.ai/pagos/tok_xyz",
+    "issued_document_id": "docu_9871203948576",
+    "metadata": {},
+    "document_ids": []
+  }
+}
+```
+
+### Campos de `data`
+
+| Campo | Descripción |
+|-------|-------------|
+| `payment_request_id` | ID de la sesión de cobro (`pare_…`). |
+| `status` | Estado resultante (`paid`, `expired`). |
+| `external_id` | Tu ID propio para esta sesión. `null` si no enviaste uno. |
+| `amount` | Monto del cobro en CLP. |
+| `target_dte_type` | Tipo de DTE configurado para la sesión. `null` en modo cobro directo. |
+| `payment_url` | URL de pago de la sesión. |
+| `issued_document_id` | ID del DTE emitido. `null` si el DTE aún no fue emitido o si la sesión es modo cobro directo. |
+| `metadata` | Datos adicionales que enviaste al crear la sesión. |
+| `document_ids` | IDs de los documentos que esta sesión cobró (modo cobro directo). Lista vacía en modo emisión. |
+
+### Ejemplo en modo cobro directo
+
+```json
+{
+  "event": "payment_request.paid",
+  "created_at": "2026-04-15T14:03:45Z",
+  "data": {
+    "payment_request_id": "pare_1099283746501",
+    "status": "paid",
+    "external_id": "collection_session_001",
+    "amount": 75000,
+    "target_dte_type": null,
+    "payment_url": "https://www.tupana.ai/pagos/tok_def",
+    "issued_document_id": null,
+    "metadata": { "campaign": "cobranza-abril" },
+    "document_ids": ["docu_9182736455123", "docu_9182736455124"]
+  }
+}
+```
+
+## Headers
+
+Cada notificación incluye los siguientes headers:
+
+```http
+Content-Type: application/json
+X-Pana-Event-Type: payment_request.paid
+X-Pana-Event-Id: <uuid>
+X-Pana-Timestamp: 2026-04-15T14:03:45Z
+X-Pana-Delivery: <delivery-uuid>
+X-Pana-Signature: <firma-hmac>
+```
+
+## Verificar la firma
+
+Verifica que el webhook proviene realmente de Tupana usando el `secret` que recibiste al registrar el endpoint. La firma es el HMAC-SHA256, en hexadecimal, **del cuerpo crudo de la petición**: calcúlala sobre los bytes tal como llegaron, antes de parsear el JSON.
+
+```python
+import hashlib
+import hmac
+import os
+
+def verify_signature(raw_body: bytes, signature: str, secret: str) -> bool:
+    expected = hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, signature or "")
+
+# En tu endpoint (Flask):
+raw_body = request.get_data()  # bytes, sin parsear
+if not verify_signature(raw_body, request.headers.get('X-Pana-Signature'), os.environ['TUPANA_WEBHOOK_SECRET']):
+    return {'error': 'Invalid signature'}, 401
+```
+
+```javascript
+const crypto = require('crypto');
+
+// Con Express, usa express.raw({ type: 'application/json' }) en esta ruta
+// para que req.body sea el Buffer original.
+function verifySignature(rawBody, signature, secret) {
+  const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+  return (
+    typeof signature === 'string' &&
+    signature.length === expected.length &&
+    crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
+  );
+}
+
+const isValid = verifySignature(req.body, req.headers['x-pana-signature'], process.env.TUPANA_WEBHOOK_SECRET);
+if (!isValid) {
+  return res.status(401).json({ error: 'Invalid signature' });
+}
+```
+
+## Reintentos
+
+Tu endpoint debe responder con `2xx` en menos de **120 segundos**. Si no responde o devuelve error, Tupana reintenta con backoff:
+
+| Intento | Tiempo de espera |
+|---------|-----------------|
+| 2       | 1 minuto después |
+| 3       | 5 minutos después |
+| 4       | 15 minutos después |
+| 5       | 1 hora después |
+| 6       | 6 horas después |
+
+Cada entrega tiene un `X-Pana-Delivery` único. Si recibes el mismo ID dos veces, es un reintento del mismo evento — tu endpoint debe ser idempotente.
+
+<Tip>
+Usa el evento `webhook.test` disponible en el panel de Tupana para verificar que tu endpoint está recibiendo correctamente antes de ir a producción.
+</Tip>

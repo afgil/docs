@@ -1,0 +1,20 @@
+---
+title: 'Consultar cuenta bancaria de depósito (API Recaudación)'
+sidebarTitle: 'Consultar cuenta bancaria'
+description: 'Consulta la cuenta bancaria donde Tupana deposita lo recaudado para una empresa.'
+openapi: 'api-reference/openapi-payment-requests-v2.json GET /master-entities/{master_entity_id}/banking-info/'
+---
+
+## ¿Para qué se usa?
+
+Consulta la cuenta bancaria registrada para un destinatario. Útil para verificar antes de crear cobros que el destinatario ya tiene cuenta bancaria.
+
+## Qué hace
+
+- Retorna la cuenta bancaria activa del destinatario y los datos del banco asociado (`bank_detail`).
+- Devuelve `404` si el destinatario aún no registró cuenta bancaria.
+
+## Consideraciones importantes
+
+### Requisito previo para crear cobros
+Para crear una sesión de cobro, el destinatario debe tener una cuenta bancaria registrada. Si no la tiene, `POST /v2/payment-requests/` retornará el error `RECIPIENT_MISSING_BANKING_INFO`.
