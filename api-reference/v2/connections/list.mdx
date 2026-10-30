@@ -15,7 +15,7 @@ giro, su código y la dirección, así que no necesitas guardarlos: mandas
 
 ## Buscar
 
-`?search=` filtra por nombre o RUT, con un mínimo de 2 caracteres — con una
+`?search=` filtra por nombre o RUT, con un mínimo de 2 caracteres: con una
 letra, "buscar" sería traer todo. Menos de 2 responde `400`.
 
 ```bash
@@ -25,18 +25,61 @@ curl https://api.tupana.ai/v2/connections/?search=arquitectura \
 
 ## Paginar
 
-`limit` viene en 25 y se acota a 100 y corta conexiones, no empresas. El
-`total` es cuántas conexiones calzan con tus filtros (una empresa con su
-conexión tributaria y una de banco son dos) y va aparte del largo de `data` a
-propósito: si tienes más conexiones de las que pediste, te enteras en vez de
-recibir un corte silencioso.
+La respuesta usa el mismo envelope que el resto de los listados v2:
+
+```json
+{
+  "data": [
+    {
+      "connection_id": "cred_2959001189629508554",
+      "company_id": "ment_3672486436546233854",
+      "type": "tax",
+      "provider": "sii",
+      "status": "active"
+    }
+  ],
+  "meta": { "page": 1, "page_size": 25, "total": 31, "total_pages": 2 },
+  "links": {
+    "next": "https://api.tupana.ai/v2/connections/?page=2",
+    "prev": null
+  }
+}
+```
+
+`page_size` viene en 25, se acota a 100 y corta conexiones, no empresas
+(`limit` se acepta como alias). `meta.total` es cuántas conexiones calzan con
+tus filtros: una empresa con su conexión tributaria y una de banco son dos. Va
+aparte del largo de `data` a propósito, así te enteras si tienes más
+conexiones de las que pediste. Para la página siguiente sigue `links.next`
+hasta que venga `null`.
+
+```bash
+curl "https://api.tupana.ai/v2/connections/?page=2&page_size=25" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+<Note>
+La respuesta ya no trae `total` ni `limit` en la raíz. Lee `meta.total` y
+`meta.page_size`.
+</Note>
+
+## Filtrar por empresa
+
+`?company_id=` trae solo las conexiones de esa empresa: el `company_id`
+(`ment_…`) que devuelve este mismo listado. También se acepta
+`master_entity_id`. Una empresa que no es tuya responde una lista vacía.
+
+```bash
+curl "https://api.tupana.ai/v2/connections/?company_id=ment_3672486436546233854" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
 
 ## Tipos de conexión
 
 Una empresa puede tener una conexión tributaria (`type: "tax"`, `provider: "sii"`)
 y una o más conexiones de banco (`type: "bank"`, `provider` con el banco:
 `santander`, `estado`, `bci`…). `?type=tax` o `?type=bank` trae solo unas u
-otras; `total` cuenta las conexiones de ese tipo. Otro
+otras; `meta.total` cuenta las conexiones de ese tipo. Otro
 valor responde `400`.
 
 ```bash
