@@ -10,8 +10,9 @@ conoce de una empresa: nunca ves la clave del SII, porque la entrega el usuario
 final dentro de [Tupana Connect](/api-reference/v2/connect/tupana-connect).
 
 Es además el paso **empresa emisora** de cualquier flujo. Cada conexión trae el
-giro, su código y la dirección, así que no necesitas guardarlos: mandas
-`company_id` al emitir y la API completa el emisor.
+giro, su código y la dirección, así que no necesitas guardarlos: al emitir
+mandas su `tax_id` como RUT del emisor con `X-Use-Defaults: true` y la API
+completa el resto.
 
 ## Buscar
 

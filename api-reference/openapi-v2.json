@@ -7705,7 +7705,7 @@
         "type": "object",
         "required": [
           "dte_type",
-          "company_id",
+          "document_issuer",
           "document_receiver",
           "details"
         ],
@@ -7713,14 +7713,9 @@
           "dte_type": {
             "$ref": "#/components/schemas/DteType"
           },
-          "company_id": {
-            "type": "string",
-            "example": "ment_2133425900906160655",
-            "description": "Id de la empresa emisora: el `company_id` que devuelve Listar conexiones (prefijo `ment_`). Con él Tupana completa el emisor (RUT, razón social, giro, dirección) desde la empresa conectada. Alternativa: omitirlo y mandar `document_issuer.rut`; si mandas ambos, lo que envíes en `document_issuer` pisa el dato de la empresa."
-          },
           "document_issuer": {
             "$ref": "#/components/schemas/DocumentIssuer",
-            "description": "Datos del emisor. Solo hace falta si no mandas `company_id`; con `X-Use-Defaults: true` basta el `rut`. Lo que envíes acá pisa lo que Tupana completa desde la empresa."
+            "description": "Datos del emisor. Con `X-Use-Defaults: true` basta el `rut` (sin puntos y con guion): Tupana completa razón social, giro, dirección, comuna y ciudad desde la empresa conectada."
           },
           "document_receiver": {
             "$ref": "#/components/schemas/DocumentReceiver"
