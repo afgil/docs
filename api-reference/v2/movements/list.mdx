@@ -59,8 +59,8 @@ Un valor inválido responde `400` con `code: parameter_invalid` y `param`.
 
 ## El dato crudo
 
-- `amount` nunca lleva signo; `direction` dice si entró o salió. Es el mismo
-  contrato de Fintoc v2, así que si ya integraste un agregador no cambias nada.
+- `amount` nunca lleva signo; `direction` dice si entró o salió. Es el contrato
+  habitual de las APIs bancarias, así que si ya integraste una no cambias nada.
   Entero en CLP; con decimales en otras monedas.
 - `status`: `pending` mientras el banco no lo contabiliza, `posted` cuando sí,
   `removed` si el banco lo revirtió. `posted_movement_id` enlazará una

@@ -5434,8 +5434,7 @@ curl "https://api.tupana.ai/v2/connections/?type=bank" \
 ```
 
 `source` dice de dónde salen los datos: `sii` en la conexión tributaria; en el
-banco, `fintoc` (proveedor de bancos), `scraper` (conector propio de Tupana) o
-`manual_upload` (cartolas subidas a mano). Para ti es informativo: las cuentas
+banco, el conector de Tupana Connect o `manual_upload` (cartolas subidas a mano). Para ti es informativo: las cuentas
 y los movimientos se leen igual venga de donde venga.
 
 ### Estado
@@ -8108,9 +8107,8 @@ bancarios son de prueba.
 La conexión de banco es la misma `connection_id` que devuelve Tupana Connect y que
 lista [`GET /connections/`](https://docs.tupana.ai/api-reference/v2/connections/list) con `type: "bank"`.
 Su `provider` es el banco (`santander`, `estado`, `bci`…) y su `source` dice por
-dónde lee Tupana: `fintoc` (proveedor de bancos), `scraper` (conector propio) o
-`manual_upload` (cartolas subidas a mano). Para ti es informativo: los datos se
-leen igual.
+dónde lee Tupana: el conector de Tupana Connect o `manual_upload` (cartolas
+subidas a mano). Para ti es informativo: los datos se leen igual.
 
 ### Quién es el titular
 
@@ -8426,9 +8424,9 @@ curl https://api.tupana.ai/v2/institutions/ \
 {
   "data": [
     {
-      "code": "cl_banco_santander",
-      "name": "Banco Santander",
-      "source": "fintoc",
+      "code": "cl_banco_falabella",
+      "name": "Banco Falabella",
+      "source": "scraper",
       "status": "available",
       "capabilities": {
         "balances": true,
@@ -8445,8 +8443,8 @@ curl https://api.tupana.ai/v2/institutions/ \
 
 - `code` identifica al banco en toda la API: es el que verás en las conexiones y,
   más adelante, en cada cuenta y movimiento.
-- `source` es por dónde lee Tupana ese banco: `fintoc` (proveedor de bancos) o
-  `scraper` (conector propio). No cambia lo que recibes.
+- `source` es el conector con que Tupana lee ese banco. Es informativo: no
+  cambia lo que recibes.
 - `status` es `available` cuando el banco entrega datos, y `coming_soon` cuando
   Tupana todavía solo guarda la credencial para integrarlo después.
 - `capabilities` dice qué se lee: `balances` y `movements` hoy; `cards` y
@@ -8631,8 +8629,8 @@ Un valor inválido responde `400` con `code: parameter_invalid` y `param`.
 
 ### El dato crudo
 
-- `amount` nunca lleva signo; `direction` dice si entró o salió. Es el mismo
-  contrato de Fintoc v2, así que si ya integraste un agregador no cambias nada.
+- `amount` nunca lleva signo; `direction` dice si entró o salió. Es el contrato
+  habitual de las APIs bancarias, así que si ya integraste una no cambias nada.
   Entero en CLP; con decimales en otras monedas.
 - `status`: `pending` mientras el banco no lo contabiliza, `posted` cuando sí,
   `removed` si el banco lo revirtió. `posted_movement_id` enlazará una
