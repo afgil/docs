@@ -8567,6 +8567,51 @@ funcionando en esta ruta. Guarda siempre el `id` que devuelve la API, que es
 
 ---
 
+## Listar movimientos de una empresa
+
+Fuente: https://docs.tupana.ai/api-reference/v2/movements/company-list · Sección: API Bancaria / Movimientos
+
+Endpoint: `GET /movements/` (detalle completo en la Parte 2).
+
+Todos los movimientos de la empresa, de todas sus cuentas bancarias, los más
+nuevos primero. Es lo que usa la consola de developers para mostrar los
+movimientos de un cliente. El GET nunca toca al banco.
+
+```bash
+curl "https://api.tupana.ai/v2/movements/?company_id=ment_3672486436546233854&since=2026-10-01" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "move_Qm8102938475612",
+      "account_id": "bacc_7Hk2938475610293",
+      "company_id": "ment_3672486436546233854",
+      "amount": 595000,
+      "direction": "inbound",
+      "currency": "CLP",
+      "status": "posted",
+      "transaction_date": "2026-10-14",
+      "description": "0765432103 PAGO PROVEEDOR",
+      "balance_after": 12016781,
+      "counterparty": { "tax_id": "76.543.210-3", "name": "COMERCIAL EJEMPLO SPA" }
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 1, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+- `company_id` es obligatorio; `account_id` acota a una cuenta.
+- `search` busca en la glosa, el RUT y la razón social de la contraparte.
+- Acepta los mismos filtros que el [listado por cuenta](https://docs.tupana.ai/api-reference/v2/movements/list): `since`, `until`, `direction`, `status`, `min_amount` y `max_amount`.
+- `counterparty.name` es la razón social del maestro de entidades de Tupana. Si la contraparte no está en el maestro, es el nombre que trae el banco.
+- Para mantener una copia al día sin releer rangos, usa [`GET /v2/movements/sync/`](https://docs.tupana.ai/api-reference/v2/movements/sync).
+
+---
+
 ## Listar movimientos de una cuenta
 
 Fuente: https://docs.tupana.ai/api-reference/v2/movements/list · Sección: API Bancaria / Movimientos
@@ -12584,6 +12629,37 @@ Esquema: `Movement`
 Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
 
 Respuesta `404`: El movimiento no existe para esta API key
+
+### GET /v2/movements/
+
+**Listar movimientos de una empresa**
+
+Todos los movimientos de la empresa, de todas sus cuentas bancarias, los más nuevos primero. Cada movimiento trae la contraparte con su RUT y la razón social del maestro de entidades de Tupana. El GET nunca toca al banco.
+
+URL completa: `GET https://api.tupana.ai/v2/movements/`
+
+Parámetros:
+
+- `company_id` (query, string; requerido): Tupana ID de la empresa (ment_…).
+- `account_id` (query, string): Acota a una cuenta (bacc_…).
+- `search` (query, string): Busca en la glosa, el RUT y la razón social de la contraparte.
+- `since` (query, string (date)): Desde esta `transaction_date`, inclusive.
+- `until` (query, string (date)): Hasta esta `transaction_date`, inclusive.
+- `direction` (query, string; valores: `inbound`, `outbound`)
+- `status` (query, string; valores: `pending`, `posted`)
+- `min_amount` (query, number): Sobre el monto sin signo.
+- `max_amount` (query, number): Sobre el monto sin signo.
+- `page` (query, integer; default: `1`)
+- `page_size` (query, integer; default: `50`)
+- `fields` (query, string)
+
+Respuesta `200`: Movimientos
+
+Esquema: object
+
+Respuesta `400`: Un filtro inválido (`code: parameter_invalid`, `param`)
+
+Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
 
 ### GET /v2/movements/sync/
 

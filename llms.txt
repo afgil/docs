@@ -134,6 +134,7 @@ Detalle: https://docs.tupana.ai/precios · https://developers.tupana.ai/pricing
 - [Listar instituciones](https://docs.tupana.ai/api-reference/v2/institutions/list)
 - [Listar cuentas bancarias](https://docs.tupana.ai/api-reference/v2/bank-accounts/list)
 - [Obtener una cuenta bancaria](https://docs.tupana.ai/api-reference/v2/bank-accounts/get)
+- [Listar movimientos de una empresa](https://docs.tupana.ai/api-reference/v2/movements/company-list)
 - [Listar movimientos de una cuenta](https://docs.tupana.ai/api-reference/v2/movements/list)
 - [Obtener un movimiento](https://docs.tupana.ai/api-reference/v2/movements/get)
 - [Sincronizar movimientos (cursor)](https://docs.tupana.ai/api-reference/v2/movements/sync)
