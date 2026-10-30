@@ -8,6 +8,13 @@ rss: true
 
 Aquí registramos cada cambio de la API de Tupana que se nota desde tu integración: endpoints nuevos, campos, eventos de webhook, tipos de documento, límites y cambios de comportamiento. Las fechas son las de salida a producción. Suscríbete por RSS para enterarte de cada novedad.
 
+<Update label="30 de octubre de 2026" description="Conexiones">
+  - [`GET /v2/connections/`](/api-reference/v2/connections/list) responde con el envelope de los demás listados v2: `{data, meta: {page, page_size, total, total_pages}, links: {next, prev}}`. Se pagina con `page` y `page_size` (`limit` queda como alias). **Cambio incompatible:** la raíz ya no trae `total` ni `limit`; léelos en `meta.total` y `meta.page_size`.
+  - `meta.total` cuenta conexiones, no empresas: una empresa con su conexión tributaria y una de banco son dos.
+  - Nuevo filtro `company_id` (o `master_entity_id`) para traer solo las conexiones de una empresa.
+  - [`GET /v2/documents/`](/api-reference/v2/documents/list) informa el tamaño real de la página en `meta.page_size`.
+</Update>
+
 <Update label="20 de octubre de 2026" description="SDKs, MCP y documentación">
   - SDKs oficiales publicados en npm ([`tupana`](https://www.npmjs.com/package/tupana)) y PyPI ([`tupana`](https://pypi.org/project/tupana/)): `npm install tupana` para Node.js y TypeScript, `pip install tupana` para Python. Versión 0.1.0, con código abierto en [tupana-ai/tupana-node](https://github.com/tupana-ai/tupana-node) y [tupana-ai/tupana-python](https://github.com/tupana-ai/tupana-python). Ver [SDKs](/sdks/introduccion).
   - El servidor MCP de Tupana ahora tiene repositorio público: [tupana-ai/tupana-mcp](https://github.com/tupana-ai/tupana-mcp). Además está publicado en el registro oficial de servidores MCP como `io.github.tupana-ai/tupana`. Ver [Servidor MCP](/user-guide/mcp).
