@@ -1,7 +1,7 @@
 ---
 title: 'Leer movimientos bancarios de tus clientes por API'
 sidebarTitle: 'Leer movimientos bancarios'
-description: 'Conecta el banco de cada cliente con Tupana Connect y lee sus abonos y cargos por la API v2: sesión, webhook connection.active, documentos 100 y 101 y aviso document.paid.'
+description: 'Conecta el banco de cada cliente con Tupana Connect y lee sus abonos y cargos por la API v2: sesión, webhook connection.active, movimientos con RUT y razón social de la contraparte, sync por cursor y aviso document.paid.'
 keywords: ['api bancaria chile', 'movimientos bancarios api', 'tupana link banco', 'conciliación bancaria api', 'cartola api']
 ---
 
@@ -64,17 +64,17 @@ Suscríbete a estos eventos con [`POST /v2/webhooks/`](/api-reference/v2/webhook
 
 ## 4. Lee los movimientos
 
-Cada movimiento sincronizado queda como un documento de pago de la empresa: tipo `100` para los abonos (entradas de dinero) y tipo `101` para los cargos (salidas). Se leen con el mismo endpoint de documentos, usando el `connection_id` que guardaste en el paso 3:
+Primero lista las cuentas de la conexión con el `connection_id` que guardaste en el paso 3 (o todas las de la empresa con `company_id`):
 
 ```bash
-curl "https://api.tupana.ai/v2/documents/?connection_id=cred_5028174639201&issue_date_gte=2026-10-01&page_size=100" \
+curl "https://api.tupana.ai/v2/bank-accounts/?connection_id=cred_5028174639201" \
   -H "Authorization: Api-Key $TUPANA_API_KEY"
 ```
 
-Con `connection_id` llegan solo los movimientos de las cuentas de ese banco, y no necesitas el `master_entity_id`. Si la empresa conectó varios bancos y quieres todos sus movimientos juntos, usa el Tupana ID de la empresa con `category=bank`:
+Después lee los movimientos de cada cuenta, filtrando por fecha con `since` y `until`:
 
 ```bash
-curl "https://api.tupana.ai/v2/documents/?master_entity_id=ment_4829301923847&category=bank&issue_date_gte=2026-10-01&page_size=100" \
+curl "https://api.tupana.ai/v2/bank-accounts/bacc_7310482956172/movements/?since=2026-10-01" \
   -H "Authorization: Api-Key $TUPANA_API_KEY"
 ```
 
@@ -84,50 +84,44 @@ curl "https://api.tupana.ai/v2/documents/?master_entity_id=ment_4829301923847&ca
 {
   "data": [
     {
-      "id": "docu_9f2a7c1b8e4d0",
-      "dte_type_code": "100",
-      "folio": null,
-      "date_issued": "2026-10-14",
-      "amount_with_iva": 595000
+      "id": "move_9f2a7c1b8e4d0",
+      "account_id": "bacc_7310482956172",
+      "company_id": "ment_4829301923847",
+      "amount": 595000,
+      "direction": "inbound",
+      "currency": "CLP",
+      "status": "posted",
+      "transaction_date": "2026-10-14",
+      "description": "0765432103 PAGO PROVEEDOR",
+      "balance_after": 12016781,
+      "counterparty": { "tax_id": "76.543.210-3", "name": "COMERCIAL EJEMPLO SPA" }
     }
   ],
-  "meta": { "page": 1, "page_size": 100, "total": 1, "total_pages": 1 },
+  "meta": { "page": 1, "page_size": 50, "total": 1, "total_pages": 1 },
   "links": { "next": null, "prev": null }
 }
 ```
 
-Con los SDKs oficiales, por Tupana ID de la empresa:
+- `direction` es `inbound` para los abonos (entradas de dinero) y `outbound` para los cargos (salidas). `amount` siempre viene en positivo.
+- `counterparty` trae el RUT (`tax_id`) y la razón social (`name`) de quien pagó o recibió el dinero, cuando el banco o la glosa lo identifican.
+- La paginación sigue `links.next` hasta que venga `null`.
 
-<CodeGroup>
-```ts Node.js
-import Tupana from "tupana";
+## Mantén una copia al día
 
-const tupana = new Tupana(); // lee TUPANA_API_KEY
-for await (const mov of tupana.documents.listAutoPaging({
-  master_entity_id: "ment_4829301923847",
-  dte_type__code__in: ["100", "101"],
-  issue_date_gte: "2026-10-01",
-})) {
-  console.log(mov.date_issued, mov.dte_type_code, mov.amount_with_iva);
-}
+Para no volver a leer rangos completos, usa [`GET /v2/movements/sync/`](/api-reference/v2/movements/sync). Sin cursor recorre la historia visible; cada respuesta trae `added`, `modified`, `removed` y un `next_cursor`. Guarda el cursor y en la siguiente llamada recibes solo lo que cambió:
+
+```bash
+curl "https://api.tupana.ai/v2/movements/sync/?cursor=$CURSOR&limit=500" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
 ```
 
-```python Python
-from tupana import Tupana
-
-tupana = Tupana()  # lee TUPANA_API_KEY
-for mov in tupana.documents.list_auto_paging(
-    "ment_4829301923847",
-    dte_type__code__in=["100", "101"],
-    issue_date_gte="2026-10-01",
-):
-    print(mov["date_issued"], mov["dte_type_code"], mov["amount_with_iva"])
-```
-</CodeGroup>
+Mientras `has_more` sea `true`, sigue llamando con el nuevo `next_cursor`. Si el cursor es muy antiguo la API responde `410 cursor_expired`: vuelve a sincronizar sin cursor.
 
 ## Cada cuánto se actualizan
 
-Tupana sincroniza las cuentas conectadas cada hora y deduplica los movimientos, así que leer dos veces el mismo rango no trae repetidos. Lee por fecha (`issue_date_gte`) desde la última vez que consultaste.
+Tupana sincroniza las cuentas conectadas cada hora y deduplica los movimientos, así que leer dos veces el mismo rango no trae repetidos.
+
+<Note>Los movimientos también existen como documentos de pago (tipo `100` abonos y `101` cargos) en `GET /v2/documents/?dte_type__code__in=100,101`. Ese camino se mantiene para las integraciones existentes, pero para leer el banco usa la API de movimientos: trae la contraparte, la glosa y el saldo.</Note>
 
 ## 5. Entérate cuando una factura queda pagada
 
