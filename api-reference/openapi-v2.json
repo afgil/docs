@@ -5130,13 +5130,8 @@
                           "source": {
                             "type": "string",
                             "nullable": true,
-                            "enum": [
-                              "sii",
-                              "fintoc",
-                              "scraper",
-                              "manual_upload"
-                            ],
-                            "description": "De dónde salen los datos: `sii` en la conexión tributaria; `fintoc`, `scraper` (conector propio) o `manual_upload` (cartolas subidas a mano) en el banco."
+                            "example": "sii",
+                            "description": "De dónde salen los datos: `sii` en la conexión tributaria; en el banco, el conector de Tupana Connect o `manual_upload` (cartolas subidas a mano)."
                           },
                           "name": {
                             "type": "string",
@@ -5659,11 +5654,8 @@
                           },
                           "source": {
                             "type": "string",
-                            "enum": [
-                              "fintoc",
-                              "scraper"
-                            ],
-                            "description": "Por dónde lee Tupana este banco."
+                            "example": "scraper",
+                            "description": "El conector con que Tupana lee este banco. Informativo."
                           },
                           "status": {
                             "type": "string",
