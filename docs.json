@@ -192,6 +192,7 @@
               {
                 "group": "Movimientos",
                 "pages": [
+                  "api-reference/v2/movements/company-list",
                   "api-reference/v2/movements/list",
                   "api-reference/v2/movements/get",
                   "api-reference/v2/movements/sync"

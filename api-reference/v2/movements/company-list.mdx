@@ -1,0 +1,41 @@
+---
+title: "Listar movimientos de una empresa"
+openapi: "api-reference/openapi-v2.json GET /movements/"
+---
+
+Todos los movimientos de la empresa, de todas sus cuentas bancarias, los más
+nuevos primero. Es lo que usa la consola de developers para mostrar los
+movimientos de un cliente. El GET nunca toca al banco.
+
+```bash
+curl "https://api.tupana.ai/v2/movements/?company_id=ment_3672486436546233854&since=2026-10-01" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "move_Qm8102938475612",
+      "account_id": "bacc_7Hk2938475610293",
+      "company_id": "ment_3672486436546233854",
+      "amount": 595000,
+      "direction": "inbound",
+      "currency": "CLP",
+      "status": "posted",
+      "transaction_date": "2026-10-14",
+      "description": "0765432103 PAGO PROVEEDOR",
+      "balance_after": 12016781,
+      "counterparty": { "tax_id": "76.543.210-3", "name": "COMERCIAL EJEMPLO SPA" }
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 1, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+- `company_id` es obligatorio; `account_id` acota a una cuenta.
+- `search` busca en la glosa, el RUT y la razón social de la contraparte.
+- Acepta los mismos filtros que el [listado por cuenta](/api-reference/v2/movements/list): `since`, `until`, `direction`, `status`, `min_amount` y `max_amount`.
+- `counterparty.name` es la razón social del maestro de entidades de Tupana. Si la contraparte no está en el maestro, es el nombre que trae el banco.
+- Para mantener una copia al día sin releer rangos, usa [`GET /v2/movements/sync/`](/api-reference/v2/movements/sync).
