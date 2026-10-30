@@ -5360,8 +5360,9 @@ conoce de una empresa: nunca ves la clave del SII, porque la entrega el usuario
 final dentro de [Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect).
 
 Es además el paso **empresa emisora** de cualquier flujo. Cada conexión trae el
-giro, su código y la dirección, así que no necesitas guardarlos: mandas
-`company_id` al emitir y la API completa el emisor.
+giro, su código y la dirección, así que no necesitas guardarlos: al emitir
+mandas su `tax_id` como RUT del emisor con `X-Use-Defaults: true` y la API
+completa el resto.
 
 ### Buscar
 
@@ -5749,11 +5750,7 @@ Con `X-Use-Defaults: true`, solo necesitas proporcionar el `rut` del receptor. E
 
 **Campos específicos:**
 
-**company_id (Opcional, reemplaza a `document_issuer`)**
-- **Tipo:** String, el `company_id` de [Listar conexiones](https://docs.tupana.ai/api-reference/v2/connections/list) (prefijo `ment_`)
-- Con él Tupana completa el emisor (RUT, razón social, giro, dirección, comuna y ciudad) desde la empresa conectada. Es la forma recomendada para un SaaS: no necesitas guardar los datos del emisor.
-
-**document_issuer (Obligatorio si no mandas `company_id`)**
+**document_issuer (Obligatorio)**
 - **Tipo:** Object
 - **Campos obligatorios:**
   - `rut` (String): RUT del emisor
@@ -12955,8 +12952,7 @@ Tipo: object
 Tipo: object
 
 - `dte_type` (`DteType`; requerido)
-- `company_id` (string; requerido; ej: `ment_2133425900906160655`): Id de la empresa emisora: el `company_id` que devuelve Listar conexiones (prefijo `ment_`). Con él Tupana completa el emisor (RUT, razón social, giro, dirección) desde la empresa conectada. Alternativa: omitirlo y mandar `document_issuer.rut`; si mandas ambos, lo que envíes en `document_issuer` pisa el dato de la empresa.
-- `document_issuer` (`DocumentIssuer`): Datos del emisor. Solo hace falta si no mandas `company_id`; con `X-Use-Defaults: true` basta el `rut`. Lo que envíes acá pisa lo que Tupana completa desde la empresa.
+- `document_issuer` (`DocumentIssuer`; requerido): Datos del emisor. Con `X-Use-Defaults: true` basta el `rut` (sin puntos y con guion): Tupana completa razón social, giro, dirección, comuna y ciudad desde la empresa conectada.
 - `document_receiver` (`DocumentReceiver`; requerido)
 - `details` (array de `DetailItem`; requerido)
 - `date_issued` (string (date)): Fecha de emisión (YYYY-MM-DD). Si X-Use-Defaults es true y no se proporciona, se usa la fecha actual.
