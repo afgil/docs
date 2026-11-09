@@ -64,6 +64,7 @@
         "type": "object",
         "required": [
           "dte_type",
+          "date_issued",
           "document_issuer",
           "document_receiver",
           "details"
@@ -134,7 +135,8 @@
           "date_issued": {
             "type": "string",
             "format": "date",
-            "description": "Fecha de emisión (YYYY-MM-DD). Por defecto, hoy."
+            "example": "2026-11-09",
+            "description": "Fecha de emisión (YYYY-MM-DD). Obligatoria, salvo que envíes el header X-Use-Defaults: true, que usa la fecha de hoy. Sin ella la API responde 422."
           },
           "header": {
             "type": "object",
@@ -263,6 +265,7 @@
                     "dte_type": {
                       "code": "80"
                     },
+                    "date_issued": "2026-11-09",
                     "document_issuer": {
                       "rut": "12345678-5"
                     },
@@ -270,7 +273,8 @@
                       "rut": "76123456-0",
                       "business_name": "Inmobiliaria Los Robles SpA",
                       "address": "Av. Apoquindo 4500",
-                      "district": "Las Condes"
+                      "district": "Las Condes",
+                      "city": "Santiago"
                     },
                     "header": {
                       "retention_type": "RETCONTRIBUYENTE"
