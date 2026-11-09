@@ -10523,12 +10523,14 @@ La boleta de honorarios se emite con **el mismo endpoint de emisión de document
   "documents": [
     {
       "dte_type": { "code": "80" },
+      "date_issued": "2026-11-09",
       "document_issuer": { "rut": "12345678-5" },
       "document_receiver": {
         "rut": "76123456-0",
         "business_name": "Inmobiliaria Los Robles SpA",
         "address": "Av. Apoquindo 4500",
-        "district": "Las Condes"
+        "district": "Las Condes",
+        "city": "Santiago"
       },
       "header": { "retention_type": "RETCONTRIBUYENTE" },
       "details": [
@@ -10546,6 +10548,7 @@ La boleta de honorarios se emite con **el mismo endpoint de emisión de document
 | Campo | Qué es |
 |---|---|
 | `dte_type.code` | `"80"`, boleta de honorarios electrónica. |
+| `date_issued` | Fecha de emisión (`YYYY-MM-DD`). **Obligatoria**, salvo que envíes el header `X-Use-Defaults: true`, que usa la fecha de hoy. Sin ella la API responde `422`. |
 | `document_issuer.rut` | El profesional que emite la boleta. |
 | `document_receiver` | Quien paga los honorarios (persona o empresa). |
 | `header.retention_type` | Quién entera la retención al SII. **Opcional**: por defecto `"RETRECEPTOR"`. |
