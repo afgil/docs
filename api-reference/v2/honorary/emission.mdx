@@ -1,10 +1,9 @@
 ---
 title: 'Emitir boletas de honorarios electrónicas (DTE 80) por API'
-sidebarTitle: 'Emitir una boleta de honorarios'
+sidebarTitle: 'Emitir boleta de honorarios'
+openapi: 'api-reference/openapi-honorary.json POST /documents/batch/'
 description: 'Cómo emitir boletas de honorarios electrónicas (DTE 80) con la API de Tupana: el mismo endpoint de emisión de documentos con el código 80, la retención del año (15,25% en 2026), quién la entera y el retenido y el líquido en la respuesta.'
 ---
-
-# Emitir una boleta de honorarios (DTE 80)
 
 La boleta de honorarios se emite con **el mismo endpoint de emisión de documentos**, [`POST /v2/documents/batch/`](/api-reference/v2/documents/batch), indicando el tipo de documento **`"80"`**. No hay un endpoint aparte.
 

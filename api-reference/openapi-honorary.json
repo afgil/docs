@@ -1,0 +1,429 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Tupana API — Boletas de honorarios",
+    "version": "2.0.0",
+    "description": "Emisión de boletas de honorarios electrónicas (DTE 80) con el endpoint de emisión de documentos."
+  },
+  "servers": [
+    {
+      "url": "https://api.tupana.ai/v2",
+      "description": "Producción (v2)"
+    }
+  ],
+  "security": [
+    {
+      "apiKeyAuth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization",
+        "description": "API Key para autenticación. Debe proporcionarse en el header Authorization con el formato: 'Api-Key YOUR-API-KEY' (incluye el prefijo 'Api-Key ' seguido de tu API key)"
+      }
+    },
+    "schemas": {
+      "HonoraryAmounts": {
+        "type": "object",
+        "description": "Montos de la boleta: bruto, tasa del año, impuesto retenido y líquido.",
+        "properties": {
+          "retention_type": {
+            "type": "string",
+            "enum": [
+              "RETRECEPTOR",
+              "RETCONTRIBUYENTE"
+            ],
+            "description": "Quién entera la retención al SII."
+          },
+          "gross_amount": {
+            "type": "string",
+            "description": "Monto bruto de la boleta.",
+            "example": "100000"
+          },
+          "retention_rate": {
+            "type": "string",
+            "description": "Tasa de retención aplicada (%), la del año de emisión: 14,5 en 2025, 15,25 en 2026, 16 en 2027, 17 desde 2028.",
+            "example": "15.25"
+          },
+          "retention_amount": {
+            "type": "string",
+            "description": "Impuesto retenido: bruto × tasa, redondeado al peso.",
+            "example": "15250"
+          },
+          "net_amount": {
+            "type": "string",
+            "description": "Líquido: bruto menos el impuesto retenido.",
+            "example": "84750"
+          }
+        }
+      },
+      "HonoraryReceipt": {
+        "type": "object",
+        "required": [
+          "dte_type",
+          "document_issuer",
+          "document_receiver",
+          "details"
+        ],
+        "properties": {
+          "dte_type": {
+            "type": "object",
+            "required": [
+              "code"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "80"
+                ],
+                "default": "80",
+                "description": "80: boleta de honorarios electrónica."
+              }
+            }
+          },
+          "document_issuer": {
+            "type": "object",
+            "required": [
+              "rut"
+            ],
+            "description": "El profesional que emite la boleta (persona natural). Su clave tributaria del SII debe estar conectada en Tupana.",
+            "properties": {
+              "rut": {
+                "type": "string",
+                "example": "12345678-5"
+              }
+            }
+          },
+          "document_receiver": {
+            "type": "object",
+            "required": [
+              "rut"
+            ],
+            "description": "Quien paga los honorarios (persona o empresa).",
+            "properties": {
+              "rut": {
+                "type": "string",
+                "example": "76123456-0"
+              },
+              "business_name": {
+                "type": "string",
+                "example": "Inmobiliaria Los Robles SpA"
+              },
+              "address": {
+                "type": "string",
+                "example": "Av. Apoquindo 4500"
+              },
+              "district": {
+                "type": "string",
+                "example": "Las Condes"
+              },
+              "city": {
+                "type": "string",
+                "example": "Santiago"
+              },
+              "email": {
+                "type": "string",
+                "example": "pagos@losrobles.cl"
+              }
+            }
+          },
+          "date_issued": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha de emisión (YYYY-MM-DD). Por defecto, hoy."
+          },
+          "header": {
+            "type": "object",
+            "properties": {
+              "retention_type": {
+                "type": "string",
+                "enum": [
+                  "RETRECEPTOR",
+                  "RETCONTRIBUYENTE"
+                ],
+                "default": "RETRECEPTOR",
+                "description": "Quién entera la retención al SII. RETRECEPTOR (por defecto): quien paga la boleta. RETCONTRIBUYENTE: el propio profesional."
+              }
+            }
+          },
+          "details": {
+            "type": "array",
+            "minItems": 1,
+            "description": "Servicios. quantity × unit_price de cada línea suma el bruto de la boleta.",
+            "items": {
+              "type": "object",
+              "required": [
+                "item_name",
+                "quantity",
+                "unit_price"
+              ],
+              "properties": {
+                "item_name": {
+                  "type": "string",
+                  "example": "Administración de propiedad, noviembre 2026"
+                },
+                "item_description": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "number",
+                  "example": 1
+                },
+                "unit_price": {
+                  "type": "number",
+                  "example": 100000
+                }
+              }
+            }
+          }
+        }
+      },
+      "Error": {
+        "required": [
+          "error",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Código de error",
+            "example": "VALIDATION_ERROR",
+            "enum": [
+              "VALIDATION_ERROR",
+              "AUTHENTICATION_ERROR",
+              "AUTHORIZATION_ERROR",
+              "NOT_FOUND",
+              "SII_ERROR",
+              "INTERNAL_ERROR"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensaje de error"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/documents/batch/": {
+      "post": {
+        "operationId": "emitHonoraryReceipts",
+        "summary": "Emitir boletas de honorarios",
+        "description": "Emite boletas de honorarios electrónicas (DTE 80) en el SII con el mismo endpoint de emisión de documentos, usando el código 80. La retención se calcula con la tasa del año de emisión (15,25% en 2026) y cada boleta emitida trae `honorary_amounts` con el bruto, la tasa, el retenido y el líquido. El PDF es el oficial del SII.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Previene lotes duplicados (≤ 256 caracteres, expira después de 24 h)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Use-Defaults",
+            "in": "header",
+            "description": "Si se establece como true, el sistema usará valores por defecto para campos no proporcionados:\n- Fecha actual para date_issued\n- Datos del emisor según configuración de la plataforma o primera actividad/dirección disponible\n- Datos del receptor según configuración del cliente o primera actividad/dirección disponible\n- Payment method = '2' (crédito) en el header del documento",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "documents"
+                ],
+                "properties": {
+                  "documents": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 500,
+                    "items": {
+                      "$ref": "#/components/schemas/HonoraryReceipt"
+                    }
+                  }
+                }
+              },
+              "example": {
+                "documents": [
+                  {
+                    "dte_type": {
+                      "code": "80"
+                    },
+                    "document_issuer": {
+                      "rut": "12345678-5"
+                    },
+                    "document_receiver": {
+                      "rut": "76123456-0",
+                      "business_name": "Inmobiliaria Los Robles SpA",
+                      "address": "Av. Apoquindo 4500",
+                      "district": "Las Condes"
+                    },
+                    "header": {
+                      "retention_type": "RETCONTRIBUYENTE"
+                    },
+                    "details": [
+                      {
+                        "item_name": "Administración de propiedad, noviembre 2026",
+                        "quantity": 1,
+                        "unit_price": 100000
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Boletas aceptadas para emisión. Cada documento emitido trae honorary_amounts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "batch_id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "documents": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "index": {
+                            "type": "integer"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "document": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "folio": {
+                                "type": "string"
+                              },
+                              "date_issued": {
+                                "type": "string",
+                                "format": "date"
+                              },
+                              "amount_with_iva": {
+                                "type": "number",
+                                "description": "Bruto de la boleta."
+                              },
+                              "retention_type": {
+                                "type": "string"
+                              },
+                              "honorary_amounts": {
+                                "$ref": "#/components/schemas/HonoraryAmounts"
+                              },
+                              "pdf_url": {
+                                "type": "string",
+                                "description": "PDF oficial del SII."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "batch_id": "doba_4829301923847561203",
+                  "status": "processing",
+                  "created_at": "2026-11-09T10:30:00Z",
+                  "documents": [
+                    {
+                      "index": 0,
+                      "status": "created",
+                      "document": {
+                        "id": "docu_9f2a7c1b8e4d0",
+                        "folio": "125",
+                        "date_issued": "2026-11-09",
+                        "amount_with_iva": 100000.0,
+                        "dte_type": {
+                          "code": "80",
+                          "description": "Boleta de Honorarios Electrónica"
+                        },
+                        "retention_type": "RETCONTRIBUYENTE",
+                        "honorary_amounts": {
+                          "retention_type": "RETCONTRIBUYENTE",
+                          "gross_amount": "100000",
+                          "retention_rate": "15.25",
+                          "retention_amount": "15250",
+                          "net_amount": "84750"
+                        },
+                        "pdf_url": "https://cdn.tupana.ai/documents/documentfile/boleta_honorarios_125.pdf"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos para crear documentos. La API Key debe tener el permiso 'document:create' o permisos completos ('*'). Además, la entidad emisora debe tener credenciales SII válidas configuradas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Esta entidad no tiene credenciales SII válidas configuradas"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Más de 500 documentos en el array",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Cuerpo malformado o fallo de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    }
+  }
+}
