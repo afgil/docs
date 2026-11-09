@@ -8012,7 +8012,7 @@
           },
           "retention_type": {
             "type": "string",
-            "description": "Tipo de retención obligatorio para boletas de honorarios (DTE 80, 90). Define quién retiene el 14,5% legal.",
+            "description": "Tipo de retención de las boletas de honorarios (DTE 80, 90): RETRECEPTOR (por defecto) o RETCONTRIBUYENTE. Define quién entera la retención legal del año (15,25% en 2026).",
             "enum": [
               "RETRECEPTOR",
               "RETCONTRIBUYENTE"

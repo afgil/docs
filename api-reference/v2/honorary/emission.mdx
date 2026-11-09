@@ -1,0 +1,100 @@
+---
+title: 'Emitir boletas de honorarios electrónicas (DTE 80) por API'
+sidebarTitle: 'Emitir una boleta de honorarios'
+description: 'Cómo emitir boletas de honorarios electrónicas (DTE 80) con la API de Tupana: el mismo endpoint de emisión de documentos con el código 80, la retención del año (15,25% en 2026), quién la entera y el retenido y el líquido en la respuesta.'
+---
+
+# Emitir una boleta de honorarios (DTE 80)
+
+La boleta de honorarios se emite con **el mismo endpoint de emisión de documentos**, [`POST /v2/documents/batch/`](/api-reference/v2/documents/batch), indicando el tipo de documento **`"80"`**. No hay un endpoint aparte.
+
+## Antes de emitir
+
+- **Quién emite:** el profesional, una persona natural. Su RUT va en `document_issuer.rut`.
+- **Qué se conecta:** la **clave tributaria del SII de esa persona**, en Tupana Connect, con la opción de boletas de honorarios y entrando con su propio RUT.
+- **Usuarios autorizados:** no se necesitan para emitir las boletas propias. Son solo para emitir a nombre de otra persona (ver [Usuarios autorizados](/api-reference/v2/honorary/introduction)).
+
+## Request
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": { "code": "80" },
+      "document_issuer": { "rut": "12345678-5" },
+      "document_receiver": {
+        "rut": "76123456-0",
+        "business_name": "Inmobiliaria Los Robles SpA",
+        "address": "Av. Apoquindo 4500",
+        "district": "Las Condes"
+      },
+      "header": { "retention_type": "RETCONTRIBUYENTE" },
+      "details": [
+        {
+          "item_name": "Administración de propiedad, noviembre 2026",
+          "quantity": 1,
+          "unit_price": 100000
+        }
+      ]
+    }
+  ]
+}
+```
+
+| Campo | Qué es |
+|---|---|
+| `dte_type.code` | `"80"`, boleta de honorarios electrónica. |
+| `document_issuer.rut` | El profesional que emite la boleta. |
+| `document_receiver` | Quien paga los honorarios (persona o empresa). |
+| `header.retention_type` | Quién entera la retención al SII. **Opcional**: por defecto `"RETRECEPTOR"`. |
+| `details` | Los servicios. El monto de cada línea es `quantity × unit_price` y es el **bruto** de la boleta. |
+
+### Quién entera la retención
+
+| `retention_type` | Quién retiene y paga el impuesto al SII |
+|---|---|
+| `RETRECEPTOR` (por defecto) | Quien paga la boleta (el receptor). |
+| `RETCONTRIBUYENTE` | El propio profesional que emite. |
+
+## Tasa de retención
+
+Se aplica la tasa legal vigente **según el año de emisión** de la boleta:
+
+| Año | Tasa |
+|---|---|
+| 2025 | 14,5% |
+| **2026** | **15,25%** |
+| 2027 | 16% |
+| 2028 en adelante | 17% |
+
+## Respuesta: retenido y líquido
+
+El documento emitido (en el resultado del batch y en [`GET /v2/documents/{id}/`](/api-reference/v2/documents/get)) trae `honorary_amounts`:
+
+```json
+"honorary_amounts": {
+  "retention_type": "RETCONTRIBUYENTE",
+  "gross_amount": "100000",
+  "retention_rate": "15.25",
+  "retention_amount": "15250",
+  "net_amount": "84750"
+}
+```
+
+| Campo | Qué es |
+|---|---|
+| `gross_amount` | Monto bruto de la boleta. |
+| `retention_rate` | Tasa de retención aplicada (%), la del año de emisión. |
+| `retention_amount` | Impuesto retenido: bruto × tasa, redondeado al peso. |
+| `net_amount` | Líquido: bruto menos el impuesto retenido. |
+| `retention_type` | Quién entera ese impuesto al SII. |
+
+El retenido y el líquido son los que muestra la boleta, también con `RETCONTRIBUYENTE`.
+
+## PDF
+
+El PDF de la boleta es **el oficial del SII**: Tupana lo descarga del SII después de emitir. Puedes adjuntarlo directamente al correo que le envías a quien paga.
+
+## Plan
+
+Para emitir boletas de honorarios de una persona existe el plan **Boletas de honorarios**: **$9.990 al mes, IVA incluido**, por persona, con hasta 100 boletas de honorarios al mes. Ver [Precios](/precios).
