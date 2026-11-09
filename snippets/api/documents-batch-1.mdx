@@ -412,12 +412,15 @@ Incluye todos los campos de las Facturas Electrónicas más:
 **Campos específicos:**
 Incluye todos los campos de las Facturas Electrónicas con:
 
-**header (Obligatorio)**
+**document_issuer (Obligatorio)**
+- **Descripción:** El profesional que emite la boleta (persona natural). Su clave tributaria del SII debe estar conectada en Tupana.
+
+**header (Opcional)**
 - **Tipo:** Object
-- **Campos obligatorios:**
-  - `retention_type` (String): **Tipo de retención del 14.5%**
-    - `"RETRECEPTOR"`: **Retención por el receptor** (99% de casos) - El pagador retiene y declara el impuesto
-    - `"RETCONTRIBUYENTE"`: **Retención por el emisor** (casos excepcionales) - El emisor retiene el impuesto
+- **Campos:**
+  - `retention_type` (String): **Quién entera la retención al SII.** Opcional; por defecto `"RETRECEPTOR"`.
+    - `"RETRECEPTOR"`: **Retiene el receptor** (quien paga la boleta) y entera el impuesto al SII.
+    - `"RETCONTRIBUYENTE"`: **Retiene el propio emisor** (el profesional) y entera el impuesto al SII.
   - `payment_method` (String): **Forma de pago** (opcional pero recomendado)
     - `"1"`: Contado
     - `"2"`: Crédito
@@ -430,15 +433,15 @@ Incluye todos los campos de las Facturas Electrónicas con:
 
 **document_receiver (Condicional)**
 - **Tipo:** Object
-- **Descripción:** Datos del profesional que recibe los honorarios
+- **Descripción:** Datos de quien paga los honorarios (persona o empresa que contrata el servicio)
 - **Obligatoriedad:** Condicional - se puede usar solo RUT, pero se recomienda información completa
 - **Campos:**
-  - `rut` (String): **Obligatorio** - RUT del profesional
-  - `business_name` (String): **Opcional** - Nombre completo del profesional
-  - `business_activity` (String): **Opcional** - Profesión o especialidad (ej: "Abogado", "Contador", "Médico")
-  - `address` (String): **Opcional** - Dirección del profesional
-  - `district` (String): **Opcional** - Comuna del profesional
-  - `city` (String): **Opcional** - Ciudad del profesional
+  - `rut` (String): **Obligatorio** - RUT de quien paga
+  - `business_name` (String): **Opcional** - Nombre o razón social
+  - `business_activity` (String): **Opcional** - Giro
+  - `address` (String): **Opcional** - Dirección
+  - `district` (String): **Opcional** - Comuna
+  - `city` (String): **Opcional** - Ciudad
   - `email` (String): **Opcional** - Email de contacto
 
 **details (Obligatorio)**
@@ -447,14 +450,15 @@ Incluye todos los campos de las Facturas Electrónicas con:
 - `gross_unit_price` (Number): **No aplica a este tipo de documento** (Boleta de Honorarios, DTE 80). Solo válido para boletas electrónicas de venta (DTE 39 y 41).
 
 **Cálculo automático de retención:**
-- **Tasa**: 14.5% sobre el monto bruto (antes de IVA)
+- **Tasa**: la tasa vigente según el año de emisión (14,5% en 2025, **15,25% en 2026**, 16% en 2027 y 17% desde 2028), sobre el monto bruto
 - **Base imponible**: Suma de (quantity × unit_price) por cada ítem en details
-- **Retención**: `base_imponible × 0.145`
-- **Pago neto**: `base_imponible - retención`
-- **Responsable**: Normalmente el pagador declara y paga la retención al SII
+- **Retención**: `base_imponible × tasa` (en 2026, `× 0,1525`)
+- **Líquido**: `base_imponible - retención`
+- **Responsable**: quien indique `retention_type`
+- **Respuesta**: el documento emitido trae `honorary_amounts` con `gross_amount`, `retention_rate`, `retention_amount` y `net_amount`. Ver [Emitir una boleta de honorarios](/api-reference/v2/honorary/emission).
 
 **Características especiales:**
-- Aplica retención del 14.5% sobre el monto bruto
+- Aplica la retención legal del año sobre el monto bruto (15,25% en 2026)
 - Se utiliza para pagos a profesionales independientes
 - No requiere todos los datos del receptor obligatoriamente
 
@@ -527,7 +531,7 @@ Incluye todos los campos de las Facturas Electrónicas con:
 
 **Responsabilidades:**
 - **Contribuyente real** (document_issuer): Debe estar en Tupana con credenciales sii_company; es el responsable tributario.
-- **Retención:** 14.5% sobre monto bruto, igual que DTE 80.
+- **Retención:** la tasa legal del año sobre el monto bruto (15,25% en 2026), igual que DTE 80.
 
 **Casos de uso:**
 - Apps de delivery (Rappi, Uber Eats) — restaurante paga al repartidor

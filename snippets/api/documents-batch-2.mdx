@@ -952,27 +952,27 @@ En este ejemplo la carga va a Alemania (`563`), el comprador está en Holanda (`
 
 ### Campos específicos del header:
 
-- **`retention_type`** (String, Obligatorio):
-  - `"RETRECEPTOR"`: La retención la realiza el receptor (99% de los casos)
-  - `"RETCONTRIBUYENTE"`: La retención la realiza el contribuyente emisor (casos excepcionales)
+- **`retention_type`** (String, Opcional; por defecto `"RETRECEPTOR"`):
+  - `"RETRECEPTOR"`: retiene y entera el impuesto quien paga la boleta
+  - `"RETCONTRIBUYENTE"`: retiene y entera el impuesto el propio profesional que emite
 - **`authorized_user_rut`** (String, Opcional): RUT del usuario autorizado por el SII (dueño de la credencial `sii_company`) que emite en representación del emisor. Selecciona determinísticamente la credencial cuando hay varias accesibles. Solo válido para DTE 80 y 90.
 
-### Retención automática del 14.5%:
-- **Cálculo**: Se aplica sobre el monto bruto antes de IVA
-- **Responsable**: Normalmente el pagador retiene y declara el impuesto
-- **Pago al profesional**: Se paga el 85.5% restante (bruto menos retención)
+### Retención:
+- **Tasa**: la tasa vigente según el año de emisión (14,5% en 2025, **15,25% en 2026**, 16% en 2027 y 17% desde 2028)
+- **Cálculo**: sobre el monto bruto; líquido = bruto − retención (en 2026, el 84,75% del bruto)
+- **Responsable**: quien indique `retention_type`
+- **Respuesta**: `honorary_amounts` trae el bruto, la tasa, el retenido y el líquido
 
-### Información del receptor (profesional):
+### Información del receptor (quien paga, en DTE 80):
 - **Campos opcionales**: A diferencia de facturas, no todos los datos son obligatorios
-- **RUT obligatorio**: Siempre se requiere el RUT del profesional
-- **Actividad económica**: Debe corresponder a servicios profesionales
+- **RUT obligatorio**: Siempre se requiere el RUT del receptor
 
 ### Diferencias entre DTE 80 y 90:
 
 **DTE 80 - Boleta de Honorarios:**
-- Emisión directa por el pagador al profesional
-- Relación directa pagador-profesional
-- **document_issuer**: Quien paga (empresa o persona que contrata)
+- La emite el propio profesional (persona natural) a quien le paga
+- **document_issuer**: el profesional que emite
+- **document_receiver**: quien paga los honorarios
 
 **DTE 90 - Boleta de Honorarios de Terceros:**
 - Emisión por intermediario (plataformas, marketplaces)

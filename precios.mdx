@@ -1,8 +1,8 @@
 ---
 title: 'Precios de la API de facturación electrónica'
 sidebarTitle: 'Precios'
-description: 'Precio de la API de Tupana en UF: facturación 0,5 UF al mes por empresa enrolada, lectura SII 0,2 UF, bancos 0,35 UF por banco y recaudación 2% + IVA. Sandbox gratis, sin mínimo. Los planes web son otro producto.'
-keywords: ['precio api facturación electrónica', 'precio api tupana', 'uf', 'sandbox gratis', 'precio por empresa', 'planes web tupana']
+description: 'Precio de la API de Tupana en UF: facturación 0,5 UF al mes por empresa enrolada, boletas de honorarios $9.990 al mes por persona, lectura SII 0,2 UF, bancos 0,35 UF por banco y recaudación 2% + IVA. Sandbox gratis, sin mínimo. Los planes web son otro producto.'
+keywords: ['precio api facturación electrónica', 'precio api tupana', 'uf', 'sandbox gratis', 'precio por empresa', 'planes web tupana', 'api boletas de honorarios', 'plan boletas de honorarios']
 ---
 
 Los precios están en UF y son mensuales. El sandbox es gratis.
@@ -18,6 +18,7 @@ Para SaaS, ERP y plataformas que facturan por API para sus clientes. Pagas por e
 | Producto | Precio | Qué incluye |
 |---|---|---|
 | **Facturación** | **0,5 UF** al mes por empresa que enroles | Hasta 100 documentos o 1.000 boletas de venta al mes por empresa. Facturas, boletas, notas de crédito y boletas de honorarios. XML, PDF y estados del SII. Con el facturador de mercado de Tupana (sin restricciones de monto, cantidad de productos ni referencias) o con el facturador gratuito del SII, al mismo precio. Solo por API: no incluye la plataforma web. |
+| **Boletas de honorarios** | **$9.990** al mes por persona, IVA incluido | Para personas naturales que emiten sus boletas de honorarios electrónicas (DTE 80) por API. Hasta 100 boletas de honorarios al mes, con la retención del año y el PDF oficial del SII. Ver [Emitir una boleta de honorarios](/api-reference/v2/honorary/emission). |
 | **Lectura SII** | **0,2 UF** al mes por empresa | Registro de compra y venta, boletas de honorarios emitidas y recibidas. Solo lectura; requiere la clave del SII de la empresa. |
 | **Lectura bancaria** | **0,35 UF** al mes por banco que enroles | Cuentas, saldos y movimientos sincronizados sin límite. |
 | **Recaudación** | **2% + IVA** de lo recaudado | Link de pago integrado a Transbank y webhook cuando llega el dinero. Sin costo fijo. |
@@ -60,6 +61,9 @@ Son productos distintos. Los planes web (Independent 0,3 UF, Starter 1,0 UF, Pro
 
 **¿Cuánto pago si tengo 10 empresas facturando por la API?**
 5 UF al mes más IVA: 10 empresas por 0,5 UF. Si además lees el SII de esas 10 empresas, se suman 2 UF y el total queda en 7 UF al mes.
+
+**¿Cuánto cuesta emitir boletas de honorarios por la API?**
+El plan **Boletas de honorarios** cuesta $9.990 al mes por persona, IVA incluido, y permite hasta 100 boletas de honorarios al mes. Se emiten con el mismo endpoint de emisión de documentos, con el código 80.
 
 **¿Hay precio mínimo o costo fijo?**
 No. Pagas por las empresas enroladas en el mes. Si un mes no tienes ninguna, no pagas nada.
