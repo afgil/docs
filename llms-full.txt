@@ -591,7 +591,7 @@ Una vez configurada la autenticación, puedes:
 
 Fuente: https://docs.tupana.ai/precios · Sección: Guía de Usuario / Primeros Pasos
 
-> Precio de la API de Tupana en UF: facturación 0,5 UF al mes por empresa enrolada, lectura SII 0,2 UF, bancos 0,35 UF por banco y recaudación 2% + IVA. Sandbox gratis, sin mínimo. Los planes web son otro producto.
+> Precio de la API de Tupana en UF: facturación 0,5 UF al mes por empresa enrolada, boletas de honorarios $9.990 al mes por persona, lectura SII 0,2 UF, bancos 0,35 UF por banco y recaudación 2% + IVA. Sandbox gratis, sin mínimo. Los planes web son otro producto.
 
 Los precios están en UF y son mensuales. El sandbox es gratis.
 
@@ -604,6 +604,7 @@ Para SaaS, ERP y plataformas que facturan por API para sus clientes. Pagas por e
 | Producto | Precio | Qué incluye |
 |---|---|---|
 | **Facturación** | **0,5 UF** al mes por empresa que enroles | Hasta 100 documentos o 1.000 boletas de venta al mes por empresa. Facturas, boletas, notas de crédito y boletas de honorarios. XML, PDF y estados del SII. Con el facturador de mercado de Tupana (sin restricciones de monto, cantidad de productos ni referencias) o con el facturador gratuito del SII, al mismo precio. Solo por API: no incluye la plataforma web. |
+| **Boletas de honorarios** | **$9.990** al mes por persona, IVA incluido | Para personas naturales que emiten sus boletas de honorarios electrónicas (DTE 80) por API. Hasta 100 boletas de honorarios al mes, con la retención del año y el PDF oficial del SII. Ver [Emitir una boleta de honorarios](https://docs.tupana.ai/api-reference/v2/honorary/emission). |
 | **Lectura SII** | **0,2 UF** al mes por empresa | Registro de compra y venta, boletas de honorarios emitidas y recibidas. Solo lectura; requiere la clave del SII de la empresa. |
 | **Lectura bancaria** | **0,35 UF** al mes por banco que enroles | Cuentas, saldos y movimientos sincronizados sin límite. |
 | **Recaudación** | **2% + IVA** de lo recaudado | Link de pago integrado a Transbank y webhook cuando llega el dinero. Sin costo fijo. |
@@ -646,6 +647,9 @@ Son productos distintos. Los planes web (Independent 0,3 UF, Starter 1,0 UF, Pro
 
 **¿Cuánto pago si tengo 10 empresas facturando por la API?**
 5 UF al mes más IVA: 10 empresas por 0,5 UF. Si además lees el SII de esas 10 empresas, se suman 2 UF y el total queda en 7 UF al mes.
+
+**¿Cuánto cuesta emitir boletas de honorarios por la API?**
+El plan **Boletas de honorarios** cuesta $9.990 al mes por persona, IVA incluido, y permite hasta 100 boletas de honorarios al mes. Se emiten con el mismo endpoint de emisión de documentos, con el código 80.
 
 **¿Hay precio mínimo o costo fijo?**
 No. Pagas por las empresas enroladas en el mes. Si un mes no tienes ninguna, no pagas nada.
@@ -2584,7 +2588,7 @@ La **Boleta de Honorarios** es utilizada por profesionales independientes para d
 
 ##### Características principales
 - **Sin IVA:** Los honorarios no están afectos a IVA
-- **Retención automática:** 14.5% de retención para impuestos
+- **Retención:** la tasa legal del año (15,25% en 2026; 14,5% en 2025)
 - **Segunda categoría:** Se considera renta de segunda categoría
 - **Emisor persona natural:** Generalmente emitida por personas naturales
 
@@ -2627,7 +2631,7 @@ La **Boleta de Honorarios de Terceros** es utilizada por empresas que actúan co
 ##### Características principales
 - **Intermediación:** La empresa emisora actúa como intermediaria
 - **Beneficiario real:** El profesional que prestó el servicio
-- **Retención:** Mismas reglas que DTE 80 (14.5%)
+- **Retención:** Mismas reglas que DTE 80 (15,25% en 2026)
 - **Control tributario:** Mayor trazabilidad de pagos a profesionales
 
 ##### ¿Cuándo usar DTE 90?
@@ -6075,12 +6079,15 @@ Incluye todos los campos de las Facturas Electrónicas más:
 **Campos específicos:**
 Incluye todos los campos de las Facturas Electrónicas con:
 
-**header (Obligatorio)**
+**document_issuer (Obligatorio)**
+- **Descripción:** El profesional que emite la boleta (persona natural). Su clave tributaria del SII debe estar conectada en Tupana.
+
+**header (Opcional)**
 - **Tipo:** Object
-- **Campos obligatorios:**
-  - `retention_type` (String): **Tipo de retención del 14.5%**
-    - `"RETRECEPTOR"`: **Retención por el receptor** (99% de casos) - El pagador retiene y declara el impuesto
-    - `"RETCONTRIBUYENTE"`: **Retención por el emisor** (casos excepcionales) - El emisor retiene el impuesto
+- **Campos:**
+  - `retention_type` (String): **Quién entera la retención al SII.** Opcional; por defecto `"RETRECEPTOR"`.
+    - `"RETRECEPTOR"`: **Retiene el receptor** (quien paga la boleta) y entera el impuesto al SII.
+    - `"RETCONTRIBUYENTE"`: **Retiene el propio emisor** (el profesional) y entera el impuesto al SII.
   - `payment_method` (String): **Forma de pago** (opcional pero recomendado)
     - `"1"`: Contado
     - `"2"`: Crédito
@@ -6091,15 +6098,15 @@ Incluye todos los campos de las Facturas Electrónicas con:
 
 **document_receiver (Condicional)**
 - **Tipo:** Object
-- **Descripción:** Datos del profesional que recibe los honorarios
+- **Descripción:** Datos de quien paga los honorarios (persona o empresa que contrata el servicio)
 - **Obligatoriedad:** Condicional - se puede usar solo RUT, pero se recomienda información completa
 - **Campos:**
-  - `rut` (String): **Obligatorio** - RUT del profesional
-  - `business_name` (String): **Opcional** - Nombre completo del profesional
-  - `business_activity` (String): **Opcional** - Profesión o especialidad (ej: "Abogado", "Contador", "Médico")
-  - `address` (String): **Opcional** - Dirección del profesional
-  - `district` (String): **Opcional** - Comuna del profesional
-  - `city` (String): **Opcional** - Ciudad del profesional
+  - `rut` (String): **Obligatorio** - RUT de quien paga
+  - `business_name` (String): **Opcional** - Nombre o razón social
+  - `business_activity` (String): **Opcional** - Giro
+  - `address` (String): **Opcional** - Dirección
+  - `district` (String): **Opcional** - Comuna
+  - `city` (String): **Opcional** - Ciudad
   - `email` (String): **Opcional** - Email de contacto
 
 **details (Obligatorio)**
@@ -6108,14 +6115,15 @@ Incluye todos los campos de las Facturas Electrónicas con:
 - `gross_unit_price` (Number): **No aplica a este tipo de documento** (Boleta de Honorarios, DTE 80). Solo válido para boletas electrónicas de venta (DTE 39 y 41).
 
 **Cálculo automático de retención:**
-- **Tasa**: 14.5% sobre el monto bruto (antes de IVA)
+- **Tasa**: la tasa vigente según el año de emisión (14,5% en 2025, **15,25% en 2026**, 16% en 2027 y 17% desde 2028), sobre el monto bruto
 - **Base imponible**: Suma de (quantity × unit_price) por cada ítem en details
-- **Retención**: `base_imponible × 0.145`
-- **Pago neto**: `base_imponible - retención`
-- **Responsable**: Normalmente el pagador declara y paga la retención al SII
+- **Retención**: `base_imponible × tasa` (en 2026, `× 0,1525`)
+- **Líquido**: `base_imponible - retención`
+- **Responsable**: quien indique `retention_type`
+- **Respuesta**: el documento emitido trae `honorary_amounts` con `gross_amount`, `retention_rate`, `retention_amount` y `net_amount`. Ver [Emitir una boleta de honorarios](https://docs.tupana.ai/api-reference/v2/honorary/emission).
 
 **Características especiales:**
-- Aplica retención del 14.5% sobre el monto bruto
+- Aplica la retención legal del año sobre el monto bruto (15,25% en 2026)
 - Se utiliza para pagos a profesionales independientes
 - No requiere todos los datos del receptor obligatoriamente
 
@@ -6188,7 +6196,7 @@ Incluye todos los campos de las Facturas Electrónicas con:
 
 **Responsabilidades:**
 - **Contribuyente real** (document_issuer): Debe estar en Tupana con credenciales sii_company; es el responsable tributario.
-- **Retención:** 14.5% sobre monto bruto, igual que DTE 80.
+- **Retención:** la tasa legal del año sobre el monto bruto (15,25% en 2026), igual que DTE 80.
 
 **Casos de uso:**
 - Apps de delivery (Rappi, Uber Eats) — restaurante paga al repartidor
@@ -7159,27 +7167,27 @@ En este ejemplo la carga va a Alemania (`563`), el comprador está en Holanda (`
 
 #### Campos específicos del header:
 
-- **`retention_type`** (String, Obligatorio):
-  - `"RETRECEPTOR"`: La retención la realiza el receptor (99% de los casos)
-  - `"RETCONTRIBUYENTE"`: La retención la realiza el contribuyente emisor (casos excepcionales)
+- **`retention_type`** (String, Opcional; por defecto `"RETRECEPTOR"`):
+  - `"RETRECEPTOR"`: retiene y entera el impuesto quien paga la boleta
+  - `"RETCONTRIBUYENTE"`: retiene y entera el impuesto el propio profesional que emite
 - **`authorized_user_rut`** (String, Opcional): RUT del usuario autorizado por el SII (dueño de la credencial `sii_company`) que emite en representación del emisor. Selecciona determinísticamente la credencial cuando hay varias accesibles. Solo válido para DTE 80 y 90.
 
-#### Retención automática del 14.5%:
-- **Cálculo**: Se aplica sobre el monto bruto antes de IVA
-- **Responsable**: Normalmente el pagador retiene y declara el impuesto
-- **Pago al profesional**: Se paga el 85.5% restante (bruto menos retención)
+#### Retención:
+- **Tasa**: la tasa vigente según el año de emisión (14,5% en 2025, **15,25% en 2026**, 16% en 2027 y 17% desde 2028)
+- **Cálculo**: sobre el monto bruto; líquido = bruto − retención (en 2026, el 84,75% del bruto)
+- **Responsable**: quien indique `retention_type`
+- **Respuesta**: `honorary_amounts` trae el bruto, la tasa, el retenido y el líquido
 
-#### Información del receptor (profesional):
+#### Información del receptor (quien paga, en DTE 80):
 - **Campos opcionales**: A diferencia de facturas, no todos los datos son obligatorios
-- **RUT obligatorio**: Siempre se requiere el RUT del profesional
-- **Actividad económica**: Debe corresponder a servicios profesionales
+- **RUT obligatorio**: Siempre se requiere el RUT del receptor
 
 #### Diferencias entre DTE 80 y 90:
 
 **DTE 80 - Boleta de Honorarios:**
-- Emisión directa por el pagador al profesional
-- Relación directa pagador-profesional
-- **document_issuer**: Quien paga (empresa o persona que contrata)
+- La emite el propio profesional (persona natural) a quien le paga
+- **document_issuer**: el profesional que emite
+- **document_receiver**: quien paga los honorarios
 
 **DTE 90 - Boleta de Honorarios de Terceros:**
 - Emisión por intermediario (plataformas, marketplaces)
@@ -7927,7 +7935,7 @@ Detalle de cada campo y de la anulación de guías en [Emisión masiva de docume
 |--------|--------|:----:|-------------|
 | `authorized_user_rut_not_allowed` | validation_error | 422 | `authorized_user_rut` solo aplica a boletas de honorarios (80/90). |
 | `authorized_user_credential_missing` | credential_error | 400 | No hay credencial `sii_company` activa del usuario autorizado. |
-| `retention_type_invalid` | invalid_request_error | 400 | `retention_type` debe ser `RETRECEPTOR`, `RETEMISOR` o `RETTERCERO`. |
+| `retention_type_invalid` | invalid_request_error | 400 | `retention_type` debe ser `RETRECEPTOR` o `RETCONTRIBUYENTE`. |
 
 #### ⏳ Credenciales
 
@@ -10475,6 +10483,9 @@ Fuente: https://docs.tupana.ai/api-reference/v2/honorary/introduction · Secció
 
 ## Boleta de Honorarios
 
+**[Emitir una boleta de honorarios](https://docs.tupana.ai/api-reference/v2/honorary/emission)**:
+  Se emite con el mismo endpoint de emisión de documentos, con el código 80. Incluye la retención del año y el retenido y el líquido en la respuesta.
+
 Para emitir **boletas de honorarios electrónicas** (DTE 80/90) por cuenta de un
 tercero, ese tercero debe estar **autorizado** en el SII para la empresa. Estos
 endpoints gestionan esos **usuarios autorizados**:
@@ -10486,6 +10497,109 @@ endpoints gestionan esos **usuarios autorizados**:
 > **Nota:** Los identificadores son **public IDs** con prefijo (`ment_…`). Una vez que el
 usuario está autorizado, la emisión de la boleta se hace por el flujo de
 **Facturación** (`documents/batch`) con el tipo de DTE 80/90.
+
+---
+
+## Emitir boletas de honorarios electrónicas (DTE 80) por API
+
+Fuente: https://docs.tupana.ai/api-reference/v2/honorary/emission · Sección: API Boleta de Honorarios / Introducción
+
+> Cómo emitir boletas de honorarios electrónicas (DTE 80) con la API de Tupana: el mismo endpoint de emisión de documentos con el código 80, la retención del año (15,25% en 2026), quién la entera y el retenido y el líquido en la respuesta.
+
+## Emitir una boleta de honorarios (DTE 80)
+
+La boleta de honorarios se emite con **el mismo endpoint de emisión de documentos**, [`POST /v2/documents/batch/`](https://docs.tupana.ai/api-reference/v2/documents/batch), indicando el tipo de documento **`"80"`**. No hay un endpoint aparte.
+
+### Antes de emitir
+
+- **Quién emite:** el profesional, una persona natural. Su RUT va en `document_issuer.rut`.
+- **Qué se conecta:** la **clave tributaria del SII de esa persona**, en Tupana Connect, con la opción de boletas de honorarios y entrando con su propio RUT.
+- **Usuarios autorizados:** no se necesitan para emitir las boletas propias. Son solo para emitir a nombre de otra persona (ver [Usuarios autorizados](https://docs.tupana.ai/api-reference/v2/honorary/introduction)).
+
+### Request
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": { "code": "80" },
+      "document_issuer": { "rut": "12345678-5" },
+      "document_receiver": {
+        "rut": "76123456-0",
+        "business_name": "Inmobiliaria Los Robles SpA",
+        "address": "Av. Apoquindo 4500",
+        "district": "Las Condes"
+      },
+      "header": { "retention_type": "RETCONTRIBUYENTE" },
+      "details": [
+        {
+          "item_name": "Administración de propiedad, noviembre 2026",
+          "quantity": 1,
+          "unit_price": 100000
+        }
+      ]
+    }
+  ]
+}
+```
+
+| Campo | Qué es |
+|---|---|
+| `dte_type.code` | `"80"`, boleta de honorarios electrónica. |
+| `document_issuer.rut` | El profesional que emite la boleta. |
+| `document_receiver` | Quien paga los honorarios (persona o empresa). |
+| `header.retention_type` | Quién entera la retención al SII. **Opcional**: por defecto `"RETRECEPTOR"`. |
+| `details` | Los servicios. El monto de cada línea es `quantity × unit_price` y es el **bruto** de la boleta. |
+
+#### Quién entera la retención
+
+| `retention_type` | Quién retiene y paga el impuesto al SII |
+|---|---|
+| `RETRECEPTOR` (por defecto) | Quien paga la boleta (el receptor). |
+| `RETCONTRIBUYENTE` | El propio profesional que emite. |
+
+### Tasa de retención
+
+Se aplica la tasa legal vigente **según el año de emisión** de la boleta:
+
+| Año | Tasa |
+|---|---|
+| 2025 | 14,5% |
+| **2026** | **15,25%** |
+| 2027 | 16% |
+| 2028 en adelante | 17% |
+
+### Respuesta: retenido y líquido
+
+El documento emitido (en el resultado del batch y en [`GET /v2/documents/{id}/`](https://docs.tupana.ai/api-reference/v2/documents/get)) trae `honorary_amounts`:
+
+```json
+"honorary_amounts": {
+  "retention_type": "RETCONTRIBUYENTE",
+  "gross_amount": "100000",
+  "retention_rate": "15.25",
+  "retention_amount": "15250",
+  "net_amount": "84750"
+}
+```
+
+| Campo | Qué es |
+|---|---|
+| `gross_amount` | Monto bruto de la boleta. |
+| `retention_rate` | Tasa de retención aplicada (%), la del año de emisión. |
+| `retention_amount` | Impuesto retenido: bruto × tasa, redondeado al peso. |
+| `net_amount` | Líquido: bruto menos el impuesto retenido. |
+| `retention_type` | Quién entera ese impuesto al SII. |
+
+El retenido y el líquido son los que muestra la boleta, también con `RETCONTRIBUYENTE`.
+
+### PDF
+
+El PDF de la boleta es **el oficial del SII**: Tupana lo descarga del SII después de emitir. Puedes adjuntarlo directamente al correo que le envías a quien paga.
+
+### Plan
+
+Para emitir boletas de honorarios de una persona existe el plan **Boletas de honorarios**: **$9.990 al mes, IVA incluido**, por persona, con hasta 100 boletas de honorarios al mes. Ver [Precios](https://docs.tupana.ai/precios).
 
 ---
 
@@ -13050,7 +13164,7 @@ Tipo: object
 - `payment_method` (string, nullable; valores: `1`, `2`, `3`): Método de pago
 - `due_date` (string (date), nullable): Fecha de vencimiento
 - `vat_withheld` (boolean, nullable; ej: `False`): Indica si el IVA está retenido. Solo aplicable para facturas de compra (DTE 46) y notas de crédito que referencian facturas de compra.
-- `retention_type` (string, nullable; valores: `RETRECEPTOR`, `RETCONTRIBUYENTE`; ej: `RETRECEPTOR`): Tipo de retención obligatorio para boletas de honorarios (DTE 80, 90). Define quién retiene el 14,5% legal.
+- `retention_type` (string, nullable; valores: `RETRECEPTOR`, `RETCONTRIBUYENTE`; ej: `RETRECEPTOR`): Tipo de retención de las boletas de honorarios (DTE 80, 90): RETRECEPTOR (por defecto) o RETCONTRIBUYENTE. Define quién entera la retención legal del año (15,25% en 2026).
 - `purchase_type` (string, nullable; valores: `1`, `2`, `3`, `4`, `5`, `6`, `7`; ej: `1`): Tipo de compra para facturas recibidas en el SII
 
 #### `DocumentIssuer`
