@@ -9916,6 +9916,28 @@ Fuente: https://docs.tupana.ai/api-reference/v2/book-documents/list · Sección:
 
 Endpoint: `GET /book-documents/` (detalle completo en la Parte 2).
 
+### Estado de cada documento en el registro
+
+El libro se trae **completo**: por defecto la respuesta incluye todos los estados del registro del SII y cada fila declara el suyo en el campo `status`.
+
+| `status` | Significado | Qué hacer |
+| --- | --- | --- |
+| `REGISTRO` | Aceptada o registrada, incluye la **aceptación tácita** a los 8 días. | Procesar. |
+| `PENDIENTE` | Sin acción del receptor, aún dentro de los 8 días. | Esperar. |
+| `RECLAMADO` | Rechazada por el receptor. | No procesar. |
+
+Para traer un solo estado, usa el parámetro `status` (por ejemplo `status=reclamado`). Si lo omites, se devuelven todos.
+
+> **Nota:** **Para procesar solo las facturas aceptadas**, el criterio es `status` distinto de `RECLAMADO`, no el acuse de recibo. La mayoría de las facturas **nunca reciben acuse** (`acknowledgment_date` queda nulo) y aun así quedan aceptadas por aceptación tácita pasados los 8 días. Por eso `acknowledgment_date` es solo un dato informativo del acuse explícito, no el criterio de aceptación.
+
+Los campos `claimed_date` (fecha del reclamo) y `acknowledgment_date` (fecha del acuse) complementan a `status` con el detalle de cada evento cuando existe.
+
+### Impuestos adicionales (ILA, combustibles)
+
+Dentro de `taxes`, el campo `other_taxes_amount` es la **suma** de los otros impuestos del documento, y `additional` trae el **detalle por código**: una lista de `{ code, amount, rate }` con cada impuesto adicional (ILA de bebidas, impuesto específico a combustibles, etc.).
+
+Esto importa para cuadrar los montos: con impuestos adicionales el neto más IVA no suma el total. La identidad es `net_amount + exempt_amount + vat_amount + other_taxes_amount = total_amount` (en combustibles el específico puede ser negativo y dejar el total por debajo de neto más IVA).
+
 ---
 
 ## Estado de sincronización con el SII (API v2)
@@ -12584,7 +12606,7 @@ Esquema: `Error`
 
 **Listar detalle de libro de compras/ventas SII**
 
-Lista, documento por documento, el Registro de Compras y Ventas (RCV) del SII de una entidad para un período tributario y una operación. Es el detalle del que `/book-summaries` entrega los totales. Cada fila trae los montos tal como los informa el SII y el desglose de impuestos del RCV. Solo devuelve datos para entidades con el scrape del libro habilitado (ver `is_enabled`); la habilitación es independiente de la del resumen.
+Lista, documento por documento, el Registro de Compras y Ventas (RCV) del SII de una entidad para un período tributario y una operación. Es el detalle del que `/book-summaries` entrega los totales. Cada fila trae los montos tal como los informa el SII y el desglose de impuestos del RCV. Solo devuelve datos para entidades con el scrape del libro habilitado (ver `is_enabled`); la habilitación es independiente de la del resumen. Por defecto devuelve el libro completo con todos los estados del registro del SII (REGISTRO, PENDIENTE y RECLAMADO); usa `status` para filtrar uno. Cada fila trae su estado en `status`.
 
 URL completa: `GET https://api.tupana.ai/v2/book-documents/`
 
@@ -12594,6 +12616,7 @@ Parámetros:
 - `period` (query, string; requerido): Período tributario a consultar, formato YYYYMM. Es el período en que el SII clasifica el documento en ese libro, que puede diferir del mes de emisión.
 - `operation` (query, string; requerido; valores: `COMPRA`, `VENTA`): Libro a consultar: `COMPRA` (la entidad es el receptor, libro de compras) o `VENTA` (la entidad es el emisor, libro de ventas).
 - `dte_type_code` (query, string): Filtra por tipo de documento SII. Lista separada por coma, por ejemplo `33,61`.
+- `status` (query, string; valores: `registro`, `pendiente`, `reclamado`): Filtra por estado del documento en el registro del SII: `registro` (aceptada/registrada, incluye aceptacion tacita), `pendiente` (sin accion del receptor, dentro de los 8 dias) o `reclamado` (rechazada por el receptor). Si se omite, se devuelven todos los estados.
 - `page` (query, integer): Página (desde 1).
 - `page_size` (query, integer): Filas por página. Por defecto 25, máximo 100.
 
@@ -13684,6 +13707,7 @@ Tipo: object
 - `folio` (string; ej: `12345`)
 - `issue_date` (string (date); ej: `2026-03-10`): Fecha de emisión del documento según el SII.
 - `counterparty` (`BookDocumentCounterparty`)
+- `status` (string, nullable; valores: `REGISTRO`, `PENDIENTE`, `RECLAMADO`): Estado del documento en el registro del RCV del SII con que se trajo: REGISTRO (aceptada/registrada, incluye aceptacion tacita), PENDIENTE (sin accion del receptor, dentro de los 8 dias) o RECLAMADO (rechazada por el receptor).
 - `reception_date` (string (date-time), nullable): Fecha de recepción en el SII. Solo en COMPRA.
 - `acknowledgment_date` (string (date-time), nullable): Fecha del acuse de recibo.
 - `claimed_date` (string (date-time), nullable): Fecha del reclamo, si lo hubo.
@@ -13733,6 +13757,10 @@ Tipo: object
 - `third_party_vat` (integer, nullable): IVA de terceros.
 - `out_of_term_vat` (integer, nullable): IVA fuera de plazo.
 - `other_taxes_amount` (integer, nullable): Otros impuestos (DTOI), por ejemplo impuestos adicionales.
+- `additional` (array de object): Detalle de los otros impuestos por codigo (ILA, impuesto especifico a combustibles, etc.). `other_taxes_amount` es la suma de estos montos.
+  - `code` (integer): Codigo del impuesto en el SII.
+  - `amount` (number): Monto del impuesto en pesos.
+  - `rate` (number): Tasa del impuesto.
 - `tax_rate` (string, nullable; ej: `19`): Tasa de IVA aplicada.
 
 #### `BankAccount`
