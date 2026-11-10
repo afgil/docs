@@ -12,7 +12,7 @@
           }
         ],
         "summary": "Listar detalle de libro de compras/ventas SII",
-        "description": "Lista, documento por documento, el Registro de Compras y Ventas (RCV) del SII de una entidad para un período tributario y una operación. Es el detalle del que `/book-summaries` entrega los totales. Cada fila trae los montos tal como los informa el SII y el desglose de impuestos del RCV. Solo devuelve datos para entidades con el scrape del libro habilitado (ver `is_enabled`); la habilitación es independiente de la del resumen.",
+        "description": "Lista, documento por documento, el Registro de Compras y Ventas (RCV) del SII de una entidad para un período tributario y una operación. Es el detalle del que `/book-summaries` entrega los totales. Cada fila trae los montos tal como los informa el SII y el desglose de impuestos del RCV. Solo devuelve datos para entidades con el scrape del libro habilitado (ver `is_enabled`); la habilitación es independiente de la del resumen. Por defecto devuelve el libro completo con todos los estados del registro del SII (REGISTRO, PENDIENTE y RECLAMADO); usa `status` para filtrar uno. Cada fila trae su estado en `status`.",
         "parameters": [
           {
             "name": "master_entity_id",
@@ -55,6 +55,21 @@
             "schema": {
               "type": "string",
               "example": "33,61"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Filtra por estado del documento en el registro del SII: `registro` (aceptada/registrada, incluye aceptacion tacita), `pendiente` (sin accion del receptor, dentro de los 8 dias) o `reclamado` (rechazada por el receptor). Si se omite, se devuelven todos los estados.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "registro",
+                "pendiente",
+                "reclamado"
+              ],
+              "example": "reclamado"
             }
           },
           {
@@ -196,6 +211,16 @@
           },
           "counterparty": {
             "$ref": "#/components/schemas/BookDocumentCounterparty"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "REGISTRO",
+              "PENDIENTE",
+              "RECLAMADO"
+            ],
+            "nullable": true,
+            "description": "Estado del documento en el registro del RCV del SII con que se trajo: REGISTRO (aceptada/registrada, incluye aceptacion tacita), PENDIENTE (sin accion del receptor, dentro de los 8 dias) o RECLAMADO (rechazada por el receptor)."
           },
           "reception_date": {
             "type": "string",

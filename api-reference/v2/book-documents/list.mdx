@@ -4,3 +4,21 @@ sidebarTitle: 'Listar detalle de libro de compras/ventas SII'
 description: 'Lista los documentos del Registro de Compras y Ventas (RCV) del SII de una empresa, documento por documento.'
 openapi: "api-reference/openapi-v2.json GET /book-documents/"
 ---
+
+## Estado de cada documento en el registro
+
+El libro se trae **completo**: por defecto la respuesta incluye todos los estados del registro del SII y cada fila declara el suyo en el campo `status`.
+
+| `status` | Significado | Qué hacer |
+| --- | --- | --- |
+| `REGISTRO` | Aceptada o registrada, incluye la **aceptación tácita** a los 8 días. | Procesar. |
+| `PENDIENTE` | Sin acción del receptor, aún dentro de los 8 días. | Esperar. |
+| `RECLAMADO` | Rechazada por el receptor. | No procesar. |
+
+Para traer un solo estado, usa el parámetro `status` (por ejemplo `status=reclamado`). Si lo omites, se devuelven todos.
+
+<Note>
+**Para procesar solo las facturas aceptadas**, el criterio es `status` distinto de `RECLAMADO`, no el acuse de recibo. La mayoría de las facturas **nunca reciben acuse** (`acknowledgment_date` queda nulo) y aun así quedan aceptadas por aceptación tácita pasados los 8 días. Por eso `acknowledgment_date` es solo un dato informativo del acuse explícito, no el criterio de aceptación.
+</Note>
+
+Los campos `claimed_date` (fecha del reclamo) y `acknowledgment_date` (fecha del acuse) complementan a `status` con el detalle de cada evento cuando existe.
