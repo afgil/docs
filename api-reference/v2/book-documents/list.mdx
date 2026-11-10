@@ -22,3 +22,10 @@ Para traer un solo estado, usa el parámetro `status` (por ejemplo `status=recla
 </Note>
 
 Los campos `claimed_date` (fecha del reclamo) y `acknowledgment_date` (fecha del acuse) complementan a `status` con el detalle de cada evento cuando existe.
+
+## Impuestos adicionales (ILA, combustibles)
+
+Dentro de `taxes`, el campo `other_taxes_amount` es la **suma** de los otros impuestos del documento, y `additional` trae el **detalle por código**: una lista de `{ code, amount, rate }` con cada impuesto adicional (ILA de bebidas, impuesto específico a combustibles, etc.).
+
+Esto importa para cuadrar los montos: con impuestos adicionales el neto más IVA no suma el total. La identidad es `net_amount + exempt_amount + vat_amount + other_taxes_amount = total_amount` (en combustibles el específico puede ser negativo y dejar el total por debajo de neto más IVA).
+

@@ -10525,6 +10525,28 @@
             "nullable": true,
             "description": "Otros impuestos (DTOI), por ejemplo impuestos adicionales."
           },
+          "additional": {
+            "type": "array",
+            "nullable": true,
+            "description": "Detalle de los otros impuestos por codigo (ILA, impuesto especifico a combustibles, etc.). `other_taxes_amount` es la suma de estos montos.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer",
+                  "description": "Codigo del impuesto en el SII."
+                },
+                "amount": {
+                  "type": "number",
+                  "description": "Monto del impuesto en pesos."
+                },
+                "rate": {
+                  "type": "number",
+                  "description": "Tasa del impuesto."
+                }
+              }
+            }
+          },
           "tax_rate": {
             "type": "string",
             "nullable": true,
