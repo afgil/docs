@@ -433,7 +433,7 @@
       "post": {
         "operationId": "annulHonoraryReceipts",
         "summary": "Anular boletas de honorarios",
-        "description": "Anula en el SII boletas de honorarios electrónicas (DTE 80) ya emitidas. Usa la acción `annul_with_credit_note`: para una boleta de honorarios no se emite nota de crédito, se anula en el portal del SII con la clave de la persona y el documento queda en estado `cancelled`. Es el mismo flujo que usa la app de Tupana en sus acciones masivas.",
+        "description": "Anula en el SII boletas de honorarios electrónicas (DTE 80) ya emitidas, con tu API key. Usa la acción `annul_with_credit_note`: para una boleta de honorarios no se emite nota de crédito, se anula en el portal del SII con la clave de la persona y después Tupana relee el informe de boletas emitidas del SII. Solo si el SII la muestra \"Anulada\" la boleta queda en estado `cancelled`; si sigue vigente, responde error y la boleta no cambia.",
         "requestBody": {
           "required": true,
           "content": {
@@ -523,7 +523,7 @@
             }
           },
           "400": {
-            "description": "No se pudo anular ninguna boleta (por ejemplo, ya estaba anulada o no es tipo 80).",
+            "description": "No se pudo anular ninguna boleta: ya estaba anulada, no es tipo 80, es un borrador, el SII rechazó la anulación o, al releer el SII, la boleta sigue vigente.",
             "content": {
               "application/json": {
                 "example": {
