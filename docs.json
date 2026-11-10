@@ -390,7 +390,8 @@
                 "group": "Introducción",
                 "pages": [
                   "api-reference/v2/honorary/introduction",
-                  "api-reference/v2/honorary/emission"
+                  "api-reference/v2/honorary/emission",
+                  "api-reference/v2/honorary/annulment"
                 ]
               },
               {

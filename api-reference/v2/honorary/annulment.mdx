@@ -1,0 +1,70 @@
+---
+title: 'Anular boletas de honorarios electrónicas (DTE 80) por API'
+sidebarTitle: 'Anular boleta de honorarios'
+openapi: 'api-reference/openapi-honorary.json POST /documents/actions/batch/'
+description: 'Cómo anular en el SII una boleta de honorarios electrónica (DTE 80) ya emitida con la API de Tupana, y cómo comprobar que quedó anulada.'
+---
+
+Una boleta de honorarios emitida se anula con `POST /v2/documents/actions/batch/` y la acción **`annul_with_credit_note`**. Para una boleta de honorarios **no se emite nota de crédito**: Tupana entra al portal del SII con la clave de la persona y anula la boleta allá. Es el mismo flujo que usa la app de Tupana en sus acciones masivas.
+
+## Antes de anular
+
+- **Solo boletas emitidas:** la boleta tiene que tener folio. Un borrador no llegó al SII, no hay nada que anular.
+- **La clave conectada:** se usa la misma clave tributaria del SII de la persona que se usó para emitir (Tupana Connect).
+- **Motivo:** se anula con la causa del SII "error de digitación".
+
+## Request
+
+```json
+{
+  "action_type": "annul_with_credit_note",
+  "document_ids": ["docu_1234567890123456789"]
+}
+```
+
+| Campo | Qué es |
+|---|---|
+| `action_type` | Siempre `"annul_with_credit_note"`. |
+| `document_ids` | Los `id` de las boletas a anular, los mismos que devuelve la emisión o [`GET /v2/documents/`](/api-reference/v2/documents/list). Puedes enviar varias. |
+
+## Respuesta
+
+`201` con cada boleta anulada en `results`, ya en estado **`cancelled`**:
+
+```json
+{
+  "results": [
+    {
+      "id": "docu_1234567890123456789",
+      "folio": "1234",
+      "state": "cancelled",
+      "dte_type": { "code": "80" }
+    }
+  ]
+}
+```
+
+Si en un mismo request algunas boletas se anulan y otras no, las que fallaron vienen en `partial_errors` con su motivo. Si no se pudo anular ninguna, la respuesta es `400`:
+
+| Motivo | Qué hacer |
+|---|---|
+| `Fee receipt folio … is already annulled.` | La boleta ya estaba anulada. No hay que hacer nada. |
+| `Only fee receipts (boleta de honorarios, type 80) can be annulled.` | El documento no es una boleta de honorarios. Las facturas se anulan con una nota de crédito. |
+| `Only issued fee receipts (with a folio) can be annulled.` | Es un borrador, nunca se envió al SII. |
+| Mensaje del SII | El SII rechazó la anulación (por ejemplo, la clave ya no es válida). La boleta sigue vigente. |
+
+## Cómo comprobar que quedó anulada
+
+1. **En la respuesta:** la boleta viene en `results` con `"state": "cancelled"`. Tupana solo la marca así cuando el SII aceptó la anulación; si el SII la rechaza, la boleta no cambia y el motivo viene en el error.
+2. **Después, en cualquier momento:** consulta la boleta con [`GET /v2/documents/{id}/`](/api-reference/v2/documents/get). Debe responder `"state": "cancelled"`.
+
+```bash
+curl https://api.tupana.ai/v2/documents/docu_1234567890123456789/ \
+  -H "Authorization: Api-Key TU-API-KEY"
+```
+
+La anulación también reversa la contabilidad de la boleta en Tupana.
+
+<Note>
+En sandbox (boletas con folio `SANDBOX-…`) la anulación no va al SII: la boleta se marca `cancelled` solo en Tupana, para que puedas probar el flujo completo.
+</Note>
