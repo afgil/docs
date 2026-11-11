@@ -1546,9 +1546,14 @@ Tupana tiene un **servidor MCP** (Model Context Protocol) para que un asistente 
     En **claude.ai** o **Claude Desktop**:
 
     1. Abre **Configuración → Conectores**.
-    2. Elige **Agregar conector personalizado**.
-    3. Pega la URL `https://mcp.tupana.ai/mcp` y guarda.
-    4. Al conectar, inicia sesión con tu cuenta Tupana.
+    2. Elige **Agregar → Agregar conector personalizado**.
+    3. En **Nombre** escribe `Tupana` y en **URL del servidor MCP** pega `https://mcp.tupana.ai/mcp`. Luego **Continuar**.
+
+_El diálogo de conector personalizado en Claude, con la URL del servidor MCP de Tupana._
+
+         ![Agregar conector personalizado en Claude con el nombre Tupana y la URL https://mcp.tupana.ai/mcp](https://docs.tupana.ai/images/connect/claude-add-connector.jpg)
+
+    4. Al conectar, inicia sesión con tu cuenta Tupana y autoriza el acceso.
 
 **Claude Code**
 
