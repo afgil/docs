@@ -114,6 +114,7 @@
                 "pages": [
                   "api-reference/v2/documents/list",
                   "api-reference/v2/documents/batch",
+                  "api-reference/v2/documents/annulment",
                   "api-reference/v2/documents/get"
                 ]
               },
@@ -473,6 +474,7 @@
                 "pages": [
                   "api-reference/documents/list",
                   "api-reference/documents/batch",
+                  "api-reference/documents/annulment",
                   "api-reference/documents/get"
                 ]
               },

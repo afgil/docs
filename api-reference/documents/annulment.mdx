@@ -1,0 +1,44 @@
+---
+title: 'Anular con nota de crédito'
+openapi: 'POST /documents/actions/batch'
+canonical: 'https://docs.tupana.ai/api-reference/v2/documents/annulment'
+description: 'POST /v1/documents/actions/batch: anula facturas, boletas y facturas de exportación ya emitidas emitiendo la nota de crédito que las referencia en el SII.'
+---
+
+Una factura emitida no se borra del SII: se anula emitiendo una **nota de crédito** que la referencia con el código 1 del SII, "Anula documento de la referencia". Con `POST /v1/documents/actions/batch` y la acción **`annul_with_credit_note`**, Tupana arma esa nota de crédito copiando el receptor y las líneas del documento original, la emite en el SII y te la devuelve con su folio.
+
+## Qué se puede anular
+
+| Documento original | Se anula con |
+|---|---|
+| Factura electrónica (33), factura exenta (34) | Nota de crédito (61) |
+| Boleta (39), boleta exenta (41) | Nota de crédito (61) |
+| Factura de compra (46) | Nota de crédito (61) |
+| Factura de exportación (110) | Nota de crédito de exportación (112) |
+| Boleta de honorarios (80) | Sin nota de crédito: se anula directo en el SII. |
+
+El documento tiene que estar emitido, con folio.
+
+## Request
+
+```json
+{
+  "action_type": "annul_with_credit_note",
+  "document_ids": [1234]
+}
+```
+
+| Campo | Qué es |
+|---|---|
+| `action_type` | Siempre `"annul_with_credit_note"`. |
+| `document_ids` | Los `id` numéricos de los documentos a anular, los mismos que devuelve la [emisión](/api-reference/documents/batch) o [`GET /v1/documents`](/api-reference/documents/list). |
+| `reference_reason` | Opcional. La razón que va en la referencia de la nota de crédito. Por defecto, `ANULA DOCUMENTO DE LA REFERENCIA`. |
+| `date_issued` | Opcional. Fecha de emisión de la nota de crédito (`AAAA-MM-DD`). Por defecto, hoy. |
+
+## Respuesta
+
+`201` con una nota de crédito emitida por cada documento anulado, en `results`. Si algunos no se pudieron anular, vienen en `partial_errors`; si no se pudo ninguno, responde `400` con el detalle.
+
+<Note>
+En v2 la misma anulación usa los `id` con prefijo (`docu_...`): ver [Anular con nota de crédito (v2)](/api-reference/v2/documents/annulment).
+</Note>
