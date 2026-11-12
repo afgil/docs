@@ -9996,11 +9996,20 @@ Para traer un solo estado, usa el parámetro `status` (por ejemplo `status=recla
 
 Los campos `claimed_date` (fecha del reclamo) y `acknowledgment_date` (fecha del acuse) complementan a `status` con el detalle de cada evento cuando existe.
 
-### Impuestos adicionales (ILA, combustibles)
+### Impuestos del registro
 
-Dentro de `taxes`, el campo `other_taxes_amount` es la **suma** de los otros impuestos del documento, y `additional` trae el **detalle por código**: una lista de `{ code, amount, rate }` con cada impuesto adicional (ILA de bebidas, impuesto específico a combustibles, etc.).
+El objeto `taxes` trae **todas las columnas de impuestos que informa el RCV** del SII para cada documento: IVA no recuperable (y su total `non_recoverable_vat_total`), IVA retenido (total, parcial y no retenido), IVA propio y de terceros, IVA de activo fijo, IVA de uso común, IVA fuera de plazo, impuestos a los tabacos (`tobacco_cigars`, `tobacco_cigarettes`, `tobacco_processed`), impuesto a los vehículos (`vehicle_tax`), crédito de empresas constructoras (`construction_credit`), Ley 18.211 (`law_18211`) y depósito por envases (`container_deposit`). `tax_rate` es la tasa de IVA que informa el SII.
+
+#### Otros impuestos por código (ILA, combustibles)
+
+`other_taxes_amount` es la **suma** de los otros impuestos del documento y `additional` trae el **detalle por código**: una lista de `{ code, amount, rate }` (por ejemplo `27` ILA de bebidas, `35` impuesto específico al combustible). La suma de los `amount` de `additional` es `other_taxes_amount`. Cuando hay un solo otro impuesto, `other_tax_code` repite su código. Si el documento no tiene otros impuestos, `additional` es null.
 
 Esto importa para cuadrar los montos: con impuestos adicionales el neto más IVA no suma el total. La identidad es `net_amount + exempt_amount + vat_amount + other_taxes_amount = total_amount` (en combustibles el específico puede ser negativo y dejar el total por debajo de neto más IVA).
+
+### Liquidación de factura y datos del registro
+
+- `settlement`: en las liquidaciones de factura (DTE 43) trae el RUT del emisor de la liquidación y la comisión (neta, exenta e IVA). En los demás documentos es null.
+- `register_info`: los datos informativos del registro del SII, como monto no facturable, monto del período, pasajes nacionales e internacionales, datos del receptor extranjero, indicadores de venta sin costo y de servicio, y si el SII marca al emisor como agresivo.
 
 ---
 
@@ -14098,6 +14107,8 @@ Tipo: object
 - `vat_amount` (integer, nullable): Monto IVA.
 - `total_amount` (integer, nullable): Monto total.
 - `taxes` (`BookDocumentTaxes`)
+- `settlement` (`BookDocumentSettlement`)
+- `register_info` (`BookDocumentRegisterInfo`)
 - `reference` (object, nullable): Documento referenciado (notas de crédito y débito).
   - `dte_type_code` (integer, nullable; ej: `33`)
   - `folio` (string, nullable; ej: `12345`)
@@ -14131,12 +14142,21 @@ Tipo: object
 - `own_vat` (integer, nullable): IVA propio.
 - `third_party_vat` (integer, nullable): IVA de terceros.
 - `out_of_term_vat` (integer, nullable): IVA fuera de plazo.
-- `other_taxes_amount` (integer, nullable): Otros impuestos (DTOI), por ejemplo impuestos adicionales.
-- `additional` (array de object): Detalle de los otros impuestos por codigo (ILA, impuesto especifico a combustibles, etc.). `other_taxes_amount` es la suma de estos montos.
-  - `code` (integer): Codigo del impuesto en el SII.
-  - `amount` (number): Monto del impuesto en pesos.
+- `other_taxes_amount` (integer, nullable): Suma de los otros impuestos del documento (columna Otros Impuestos del RCV). Su detalle por código está en `additional`.
+- `additional` (array de object): Detalle de los otros impuestos por código (ILA, específico al combustible, etc.). La suma de `amount` es `other_taxes_amount`. Es null cuando el documento no tiene otros impuestos.
+  - `code` (integer): Código del impuesto según el SII.
+  - `amount` (number): Monto del impuesto.
   - `rate` (number): Tasa del impuesto.
-- `tax_rate` (string, nullable; ej: `19`): Tasa de IVA aplicada.
+- `tax_rate` (string, nullable; ej: `19`): Tasa de IVA que informa el SII para el documento. La tasa de cada otro impuesto está en `additional[].rate`.
+- `other_tax_code` (integer, nullable): Código del otro impuesto cuando el documento tiene uno solo (por ejemplo 27 ILA, 35 impuesto específico al combustible). Con varios o ninguno es null; el detalle completo está en `additional`.
+- `non_recoverable_vat_total` (integer, nullable): Total de IVA no recuperable informado por el SII para el documento.
+- `tobacco_cigars` (integer, nullable): Impuesto a los tabacos: puros.
+- `tobacco_cigarettes` (integer, nullable): Impuesto a los tabacos: cigarrillos.
+- `tobacco_processed` (integer, nullable): Impuesto a los tabacos: elaborado.
+- `vehicle_tax` (integer, nullable): Impuesto a los vehículos automotores.
+- `construction_credit` (integer, nullable): Crédito especial de empresas constructoras.
+- `law_18211` (integer, nullable): Monto Ley 18.211 (zona franca).
+- `container_deposit` (integer, nullable): Depósito por envases.
 
 #### `BankAccount`
 
@@ -14257,6 +14277,35 @@ Tipo: object
   - `finished_at` (string (date-time), nullable)
 - `cancelled_at` (string (date-time), nullable)
 - `created_at` (string (date-time))
+
+#### `BookDocumentSettlement`
+
+Liquidación de factura (DTE 43): emisor y comisión que informa el RCV. Es null en los demás documentos.
+
+Tipo: object, nullable
+
+- `issuer_rut` (string, nullable): RUT del emisor de la liquidación.
+- `commission_net_amount` (integer, nullable): Comisión neta.
+- `commission_exempt_amount` (integer, nullable): Comisión exenta.
+- `commission_vat_amount` (integer, nullable): IVA de la comisión.
+
+#### `BookDocumentRegisterInfo`
+
+Datos informativos del registro del SII.
+
+Tipo: object
+
+- `unbilled_amount` (integer, nullable): Monto no facturable.
+- `period_amount` (integer, nullable): Monto del período.
+- `national_passengers` (integer, nullable): Pasajes nacionales.
+- `international_passengers` (integer, nullable): Pasajes internacionales.
+- `international_number` (string, nullable): Número internacional.
+- `export_id_number` (string, nullable): Número de identificación del receptor extranjero.
+- `export_nationality` (string, nullable): Nacionalidad del receptor extranjero.
+- `no_cost_indicator` (integer, nullable): Indicador de venta sin costo.
+- `service_indicator` (integer, nullable): Indicador de servicio.
+- `note_issuer` (integer, nullable): Emisor de la nota.
+- `aggressive_issuer` (boolean, nullable): El SII marca al emisor como agresivo.
 
 ## Tupana API - Recaudación (OpenAPI 1.0.0)
 
