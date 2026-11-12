@@ -302,6 +302,17 @@
           "taxes": {
             "$ref": "#/components/schemas/BookDocumentTaxes"
           },
+          "settlement": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookDocumentSettlement"
+              }
+            ],
+            "nullable": true
+          },
+          "register_info": {
+            "$ref": "#/components/schemas/BookDocumentRegisterInfo"
+          },
           "reference": {
             "type": "object",
             "nullable": true,
@@ -414,23 +425,26 @@
           "other_taxes_amount": {
             "type": "integer",
             "nullable": true,
-            "description": "Otros impuestos (DTOI), por ejemplo impuestos adicionales."
+            "description": "Suma de los otros impuestos del documento (columna Otros Impuestos del RCV). Su detalle por código está en `additional`."
           },
           "additional": {
             "type": "array",
             "nullable": true,
-            "description": "Detalle de los otros impuestos por codigo (ILA, especifico combustible, etc.); other_taxes_amount es su suma.",
+            "description": "Detalle de los otros impuestos por código (ILA, específico al combustible, etc.). La suma de `amount` es `other_taxes_amount`. Es null cuando el documento no tiene otros impuestos.",
             "items": {
               "type": "object",
               "properties": {
                 "code": {
-                  "type": "integer"
+                  "type": "integer",
+                  "description": "Código del impuesto según el SII."
                 },
                 "amount": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "Monto del impuesto."
                 },
                 "rate": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "Tasa del impuesto."
                 }
               }
             }
@@ -438,8 +452,141 @@
           "tax_rate": {
             "type": "string",
             "nullable": true,
-            "description": "Tasa de IVA aplicada.",
+            "description": "Tasa de IVA que informa el SII para el documento. La tasa de cada otro impuesto está en `additional[].rate`.",
             "example": "19"
+          },
+          "other_tax_code": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Código del otro impuesto cuando el documento tiene uno solo (por ejemplo 27 ILA, 35 impuesto específico al combustible). Con varios o ninguno es null; el detalle completo está en `additional`."
+          },
+          "non_recoverable_vat_total": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Total de IVA no recuperable informado por el SII para el documento."
+          },
+          "tobacco_cigars": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Impuesto a los tabacos: puros."
+          },
+          "tobacco_cigarettes": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Impuesto a los tabacos: cigarrillos."
+          },
+          "tobacco_processed": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Impuesto a los tabacos: elaborado."
+          },
+          "vehicle_tax": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Impuesto a los vehículos automotores."
+          },
+          "construction_credit": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Crédito especial de empresas constructoras."
+          },
+          "law_18211": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Monto Ley 18.211 (zona franca)."
+          },
+          "container_deposit": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Depósito por envases."
+          }
+        }
+      },
+      "BookDocumentSettlement": {
+        "type": "object",
+        "nullable": true,
+        "description": "Liquidación de factura (DTE 43): emisor y comisión que informa el RCV. Es null en los demás documentos.",
+        "properties": {
+          "issuer_rut": {
+            "type": "string",
+            "nullable": true,
+            "description": "RUT del emisor de la liquidación."
+          },
+          "commission_net_amount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Comisión neta."
+          },
+          "commission_exempt_amount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Comisión exenta."
+          },
+          "commission_vat_amount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "IVA de la comisión."
+          }
+        }
+      },
+      "BookDocumentRegisterInfo": {
+        "type": "object",
+        "description": "Datos informativos del registro del SII.",
+        "properties": {
+          "unbilled_amount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Monto no facturable."
+          },
+          "period_amount": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Monto del período."
+          },
+          "national_passengers": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Pasajes nacionales."
+          },
+          "international_passengers": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Pasajes internacionales."
+          },
+          "international_number": {
+            "type": "string",
+            "nullable": true,
+            "description": "Número internacional."
+          },
+          "export_id_number": {
+            "type": "string",
+            "nullable": true,
+            "description": "Número de identificación del receptor extranjero."
+          },
+          "export_nationality": {
+            "type": "string",
+            "nullable": true,
+            "description": "Nacionalidad del receptor extranjero."
+          },
+          "no_cost_indicator": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Indicador de venta sin costo."
+          },
+          "service_indicator": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Indicador de servicio."
+          },
+          "note_issuer": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Emisor de la nota."
+          },
+          "aggressive_issuer": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "El SII marca al emisor como agresivo."
           }
         }
       }
