@@ -5855,7 +5855,7 @@
           }
         ],
         "summary": "Listar cuentas bancarias",
-        "description": "Las cuentas de las empresas conectadas, con los saldos de la última lectura. Exige `banking:read` explícito.",
+        "description": "Las cuentas de las empresas conectadas, con los saldos de la última lectura.",
         "parameters": [
           {
             "name": "company_id",
@@ -5996,9 +5996,6 @@
           },
           "400": {
             "description": "Un filtro con un valor fuera del vocabulario (`code: parameter_invalid`, `param`)"
-          },
-          "403": {
-            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
           }
         }
       }
@@ -6038,9 +6035,6 @@
               }
             }
           },
-          "403": {
-            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
-          },
           "404": {
             "description": "La cuenta no existe para esta API key"
           }
@@ -6059,7 +6053,7 @@
           }
         ],
         "summary": "Listar movimientos de una cuenta",
-        "description": "Los movimientos de la cuenta como quedaron en la última lectura del banco, más nuevos primero. Exige `banking:read` explícito.",
+        "description": "Los movimientos de la cuenta como quedaron en la última lectura del banco, más nuevos primero.",
         "parameters": [
           {
             "name": "account_id",
@@ -6212,9 +6206,6 @@
           "400": {
             "description": "Un filtro inválido (`code: parameter_invalid`, `param`)"
           },
-          "403": {
-            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
-          },
           "404": {
             "description": "La cuenta no existe para esta API key"
           }
@@ -6254,9 +6245,6 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
           },
           "404": {
             "description": "El movimiento no existe para esta API key"
@@ -6447,9 +6435,6 @@
           },
           "400": {
             "description": "Un filtro inválido (`code: parameter_invalid`, `param`)"
-          },
-          "403": {
-            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
           }
         }
       }
@@ -6544,9 +6529,6 @@
           },
           "400": {
             "description": "`cursor_invalid`: el cursor no es uno emitido por la API"
-          },
-          "403": {
-            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
           },
           "410": {
             "description": "`cursor_expired`: el cursor es más antiguo que la retención; resincroniza sin cursor"
@@ -6673,9 +6655,6 @@
           },
           "400": {
             "description": "Filtro inválido (`parameter_invalid`)"
-          },
-          "403": {
-            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
           }
         }
       }
@@ -6713,9 +6692,6 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
           },
           "404": {
             "description": "El evento no existe para esta API key"
@@ -6829,9 +6805,6 @@
           "400": {
             "description": "`period` inválido (`parameter_invalid`)"
           },
-          "403": {
-            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
-          },
           "404": {
             "description": "La cuenta no existe para esta API key"
           }
@@ -6880,9 +6853,6 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys."
           },
           "404": {
             "description": "El estado de cuenta no es de esa cuenta, o la cuenta no existe para esta API key"

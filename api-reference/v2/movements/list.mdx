@@ -41,9 +41,9 @@ curl "https://api.tupana.ai/v2/bank-accounts/bacc_7Hk2938475610293/movements/?si
 }
 ```
 
-Necesitas `banking:read` explícito en la API key (ver
-[Introducción](/api-reference/v2/banking/introduction#permiso)). Una cuenta de
-otra empresa responde `404`.
+Cualquier API key lee los movimientos de sus empresas conectadas, sin permiso
+que activar (ver [Introducción](/api-reference/v2/banking/introduction#permiso)).
+Una cuenta de otra empresa responde `404`.
 
 ## Filtros
 

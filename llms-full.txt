@@ -8164,12 +8164,9 @@ para las tarjetas, [Tarjetas de crédito](https://docs.tupana.ai/api-reference/v
 
 ### Permiso
 
-Las cuentas y los movimientos exigen una API key con **`banking:read`** escrito
-en ella. El comodín `*` que traen las keys al crearse no lo concede: los saldos
-son de un tercero y no salen por una key que nunca pidió verlos. Sin él, `403`
-con código `banking_permission_required`. Se activa en la consola de
-developers, en API Keys. Las keys sandbox lo traen siempre: sus datos
-bancarios son de prueba.
+Cualquier API key, de sandbox o de producción, lee cuentas, movimientos,
+estados de cuenta, la sincronización y los eventos de las empresas que tiene
+conectadas; no hay permiso que activar. Cada key ve solo sus propias empresas.
 
 ### El modelo
 
@@ -8244,9 +8241,9 @@ Fuente: https://docs.tupana.ai/api-reference/v2/banking/guides/first-sync · Sec
 
 ## Primera lectura de un banco
 
-De cero a los movimientos del mes en cuatro llamadas. Necesitas una API key
-con el permiso `banking:read` escrito en ella (se activa en la consola de
-developers, en API Keys; las keys sandbox lo traen siempre).
+De cero a los movimientos del mes en cuatro llamadas. Te sirve cualquier API
+key: lee las cuentas y movimientos de las empresas que tiene conectadas, sin
+permiso que activar.
 
 **Conecta el banco con Tupana Connect**
 
@@ -8410,7 +8407,7 @@ con cursor. Así pruebas el ciclo completo sin un banco real.
 Con una key sandbox, `DELETE /connections/{id}/` y
 `POST /connections/{id}/reauthorizations/` responden `403 sandbox_read_only`.
 
-> **Info:** La key sandbox trae el permiso `banking:read` siempre: no hay que pedirlo. Para los webhooks,
+> **Info:** La key sandbox lee los datos bancarios de prueba sin permiso que activar. Para los webhooks,
 crea el webhook con `environment: "sandbox"` (o `"both"`).
 
 ---
@@ -8579,11 +8576,8 @@ curl "https://api.tupana.ai/v2/bank-accounts/?company_id=ment_367248643654623385
 
 ### Permiso
 
-Necesitas una API key con el permiso **`banking:read`** escrito en ella. El
-comodín `*` no lo concede: los saldos son de un tercero y no salen por una key
-que nunca pidió verlos. Sin él, `403` con código `banking_permission_required`;
-se activa en la consola de developers, en API Keys. Las keys sandbox lo traen
-siempre.
+Cualquier API key lee cuentas y movimientos de las empresas que tiene
+conectadas; no hay permiso que activar. Cada key ve solo sus propias empresas.
 
 ### Filtros
 
@@ -8734,9 +8728,9 @@ curl "https://api.tupana.ai/v2/bank-accounts/bacc_7Hk2938475610293/movements/?si
 }
 ```
 
-Necesitas `banking:read` explícito en la API key (ver
-[Introducción](https://docs.tupana.ai/api-reference/v2/banking/introduction#permiso)). Una cuenta de
-otra empresa responde `404`.
+Cualquier API key lee los movimientos de sus empresas conectadas, sin permiso
+que activar (ver [Introducción](https://docs.tupana.ai/api-reference/v2/banking/introduction#permiso)).
+Una cuenta de otra empresa responde `404`.
 
 ### Filtros
 
@@ -12831,7 +12825,7 @@ Respuesta `404`: La conexión no existe para esta API key
 
 **Listar cuentas bancarias**
 
-Las cuentas de las empresas conectadas, con los saldos de la última lectura. Exige `banking:read` explícito.
+Las cuentas de las empresas conectadas, con los saldos de la última lectura.
 
 URL completa: `GET https://api.tupana.ai/v2/bank-accounts/`
 
@@ -12852,8 +12846,6 @@ Esquema: object
 
 Respuesta `400`: Un filtro con un valor fuera del vocabulario (`code: parameter_invalid`, `param`)
 
-Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
-
 ### GET /v2/bank-accounts/{account_id}/
 
 **Obtener una cuenta bancaria**
@@ -12870,15 +12862,13 @@ Respuesta `200`: Cuenta bancaria
 
 Esquema: `BankAccount`
 
-Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
-
 Respuesta `404`: La cuenta no existe para esta API key
 
 ### GET /v2/bank-accounts/{account_id}/movements/
 
 **Listar movimientos de una cuenta**
 
-Los movimientos de la cuenta como quedaron en la última lectura del banco, más nuevos primero. Exige `banking:read` explícito.
+Los movimientos de la cuenta como quedaron en la última lectura del banco, más nuevos primero.
 
 URL completa: `GET https://api.tupana.ai/v2/bank-accounts/{account_id}/movements/`
 
@@ -12901,8 +12891,6 @@ Esquema: object
 
 Respuesta `400`: Un filtro inválido (`code: parameter_invalid`, `param`)
 
-Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
-
 Respuesta `404`: La cuenta no existe para esta API key
 
 ### GET /v2/movements/{movement_id}/
@@ -12918,8 +12906,6 @@ Parámetros:
 Respuesta `200`: Movimiento
 
 Esquema: `Movement`
-
-Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
 
 Respuesta `404`: El movimiento no existe para esta API key
 
@@ -12952,8 +12938,6 @@ Esquema: object
 
 Respuesta `400`: Un filtro inválido (`code: parameter_invalid`, `param`)
 
-Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
-
 ### GET /v2/movements/sync/
 
 **Sincronizar movimientos con cursor**
@@ -12972,8 +12956,6 @@ Respuesta `200`: Cambios desde el cursor
 Esquema: object
 
 Respuesta `400`: `cursor_invalid`: el cursor no es uno emitido por la API
-
-Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
 
 Respuesta `410`: `cursor_expired`: el cursor es más antiguo que la retención; resincroniza sin cursor
 
@@ -13000,8 +12982,6 @@ Esquema: object
 
 Respuesta `400`: Filtro inválido (`parameter_invalid`)
 
-Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
-
 ### GET /v2/events/{event_id}/
 
 **Obtener un evento**
@@ -13015,8 +12995,6 @@ Parámetros:
 Respuesta `200`: Evento
 
 Esquema: `ApiEvent`
-
-Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
 
 Respuesta `404`: El evento no existe para esta API key
 
@@ -13041,8 +13019,6 @@ Esquema: object
 
 Respuesta `400`: `period` inválido (`parameter_invalid`)
 
-Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
-
 Respuesta `404`: La cuenta no existe para esta API key
 
 ### GET /v2/bank-accounts/{account_id}/statements/{statement_id}/
@@ -13059,8 +13035,6 @@ Parámetros:
 Respuesta `200`: Estado de cuenta
 
 Esquema: `Statement`
-
-Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
 
 Respuesta `404`: El estado de cuenta no es de esa cuenta, o la cuenta no existe para esta API key
 
