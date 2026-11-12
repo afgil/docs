@@ -14109,7 +14109,7 @@ Tipo: object
 - `taxes` (`BookDocumentTaxes`)
 - `settlement` (`BookDocumentSettlement`)
 - `register_info` (`BookDocumentRegisterInfo`)
-- `reference` (object, nullable): Documento referenciado (notas de crédito y débito).
+- `reference` (object, nullable): Documento referenciado (notas de crédito y débito). Es null cuando el documento no referencia a otro (el SII informa tipo 0).
   - `dte_type_code` (integer, nullable; ej: `33`)
   - `folio` (string, nullable; ej: `12345`)
 - `sii_branch_code` (integer, nullable): Código de sucursal SII.
