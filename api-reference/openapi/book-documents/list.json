@@ -316,7 +316,7 @@
           "reference": {
             "type": "object",
             "nullable": true,
-            "description": "Documento referenciado (notas de crédito y débito).",
+            "description": "Documento referenciado (notas de crédito y débito). Es null cuando el documento no referencia a otro (el SII informa tipo 0).",
             "properties": {
               "dte_type_code": {
                 "type": "integer",
