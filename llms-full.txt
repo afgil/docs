@@ -7227,6 +7227,68 @@ En este ejemplo la carga va a Alemania (`563`), el comprador está en Holanda (`
 
 ---
 
+## Anular facturas con nota de crédito por API (API v2)
+
+Fuente: https://docs.tupana.ai/api-reference/v2/documents/annulment · Sección: API Facturación / Documentos
+
+> POST /v2/documents/actions/batch/: anula facturas, boletas y facturas de exportación ya emitidas emitiendo la nota de crédito que las referencia en el SII.
+
+Endpoint: `POST /documents/actions/batch/` (detalle completo en la Parte 2).
+
+Una factura emitida no se borra del SII: se anula emitiendo una **nota de crédito** que la referencia con el código 1 del SII, "Anula documento de la referencia". Con `POST /v2/documents/actions/batch/` y la acción **`annul_with_credit_note`**, Tupana arma esa nota de crédito copiando el receptor y las líneas del documento original, la emite en el SII y te la devuelve con su folio.
+
+### Qué se puede anular
+
+| Documento original | Se anula con |
+|---|---|
+| Factura electrónica (33), factura exenta (34) | Nota de crédito (61) |
+| Boleta (39), boleta exenta (41) | Nota de crédito (61) |
+| Factura de compra (46) | Nota de crédito (61) |
+| Factura de exportación (110) | Nota de crédito de exportación (112) |
+| Boleta de honorarios (80) | Sin nota de crédito: se anula directo en el SII. Ver [Anular boleta de honorarios](https://docs.tupana.ai/api-reference/v2/honorary/annulment). |
+
+El documento tiene que estar emitido, con folio. Un borrador no llegó al SII y no hay nada que anular.
+
+### Request
+
+```json
+{
+  "action_type": "annul_with_credit_note",
+  "document_ids": ["docu_1234567890123456789"]
+}
+```
+
+| Campo | Qué es |
+|---|---|
+| `action_type` | Siempre `"annul_with_credit_note"`. |
+| `document_ids` | Los `id` de los documentos a anular, los mismos que devuelve la [emisión](https://docs.tupana.ai/api-reference/v2/documents/batch) o [`GET /v2/documents/`](https://docs.tupana.ai/api-reference/v2/documents/list). Puedes enviar varios. |
+| `reference_reason` | Opcional. La razón que va en la referencia de la nota de crédito. Por defecto, `ANULA DOCUMENTO DE LA REFERENCIA`. |
+| `date_issued` | Opcional. Fecha de emisión de la nota de crédito (`AAAA-MM-DD`). Por defecto, hoy. |
+
+### Respuesta
+
+`201` con una nota de crédito emitida por cada documento anulado:
+
+```json
+{
+  "results": [
+    {
+      "id": "docu_9876543210987654321",
+      "folio": "245",
+      "date_issued": "2026-11-11",
+      "state": "issued",
+      "dte_type": { "code": "61", "name": "Nota de Crédito Electrónica" }
+    }
+  ]
+}
+```
+
+Si algunos documentos no se pudieron anular, vienen en `partial_errors` con su `document_id` y el motivo; los demás se anulan igual. Si no se pudo anular ninguno, responde `400` con el detalle de cada uno.
+
+> **Nota:** La nota de crédito es un documento más: la consultas con [`GET /v2/documents/{id}/`](https://docs.tupana.ai/api-reference/v2/documents/get), con su PDF y XML, y te llegan los mismos webhooks que en una emisión.
+
+---
+
 ## Obtener un documento tributario electrónico (API v2)
 
 Fuente: https://docs.tupana.ai/api-reference/v2/documents/get · Sección: API Facturación / Documentos
@@ -13001,6 +13063,69 @@ Esquema: `Statement`
 Respuesta `403`: La API key de producción no tiene `banking:read` explícito (`code: banking_permission_required`). Actívalo en la consola de developers, en API Keys.
 
 Respuesta `404`: El estado de cuenta no es de esa cuenta, o la cuenta no existe para esta API key
+
+### POST /v2/documents/actions/batch/
+
+**Anular con nota de crédito**
+
+Anula facturas, boletas o facturas de exportación ya emitidas emitiendo una **nota de crédito** que las referencia con el código 1 del SII ("Anula documento de la referencia"). La nota de crédito copia el receptor y las líneas del documento original y se emite en el SII como cualquier otro documento. Una factura de exportación (110) se anula con nota de crédito de exportación (112). Una boleta de honorarios (80) no lleva nota de crédito: se anula directo en el SII.
+
+URL completa: `POST https://api.tupana.ai/v2/documents/actions/batch/`
+
+Cuerpo (`application/json`): object
+
+- `action_type` (string; requerido; valores: `annul_with_credit_note`; default: `"annul_with_credit_note"`): Siempre `annul_with_credit_note`.
+- `document_ids` (array de string; requerido): IDs de los documentos a anular: los mismos `id` que devuelve la emisión o `GET /v2/documents/`.
+- `reference_reason` (string; default: `"ANULA DOCUMENTO DE LA REFERENCIA"`): Razón que va en la referencia de la nota de crédito. Opcional.
+- `date_issued` (string (date)): Fecha de emisión de la nota de crédito (AAAA-MM-DD). Opcional: por defecto, hoy.
+
+Ejemplo de cuerpo:
+
+```json
+{
+  "action_type": "annul_with_credit_note",
+  "document_ids": [
+    "docu_1234567890123456789"
+  ]
+}
+```
+
+Respuesta `201`: Una nota de crédito emitida por cada documento anulado, en `results`. Si algunos fallaron, vienen en `partial_errors`.
+
+Esquema: object
+
+```json
+{
+  "results": [
+    {
+      "id": "docu_1234567890123456789",
+      "folio": "245",
+      "date_issued": "2026-11-11",
+      "state": "issued",
+      "dte_type": {
+        "code": "61",
+        "name": "Nota de Crédito Electrónica"
+      }
+    }
+  ]
+}
+```
+
+Respuesta `400`: No se pudo anular ningún documento: no existe, no es de un tipo anulable (33, 34, 39, 41, 46, 80, 110) o el SII rechazó la nota de crédito.
+
+```json
+{
+  "error": "No se pudo anular ningún documento",
+  "details": [
+    {
+      "document_id": "docu_1234567890123456789",
+      "error": "Solo se pueden anular documentos de tipo ['33', '34', '39', '41', '46', '80', '110']. Tipo actual: 52"
+    }
+  ]
+}
+```
+
+Respuesta `403`: La API key no tiene permiso para emitir documentos de esa empresa.
 
 ### Esquemas de Tupana API — v2
 
