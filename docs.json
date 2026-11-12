@@ -351,6 +351,14 @@
                 ]
               },
               {
+                "group": "Facturador de mercado",
+                "pages": [
+                  "api-reference/v2/market-invoicer/enrollment-create",
+                  "api-reference/v2/market-invoicer/enrollment-list",
+                  "api-reference/v2/market-invoicer/enrollment-get"
+                ]
+              },
+              {
                 "group": "Errores",
                 "pages": [
                   "api-reference/v2/errors"

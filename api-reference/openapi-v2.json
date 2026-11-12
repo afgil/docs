@@ -6989,6 +6989,241 @@
           }
         ]
       }
+    },
+    "/market-invoicer-enrollments/": {
+      "post": {
+        "operationId": "createMarketInvoicerEnrollment_v2",
+        "tags": [
+          "Facturador de mercado"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Activar el facturador de mercado",
+        "description": "Activa el facturador de mercado de Tupana para una empresa: en vez de emitir por el facturador gratuito del SII, la empresa pasa a emitir con su propio facturador electrónico, con sus folios y su resolución.\n\nEs lo mismo que hace el botón **Activar Facturador de Mercado** de la plataforma. La empresa queda **por aprobar** (`status: \"pending\"`); cuando el equipo de Tupana la aprueba, Tupana rinde la certificación ante el SII (postulación, folios, set de pruebas, libros, simulación e intercambio) sin que tengas que hacer nada. Mientras dura, la empresa **sigue emitiendo por el facturador gratuito del SII**. Al terminar queda en `production` y desde ahí sus documentos salen por el facturador de mercado.\n\n**Certificado digital:** la certificación lo necesita. Si la empresa ya lo tiene cargado en Tupana, no lo mandes. Si no, envíalo en esta misma llamada en base64 (`.pfx` o `.p12`) con su clave; lo validamos contra el SII antes de enrolar.\n\nSe necesita una API key de **producción**: con una de sandbox responde 403, porque la certificación es real.\n\nLlamarlo de nuevo sobre una empresa ya enrolada no la retrocede: devuelve su estado actual.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "company_id"
+                ],
+                "properties": {
+                  "company_id": {
+                    "type": "string",
+                    "description": "Empresa a activar (`ment_...`).",
+                    "example": "ment_4829301923847"
+                  },
+                  "certify_receipts": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Certifica también las boletas electrónicas (39 y 41)."
+                  },
+                  "digital_certificate_base64": {
+                    "type": "string",
+                    "description": "Certificado digital (`.pfx` o `.p12`) en base64. Solo si la empresa no tiene uno cargado."
+                  },
+                  "digital_certificate_password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Clave del certificado. Obligatoria si envías el certificado."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Empresa enrolada, por aprobar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketInvoicerEnrollment"
+                },
+                "example": {
+                  "id": "enco_3426674962655117352",
+                  "company_id": "ment_4829301923847",
+                  "status": "pending",
+                  "status_label": "Pendiente",
+                  "sii_environment": "staging",
+                  "in_production": false,
+                  "can_use_free_sii": true,
+                  "has_certificate": true,
+                  "certify_receipts": false,
+                  "awaiting_approval": true,
+                  "certification_stages": [
+                    {
+                      "key": "approval",
+                      "lane": "invoice",
+                      "label": "Revisión de tu solicitud",
+                      "state": "current",
+                      "detail": "Estamos revisando tu solicitud para comenzar.",
+                      "finished_at": null
+                    }
+                  ],
+                  "cancelled_at": null,
+                  "created_at": "2026-11-12T16:30:00Z"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "API key de sandbox (`sandbox_key_not_allowed`) o empresa sin acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "error_code": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Falta el certificado (`certificate_required`) o no es válido (`invalid_certificate`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "error_code": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "La empresa no tiene certificado digital. Envía digital_certificate_base64 y digital_certificate_password.",
+                  "error_code": "certificate_required"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listMarketInvoicerEnrollments_v2",
+        "tags": [
+          "Facturador de mercado"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar enrolamientos al facturador de mercado",
+        "description": "Enrolamientos de las empresas a las que tiene acceso tu API key, del más reciente al más antiguo. Filtra por `company_id` para ver una empresa.",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Empresa (`ment_...`).",
+            "example": "ment_4829301923847"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MarketInvoicerEnrollment"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/market-invoicer-enrollments/{id}/": {
+      "get": {
+        "operationId": "getMarketInvoicerEnrollment_v2",
+        "tags": [
+          "Facturador de mercado"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Consultar el estado de la activación",
+        "description": "Estado del enrolamiento y avance de cada etapa de la certificación ante el SII. Consúltalo hasta que `status` sea `production`: desde ese momento los documentos de la empresa salen por el facturador de mercado.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "enco_3426674962655117352"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Enrolamiento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketInvoicerEnrollment"
+                },
+                "example": {
+                  "id": "enco_3426674962655117352",
+                  "company_id": "ment_4829301923847",
+                  "status": "pending",
+                  "status_label": "Pendiente",
+                  "sii_environment": "staging",
+                  "in_production": false,
+                  "can_use_free_sii": true,
+                  "has_certificate": true,
+                  "certify_receipts": false,
+                  "awaiting_approval": true,
+                  "certification_stages": [
+                    {
+                      "key": "approval",
+                      "lane": "invoice",
+                      "label": "Revisión de tu solicitud",
+                      "state": "current",
+                      "detail": "Estamos revisando tu solicitud para comenzar.",
+                      "finished_at": null
+                    }
+                  ],
+                  "cancelled_at": null,
+                  "created_at": "2026-11-12T16:30:00Z"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe o no tienes acceso"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -11040,6 +11275,123 @@
             "format": "uri",
             "nullable": true,
             "description": "PDF original, firmado por tiempo (1 h)."
+          }
+        }
+      },
+      "MarketInvoicerEnrollment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID del enrolamiento.",
+            "example": "enco_3426674962655117352"
+          },
+          "company_id": {
+            "type": "string",
+            "description": "Empresa enrolada (`ment_...`).",
+            "example": "ment_4829301923847"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "in_certification",
+              "certified",
+              "production",
+              "migrating",
+              "rejected",
+              "cancelled"
+            ],
+            "description": "`pending`: por aprobar. `in_certification`: rindiendo la certificación ante el SII. `certified`: certificación aprobada, esperando el paso a producción. `production`: ya emite con el facturador de mercado. `migrating`: viene de otro facturador de mercado. `rejected` y `cancelled`: no sigue.",
+            "example": "pending"
+          },
+          "status_label": {
+            "type": "string",
+            "example": "Pendiente"
+          },
+          "sii_environment": {
+            "type": "string",
+            "enum": [
+              "staging",
+              "production"
+            ],
+            "description": "`staging` mientras certifica (ambiente de pruebas del SII), `production` cuando ya emite en producción."
+          },
+          "in_production": {
+            "type": "boolean",
+            "description": "`true` cuando los documentos de la empresa ya salen por el facturador de mercado."
+          },
+          "can_use_free_sii": {
+            "type": "boolean",
+            "description": "`true` mientras la empresa puede seguir emitiendo por el facturador gratuito del SII (todo el período de certificación)."
+          },
+          "has_certificate": {
+            "type": "boolean",
+            "description": "La empresa tiene su certificado digital cargado."
+          },
+          "certify_receipts": {
+            "type": "boolean",
+            "description": "Se certifican también las boletas (39 y 41)."
+          },
+          "awaiting_approval": {
+            "type": "boolean",
+            "description": "La solicitud espera la aprobación del equipo de Tupana."
+          },
+          "certification_stages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "description": "Etapa: `approval`, `preflight`, `postulation`, `folios`, `test_sets`, `books`, `progress_declaration`, `simulation`, `exchange`, `printed_samples`, `production`, y las de boleta (`receipt_...`) si pediste `certify_receipts`.",
+                  "example": "approval"
+                },
+                "lane": {
+                  "type": "string",
+                  "enum": [
+                    "invoice",
+                    "receipt"
+                  ],
+                  "description": "`invoice` para facturas y notas, `receipt` para boletas."
+                },
+                "label": {
+                  "type": "string",
+                  "example": "Revisión de tu solicitud"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "current",
+                    "done",
+                    "attention"
+                  ],
+                  "description": "`pending`: todavía no parte. `current`: en curso. `done`: lista. `attention`: necesita revisión; el detalle dice qué pasa.",
+                  "example": "current"
+                },
+                "detail": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Qué está pasando o qué falta, en simple."
+                },
+                "finished_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "nullable": true
+                }
+              }
+            },
+            "description": "Etapas de la certificación ante el SII, en orden."
+          },
+          "cancelled_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       }

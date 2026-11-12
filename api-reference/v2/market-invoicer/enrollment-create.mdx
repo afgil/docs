@@ -1,0 +1,31 @@
+---
+title: 'Activar el facturador de mercado (API v2)'
+sidebarTitle: 'Activar el facturador de mercado'
+description: 'Pasa una empresa del facturador gratuito del SII al facturador de mercado de Tupana. Tupana rinde la certificación ante el SII.'
+openapi: "api-reference/openapi-v2.json POST /market-invoicer-enrollments/"
+---
+
+## Cómo funciona
+
+1. Llamas a este endpoint con la empresa. Si no tiene certificado digital cargado, lo mandas en la misma llamada.
+2. La empresa queda por aprobar (`pending`). El equipo de Tupana revisa la solicitud.
+3. Tupana rinde la certificación ante el SII por etapas: postulación, folios, set de pruebas, libros, simulación e intercambio.
+4. Al terminar, la empresa queda en `production` y sus documentos salen por el facturador de mercado.
+
+Mientras dura la certificación, la empresa sigue emitiendo por el facturador gratuito del SII: no se corta la facturación.
+
+Sigue el avance con [Consultar el estado de la activación](/api-reference/v2/market-invoicer/enrollment-get).
+
+## Ejemplo
+
+```bash
+curl -X POST https://api.tupana.ai/v2/market-invoicer-enrollments/ \
+  -H "Authorization: Api-Key $TUPANA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "company_id": "ment_4829301923847",
+    "certify_receipts": true,
+    "digital_certificate_base64": "MIIKmQIBAzCCCl8GCSqGSIb3...",
+    "digital_certificate_password": "clave-del-certificado"
+  }'
+```
