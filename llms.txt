@@ -185,6 +185,9 @@ Detalle: https://docs.tupana.ai/precios · https://developers.tupana.ai/pricing
 - [Listar consultas de folios al SII (API v2)](https://docs.tupana.ai/api-reference/v2/folios/query-list): Lista las lecturas de folios solicitadas al SII.
 - [Pedir una lectura de folios al SII (API v2)](https://docs.tupana.ai/api-reference/v2/folios/query-create): Solicita al SII una lectura de los folios timbrados de una empresa.
 - [Resultado de una consulta de folios al SII (API v2)](https://docs.tupana.ai/api-reference/v2/folios/query-get): Resultado de una lectura de folios del SII.
+- [Activar el facturador de mercado (API v2)](https://docs.tupana.ai/api-reference/v2/market-invoicer/enrollment-create): Pasa una empresa del facturador gratuito del SII al facturador de mercado de Tupana. Tupana rinde la certificación ante el SII.
+- [Listar enrolamientos al facturador de mercado (API v2)](https://docs.tupana.ai/api-reference/v2/market-invoicer/enrollment-list): Empresas enroladas al facturador de mercado y su estado.
+- [Consultar el estado de la activación (API v2)](https://docs.tupana.ai/api-reference/v2/market-invoicer/enrollment-get): Estado del enrolamiento al facturador de mercado y avance de cada etapa de la certificación ante el SII.
 
 ### Bases de Datos Gratuitas
 

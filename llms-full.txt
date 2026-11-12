@@ -10114,6 +10114,61 @@ Endpoint: `GET /folio-queries/{id}/` (detalle completo en la Parte 2).
 
 ---
 
+## Activar el facturador de mercado (API v2)
+
+Fuente: https://docs.tupana.ai/api-reference/v2/market-invoicer/enrollment-create · Sección: API Consultas / Facturador de mercado
+
+> Pasa una empresa del facturador gratuito del SII al facturador de mercado de Tupana. Tupana rinde la certificación ante el SII.
+
+Endpoint: `POST /market-invoicer-enrollments/` (detalle completo en la Parte 2).
+
+### Cómo funciona
+
+1. Llamas a este endpoint con la empresa. Si no tiene certificado digital cargado, lo mandas en la misma llamada.
+2. La empresa queda por aprobar (`pending`). El equipo de Tupana revisa la solicitud.
+3. Tupana rinde la certificación ante el SII por etapas: postulación, folios, set de pruebas, libros, simulación e intercambio.
+4. Al terminar, la empresa queda en `production` y sus documentos salen por el facturador de mercado.
+
+Mientras dura la certificación, la empresa sigue emitiendo por el facturador gratuito del SII: no se corta la facturación.
+
+Sigue el avance con [Consultar el estado de la activación](https://docs.tupana.ai/api-reference/v2/market-invoicer/enrollment-get).
+
+### Ejemplo
+
+```bash
+curl -X POST https://api.tupana.ai/v2/market-invoicer-enrollments/ \
+  -H "Authorization: Api-Key $TUPANA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "company_id": "ment_4829301923847",
+    "certify_receipts": true,
+    "digital_certificate_base64": "MIIKmQIBAzCCCl8GCSqGSIb3...",
+    "digital_certificate_password": "clave-del-certificado"
+  }'
+```
+
+---
+
+## Listar enrolamientos al facturador de mercado (API v2)
+
+Fuente: https://docs.tupana.ai/api-reference/v2/market-invoicer/enrollment-list · Sección: API Consultas / Facturador de mercado
+
+> Empresas enroladas al facturador de mercado y su estado.
+
+Endpoint: `GET /market-invoicer-enrollments/` (detalle completo en la Parte 2).
+
+---
+
+## Consultar el estado de la activación (API v2)
+
+Fuente: https://docs.tupana.ai/api-reference/v2/market-invoicer/enrollment-get · Sección: API Consultas / Facturador de mercado
+
+> Estado del enrolamiento al facturador de mercado y avance de cada etapa de la certificación ante el SII.
+
+Endpoint: `GET /market-invoicer-enrollments/{id}/` (detalle completo en la Parte 2).
+
+---
+
 ## Base de datos gratuita de empresas del SII (API)
 
 Fuente: https://docs.tupana.ai/api-reference/v2/free-databases/introduction · Sección: Bases de Datos Gratuitas / Introducción
@@ -13101,6 +13156,136 @@ Respuesta `400`: No se pudo anular ningún documento: no existe, no es de un tip
 
 Respuesta `403`: La API key no tiene permiso para emitir documentos de esa empresa.
 
+### GET /v2/market-invoicer-enrollments/
+
+**Listar enrolamientos al facturador de mercado**
+
+Enrolamientos de las empresas a las que tiene acceso tu API key, del más reciente al más antiguo. Filtra por `company_id` para ver una empresa.
+
+URL completa: `GET https://api.tupana.ai/v2/market-invoicer-enrollments/`
+
+Parámetros:
+
+- `company_id` (query, string): Empresa (`ment_...`).
+
+Respuesta `200`: Listado
+
+Esquema: object
+
+### POST /v2/market-invoicer-enrollments/
+
+**Activar el facturador de mercado**
+
+Activa el facturador de mercado de Tupana para una empresa: en vez de emitir por el facturador gratuito del SII, la empresa pasa a emitir con su propio facturador electrónico, con sus folios y su resolución.
+
+Es lo mismo que hace el botón **Activar Facturador de Mercado** de la plataforma. La empresa queda **por aprobar** (`status: "pending"`); cuando el equipo de Tupana la aprueba, Tupana rinde la certificación ante el SII (postulación, folios, set de pruebas, libros, simulación e intercambio) sin que tengas que hacer nada. Mientras dura, la empresa **sigue emitiendo por el facturador gratuito del SII**. Al terminar queda en `production` y desde ahí sus documentos salen por el facturador de mercado.
+
+**Certificado digital:** la certificación lo necesita. Si la empresa ya lo tiene cargado en Tupana, no lo mandes. Si no, envíalo en esta misma llamada en base64 (`.pfx` o `.p12`) con su clave; lo validamos contra el SII antes de enrolar.
+
+Se necesita una API key de **producción**: con una de sandbox responde 403, porque la certificación es real.
+
+Llamarlo de nuevo sobre una empresa ya enrolada no la retrocede: devuelve su estado actual.
+
+URL completa: `POST https://api.tupana.ai/v2/market-invoicer-enrollments/`
+
+Cuerpo (`application/json`): object
+
+- `company_id` (string; requerido; ej: `ment_4829301923847`): Empresa a activar (`ment_...`).
+- `certify_receipts` (boolean; default: `false`): Certifica también las boletas electrónicas (39 y 41).
+- `digital_certificate_base64` (string): Certificado digital (`.pfx` o `.p12`) en base64. Solo si la empresa no tiene uno cargado.
+- `digital_certificate_password` (string (password)): Clave del certificado. Obligatoria si envías el certificado.
+
+Respuesta `201`: Empresa enrolada, por aprobar
+
+Esquema: `MarketInvoicerEnrollment`
+
+```json
+{
+  "id": "enco_3426674962655117352",
+  "company_id": "ment_4829301923847",
+  "status": "pending",
+  "status_label": "Pendiente",
+  "sii_environment": "staging",
+  "in_production": false,
+  "can_use_free_sii": true,
+  "has_certificate": true,
+  "certify_receipts": false,
+  "awaiting_approval": true,
+  "certification_stages": [
+    {
+      "key": "approval",
+      "lane": "invoice",
+      "label": "Revisión de tu solicitud",
+      "state": "current",
+      "detail": "Estamos revisando tu solicitud para comenzar.",
+      "finished_at": null
+    }
+  ],
+  "cancelled_at": null,
+  "created_at": "2026-11-12T16:30:00Z"
+}
+```
+
+Respuesta `403`: API key de sandbox (`sandbox_key_not_allowed`) o empresa sin acceso
+
+Esquema: object
+
+Respuesta `422`: Falta el certificado (`certificate_required`) o no es válido (`invalid_certificate`)
+
+Esquema: object
+
+```json
+{
+  "error": "La empresa no tiene certificado digital. Envía digital_certificate_base64 y digital_certificate_password.",
+  "error_code": "certificate_required"
+}
+```
+
+### GET /v2/market-invoicer-enrollments/{id}/
+
+**Consultar el estado de la activación**
+
+Estado del enrolamiento y avance de cada etapa de la certificación ante el SII. Consúltalo hasta que `status` sea `production`: desde ese momento los documentos de la empresa salen por el facturador de mercado.
+
+URL completa: `GET https://api.tupana.ai/v2/market-invoicer-enrollments/{id}/`
+
+Parámetros:
+
+- `id` (path, string; requerido)
+
+Respuesta `200`: Enrolamiento
+
+Esquema: `MarketInvoicerEnrollment`
+
+```json
+{
+  "id": "enco_3426674962655117352",
+  "company_id": "ment_4829301923847",
+  "status": "pending",
+  "status_label": "Pendiente",
+  "sii_environment": "staging",
+  "in_production": false,
+  "can_use_free_sii": true,
+  "has_certificate": true,
+  "certify_receipts": false,
+  "awaiting_approval": true,
+  "certification_stages": [
+    {
+      "key": "approval",
+      "lane": "invoice",
+      "label": "Revisión de tu solicitud",
+      "state": "current",
+      "detail": "Estamos revisando tu solicitud para comenzar.",
+      "finished_at": null
+    }
+  ],
+  "cancelled_at": null,
+  "created_at": "2026-11-12T16:30:00Z"
+}
+```
+
+Respuesta `404`: No existe o no tienes acceso
+
 ### Esquemas de Tupana API — v2
 
 #### `BookSummaryItem`
@@ -14048,6 +14233,30 @@ Tipo: object
 - `minimum_payment` (number, nullable)
 - `items_count` (integer)
 - `file_url` (string (uri), nullable): PDF original, firmado por tiempo (1 h).
+
+#### `MarketInvoicerEnrollment`
+
+Tipo: object
+
+- `id` (string; ej: `enco_3426674962655117352`): ID del enrolamiento.
+- `company_id` (string; ej: `ment_4829301923847`): Empresa enrolada (`ment_...`).
+- `status` (string; valores: `pending`, `in_certification`, `certified`, `production`, `migrating`, `rejected`, `cancelled`; ej: `pending`): `pending`: por aprobar. `in_certification`: rindiendo la certificación ante el SII. `certified`: certificación aprobada, esperando el paso a producción. `production`: ya emite con el facturador de mercado. `migrating`: viene de otro facturador de mercado. `rejected` y `cancelled`: no sigue.
+- `status_label` (string; ej: `Pendiente`)
+- `sii_environment` (string; valores: `staging`, `production`): `staging` mientras certifica (ambiente de pruebas del SII), `production` cuando ya emite en producción.
+- `in_production` (boolean): `true` cuando los documentos de la empresa ya salen por el facturador de mercado.
+- `can_use_free_sii` (boolean): `true` mientras la empresa puede seguir emitiendo por el facturador gratuito del SII (todo el período de certificación).
+- `has_certificate` (boolean): La empresa tiene su certificado digital cargado.
+- `certify_receipts` (boolean): Se certifican también las boletas (39 y 41).
+- `awaiting_approval` (boolean): La solicitud espera la aprobación del equipo de Tupana.
+- `certification_stages` (array de object): Etapas de la certificación ante el SII, en orden.
+  - `key` (string; ej: `approval`): Etapa: `approval`, `preflight`, `postulation`, `folios`, `test_sets`, `books`, `progress_declaration`, `simulation`, `exchange`, `printed_samples`, `production`, y las de boleta (`receipt_...`) si pediste `certify_receipts`.
+  - `lane` (string; valores: `invoice`, `receipt`): `invoice` para facturas y notas, `receipt` para boletas.
+  - `label` (string; ej: `Revisión de tu solicitud`)
+  - `state` (string; valores: `pending`, `current`, `done`, `attention`; ej: `current`): `pending`: todavía no parte. `current`: en curso. `done`: lista. `attention`: necesita revisión; el detalle dice qué pasa.
+  - `detail` (string, nullable): Qué está pasando o qué falta, en simple.
+  - `finished_at` (string (date-time), nullable)
+- `cancelled_at` (string (date-time), nullable)
+- `created_at` (string (date-time))
 
 ## Tupana API - Recaudación (OpenAPI 1.0.0)
 
