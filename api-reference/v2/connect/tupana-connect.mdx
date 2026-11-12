@@ -108,6 +108,14 @@ window.addEventListener('message', (event) => {
 | `external_customer_id` | | Tu id de cliente. Vuelve en el webhook |
 | `environment` | | `sandbox` o `production`. Default: el de la API key |
 | `return_url` | | A dónde vuelve al terminar |
+| `theme_config` | | `accent_color` (`#RRGGBB`) y `logo_url`. Si no lo mandas, usa tu marca de la consola |
+
+### Tu marca en el widget
+
+En la consola de developers, en **Personalización**, eliges el nombre que ve tu
+usuario, tu color y tu logo (PNG, JPG o WebP, hasta 500 KB). Desde ahí, toda
+sesión nueva sale con tu marca. Si una sesión trae su propio `app_name` o
+`theme_config`, eso manda: así puedes mostrar otra marca por cliente.
 
 ### Query del widget
 
