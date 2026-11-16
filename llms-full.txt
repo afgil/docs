@@ -9990,17 +9990,20 @@ Endpoint: `GET /book-documents/` (detalle completo en la Parte 2).
 
 ### Estado de cada documento en el registro
 
-El libro se trae **completo**: por defecto la respuesta incluye todos los estados del registro del SII y cada fila declara el suyo en el campo `status`.
+La respuesta trae **todas las filas del registro del SII** para el período y cada una declara su estado en el campo `status`. El libro de compras o ventas son solo las filas en `REGISTRO`: las demás vienen para que puedas avisarle al usuario, no para procesarlas.
 
 | `status` | Significado | Qué hacer |
 | --- | --- | --- |
-| `REGISTRO` | Aceptada o registrada, incluye la **aceptación tácita** a los 8 días. | Procesar. |
-| `PENDIENTE` | Sin acción del receptor, aún dentro de los 8 días. | Esperar. |
+| `REGISTRO` | Aceptada o registrada, incluye la **aceptación tácita** a los 8 días. | Procesar. Es el libro. |
+| `PENDIENTE` | Sin acción del receptor, aún dentro de los 8 días. | No procesar todavía. Avisar al usuario: puede aceptarla o reclamarla. Entra al libro cuando pasa a `REGISTRO`. |
+| `NO_INCLUIR` | El receptor la marcó para no incluirla en el registro. | No procesar. |
 | `RECLAMADO` | Rechazada por el receptor. | No procesar. |
 
-Para traer un solo estado, usa el parámetro `status` (por ejemplo `status=reclamado`). Si lo omites, se devuelven todos.
+Para traer solo el libro usa `status=registro`. Para listar lo que hay que revisar, `status=pendiente`. Si omites `status`, se devuelven todos los estados.
 
-> **Nota:** **Para procesar solo las facturas aceptadas**, el criterio es `status` distinto de `RECLAMADO`, no el acuse de recibo. La mayoría de las facturas **nunca reciben acuse** (`acknowledgment_date` queda nulo) y aun así quedan aceptadas por aceptación tácita pasados los 8 días. Por eso `acknowledgment_date` es solo un dato informativo del acuse explícito, no el criterio de aceptación.
+> **Nota:** **El criterio para procesar es `status = REGISTRO`**, no el acuse de recibo. La mayoría de las facturas **nunca reciben acuse** (`acknowledgment_date` queda nulo) y aun así pasan a `REGISTRO` por aceptación tácita a los 8 días. `acknowledgment_date` es solo un dato informativo del acuse explícito.
+
+En el libro de ventas, una factura que el cliente reclamó sigue siendo una venta para el emisor: se anula con una nota de crédito y, si corresponde, se vuelve a facturar.
 
 Los campos `claimed_date` (fecha del reclamo) y `acknowledgment_date` (fecha del acuse) complementan a `status` con el detalle de cada evento cuando existe.
 
@@ -10013,6 +10016,14 @@ El objeto `taxes` trae **todas las columnas de impuestos que informa el RCV** de
 `other_taxes_amount` es la **suma** de los otros impuestos del documento y `additional` trae el **detalle por código**: una lista de `{ code, amount, rate }` (por ejemplo `27` ILA de bebidas, `35` impuesto específico al combustible). La suma de los `amount` de `additional` es `other_taxes_amount`. Cuando hay un solo otro impuesto, `other_tax_code` repite su código. Si el documento no tiene otros impuestos, `additional` es null.
 
 Esto importa para cuadrar los montos: con impuestos adicionales el neto más IVA no suma el total. La identidad es `net_amount + exempt_amount + vat_amount + other_taxes_amount = total_amount` (en combustibles el específico puede ser negativo y dejar el total por debajo de neto más IVA).
+
+#### IVA retenido (código 15)
+
+En las facturas de compra (DTE 46) el comprador retiene el IVA. Igual que en la definición del DTE, la retención es un **impuesto adicional negativo con código 15**: viene en `additional` como `{ code: 15, amount: -IVA }`, en `other_taxes_amount` en negativo y en `total_withheld_vat` en positivo. Así la identidad se cumple: por ejemplo neto 597.133 + IVA 113.455 − 113.455 = total 597.133.
+
+#### Facturas exentas
+
+Las facturas exentas (DTE 34) no tienen neto: `net_amount` es 0 y todo el monto viene en `exempt_amount`, como lo informa el SII.
 
 ### Liquidación de factura y datos del registro
 
@@ -12835,7 +12846,7 @@ Parámetros:
 - `period` (query, string; requerido): Período tributario a consultar, formato YYYYMM. Es el período en que el SII clasifica el documento en ese libro, que puede diferir del mes de emisión.
 - `operation` (query, string; requerido; valores: `COMPRA`, `VENTA`): Libro a consultar: `COMPRA` (la entidad es el receptor, libro de compras) o `VENTA` (la entidad es el emisor, libro de ventas).
 - `dte_type_code` (query, string): Filtra por tipo de documento SII. Lista separada por coma, por ejemplo `33,61`.
-- `status` (query, string; valores: `registro`, `pendiente`, `reclamado`): Filtra por estado del documento en el registro del SII: `registro` (aceptada/registrada, incluye aceptacion tacita), `pendiente` (sin accion del receptor, dentro de los 8 dias) o `reclamado` (rechazada por el receptor). Si se omite, se devuelven todos los estados.
+- `status` (query, string; valores: `registro`, `pendiente`, `no_incluir`, `reclamado`): Filtra por estado del documento en el registro del SII: `registro` (aceptada/registrada, incluye aceptacion tacita; es el libro), `pendiente` (sin accion del receptor, dentro de los 8 dias), `no_incluir` (marcada para no incluir en el registro) o `reclamado` (rechazada por el receptor). Si se omite, se devuelven todos los estados.
 - `page` (query, integer): Página (desde 1).
 - `page_size` (query, integer): Filas por página. Por defecto 25, máximo 100.
 
