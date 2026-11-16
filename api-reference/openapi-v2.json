@@ -5509,12 +5509,13 @@
             "name": "status",
             "in": "query",
             "required": false,
-            "description": "Filtra por estado del documento en el registro del SII: `registro` (aceptada/registrada, incluye aceptacion tacita), `pendiente` (sin accion del receptor, dentro de los 8 dias) o `reclamado` (rechazada por el receptor). Si se omite, se devuelven todos los estados.",
+            "description": "Filtra por estado del documento en el registro del SII: `registro` (aceptada/registrada, incluye aceptacion tacita; es el libro), `pendiente` (sin accion del receptor, dentro de los 8 dias), `no_incluir` (marcada para no incluir en el registro) o `reclamado` (rechazada por el receptor). Si se omite, se devuelven todos los estados.",
             "schema": {
               "type": "string",
               "enum": [
                 "registro",
                 "pendiente",
+                "no_incluir",
                 "reclamado"
               ],
               "example": "reclamado"
