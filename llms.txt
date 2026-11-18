@@ -132,6 +132,7 @@ Detalle: https://docs.tupana.ai/precios · https://developers.tupana.ai/pricing
 - [bad_request](https://docs.tupana.ai/api-reference/errors/bad_request): Solicitud inválida. No pudimos leer la solicitud.
 - [parameter_missing](https://docs.tupana.ai/api-reference/errors/parameter_missing): Falta un parámetro requerido. La solicitud no trae un campo obligatorio. El campo que falta viene en param.
 - [parameter_invalid](https://docs.tupana.ai/api-reference/errors/parameter_invalid): Parámetro inválido. Un campo tiene un valor o un formato que no aceptamos. El campo viene en param.
+- [rut_invalid](https://docs.tupana.ai/api-reference/errors/rut_invalid): RUT inválido. El RUT enviado no tiene un formato válido o su dígito verificador no corresponde.
 - [validation_error](https://docs.tupana.ai/api-reference/errors/validation_error): Los datos no pasan la validación. Uno o más campos no son válidos. El detalle por campo viene en detail.
 - [unprocessable](https://docs.tupana.ai/api-reference/errors/unprocessable): No se puede procesar. La solicitud está bien formada, pero no cumple una regla del documento o de la operación.
 - [not_found](https://docs.tupana.ai/api-reference/errors/not_found): No encontrado. La ruta o el recurso no existe.

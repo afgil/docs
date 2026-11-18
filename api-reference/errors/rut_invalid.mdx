@@ -1,0 +1,53 @@
+---
+title: 'rut_invalid'
+sidebarTitle: 'rut_invalid'
+description: 'RUT inválido. El RUT enviado no tiene un formato válido o su dígito verificador no corresponde.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `rut_invalid` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**RUT inválido.** El RUT enviado no tiene un formato válido o su dígito verificador no corresponde.
+
+## Causas posibles
+
+- El RUT está incompleto o tiene caracteres que no corresponden.
+- El dígito verificador no calza con el número.
+- Se envió otro identificador en el campo del RUT.
+
+## Cómo resolverlo
+
+- Envía el RUT completo con su dígito verificador, por ejemplo 76123456-7.
+- Valida el dígito verificador antes de llamar a la API.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "rut_invalid",
+    "message": "El RUT enviado no tiene un formato válido o su dígito verificador no corresponde.",
+    "suggested_action": "Corrige el RUT: envíalo completo y con su dígito verificador, por ejemplo 76123456-7.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/rut_invalid",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

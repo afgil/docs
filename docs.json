@@ -161,6 +161,7 @@
                       "api-reference/errors/bad_request",
                       "api-reference/errors/parameter_missing",
                       "api-reference/errors/parameter_invalid",
+                      "api-reference/errors/rut_invalid",
                       "api-reference/errors/validation_error",
                       "api-reference/errors/unprocessable",
                       "api-reference/errors/not_found",

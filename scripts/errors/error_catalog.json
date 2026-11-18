@@ -100,7 +100,8 @@
     "sandbox_key_real_company": {
       "type": "permission_error",
       "http_status": [
-        403
+        403,
+        400
       ],
       "responsibility": "client",
       "group": "authentication",
@@ -183,6 +184,28 @@
         "Revisa el formato esperado en la referencia de esa ruta."
       ],
       "suggested_action": "Corrige el campo indicado en param según el mensaje.",
+      "retryable": false
+    },
+    "rut_invalid": {
+      "type": "invalid_request_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "request",
+      "status": "live",
+      "title": "RUT inválido",
+      "description": "El RUT enviado no tiene un formato válido o su dígito verificador no corresponde.",
+      "causes": [
+        "El RUT está incompleto o tiene caracteres que no corresponden.",
+        "El dígito verificador no calza con el número.",
+        "Se envió otro identificador en el campo del RUT."
+      ],
+      "solutions": [
+        "Envía el RUT completo con su dígito verificador, por ejemplo 76123456-7.",
+        "Valida el dígito verificador antes de llamar a la API."
+      ],
+      "suggested_action": "Corrige el RUT: envíalo completo y con su dígito verificador, por ejemplo 76123456-7.",
       "retryable": false
     },
     "validation_error": {
