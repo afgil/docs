@@ -1,0 +1,50 @@
+---
+title: 'document_already_paid'
+sidebarTitle: 'document_already_paid'
+description: 'El documento ya está pagado. Alguno de los documentos ya figura como pagado.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `document_already_paid` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**El documento ya está pagado.** Alguno de los documentos ya figura como pagado.
+
+## Causas posibles
+
+- El documento ya se pagó, por este medio o por otro.
+
+## Cómo resolverlo
+
+- Sácalo de la lista.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "document_already_paid",
+    "message": "Alguno de los documentos ya figura como pagado.",
+    "suggested_action": "Saca de la lista los documentos ya pagados.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/document_already_paid",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

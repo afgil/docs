@@ -1,0 +1,52 @@
+---
+title: 'folios_temporarily_unavailable'
+sidebarTitle: 'folios_temporarily_unavailable'
+description: 'Folios no disponibles por un momento. La reserva de folios lista para emitir se vació por un momento. No significa que a la empresa se le acabaron los folios en el SII.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `folios_temporarily_unavailable` |
+| **Tipo** | `api_error` |
+| **Estado HTTP** | 503 |
+| **¿Reintentar?** | Sí |
+
+## Qué significa
+
+**Folios no disponibles por un momento.** La reserva de folios lista para emitir se vació por un momento. No significa que a la empresa se le acabaron los folios en el SII.
+
+## Causas posibles
+
+- Se emitieron muchos documentos seguidos y la reserva todavía se está reponiendo.
+
+## Cómo resolverlo
+
+- Reintenta en unos segundos con la misma Idempotency-Key.
+- Si se repite durante varios minutos, escríbenos.
+
+## ¿Conviene reintentar?
+
+Sí. Espera al menos 5 segundos y reintenta; si el error sigue, aumenta la espera en cada intento.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "api_error",
+    "code": "folios_temporarily_unavailable",
+    "message": "La reserva de folios lista para emitir se vació por un momento. No significa que a la empresa se le acabaron los folios en el SII.",
+    "suggested_action": "Reintenta en unos segundos con la misma Idempotency-Key.",
+    "retryable": true,
+    "retry_after_seconds": 5,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/folios_temporarily_unavailable",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

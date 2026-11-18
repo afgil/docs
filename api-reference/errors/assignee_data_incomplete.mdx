@@ -1,0 +1,50 @@
+---
+title: 'assignee_data_incomplete'
+sidebarTitle: 'assignee_data_incomplete'
+description: 'Faltan datos del cesionario. Falta un dato obligatorio de quien recibe la cesión.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `assignee_data_incomplete` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Faltan datos del cesionario.** Falta un dato obligatorio de quien recibe la cesión.
+
+## Causas posibles
+
+- Falta el RUT, el dígito verificador, la razón social, la dirección o el correo del cesionario.
+
+## Cómo resolverlo
+
+- Completa el dato que indica el mensaje.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "assignee_data_incomplete",
+    "message": "Falta un dato obligatorio de quien recibe la cesión.",
+    "suggested_action": "Completa el dato del cesionario que indica el mensaje.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/assignee_data_incomplete",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

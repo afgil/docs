@@ -1,0 +1,93 @@
+---
+title: 'Códigos de error'
+sidebarTitle: 'Todos los códigos'
+description: 'Lista de todos los códigos de error de la API de Tupana, con su causa, cómo resolverlo y si conviene reintentar.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+Cada error de la API trae un `code` estable y un `doc_url` que lleva a la página de ese código. Aquí están todos. El formato de la respuesta está en [Errores](/api-reference/v2/errors).
+
+### Autenticación y permisos
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`unauthenticated`](/api-reference/errors/unauthenticated) | Falta la API key | 403, 401, 422 | No |
+| [`forbidden`](/api-reference/errors/forbidden) | Sin acceso | 403, 401, 422 | No |
+| [`sandbox_read_only`](/api-reference/errors/sandbox_read_only) | Operación no disponible con una key de sandbox | 403 | No |
+
+### Solicitud
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`bad_request`](/api-reference/errors/bad_request) | Solicitud inválida | 400, 422 | No |
+| [`parameter_missing`](/api-reference/errors/parameter_missing) | Falta un parámetro requerido | 400, 422 | No |
+| [`parameter_invalid`](/api-reference/errors/parameter_invalid) | Parámetro inválido | 400, 422 | No |
+| [`validation_error`](/api-reference/errors/validation_error) | Los datos no pasan la validación | 400, 422 | No |
+| [`unprocessable`](/api-reference/errors/unprocessable) | No se puede procesar | 422 | No |
+| [`not_found`](/api-reference/errors/not_found) | No encontrado | 404 | No |
+| [`resource_missing`](/api-reference/errors/resource_missing) | El recurso no existe | 404 | No |
+| [`method_not_allowed`](/api-reference/errors/method_not_allowed) | Método no permitido | 405 | No |
+| [`conflict`](/api-reference/errors/conflict) | Conflicto con datos existentes | 409 | No |
+| [`cursor_invalid`](/api-reference/errors/cursor_invalid) | Cursor inválido | 400 | No |
+| [`cursor_expired`](/api-reference/errors/cursor_expired) | Cursor vencido | 410 | No |
+
+### Límites e idempotencia
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`rate_limited`](/api-reference/errors/rate_limited) | Demasiadas solicitudes | 429 | Sí |
+| [`emission_in_progress`](/api-reference/errors/emission_in_progress) | Emisión en curso | 409 | Sí |
+
+### Plan y facturación de la cuenta
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`payment_required`](/api-reference/errors/payment_required) | Producción en pausa por el plan | 402 | No |
+| [`card_required`](/api-reference/errors/card_required) | Falta inscribir una tarjeta | 402 | No |
+
+### Credenciales de la empresa
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`no_active_credentials`](/api-reference/errors/no_active_credentials) | La empresa no tiene credenciales activas | 400, 403 | No |
+
+### SII
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`folios_temporarily_unavailable`](/api-reference/errors/folios_temporarily_unavailable) | Folios no disponibles por un momento | 503 | Sí |
+| [`sii_rejected`](/api-reference/errors/sii_rejected) | El SII rechazó el documento | 400 | No |
+| [`sii_unauthorized`](/api-reference/errors/sii_unauthorized) | La empresa no está autorizada en el SII | 400 | No |
+| [`sii_session_expired`](/api-reference/errors/sii_session_expired) | Sesión del SII vencida | 503 | Sí |
+| [`sii_unavailable`](/api-reference/errors/sii_unavailable) | SII no disponible | 503 | Sí |
+
+### Cesiones
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`document_ids_empty`](/api-reference/errors/document_ids_empty) | Falta la lista de documentos | 400 | No |
+| [`document_not_cessionable`](/api-reference/errors/document_not_cessionable) | El documento no se puede ceder | 400 | No |
+| [`assignee_data_incomplete`](/api-reference/errors/assignee_data_incomplete) | Faltan datos del cesionario | 400 | No |
+| [`assignee_rut_invalid`](/api-reference/errors/assignee_rut_invalid) | RUT del cesionario inválido | 400 | No |
+| [`assignor_email_missing`](/api-reference/errors/assignor_email_missing) | Falta el correo del cedente | 400 | No |
+
+### Recaudación
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`mixed_payers`](/api-reference/errors/mixed_payers) | Documentos de distintos pagadores | 400 | No |
+| [`cannot_mix_modes`](/api-reference/errors/cannot_mix_modes) | Modos de cobro mezclados | 400 | No |
+| [`document_not_owned`](/api-reference/errors/document_not_owned) | El documento no es de quien cobra | 403 | No |
+| [`document_not_payable`](/api-reference/errors/document_not_payable) | El documento no se puede cobrar | 400 | No |
+| [`document_already_paid`](/api-reference/errors/document_already_paid) | El documento ya está pagado | 400 | No |
+| [`sandbox_document_required`](/api-reference/errors/sandbox_document_required) | Ambiente del documento incorrecto | 400 | No |
+| [`banking_info_missing`](/api-reference/errors/banking_info_missing) | Faltan los datos bancarios | 400 | No |
+
+### Errores de Tupana
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`internal_error`](/api-reference/errors/internal_error) | Error interno | 500, 502, 422 | Sí |
+| [`server_busy`](/api-reference/errors/server_busy) | Servicio ocupado | 503 | Sí |
+| [`service_unavailable`](/api-reference/errors/service_unavailable) | Servicio no disponible | 503 | Sí |

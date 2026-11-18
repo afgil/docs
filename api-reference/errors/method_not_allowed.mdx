@@ -1,0 +1,51 @@
+---
+title: 'method_not_allowed'
+sidebarTitle: 'method_not_allowed'
+description: 'Método no permitido. La ruta existe, pero no acepta ese método HTTP.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `method_not_allowed` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 405 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Método no permitido.** La ruta existe, pero no acepta ese método HTTP.
+
+## Causas posibles
+
+- Se usó GET donde va POST, o al revés.
+- La URL apunta a la lista y la operación es sobre un recurso (o al revés).
+
+## Cómo resolverlo
+
+- Revisa en la referencia qué métodos acepta la ruta.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "method_not_allowed",
+    "message": "La ruta existe, pero no acepta ese método HTTP.",
+    "suggested_action": "Usa el método HTTP que la referencia indica para esa ruta.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/method_not_allowed",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

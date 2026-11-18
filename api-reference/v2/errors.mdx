@@ -19,7 +19,9 @@ diseñado para que puedas manejar errores con código estable y sin parsear text
     "message": "Falta el parámetro requerido 'master_entity_id'.",
     "param": "master_entity_id",
     "resource": "ment_4829301923847",
-    "doc_url": "https://docs.tupana.ai/v2/errors#parameter_missing",
+    "suggested_action": "Agrega el campo indicado en param y reintenta.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/parameter_missing",
     "request_id": "req_8f3a9c2b1e7d4"
   }
 }
@@ -32,7 +34,10 @@ diseñado para que puedas manejar errores con código estable y sin parsear text
 | `message` | ✓ | Texto para humanos (es-CL). **Puede cambiar — nunca lo parsees.** |
 | `param` | — | Campo que causó el error (para formularios). |
 | `resource` | — | **Public ID** del recurso involucrado (`docu_…`, `ment_…`, `cred_…`). |
-| `doc_url` | ✓ | Link directo a la explicación de este `code`. |
+| `suggested_action` | — | Qué hacer ahora, en una línea. Viene en todo `code` del [listado de códigos](/api-reference/error-codes). |
+| `retryable` | — | `true` si tiene sentido repetir la misma solicitud; `false` si primero hay que corregir algo. |
+| `retry_after_seconds` | — | Segundos que conviene esperar antes de reintentar. Solo en algunos errores con `retryable: true`. |
+| `doc_url` | ✓ | Link directo a la página de este `code`, con sus causas y cómo resolverlo. |
 | `request_id` | ✓ | ID de correlación (`req_…`). Inclúyelo al contactar soporte. |
 
 <Warning>
@@ -40,20 +45,25 @@ Maneja los errores por **`code`** (estable), no por `message` (puede cambiar) ni
 por el status HTTP solo (varios `code` comparten status).
 </Warning>
 
+<Card title="Todos los códigos de error" icon="list" href="/api-reference/error-codes">
+  Cada código tiene su propia página: qué significa, causas, cómo resolverlo y si conviene reintentar.
+</Card>
+
 ## Tipos de error y status HTTP
 
 | `type` | HTTP | Cuándo ocurre | ¿Reintentar? |
 |--------|:----:|---------------|:------------:|
 | `invalid_request_error` | 400 | Request mal formado o parámetro inválido | No — corrige el request |
-| `authentication_error` | 401 | Falta la API Key o es inválida | No |
-| `permission_error` | 403 | La API Key no tiene acceso a ese recurso | No |
+| `authentication_error` | 403 | Falta la API Key en la solicitud | No |
+| `permission_error` | 403 | La API Key no sirve o no tiene acceso a ese recurso | No |
 | `not_found_error` | 404 | El recurso (public ID) no existe | No |
 | `validation_error` | 422 | El documento no cumple una regla de negocio o del SII | No — corrige los datos |
 | `conflict_error` | 409 | Estado conflictivo (folio/RUT duplicado) | No |
 | `idempotency_error` | 409 | Reusaste una `Idempotency-Key` con un body distinto | No |
-| `credential_error` | 400 | Credencial SII/certificado inválida, incompleta o bloqueada | Solo tras corregir la credencial |
+| `credential_error` | 400 | Credencial SII/certificado inválida o incompleta | Solo tras corregir la credencial |
 | `sii_error` | 400 / 503 | El SII rechazó el documento o no está disponible | Sí si es `sii_unavailable` |
 | `payment_error` | 400 | Problema al generar el cobro (pasarela / datos bancarios) | No |
+| `billing_error` | 402 | Tu plan Developers no está al día y producción está en pausa | No — inscribe o actualiza tu tarjeta |
 | `rate_limit_error` | 429 | Superaste el límite de solicitudes | Sí — con backoff (ver `Retry-After`) |
 | `api_error` | 500 / 502 / 503 | Error interno o de un servicio upstream | Sí — con backoff |
 
@@ -77,6 +87,10 @@ if resp.status_code >= 400:
 
 ## Catálogo de códigos
 
+La lista completa y al día de los códigos que la API devuelve hoy está en
+[Códigos de error](/api-reference/error-codes), con una página por código. Las
+tablas de esta sección agregan los códigos que todavía se están desplegando.
+
 <Note>
 Los códigos de **Comunes**, **Cesiones** y **Recaudación** ya se emiten en
 producción. Las secciones marcadas con **⏳** están en implementación: hoy esos
@@ -91,8 +105,8 @@ específicos listados se están desplegando.
 |--------|--------|:----:|-------------|
 | `parameter_missing` | invalid_request_error | 400 | Falta un parámetro requerido (ver `param`). |
 | `parameter_invalid` | invalid_request_error | 400 | Un parámetro tiene formato o valor inválido (ver `param`). |
-| `unauthenticated` | authentication_error | 401 | Falta la API Key o es inválida/revocada. |
-| `forbidden` | permission_error | 403 | La API Key no tiene acceso a ese recurso. |
+| `unauthenticated` | authentication_error | 403 | Falta la API Key en la solicitud. |
+| `forbidden` | permission_error | 403 | La API Key no sirve (inactiva o inexistente) o no tiene acceso a ese recurso. |
 | `resource_missing` | not_found_error | 404 | El public ID no existe (ver `resource`). |
 | `conflict` | conflict_error | 409 | Conflicto con datos existentes. |
 | `rate_limited` | rate_limit_error | 429 | Demasiadas solicitudes. Respeta `Retry-After`. |
@@ -312,7 +326,7 @@ Detalle de cada campo y de la anulación de guías en [Emisión masiva de docume
     "message": "El receptor requiere dirección para una factura afecta (DTE 33).",
     "param": "document_receiver.address",
     "resource": "ment_4829301923847",
-    "doc_url": "https://docs.tupana.ai/v2/errors#receiver_data_incomplete",
+    "doc_url": "https://docs.tupana.ai/api-reference/v2/errors",
     "request_id": "req_2b7e1c9a4f0"
   }
 }
@@ -327,7 +341,7 @@ Detalle de cada campo y de la anulación de guías en [Emisión masiva de docume
     "code": "folios_exhausted",
     "message": "No quedan folios disponibles para factura electrónica (33). Solicita más folios (CAF) en el SII.",
     "resource": "ment_4829301923847",
-    "doc_url": "https://docs.tupana.ai/v2/errors#folios_exhausted",
+    "doc_url": "https://docs.tupana.ai/api-reference/v2/errors",
     "request_id": "req_5a1d8f3b2c6"
   }
 }
@@ -342,7 +356,7 @@ Detalle de cada campo y de la anulación de guías en [Emisión masiva de docume
     "code": "resource_missing",
     "message": "No existe un documento con id 'docu_0000000000000'.",
     "resource": "docu_0000000000000",
-    "doc_url": "https://docs.tupana.ai/v2/errors#resource_missing",
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/resource_missing",
     "request_id": "req_9c4e2a7f1b8"
   }
 }
@@ -356,7 +370,7 @@ Detalle de cada campo y de la anulación de guías en [Emisión masiva de docume
     "type": "rate_limit_error",
     "code": "rate_limited",
     "message": "Demasiadas solicitudes. Reintenta después de 5 segundos.",
-    "doc_url": "https://docs.tupana.ai/v2/errors#rate_limited",
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/rate_limited",
     "request_id": "req_1f6b3d9e0a2"
   }
 }

@@ -1,0 +1,50 @@
+---
+title: 'sandbox_read_only'
+sidebarTitle: 'sandbox_read_only'
+description: 'Operación no disponible con una key de sandbox. Con una API key de sandbox las conexiones de empresas son de solo lectura.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `sandbox_read_only` |
+| **Tipo** | `permission_error` |
+| **Estado HTTP** | 403 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Operación no disponible con una key de sandbox.** Con una API key de sandbox las conexiones de empresas son de solo lectura.
+
+## Causas posibles
+
+- Se intentó desactivar o reautorizar una conexión con una key de sandbox.
+
+## Cómo resolverlo
+
+- Repite la operación con una API key de producción.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "permission_error",
+    "code": "sandbox_read_only",
+    "message": "Con una API key de sandbox las conexiones de empresas son de solo lectura.",
+    "suggested_action": "Usa una API key de producción para esta operación.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/sandbox_read_only",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

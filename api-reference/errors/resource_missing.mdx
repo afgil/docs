@@ -1,0 +1,53 @@
+---
+title: 'resource_missing'
+sidebarTitle: 'resource_missing'
+description: 'El recurso no existe. No existe un recurso con ese id, o no pertenece a tu cuenta.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `resource_missing` |
+| **Tipo** | `not_found_error` |
+| **Estado HTTP** | 404 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**El recurso no existe.** No existe un recurso con ese id, o no pertenece a tu cuenta.
+
+## Causas posibles
+
+- El id quedó mal copiado.
+- El recurso es de otra empresa o de otra cuenta.
+- El id es de sandbox y la key de producción, o al revés.
+
+## Cómo resolverlo
+
+- Verifica el id (viene en resource cuando lo conocemos).
+- Lista los recursos de esa ruta para confirmar que existe.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "not_found_error",
+    "code": "resource_missing",
+    "message": "No existe un recurso con ese id, o no pertenece a tu cuenta.",
+    "suggested_action": "Verifica el id y que el recurso sea de tu cuenta y de este ambiente.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/resource_missing",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

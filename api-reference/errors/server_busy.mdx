@@ -1,0 +1,51 @@
+---
+title: 'server_busy'
+sidebarTitle: 'server_busy'
+description: 'Servicio ocupado. Estamos atendiendo el máximo de consultas simultáneas. No es un límite de tu cuenta.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `server_busy` |
+| **Tipo** | `api_error` |
+| **Estado HTTP** | 503 |
+| **¿Reintentar?** | Sí |
+
+## Qué significa
+
+**Servicio ocupado.** Estamos atendiendo el máximo de consultas simultáneas. No es un límite de tu cuenta.
+
+## Causas posibles
+
+- Un momento de mucha carga en Tupana.
+
+## Cómo resolverlo
+
+- Reintenta después de los segundos del header Retry-After.
+
+## ¿Conviene reintentar?
+
+Sí. Espera al menos 5 segundos y reintenta; si el error sigue, aumenta la espera en cada intento.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "api_error",
+    "code": "server_busy",
+    "message": "Estamos atendiendo el máximo de consultas simultáneas. No es un límite de tu cuenta.",
+    "suggested_action": "Reintenta en unos segundos.",
+    "retryable": true,
+    "retry_after_seconds": 5,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/server_busy",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

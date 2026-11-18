@@ -4010,12 +4010,36 @@ Se dispara cuando falla la emisión de un documento.
     },
     "details": [ /* array de detalles completo */ ],
     "xml_file": null,
-    "pdf_file": null
+    "pdf_file": null,
+    "error": {
+      "message": "SII no disponible",
+      "code": "sii_no_disponible",
+      "type": "temporary_error",
+      "user_message": "Agotamos los reintentos automáticos y el documento no se emitió; vuelve a enviarlo.",
+      "catalog_code": "sii_unavailable",
+      "suggested_action": "Reintenta en unos minutos con la misma llave de idempotencia.",
+      "retryable": true,
+      "doc_url": "https://docs.tupana.ai/api-reference/errors/sii_unavailable"
+    }
   }
 }
 ```
 
 **Nota:** En este evento, `folio`, `pdf_file` y `xml_file` pueden ser `null` ya que el documento no se emitió exitosamente.
+
+El evento se envía cuando el fallo es **definitivo**: un error permanente, o un error temporal después de agotar nuestros reintentos automáticos. `data.error` dice por qué:
+
+| Campo | Descripción |
+|-------|-------------|
+| `catalog_code` | Código público y **estable** del error, el mismo vocabulario de los [códigos de error](https://docs.tupana.ai/api-reference/error-codes) de la API. Programa contra este campo. |
+| `suggested_action` | Qué hacer ahora, en una línea. |
+| `retryable` | `true` si puedes volver a enviar el documento; `false` si primero hay que corregir algo. |
+| `doc_url` | Página del código, con sus causas y cómo resolverlo. |
+| `user_message` | Texto en español para mostrarle a una persona. |
+| `message` | Detalle técnico del último intento. Puede cambiar; no lo parsees. |
+| `code`, `type` | Clasificación interna del intento (`type` es `temporary_error` o `permanent_error`). Se mantienen por compatibilidad; para programar usa `catalog_code` y `retryable`. |
+
+`catalog_code`, `suggested_action`, `retryable` y `doc_url` pueden venir en `null` cuando no podemos atribuir el fallo con certeza. En ese caso **no reenvíes el documento a ciegas**: consulta su estado primero, porque podría estar emitido.
 
 ##### document.updated
 
@@ -7800,7 +7824,9 @@ diseñado para que puedas manejar errores con código estable y sin parsear text
     "message": "Falta el parámetro requerido 'master_entity_id'.",
     "param": "master_entity_id",
     "resource": "ment_4829301923847",
-    "doc_url": "https://docs.tupana.ai/v2/errors#parameter_missing",
+    "suggested_action": "Agrega el campo indicado en param y reintenta.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/parameter_missing",
     "request_id": "req_8f3a9c2b1e7d4"
   }
 }
@@ -7813,26 +7839,33 @@ diseñado para que puedas manejar errores con código estable y sin parsear text
 | `message` | ✓ | Texto para humanos (es-CL). **Puede cambiar — nunca lo parsees.** |
 | `param` | — | Campo que causó el error (para formularios). |
 | `resource` | — | **Public ID** del recurso involucrado (`docu_…`, `ment_…`, `cred_…`). |
-| `doc_url` | ✓ | Link directo a la explicación de este `code`. |
+| `suggested_action` | — | Qué hacer ahora, en una línea. Viene en todo `code` del [listado de códigos](https://docs.tupana.ai/api-reference/error-codes). |
+| `retryable` | — | `true` si tiene sentido repetir la misma solicitud; `false` si primero hay que corregir algo. |
+| `retry_after_seconds` | — | Segundos que conviene esperar antes de reintentar. Solo en algunos errores con `retryable: true`. |
+| `doc_url` | ✓ | Link directo a la página de este `code`, con sus causas y cómo resolverlo. |
 | `request_id` | ✓ | ID de correlación (`req_…`). Inclúyelo al contactar soporte. |
 
 > **Importante:** Maneja los errores por **`code`** (estable), no por `message` (puede cambiar) ni
 por el status HTTP solo (varios `code` comparten status).
+
+**[Todos los códigos de error](https://docs.tupana.ai/api-reference/error-codes)**:
+  Cada código tiene su propia página: qué significa, causas, cómo resolverlo y si conviene reintentar.
 
 ### Tipos de error y status HTTP
 
 | `type` | HTTP | Cuándo ocurre | ¿Reintentar? |
 |--------|:----:|---------------|:------------:|
 | `invalid_request_error` | 400 | Request mal formado o parámetro inválido | No — corrige el request |
-| `authentication_error` | 401 | Falta la API Key o es inválida | No |
-| `permission_error` | 403 | La API Key no tiene acceso a ese recurso | No |
+| `authentication_error` | 403 | Falta la API Key en la solicitud | No |
+| `permission_error` | 403 | La API Key no sirve o no tiene acceso a ese recurso | No |
 | `not_found_error` | 404 | El recurso (public ID) no existe | No |
 | `validation_error` | 422 | El documento no cumple una regla de negocio o del SII | No — corrige los datos |
 | `conflict_error` | 409 | Estado conflictivo (folio/RUT duplicado) | No |
 | `idempotency_error` | 409 | Reusaste una `Idempotency-Key` con un body distinto | No |
-| `credential_error` | 400 | Credencial SII/certificado inválida, incompleta o bloqueada | Solo tras corregir la credencial |
+| `credential_error` | 400 | Credencial SII/certificado inválida o incompleta | Solo tras corregir la credencial |
 | `sii_error` | 400 / 503 | El SII rechazó el documento o no está disponible | Sí si es `sii_unavailable` |
 | `payment_error` | 400 | Problema al generar el cobro (pasarela / datos bancarios) | No |
+| `billing_error` | 402 | Tu plan Developers no está al día y producción está en pausa | No — inscribe o actualiza tu tarjeta |
 | `rate_limit_error` | 429 | Superaste el límite de solicitudes | Sí — con backoff (ver `Retry-After`) |
 | `api_error` | 500 / 502 / 503 | Error interno o de un servicio upstream | Sí — con backoff |
 
@@ -7856,6 +7889,10 @@ if resp.status_code >= 400:
 
 ### Catálogo de códigos
 
+La lista completa y al día de los códigos que la API devuelve hoy está en
+[Códigos de error](https://docs.tupana.ai/api-reference/error-codes), con una página por código. Las
+tablas de esta sección agregan los códigos que todavía se están desplegando.
+
 > **Nota:** Los códigos de **Comunes**, **Cesiones** y **Recaudación** ya se emiten en
 producción. Las secciones marcadas con **⏳** están en implementación: hoy esos
 endpoints devuelven `parameter_missing`/`parameter_invalid` en errores de campo
@@ -7868,8 +7905,8 @@ específicos listados se están desplegando.
 |--------|--------|:----:|-------------|
 | `parameter_missing` | invalid_request_error | 400 | Falta un parámetro requerido (ver `param`). |
 | `parameter_invalid` | invalid_request_error | 400 | Un parámetro tiene formato o valor inválido (ver `param`). |
-| `unauthenticated` | authentication_error | 401 | Falta la API Key o es inválida/revocada. |
-| `forbidden` | permission_error | 403 | La API Key no tiene acceso a ese recurso. |
+| `unauthenticated` | authentication_error | 403 | Falta la API Key en la solicitud. |
+| `forbidden` | permission_error | 403 | La API Key no sirve (inactiva o inexistente) o no tiene acceso a ese recurso. |
 | `resource_missing` | not_found_error | 404 | El public ID no existe (ver `resource`). |
 | `conflict` | conflict_error | 409 | Conflicto con datos existentes. |
 | `rate_limited` | rate_limit_error | 429 | Demasiadas solicitudes. Respeta `Retry-After`. |
@@ -8087,7 +8124,7 @@ Detalle de cada campo y de la anulación de guías en [Emisión masiva de docume
     "message": "El receptor requiere dirección para una factura afecta (DTE 33).",
     "param": "document_receiver.address",
     "resource": "ment_4829301923847",
-    "doc_url": "https://docs.tupana.ai/v2/errors#receiver_data_incomplete",
+    "doc_url": "https://docs.tupana.ai/api-reference/v2/errors",
     "request_id": "req_2b7e1c9a4f0"
   }
 }
@@ -8102,7 +8139,7 @@ Detalle de cada campo y de la anulación de guías en [Emisión masiva de docume
     "code": "folios_exhausted",
     "message": "No quedan folios disponibles para factura electrónica (33). Solicita más folios (CAF) en el SII.",
     "resource": "ment_4829301923847",
-    "doc_url": "https://docs.tupana.ai/v2/errors#folios_exhausted",
+    "doc_url": "https://docs.tupana.ai/api-reference/v2/errors",
     "request_id": "req_5a1d8f3b2c6"
   }
 }
@@ -8117,7 +8154,7 @@ Detalle de cada campo y de la anulación de guías en [Emisión masiva de docume
     "code": "resource_missing",
     "message": "No existe un documento con id 'docu_0000000000000'.",
     "resource": "docu_0000000000000",
-    "doc_url": "https://docs.tupana.ai/v2/errors#resource_missing",
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/resource_missing",
     "request_id": "req_9c4e2a7f1b8"
   }
 }
@@ -8131,7 +8168,7 @@ Detalle de cada campo y de la anulación de guías en [Emisión masiva de docume
     "type": "rate_limit_error",
     "code": "rate_limited",
     "message": "Demasiadas solicitudes. Reintenta después de 5 segundos.",
-    "doc_url": "https://docs.tupana.ai/v2/errors#rate_limited",
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/rate_limited",
     "request_id": "req_1f6b3d9e0a2"
   }
 }
@@ -8146,6 +8183,2140 @@ Los endpoints de escritura (emisión, cobros) aceptan el header `Idempotency-Key
 Si reintentas **con la misma key y el mismo body**, la API devuelve la respuesta
 original **sin repetir la operación** (no se re-emite al SII). Si reutilizas la
 misma key con un **body distinto**, obtienes `idempotency_key_reused` (409).
+
+---
+
+## Códigos de error
+
+Fuente: https://docs.tupana.ai/api-reference/error-codes · Sección: API Facturación / Errores
+
+> Lista de todos los códigos de error de la API de Tupana, con su causa, cómo resolverlo y si conviene reintentar.
+
+Cada error de la API trae un `code` estable y un `doc_url` que lleva a la página de ese código. Aquí están todos. El formato de la respuesta está en [Errores](https://docs.tupana.ai/api-reference/v2/errors).
+
+#### Autenticación y permisos
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`unauthenticated`](https://docs.tupana.ai/api-reference/errors/unauthenticated) | Falta la API key | 403, 401, 422 | No |
+| [`forbidden`](https://docs.tupana.ai/api-reference/errors/forbidden) | Sin acceso | 403, 401, 422 | No |
+| [`sandbox_read_only`](https://docs.tupana.ai/api-reference/errors/sandbox_read_only) | Operación no disponible con una key de sandbox | 403 | No |
+
+#### Solicitud
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`bad_request`](https://docs.tupana.ai/api-reference/errors/bad_request) | Solicitud inválida | 400, 422 | No |
+| [`parameter_missing`](https://docs.tupana.ai/api-reference/errors/parameter_missing) | Falta un parámetro requerido | 400, 422 | No |
+| [`parameter_invalid`](https://docs.tupana.ai/api-reference/errors/parameter_invalid) | Parámetro inválido | 400, 422 | No |
+| [`validation_error`](https://docs.tupana.ai/api-reference/errors/validation_error) | Los datos no pasan la validación | 400, 422 | No |
+| [`unprocessable`](https://docs.tupana.ai/api-reference/errors/unprocessable) | No se puede procesar | 422 | No |
+| [`not_found`](https://docs.tupana.ai/api-reference/errors/not_found) | No encontrado | 404 | No |
+| [`resource_missing`](https://docs.tupana.ai/api-reference/errors/resource_missing) | El recurso no existe | 404 | No |
+| [`method_not_allowed`](https://docs.tupana.ai/api-reference/errors/method_not_allowed) | Método no permitido | 405 | No |
+| [`conflict`](https://docs.tupana.ai/api-reference/errors/conflict) | Conflicto con datos existentes | 409 | No |
+| [`cursor_invalid`](https://docs.tupana.ai/api-reference/errors/cursor_invalid) | Cursor inválido | 400 | No |
+| [`cursor_expired`](https://docs.tupana.ai/api-reference/errors/cursor_expired) | Cursor vencido | 410 | No |
+
+#### Límites e idempotencia
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`rate_limited`](https://docs.tupana.ai/api-reference/errors/rate_limited) | Demasiadas solicitudes | 429 | Sí |
+| [`emission_in_progress`](https://docs.tupana.ai/api-reference/errors/emission_in_progress) | Emisión en curso | 409 | Sí |
+
+#### Plan y facturación de la cuenta
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`payment_required`](https://docs.tupana.ai/api-reference/errors/payment_required) | Producción en pausa por el plan | 402 | No |
+| [`card_required`](https://docs.tupana.ai/api-reference/errors/card_required) | Falta inscribir una tarjeta | 402 | No |
+
+#### Credenciales de la empresa
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`no_active_credentials`](https://docs.tupana.ai/api-reference/errors/no_active_credentials) | La empresa no tiene credenciales activas | 400, 403 | No |
+
+#### SII
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`folios_temporarily_unavailable`](https://docs.tupana.ai/api-reference/errors/folios_temporarily_unavailable) | Folios no disponibles por un momento | 503 | Sí |
+| [`sii_rejected`](https://docs.tupana.ai/api-reference/errors/sii_rejected) | El SII rechazó el documento | 400 | No |
+| [`sii_unauthorized`](https://docs.tupana.ai/api-reference/errors/sii_unauthorized) | La empresa no está autorizada en el SII | 400 | No |
+| [`sii_session_expired`](https://docs.tupana.ai/api-reference/errors/sii_session_expired) | Sesión del SII vencida | 503 | Sí |
+| [`sii_unavailable`](https://docs.tupana.ai/api-reference/errors/sii_unavailable) | SII no disponible | 503 | Sí |
+
+#### Cesiones
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`document_ids_empty`](https://docs.tupana.ai/api-reference/errors/document_ids_empty) | Falta la lista de documentos | 400 | No |
+| [`document_not_cessionable`](https://docs.tupana.ai/api-reference/errors/document_not_cessionable) | El documento no se puede ceder | 400 | No |
+| [`assignee_data_incomplete`](https://docs.tupana.ai/api-reference/errors/assignee_data_incomplete) | Faltan datos del cesionario | 400 | No |
+| [`assignee_rut_invalid`](https://docs.tupana.ai/api-reference/errors/assignee_rut_invalid) | RUT del cesionario inválido | 400 | No |
+| [`assignor_email_missing`](https://docs.tupana.ai/api-reference/errors/assignor_email_missing) | Falta el correo del cedente | 400 | No |
+
+#### Recaudación
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`mixed_payers`](https://docs.tupana.ai/api-reference/errors/mixed_payers) | Documentos de distintos pagadores | 400 | No |
+| [`cannot_mix_modes`](https://docs.tupana.ai/api-reference/errors/cannot_mix_modes) | Modos de cobro mezclados | 400 | No |
+| [`document_not_owned`](https://docs.tupana.ai/api-reference/errors/document_not_owned) | El documento no es de quien cobra | 403 | No |
+| [`document_not_payable`](https://docs.tupana.ai/api-reference/errors/document_not_payable) | El documento no se puede cobrar | 400 | No |
+| [`document_already_paid`](https://docs.tupana.ai/api-reference/errors/document_already_paid) | El documento ya está pagado | 400 | No |
+| [`sandbox_document_required`](https://docs.tupana.ai/api-reference/errors/sandbox_document_required) | Ambiente del documento incorrecto | 400 | No |
+| [`banking_info_missing`](https://docs.tupana.ai/api-reference/errors/banking_info_missing) | Faltan los datos bancarios | 400 | No |
+
+#### Errores de Tupana
+
+| Código | Qué significa | HTTP | ¿Reintentar? |
+|--------|---------------|:----:|:------------:|
+| [`internal_error`](https://docs.tupana.ai/api-reference/errors/internal_error) | Error interno | 500, 502, 422 | Sí |
+| [`server_busy`](https://docs.tupana.ai/api-reference/errors/server_busy) | Servicio ocupado | 503 | Sí |
+| [`service_unavailable`](https://docs.tupana.ai/api-reference/errors/service_unavailable) | Servicio no disponible | 503 | Sí |
+
+---
+
+## unauthenticated
+
+Fuente: https://docs.tupana.ai/api-reference/errors/unauthenticated · Sección: API Facturación / Códigos
+
+> Falta la API key. La solicitud llegó sin una API key que podamos leer.
+
+| | |
+|---|---|
+| **Código** | `unauthenticated` |
+| **Tipo** | `authentication_error` |
+| **Estado HTTP** | 403, 401, 422 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Falta la API key.** La solicitud llegó sin una API key que podamos leer.
+
+### Causas posibles
+
+- No se envió el header Authorization.
+- El header no tiene el formato Api-Key &lt;tu_api_key&gt;.
+- Un proxy o intermediario quitó el header antes de llegar a Tupana.
+
+### Cómo resolverlo
+
+- Envía el header Authorization: Api-Key &lt;tu_api_key&gt; en cada solicitud.
+- Revisa que no haya espacios ni comillas de más en la key.
+- Si usas un proxy, confirma que reenvía el header Authorization sin cambios.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "authentication_error",
+    "code": "unauthenticated",
+    "message": "La solicitud llegó sin una API key que podamos leer.",
+    "suggested_action": "Envía el header Authorization: Api-Key <tu_api_key>.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/unauthenticated",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## forbidden
+
+Fuente: https://docs.tupana.ai/api-reference/errors/forbidden · Sección: API Facturación / Códigos
+
+> Sin acceso. La API key no puede hacer esta operación o no tiene acceso a esta empresa.
+
+| | |
+|---|---|
+| **Código** | `forbidden` |
+| **Tipo** | `permission_error` |
+| **Estado HTTP** | 403, 401, 422 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Sin acceso.** La API key no puede hacer esta operación o no tiene acceso a esta empresa.
+
+### Causas posibles
+
+- La API key fue desactivada o eliminada.
+- La key no existe (por ejemplo, quedó mal copiada).
+- La key es de sandbox y la ruta es de producción, o al revés.
+- La empresa indicada no está conectada a tu cuenta.
+
+### Cómo resolverlo
+
+- Revisa en la consola que la key esté activa y cópiala de nuevo.
+- Usa la key del ambiente correcto: sandbox para pruebas, producción para documentos reales.
+- Confirma que la empresa esté conectada a tu cuenta en la consola.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "permission_error",
+    "code": "forbidden",
+    "message": "La API key no puede hacer esta operación o no tiene acceso a esta empresa.",
+    "suggested_action": "Revisa en la consola que la API key esté activa y que la empresa esté conectada a tu cuenta.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/forbidden",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## sandbox_read_only
+
+Fuente: https://docs.tupana.ai/api-reference/errors/sandbox_read_only · Sección: API Facturación / Códigos
+
+> Operación no disponible con una key de sandbox. Con una API key de sandbox las conexiones de empresas son de solo lectura.
+
+| | |
+|---|---|
+| **Código** | `sandbox_read_only` |
+| **Tipo** | `permission_error` |
+| **Estado HTTP** | 403 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Operación no disponible con una key de sandbox.** Con una API key de sandbox las conexiones de empresas son de solo lectura.
+
+### Causas posibles
+
+- Se intentó desactivar o reautorizar una conexión con una key de sandbox.
+
+### Cómo resolverlo
+
+- Repite la operación con una API key de producción.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "permission_error",
+    "code": "sandbox_read_only",
+    "message": "Con una API key de sandbox las conexiones de empresas son de solo lectura.",
+    "suggested_action": "Usa una API key de producción para esta operación.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/sandbox_read_only",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## bad_request
+
+Fuente: https://docs.tupana.ai/api-reference/errors/bad_request · Sección: API Facturación / Códigos
+
+> Solicitud inválida. No pudimos leer la solicitud.
+
+| | |
+|---|---|
+| **Código** | `bad_request` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400, 422 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Solicitud inválida.** No pudimos leer la solicitud.
+
+### Causas posibles
+
+- El cuerpo no es JSON válido.
+- Falta el header Content-Type: application/json.
+
+### Cómo resolverlo
+
+- Valida que el cuerpo sea JSON bien formado.
+- Envía el header Content-Type: application/json.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "bad_request",
+    "message": "No pudimos leer la solicitud.",
+    "suggested_action": "Revisa que el cuerpo sea JSON válido y envía Content-Type: application/json.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/bad_request",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## parameter_missing
+
+Fuente: https://docs.tupana.ai/api-reference/errors/parameter_missing · Sección: API Facturación / Códigos
+
+> Falta un parámetro requerido. La solicitud no trae un campo obligatorio. El campo que falta viene en param.
+
+| | |
+|---|---|
+| **Código** | `parameter_missing` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400, 422 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Falta un parámetro requerido.** La solicitud no trae un campo obligatorio. El campo que falta viene en param.
+
+### Causas posibles
+
+- Se omitió un campo obligatorio.
+- El campo viene con otro nombre o en otro nivel del JSON.
+
+### Cómo resolverlo
+
+- Agrega el campo indicado en param.
+- Compara tu solicitud con el ejemplo de la referencia de esa ruta.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "parameter_missing",
+    "message": "La solicitud no trae un campo obligatorio. El campo que falta viene en param.",
+    "suggested_action": "Agrega el campo indicado en param y reintenta.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/parameter_missing",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## parameter_invalid
+
+Fuente: https://docs.tupana.ai/api-reference/errors/parameter_invalid · Sección: API Facturación / Códigos
+
+> Parámetro inválido. Un campo tiene un valor o un formato que no aceptamos. El campo viene en param.
+
+| | |
+|---|---|
+| **Código** | `parameter_invalid` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400, 422 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Parámetro inválido.** Un campo tiene un valor o un formato que no aceptamos. El campo viene en param.
+
+### Causas posibles
+
+- El tipo de dato no corresponde (texto donde va un número, por ejemplo).
+- El valor no está entre las opciones permitidas.
+- Una fecha o un RUT viene con un formato distinto al esperado.
+
+### Cómo resolverlo
+
+- Corrige el campo indicado en param según el mensaje.
+- Revisa el formato esperado en la referencia de esa ruta.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "parameter_invalid",
+    "message": "Un campo tiene un valor o un formato que no aceptamos. El campo viene en param.",
+    "suggested_action": "Corrige el campo indicado en param según el mensaje.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/parameter_invalid",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## validation_error
+
+Fuente: https://docs.tupana.ai/api-reference/errors/validation_error · Sección: API Facturación / Códigos
+
+> Los datos no pasan la validación. Uno o más campos no son válidos. El detalle por campo viene en detail.
+
+| | |
+|---|---|
+| **Código** | `validation_error` |
+| **Tipo** | `validation_error` |
+| **Estado HTTP** | 400, 422 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Los datos no pasan la validación.** Uno o más campos no son válidos. El detalle por campo viene en detail.
+
+### Causas posibles
+
+- Faltan campos obligatorios.
+- Algún campo tiene un valor o formato inválido.
+
+### Cómo resolverlo
+
+- Lee detail: trae el problema de cada campo.
+- Corrige esos campos y reenvía.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "validation_error",
+    "code": "validation_error",
+    "message": "Uno o más campos no son válidos. El detalle por campo viene en detail.",
+    "suggested_action": "Lee detail, corrige los campos indicados y reenvía.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/validation_error",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## unprocessable
+
+Fuente: https://docs.tupana.ai/api-reference/errors/unprocessable · Sección: API Facturación / Códigos
+
+> No se puede procesar. La solicitud está bien formada, pero no cumple una regla del documento o de la operación.
+
+| | |
+|---|---|
+| **Código** | `unprocessable` |
+| **Tipo** | `validation_error` |
+| **Estado HTTP** | 422 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**No se puede procesar.** La solicitud está bien formada, pero no cumple una regla del documento o de la operación.
+
+### Causas posibles
+
+- Los datos se contradicen entre sí.
+- La operación no aplica a ese tipo de documento.
+
+### Cómo resolverlo
+
+- Lee el mensaje: dice qué regla no se cumple.
+- Ajusta los datos y reenvía.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "validation_error",
+    "code": "unprocessable",
+    "message": "La solicitud está bien formada, pero no cumple una regla del documento o de la operación.",
+    "suggested_action": "Ajusta los datos según el mensaje y reenvía.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/unprocessable",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## not_found
+
+Fuente: https://docs.tupana.ai/api-reference/errors/not_found · Sección: API Facturación / Códigos
+
+> No encontrado. La ruta o el recurso no existe.
+
+| | |
+|---|---|
+| **Código** | `not_found` |
+| **Tipo** | `not_found_error` |
+| **Estado HTTP** | 404 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**No encontrado.** La ruta o el recurso no existe.
+
+### Causas posibles
+
+- La URL tiene un error o le falta la barra final.
+- El id no existe o es de otra cuenta.
+- El id es de sandbox y la key de producción, o al revés.
+
+### Cómo resolverlo
+
+- Revisa la URL contra la referencia.
+- Confirma que el id exista y sea del mismo ambiente que la key.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "not_found_error",
+    "code": "not_found",
+    "message": "La ruta o el recurso no existe.",
+    "suggested_action": "Revisa la URL y que el id exista en el ambiente de tu API key.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/not_found",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## resource_missing
+
+Fuente: https://docs.tupana.ai/api-reference/errors/resource_missing · Sección: API Facturación / Códigos
+
+> El recurso no existe. No existe un recurso con ese id, o no pertenece a tu cuenta.
+
+| | |
+|---|---|
+| **Código** | `resource_missing` |
+| **Tipo** | `not_found_error` |
+| **Estado HTTP** | 404 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**El recurso no existe.** No existe un recurso con ese id, o no pertenece a tu cuenta.
+
+### Causas posibles
+
+- El id quedó mal copiado.
+- El recurso es de otra empresa o de otra cuenta.
+- El id es de sandbox y la key de producción, o al revés.
+
+### Cómo resolverlo
+
+- Verifica el id (viene en resource cuando lo conocemos).
+- Lista los recursos de esa ruta para confirmar que existe.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "not_found_error",
+    "code": "resource_missing",
+    "message": "No existe un recurso con ese id, o no pertenece a tu cuenta.",
+    "suggested_action": "Verifica el id y que el recurso sea de tu cuenta y de este ambiente.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/resource_missing",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## method_not_allowed
+
+Fuente: https://docs.tupana.ai/api-reference/errors/method_not_allowed · Sección: API Facturación / Códigos
+
+> Método no permitido. La ruta existe, pero no acepta ese método HTTP.
+
+| | |
+|---|---|
+| **Código** | `method_not_allowed` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 405 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Método no permitido.** La ruta existe, pero no acepta ese método HTTP.
+
+### Causas posibles
+
+- Se usó GET donde va POST, o al revés.
+- La URL apunta a la lista y la operación es sobre un recurso (o al revés).
+
+### Cómo resolverlo
+
+- Revisa en la referencia qué métodos acepta la ruta.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "method_not_allowed",
+    "message": "La ruta existe, pero no acepta ese método HTTP.",
+    "suggested_action": "Usa el método HTTP que la referencia indica para esa ruta.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/method_not_allowed",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## conflict
+
+Fuente: https://docs.tupana.ai/api-reference/errors/conflict · Sección: API Facturación / Códigos
+
+> Conflicto con datos existentes. La operación choca con algo que ya existe o con el estado actual del recurso.
+
+| | |
+|---|---|
+| **Código** | `conflict` |
+| **Tipo** | `conflict_error` |
+| **Estado HTTP** | 409 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Conflicto con datos existentes.** La operación choca con algo que ya existe o con el estado actual del recurso.
+
+### Causas posibles
+
+- Ya existe un recurso con esos mismos datos únicos.
+- Dos solicitudes iguales llegaron al mismo tiempo.
+
+### Cómo resolverlo
+
+- Consulta el recurso para ver su estado actual antes de reintentar.
+- Usa una llave de idempotencia para no crear duplicados.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "conflict_error",
+    "code": "conflict",
+    "message": "La operación choca con algo que ya existe o con el estado actual del recurso.",
+    "suggested_action": "Consulta el estado actual del recurso antes de reintentar.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/conflict",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## cursor_invalid
+
+Fuente: https://docs.tupana.ai/api-reference/errors/cursor_invalid · Sección: API Facturación / Códigos
+
+> Cursor inválido. El cursor de paginación no es uno que hayamos emitido.
+
+| | |
+|---|---|
+| **Código** | `cursor_invalid` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Cursor inválido.** El cursor de paginación no es uno que hayamos emitido.
+
+### Causas posibles
+
+- El cursor fue modificado o quedó cortado.
+- Se usó el cursor de otra ruta.
+
+### Cómo resolverlo
+
+- Usa tal cual el next_cursor de la respuesta anterior.
+- Si lo perdiste, parte de nuevo sin cursor.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "cursor_invalid",
+    "message": "El cursor de paginación no es uno que hayamos emitido.",
+    "suggested_action": "Usa el next_cursor de la respuesta anterior sin modificarlo.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/cursor_invalid",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## cursor_expired
+
+Fuente: https://docs.tupana.ai/api-reference/errors/cursor_expired · Sección: API Facturación / Códigos
+
+> Cursor vencido. El cursor es más antiguo que el período que guardamos de cambios, así que podría saltarse algunos.
+
+| | |
+|---|---|
+| **Código** | `cursor_expired` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 410 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Cursor vencido.** El cursor es más antiguo que el período que guardamos de cambios, así que podría saltarse algunos.
+
+### Causas posibles
+
+- Pasó mucho tiempo desde la última sincronización.
+
+### Cómo resolverlo
+
+- Haz una carga completa sin cursor y sigue desde el nuevo next_cursor.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "cursor_expired",
+    "message": "El cursor es más antiguo que el período que guardamos de cambios, así que podría saltarse algunos.",
+    "suggested_action": "Vuelve a cargar todo sin cursor y continúa con el nuevo next_cursor.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/cursor_expired",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## rate_limited
+
+Fuente: https://docs.tupana.ai/api-reference/errors/rate_limited · Sección: API Facturación / Códigos
+
+> Demasiadas solicitudes. Superaste el límite de solicitudes de tu cuenta para ese período.
+
+| | |
+|---|---|
+| **Código** | `rate_limited` |
+| **Tipo** | `rate_limit_error` |
+| **Estado HTTP** | 429 |
+| **¿Reintentar?** | Sí |
+
+### Qué significa
+
+**Demasiadas solicitudes.** Superaste el límite de solicitudes de tu cuenta para ese período.
+
+### Causas posibles
+
+- Un ciclo consulta sin pausas.
+- Varios procesos comparten la misma API key.
+
+### Cómo resolverlo
+
+- Espera los segundos del header Retry-After y reintenta.
+- Reintenta con esperas crecientes.
+- Usa webhooks en vez de consultar el estado una y otra vez.
+
+### ¿Conviene reintentar?
+
+Sí. Reintenta, aumentando la espera en cada intento.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "rate_limit_error",
+    "code": "rate_limited",
+    "message": "Superaste el límite de solicitudes de tu cuenta para ese período.",
+    "suggested_action": "Espera los segundos de Retry-After y reintenta con esperas crecientes.",
+    "retryable": true,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/rate_limited",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## emission_in_progress
+
+Fuente: https://docs.tupana.ai/api-reference/errors/emission_in_progress · Sección: API Facturación / Códigos
+
+> Emisión en curso. Ya hay una emisión en curso con esa misma Idempotency-Key.
+
+| | |
+|---|---|
+| **Código** | `emission_in_progress` |
+| **Tipo** | `conflict_error` |
+| **Estado HTTP** | 409 |
+| **¿Reintentar?** | Sí |
+
+### Qué significa
+
+**Emisión en curso.** Ya hay una emisión en curso con esa misma Idempotency-Key.
+
+### Causas posibles
+
+- Se reenvió la solicitud antes de que terminara la anterior.
+
+### Cómo resolverlo
+
+- Espera un segundo y reintenta con la misma Idempotency-Key: recibirás el resultado de la emisión original.
+
+### ¿Conviene reintentar?
+
+Sí. Espera al menos 1 segundos y reintenta; si el error sigue, aumenta la espera en cada intento.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "conflict_error",
+    "code": "emission_in_progress",
+    "message": "Ya hay una emisión en curso con esa misma Idempotency-Key.",
+    "suggested_action": "Espera un segundo y reintenta con la misma Idempotency-Key.",
+    "retryable": true,
+    "retry_after_seconds": 1,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/emission_in_progress",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## payment_required
+
+Fuente: https://docs.tupana.ai/api-reference/errors/payment_required · Sección: API Facturación / Códigos
+
+> Producción en pausa por el plan. Tu plan Developers no está al día, así que producción está en pausa. Sandbox sigue funcionando.
+
+| | |
+|---|---|
+| **Código** | `payment_required` |
+| **Tipo** | `billing_error` |
+| **Estado HTTP** | 402 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Producción en pausa por el plan.** Tu plan Developers no está al día, así que producción está en pausa. Sandbox sigue funcionando.
+
+### Causas posibles
+
+- Terminó la prueba gratis y no hay tarjeta inscrita.
+- No pudimos cobrar el plan.
+- El plan fue cancelado.
+
+### Cómo resolverlo
+
+- Inscribe o actualiza tu tarjeta en la consola; producción vuelve en menos de un minuto.
+- Mientras tanto puedes seguir probando en sandbox.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "billing_error",
+    "code": "payment_required",
+    "message": "Tu plan Developers no está al día, así que producción está en pausa. Sandbox sigue funcionando.",
+    "suggested_action": "Inscribe o actualiza tu tarjeta en la consola para reactivar producción.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/payment_required",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## card_required
+
+Fuente: https://docs.tupana.ai/api-reference/errors/card_required · Sección: API Facturación / Códigos
+
+> Falta inscribir una tarjeta. Para activar la cuenta hay que inscribir una tarjeta.
+
+| | |
+|---|---|
+| **Código** | `card_required` |
+| **Tipo** | `billing_error` |
+| **Estado HTTP** | 402 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Falta inscribir una tarjeta.** Para activar la cuenta hay que inscribir una tarjeta.
+
+### Causas posibles
+
+- La cuenta todavía no tiene una tarjeta inscrita.
+
+### Cómo resolverlo
+
+- Inscribe una tarjeta en la consola y repite la operación.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "billing_error",
+    "code": "card_required",
+    "message": "Para activar la cuenta hay que inscribir una tarjeta.",
+    "suggested_action": "Inscribe una tarjeta en la consola.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/card_required",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## no_active_credentials
+
+Fuente: https://docs.tupana.ai/api-reference/errors/no_active_credentials · Sección: API Facturación / Códigos
+
+> La empresa no tiene credenciales activas. La empresa no tiene una credencial del SII o un certificado digital vigente para esta operación.
+
+| | |
+|---|---|
+| **Código** | `no_active_credentials` |
+| **Tipo** | `credential_error` |
+| **Estado HTTP** | 400, 403 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**La empresa no tiene credenciales activas.** La empresa no tiene una credencial del SII o un certificado digital vigente para esta operación.
+
+### Causas posibles
+
+- La empresa nunca conectó sus credenciales.
+- La credencial fue desactivada o venció.
+
+### Cómo resolverlo
+
+- Conecta la empresa con Tupana Connect.
+- Si ya estaba conectada, reautoriza sus credenciales.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "credential_error",
+    "code": "no_active_credentials",
+    "message": "La empresa no tiene una credencial del SII o un certificado digital vigente para esta operación.",
+    "suggested_action": "Conecta o reautoriza las credenciales de la empresa con Tupana Connect.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/no_active_credentials",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## folios_temporarily_unavailable
+
+Fuente: https://docs.tupana.ai/api-reference/errors/folios_temporarily_unavailable · Sección: API Facturación / Códigos
+
+> Folios no disponibles por un momento. La reserva de folios lista para emitir se vació por un momento. No significa que a la empresa se le acabaron los folios en el SII.
+
+| | |
+|---|---|
+| **Código** | `folios_temporarily_unavailable` |
+| **Tipo** | `api_error` |
+| **Estado HTTP** | 503 |
+| **¿Reintentar?** | Sí |
+
+### Qué significa
+
+**Folios no disponibles por un momento.** La reserva de folios lista para emitir se vació por un momento. No significa que a la empresa se le acabaron los folios en el SII.
+
+### Causas posibles
+
+- Se emitieron muchos documentos seguidos y la reserva todavía se está reponiendo.
+
+### Cómo resolverlo
+
+- Reintenta en unos segundos con la misma Idempotency-Key.
+- Si se repite durante varios minutos, escríbenos.
+
+### ¿Conviene reintentar?
+
+Sí. Espera al menos 5 segundos y reintenta; si el error sigue, aumenta la espera en cada intento.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "api_error",
+    "code": "folios_temporarily_unavailable",
+    "message": "La reserva de folios lista para emitir se vació por un momento. No significa que a la empresa se le acabaron los folios en el SII.",
+    "suggested_action": "Reintenta en unos segundos con la misma Idempotency-Key.",
+    "retryable": true,
+    "retry_after_seconds": 5,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/folios_temporarily_unavailable",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## sii_rejected
+
+Fuente: https://docs.tupana.ai/api-reference/errors/sii_rejected · Sección: API Facturación / Códigos
+
+> El SII rechazó el documento. El SII revisó el documento y no lo aceptó. El motivo viene en el mensaje.
+
+| | |
+|---|---|
+| **Código** | `sii_rejected` |
+| **Tipo** | `sii_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**El SII rechazó el documento.** El SII revisó el documento y no lo aceptó. El motivo viene en el mensaje.
+
+### Causas posibles
+
+- Algún dato del documento no cumple una regla del SII.
+
+### Cómo resolverlo
+
+- Corrige el dato que indica el mensaje y emite de nuevo.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "sii_error",
+    "code": "sii_rejected",
+    "message": "El SII revisó el documento y no lo aceptó. El motivo viene en el mensaje.",
+    "suggested_action": "Corrige lo que indica el mensaje del SII y emite de nuevo.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/sii_rejected",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## sii_unauthorized
+
+Fuente: https://docs.tupana.ai/api-reference/errors/sii_unauthorized · Sección: API Facturación / Códigos
+
+> La empresa no está autorizada en el SII. El SII no permite a la empresa, o al usuario, hacer esta operación.
+
+| | |
+|---|---|
+| **Código** | `sii_unauthorized` |
+| **Tipo** | `sii_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**La empresa no está autorizada en el SII.** El SII no permite a la empresa, o al usuario, hacer esta operación.
+
+### Causas posibles
+
+- La empresa no está habilitada para emitir ese tipo de documento.
+- El usuario no tiene permisos en el SII para la empresa.
+
+### Cómo resolverlo
+
+- Revisa en el SII que la empresa esté habilitada para ese tipo de documento.
+- Usa la credencial de un usuario con permisos.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "sii_error",
+    "code": "sii_unauthorized",
+    "message": "El SII no permite a la empresa, o al usuario, hacer esta operación.",
+    "suggested_action": "Revisa en el SII la habilitación de la empresa y los permisos del usuario.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/sii_unauthorized",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## sii_session_expired
+
+Fuente: https://docs.tupana.ai/api-reference/errors/sii_session_expired · Sección: API Facturación / Códigos
+
+> Sesión del SII vencida. La sesión con el SII se cerró y la estamos abriendo de nuevo.
+
+| | |
+|---|---|
+| **Código** | `sii_session_expired` |
+| **Tipo** | `sii_error` |
+| **Estado HTTP** | 503 |
+| **¿Reintentar?** | Sí |
+
+### Qué significa
+
+**Sesión del SII vencida.** La sesión con el SII se cerró y la estamos abriendo de nuevo.
+
+### Causas posibles
+
+- El SII cierra las sesiones cada cierto tiempo.
+
+### Cómo resolverlo
+
+- Reintenta en unos segundos.
+
+### ¿Conviene reintentar?
+
+Sí. Espera al menos 15 segundos y reintenta; si el error sigue, aumenta la espera en cada intento.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "sii_error",
+    "code": "sii_session_expired",
+    "message": "La sesión con el SII se cerró y la estamos abriendo de nuevo.",
+    "suggested_action": "Reintenta en unos segundos.",
+    "retryable": true,
+    "retry_after_seconds": 15,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/sii_session_expired",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## sii_unavailable
+
+Fuente: https://docs.tupana.ai/api-reference/errors/sii_unavailable · Sección: API Facturación / Códigos
+
+> SII no disponible. El SII no está respondiendo o responde con errores.
+
+| | |
+|---|---|
+| **Código** | `sii_unavailable` |
+| **Tipo** | `sii_error` |
+| **Estado HTTP** | 503 |
+| **¿Reintentar?** | Sí |
+
+### Qué significa
+
+**SII no disponible.** El SII no está respondiendo o responde con errores.
+
+### Causas posibles
+
+- El SII está caído o en mantención.
+
+### Cómo resolverlo
+
+- Reintenta en unos minutos con la misma llave de idempotencia.
+
+### ¿Conviene reintentar?
+
+Sí. Espera al menos 120 segundos y reintenta; si el error sigue, aumenta la espera en cada intento.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "sii_error",
+    "code": "sii_unavailable",
+    "message": "El SII no está respondiendo o responde con errores.",
+    "suggested_action": "Reintenta en unos minutos con la misma llave de idempotencia.",
+    "retryable": true,
+    "retry_after_seconds": 120,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/sii_unavailable",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## document_ids_empty
+
+Fuente: https://docs.tupana.ai/api-reference/errors/document_ids_empty · Sección: API Facturación / Códigos
+
+> Falta la lista de documentos. document_ids es obligatorio y debe ser una lista con al menos un documento.
+
+| | |
+|---|---|
+| **Código** | `document_ids_empty` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Falta la lista de documentos.** document_ids es obligatorio y debe ser una lista con al menos un documento.
+
+### Causas posibles
+
+- document_ids no viene, viene vacío o no es una lista.
+
+### Cómo resolverlo
+
+- Envía document_ids como una lista con los ids de los documentos.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "document_ids_empty",
+    "message": "document_ids es obligatorio y debe ser una lista con al menos un documento.",
+    "suggested_action": "Envía document_ids como una lista con al menos un id.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/document_ids_empty",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## document_not_cessionable
+
+Fuente: https://docs.tupana.ai/api-reference/errors/document_not_cessionable · Sección: API Facturación / Códigos
+
+> El documento no se puede ceder. Solo se pueden ceder facturas electrónicas (33) y facturas exentas (34).
+
+| | |
+|---|---|
+| **Código** | `document_not_cessionable` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**El documento no se puede ceder.** Solo se pueden ceder facturas electrónicas (33) y facturas exentas (34).
+
+### Causas posibles
+
+- Alguno de los documentos es de otro tipo.
+
+### Cómo resolverlo
+
+- Deja en la lista solo facturas 33 o 34.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "document_not_cessionable",
+    "message": "Solo se pueden ceder facturas electrónicas (33) y facturas exentas (34).",
+    "suggested_action": "Envía solo facturas electrónicas (33) o exentas (34).",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/document_not_cessionable",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## assignee_data_incomplete
+
+Fuente: https://docs.tupana.ai/api-reference/errors/assignee_data_incomplete · Sección: API Facturación / Códigos
+
+> Faltan datos del cesionario. Falta un dato obligatorio de quien recibe la cesión.
+
+| | |
+|---|---|
+| **Código** | `assignee_data_incomplete` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Faltan datos del cesionario.** Falta un dato obligatorio de quien recibe la cesión.
+
+### Causas posibles
+
+- Falta el RUT, el dígito verificador, la razón social, la dirección o el correo del cesionario.
+
+### Cómo resolverlo
+
+- Completa el dato que indica el mensaje.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "assignee_data_incomplete",
+    "message": "Falta un dato obligatorio de quien recibe la cesión.",
+    "suggested_action": "Completa el dato del cesionario que indica el mensaje.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/assignee_data_incomplete",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## assignee_rut_invalid
+
+Fuente: https://docs.tupana.ai/api-reference/errors/assignee_rut_invalid · Sección: API Facturación / Códigos
+
+> RUT del cesionario inválido. El RUT del cesionario no es válido o no coincide con su dígito verificador.
+
+| | |
+|---|---|
+| **Código** | `assignee_rut_invalid` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**RUT del cesionario inválido.** El RUT del cesionario no es válido o no coincide con su dígito verificador.
+
+### Causas posibles
+
+- El RUT está mal escrito.
+- El dígito verificador enviado aparte no coincide con el del RUT.
+
+### Cómo resolverlo
+
+- Corrige el RUT del cesionario.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "assignee_rut_invalid",
+    "message": "El RUT del cesionario no es válido o no coincide con su dígito verificador.",
+    "suggested_action": "Corrige el RUT del cesionario.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/assignee_rut_invalid",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## assignor_email_missing
+
+Fuente: https://docs.tupana.ai/api-reference/errors/assignor_email_missing · Sección: API Facturación / Códigos
+
+> Falta el correo del cedente. La empresa que cede no tiene un correo configurado, y el SII lo exige.
+
+| | |
+|---|---|
+| **Código** | `assignor_email_missing` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Falta el correo del cedente.** La empresa que cede no tiene un correo configurado, y el SII lo exige.
+
+### Causas posibles
+
+- La empresa no tiene correo de contacto.
+
+### Cómo resolverlo
+
+- Configura el correo de la empresa y reintenta.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "assignor_email_missing",
+    "message": "La empresa que cede no tiene un correo configurado, y el SII lo exige.",
+    "suggested_action": "Configura el correo de la empresa que cede.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/assignor_email_missing",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## mixed_payers
+
+Fuente: https://docs.tupana.ai/api-reference/errors/mixed_payers · Sección: API Facturación / Códigos
+
+> Documentos de distintos pagadores. Los documentos de un cobro deben ser todos del mismo pagador.
+
+| | |
+|---|---|
+| **Código** | `mixed_payers` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Documentos de distintos pagadores.** Los documentos de un cobro deben ser todos del mismo pagador.
+
+### Causas posibles
+
+- La lista mezcla documentos de distintos receptores.
+
+### Cómo resolverlo
+
+- Crea un cobro por cada pagador.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "mixed_payers",
+    "message": "Los documentos de un cobro deben ser todos del mismo pagador.",
+    "suggested_action": "Crea un cobro separado por cada pagador.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/mixed_payers",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## cannot_mix_modes
+
+Fuente: https://docs.tupana.ai/api-reference/errors/cannot_mix_modes · Sección: API Facturación / Códigos
+
+> Modos de cobro mezclados. Un cobro se crea a partir de documentos existentes o con una nota de cobro, no con ambos.
+
+| | |
+|---|---|
+| **Código** | `cannot_mix_modes` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Modos de cobro mezclados.** Un cobro se crea a partir de documentos existentes o con una nota de cobro, no con ambos.
+
+### Causas posibles
+
+- La solicitud trae document_ids y también los datos de una nota de cobro.
+
+### Cómo resolverlo
+
+- Envía solo una de las dos formas.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "cannot_mix_modes",
+    "message": "Un cobro se crea a partir de documentos existentes o con una nota de cobro, no con ambos.",
+    "suggested_action": "Envía document_ids o los datos de la nota de cobro, no ambos.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/cannot_mix_modes",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## document_not_owned
+
+Fuente: https://docs.tupana.ai/api-reference/errors/document_not_owned · Sección: API Facturación / Códigos
+
+> El documento no es de quien cobra. Alguno de los documentos no fue emitido por la empresa que cobra.
+
+| | |
+|---|---|
+| **Código** | `document_not_owned` |
+| **Tipo** | `permission_error` |
+| **Estado HTTP** | 403 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**El documento no es de quien cobra.** Alguno de los documentos no fue emitido por la empresa que cobra.
+
+### Causas posibles
+
+- El documento es de otra empresa.
+
+### Cómo resolverlo
+
+- Usa solo documentos emitidos por la empresa que cobra.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "permission_error",
+    "code": "document_not_owned",
+    "message": "Alguno de los documentos no fue emitido por la empresa que cobra.",
+    "suggested_action": "Usa solo documentos emitidos por la empresa que cobra.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/document_not_owned",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## document_not_payable
+
+Fuente: https://docs.tupana.ai/api-reference/errors/document_not_payable · Sección: API Facturación / Códigos
+
+> El documento no se puede cobrar. Ese tipo de documento, o su estado, no admite un cobro.
+
+| | |
+|---|---|
+| **Código** | `document_not_payable` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**El documento no se puede cobrar.** Ese tipo de documento, o su estado, no admite un cobro.
+
+### Causas posibles
+
+- El documento es de un tipo que no se cobra.
+- El documento fue anulado.
+
+### Cómo resolverlo
+
+- Usa una factura o boleta vigente.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "document_not_payable",
+    "message": "Ese tipo de documento, o su estado, no admite un cobro.",
+    "suggested_action": "Usa un documento vigente de un tipo que se pueda cobrar.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/document_not_payable",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## document_already_paid
+
+Fuente: https://docs.tupana.ai/api-reference/errors/document_already_paid · Sección: API Facturación / Códigos
+
+> El documento ya está pagado. Alguno de los documentos ya figura como pagado.
+
+| | |
+|---|---|
+| **Código** | `document_already_paid` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**El documento ya está pagado.** Alguno de los documentos ya figura como pagado.
+
+### Causas posibles
+
+- El documento ya se pagó, por este medio o por otro.
+
+### Cómo resolverlo
+
+- Sácalo de la lista.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "document_already_paid",
+    "message": "Alguno de los documentos ya figura como pagado.",
+    "suggested_action": "Saca de la lista los documentos ya pagados.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/document_already_paid",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## sandbox_document_required
+
+Fuente: https://docs.tupana.ai/api-reference/errors/sandbox_document_required · Sección: API Facturación / Códigos
+
+> Ambiente del documento incorrecto. El documento y la API key no son del mismo ambiente.
+
+| | |
+|---|---|
+| **Código** | `sandbox_document_required` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Ambiente del documento incorrecto.** El documento y la API key no son del mismo ambiente.
+
+### Causas posibles
+
+- Se usó un documento real con una key de sandbox, o al revés.
+
+### Cómo resolverlo
+
+- Usa documentos del mismo ambiente que la API key.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "sandbox_document_required",
+    "message": "El documento y la API key no son del mismo ambiente.",
+    "suggested_action": "Usa documentos del mismo ambiente que tu API key.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/sandbox_document_required",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## banking_info_missing
+
+Fuente: https://docs.tupana.ai/api-reference/errors/banking_info_missing · Sección: API Facturación / Códigos
+
+> Faltan los datos bancarios. La empresa que cobra no tiene una cuenta bancaria configurada para recibir el dinero.
+
+| | |
+|---|---|
+| **Código** | `banking_info_missing` |
+| **Tipo** | `payment_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Faltan los datos bancarios.** La empresa que cobra no tiene una cuenta bancaria configurada para recibir el dinero.
+
+### Causas posibles
+
+- La empresa no ha ingresado su cuenta bancaria.
+
+### Cómo resolverlo
+
+- Configura la cuenta bancaria de la empresa y reintenta.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "payment_error",
+    "code": "banking_info_missing",
+    "message": "La empresa que cobra no tiene una cuenta bancaria configurada para recibir el dinero.",
+    "suggested_action": "Configura la cuenta bancaria de la empresa que cobra.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/banking_info_missing",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## internal_error
+
+Fuente: https://docs.tupana.ai/api-reference/errors/internal_error · Sección: API Facturación / Códigos
+
+> Error interno. Algo falló del lado de Tupana. No es un problema de tu solicitud.
+
+| | |
+|---|---|
+| **Código** | `internal_error` |
+| **Tipo** | `api_error` |
+| **Estado HTTP** | 500, 502, 422 |
+| **¿Reintentar?** | Sí |
+
+### Qué significa
+
+**Error interno.** Algo falló del lado de Tupana. No es un problema de tu solicitud.
+
+### Causas posibles
+
+- Un error nuestro.
+
+### Cómo resolverlo
+
+- Reintenta con la misma llave de idempotencia.
+- Si persiste, escríbenos con el request_id.
+
+### ¿Conviene reintentar?
+
+Sí. Reintenta, aumentando la espera en cada intento.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "api_error",
+    "code": "internal_error",
+    "message": "Algo falló del lado de Tupana. No es un problema de tu solicitud.",
+    "suggested_action": "Reintenta; si persiste, repórtanos el request_id.",
+    "retryable": true,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/internal_error",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## server_busy
+
+Fuente: https://docs.tupana.ai/api-reference/errors/server_busy · Sección: API Facturación / Códigos
+
+> Servicio ocupado. Estamos atendiendo el máximo de consultas simultáneas. No es un límite de tu cuenta.
+
+| | |
+|---|---|
+| **Código** | `server_busy` |
+| **Tipo** | `api_error` |
+| **Estado HTTP** | 503 |
+| **¿Reintentar?** | Sí |
+
+### Qué significa
+
+**Servicio ocupado.** Estamos atendiendo el máximo de consultas simultáneas. No es un límite de tu cuenta.
+
+### Causas posibles
+
+- Un momento de mucha carga en Tupana.
+
+### Cómo resolverlo
+
+- Reintenta después de los segundos del header Retry-After.
+
+### ¿Conviene reintentar?
+
+Sí. Espera al menos 5 segundos y reintenta; si el error sigue, aumenta la espera en cada intento.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "api_error",
+    "code": "server_busy",
+    "message": "Estamos atendiendo el máximo de consultas simultáneas. No es un límite de tu cuenta.",
+    "suggested_action": "Reintenta en unos segundos.",
+    "retryable": true,
+    "retry_after_seconds": 5,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/server_busy",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## service_unavailable
+
+Fuente: https://docs.tupana.ai/api-reference/errors/service_unavailable · Sección: API Facturación / Códigos
+
+> Servicio no disponible. El servicio no está disponible por un momento.
+
+| | |
+|---|---|
+| **Código** | `service_unavailable` |
+| **Tipo** | `api_error` |
+| **Estado HTTP** | 503 |
+| **¿Reintentar?** | Sí |
+
+### Qué significa
+
+**Servicio no disponible.** El servicio no está disponible por un momento.
+
+### Causas posibles
+
+- Una mantención, una caída breve o un momento de alta carga en Tupana.
+
+### Cómo resolverlo
+
+- Reintenta en unos minutos con la misma llave de idempotencia.
+
+### ¿Conviene reintentar?
+
+Sí. Espera al menos 60 segundos y reintenta; si el error sigue, aumenta la espera en cada intento.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "api_error",
+    "code": "service_unavailable",
+    "message": "El servicio no está disponible por un momento.",
+    "suggested_action": "Reintenta en unos minutos.",
+    "retryable": true,
+    "retry_after_seconds": 60,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/service_unavailable",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
 
 ---
 

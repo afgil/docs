@@ -1,0 +1,53 @@
+---
+title: 'parameter_invalid'
+sidebarTitle: 'parameter_invalid'
+description: 'Parámetro inválido. Un campo tiene un valor o un formato que no aceptamos. El campo viene en param.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `parameter_invalid` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400, 422 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Parámetro inválido.** Un campo tiene un valor o un formato que no aceptamos. El campo viene en param.
+
+## Causas posibles
+
+- El tipo de dato no corresponde (texto donde va un número, por ejemplo).
+- El valor no está entre las opciones permitidas.
+- Una fecha o un RUT viene con un formato distinto al esperado.
+
+## Cómo resolverlo
+
+- Corrige el campo indicado en param según el mensaje.
+- Revisa el formato esperado en la referencia de esa ruta.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "parameter_invalid",
+    "message": "Un campo tiene un valor o un formato que no aceptamos. El campo viene en param.",
+    "suggested_action": "Corrige el campo indicado en param según el mensaje.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/parameter_invalid",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

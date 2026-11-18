@@ -1,0 +1,50 @@
+---
+title: 'sii_rejected'
+sidebarTitle: 'sii_rejected'
+description: 'El SII rechazó el documento. El SII revisó el documento y no lo aceptó. El motivo viene en el mensaje.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `sii_rejected` |
+| **Tipo** | `sii_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**El SII rechazó el documento.** El SII revisó el documento y no lo aceptó. El motivo viene en el mensaje.
+
+## Causas posibles
+
+- Algún dato del documento no cumple una regla del SII.
+
+## Cómo resolverlo
+
+- Corrige el dato que indica el mensaje y emite de nuevo.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "sii_error",
+    "code": "sii_rejected",
+    "message": "El SII revisó el documento y no lo aceptó. El motivo viene en el mensaje.",
+    "suggested_action": "Corrige lo que indica el mensaje del SII y emite de nuevo.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/sii_rejected",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

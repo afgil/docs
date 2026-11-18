@@ -1,0 +1,971 @@
+{
+  "version": 1,
+  "types": {
+    "invalid_request_error": "La solicitud está mal armada: falta un parámetro, tiene un valor inválido o no aplica al estado actual del recurso.",
+    "authentication_error": "No pudimos identificar quién llama: falta la API key o no es válida.",
+    "permission_error": "La API key es válida, pero no tiene acceso a lo que pide.",
+    "not_found_error": "El recurso o la ruta no existe.",
+    "validation_error": "Los datos son válidos de forma, pero no cumplen una regla de negocio o tributaria.",
+    "conflict_error": "La solicitud choca con el estado actual de los datos.",
+    "idempotency_error": "La llave de idempotencia se usó de una forma no permitida.",
+    "credential_error": "Falta una credencial de la empresa (SII o certificado digital) o no sirve.",
+    "sii_error": "El SII rechazó la operación o no está disponible.",
+    "payment_error": "Falta algo para poder cobrar o recaudar.",
+    "billing_error": "El plan de la cuenta no permite seguir usando producción.",
+    "rate_limit_error": "Demasiadas solicitudes en poco tiempo.",
+    "api_error": "Algo falló del lado de Tupana."
+  },
+  "groups": {
+    "authentication": "Autenticación y permisos",
+    "request": "Solicitud",
+    "limits": "Límites e idempotencia",
+    "billing": "Plan y facturación de la cuenta",
+    "credentials": "Credenciales de la empresa",
+    "sii": "SII",
+    "cessions": "Cesiones",
+    "collections": "Recaudación",
+    "server": "Errores de Tupana"
+  },
+  "codes": {
+    "unauthenticated": {
+      "type": "authentication_error",
+      "http_status": [
+        403,
+        401,
+        422
+      ],
+      "responsibility": "client",
+      "group": "authentication",
+      "status": "live",
+      "title": "Falta la API key",
+      "description": "La solicitud llegó sin una API key que podamos leer.",
+      "causes": [
+        "No se envió el header Authorization.",
+        "El header no tiene el formato Api-Key <tu_api_key>.",
+        "Un proxy o intermediario quitó el header antes de llegar a Tupana."
+      ],
+      "solutions": [
+        "Envía el header Authorization: Api-Key <tu_api_key> en cada solicitud.",
+        "Revisa que no haya espacios ni comillas de más en la key.",
+        "Si usas un proxy, confirma que reenvía el header Authorization sin cambios."
+      ],
+      "suggested_action": "Envía el header Authorization: Api-Key <tu_api_key>.",
+      "retryable": false
+    },
+    "forbidden": {
+      "type": "permission_error",
+      "http_status": [
+        403,
+        401,
+        422
+      ],
+      "responsibility": "client",
+      "group": "authentication",
+      "status": "live",
+      "title": "Sin acceso",
+      "description": "La API key no puede hacer esta operación o no tiene acceso a esta empresa.",
+      "causes": [
+        "La API key fue desactivada o eliminada.",
+        "La key no existe (por ejemplo, quedó mal copiada).",
+        "La key es de sandbox y la ruta es de producción, o al revés.",
+        "La empresa indicada no está conectada a tu cuenta."
+      ],
+      "solutions": [
+        "Revisa en la consola que la key esté activa y cópiala de nuevo.",
+        "Usa la key del ambiente correcto: sandbox para pruebas, producción para documentos reales.",
+        "Confirma que la empresa esté conectada a tu cuenta en la consola."
+      ],
+      "suggested_action": "Revisa en la consola que la API key esté activa y que la empresa esté conectada a tu cuenta.",
+      "retryable": false
+    },
+    "sandbox_read_only": {
+      "type": "permission_error",
+      "http_status": [
+        403
+      ],
+      "responsibility": "client",
+      "group": "authentication",
+      "status": "live",
+      "title": "Operación no disponible con una key de sandbox",
+      "description": "Con una API key de sandbox las conexiones de empresas son de solo lectura.",
+      "causes": [
+        "Se intentó desactivar o reautorizar una conexión con una key de sandbox."
+      ],
+      "solutions": [
+        "Repite la operación con una API key de producción."
+      ],
+      "suggested_action": "Usa una API key de producción para esta operación.",
+      "retryable": false
+    },
+    "bad_request": {
+      "type": "invalid_request_error",
+      "http_status": [
+        400,
+        422
+      ],
+      "responsibility": "client",
+      "group": "request",
+      "status": "live",
+      "title": "Solicitud inválida",
+      "description": "No pudimos leer la solicitud.",
+      "causes": [
+        "El cuerpo no es JSON válido.",
+        "Falta el header Content-Type: application/json."
+      ],
+      "solutions": [
+        "Valida que el cuerpo sea JSON bien formado.",
+        "Envía el header Content-Type: application/json."
+      ],
+      "suggested_action": "Revisa que el cuerpo sea JSON válido y envía Content-Type: application/json.",
+      "retryable": false
+    },
+    "parameter_missing": {
+      "type": "invalid_request_error",
+      "http_status": [
+        400,
+        422
+      ],
+      "responsibility": "client",
+      "group": "request",
+      "status": "live",
+      "title": "Falta un parámetro requerido",
+      "description": "La solicitud no trae un campo obligatorio. El campo que falta viene en param.",
+      "causes": [
+        "Se omitió un campo obligatorio.",
+        "El campo viene con otro nombre o en otro nivel del JSON."
+      ],
+      "solutions": [
+        "Agrega el campo indicado en param.",
+        "Compara tu solicitud con el ejemplo de la referencia de esa ruta."
+      ],
+      "suggested_action": "Agrega el campo indicado en param y reintenta.",
+      "retryable": false
+    },
+    "parameter_invalid": {
+      "type": "invalid_request_error",
+      "http_status": [
+        400,
+        422
+      ],
+      "responsibility": "client",
+      "group": "request",
+      "status": "live",
+      "title": "Parámetro inválido",
+      "description": "Un campo tiene un valor o un formato que no aceptamos. El campo viene en param.",
+      "causes": [
+        "El tipo de dato no corresponde (texto donde va un número, por ejemplo).",
+        "El valor no está entre las opciones permitidas.",
+        "Una fecha o un RUT viene con un formato distinto al esperado."
+      ],
+      "solutions": [
+        "Corrige el campo indicado en param según el mensaje.",
+        "Revisa el formato esperado en la referencia de esa ruta."
+      ],
+      "suggested_action": "Corrige el campo indicado en param según el mensaje.",
+      "retryable": false
+    },
+    "validation_error": {
+      "type": "validation_error",
+      "http_status": [
+        400,
+        422
+      ],
+      "responsibility": "client",
+      "group": "request",
+      "status": "live",
+      "title": "Los datos no pasan la validación",
+      "description": "Uno o más campos no son válidos. El detalle por campo viene en detail.",
+      "causes": [
+        "Faltan campos obligatorios.",
+        "Algún campo tiene un valor o formato inválido."
+      ],
+      "solutions": [
+        "Lee detail: trae el problema de cada campo.",
+        "Corrige esos campos y reenvía."
+      ],
+      "suggested_action": "Lee detail, corrige los campos indicados y reenvía.",
+      "retryable": false
+    },
+    "unprocessable": {
+      "type": "validation_error",
+      "http_status": [
+        422
+      ],
+      "responsibility": "client",
+      "group": "request",
+      "status": "live",
+      "title": "No se puede procesar",
+      "description": "La solicitud está bien formada, pero no cumple una regla del documento o de la operación.",
+      "causes": [
+        "Los datos se contradicen entre sí.",
+        "La operación no aplica a ese tipo de documento."
+      ],
+      "solutions": [
+        "Lee el mensaje: dice qué regla no se cumple.",
+        "Ajusta los datos y reenvía."
+      ],
+      "suggested_action": "Ajusta los datos según el mensaje y reenvía.",
+      "retryable": false
+    },
+    "not_found": {
+      "type": "not_found_error",
+      "http_status": [
+        404
+      ],
+      "responsibility": "client",
+      "group": "request",
+      "status": "live",
+      "title": "No encontrado",
+      "description": "La ruta o el recurso no existe.",
+      "causes": [
+        "La URL tiene un error o le falta la barra final.",
+        "El id no existe o es de otra cuenta.",
+        "El id es de sandbox y la key de producción, o al revés."
+      ],
+      "solutions": [
+        "Revisa la URL contra la referencia.",
+        "Confirma que el id exista y sea del mismo ambiente que la key."
+      ],
+      "suggested_action": "Revisa la URL y que el id exista en el ambiente de tu API key.",
+      "retryable": false
+    },
+    "resource_missing": {
+      "type": "not_found_error",
+      "http_status": [
+        404
+      ],
+      "responsibility": "client",
+      "group": "request",
+      "status": "live",
+      "title": "El recurso no existe",
+      "description": "No existe un recurso con ese id, o no pertenece a tu cuenta.",
+      "causes": [
+        "El id quedó mal copiado.",
+        "El recurso es de otra empresa o de otra cuenta.",
+        "El id es de sandbox y la key de producción, o al revés."
+      ],
+      "solutions": [
+        "Verifica el id (viene en resource cuando lo conocemos).",
+        "Lista los recursos de esa ruta para confirmar que existe."
+      ],
+      "suggested_action": "Verifica el id y que el recurso sea de tu cuenta y de este ambiente.",
+      "retryable": false
+    },
+    "method_not_allowed": {
+      "type": "invalid_request_error",
+      "http_status": [
+        405
+      ],
+      "responsibility": "client",
+      "group": "request",
+      "status": "live",
+      "title": "Método no permitido",
+      "description": "La ruta existe, pero no acepta ese método HTTP.",
+      "causes": [
+        "Se usó GET donde va POST, o al revés.",
+        "La URL apunta a la lista y la operación es sobre un recurso (o al revés)."
+      ],
+      "solutions": [
+        "Revisa en la referencia qué métodos acepta la ruta."
+      ],
+      "suggested_action": "Usa el método HTTP que la referencia indica para esa ruta.",
+      "retryable": false
+    },
+    "conflict": {
+      "type": "conflict_error",
+      "http_status": [
+        409
+      ],
+      "responsibility": "client",
+      "group": "request",
+      "status": "live",
+      "title": "Conflicto con datos existentes",
+      "description": "La operación choca con algo que ya existe o con el estado actual del recurso.",
+      "causes": [
+        "Ya existe un recurso con esos mismos datos únicos.",
+        "Dos solicitudes iguales llegaron al mismo tiempo."
+      ],
+      "solutions": [
+        "Consulta el recurso para ver su estado actual antes de reintentar.",
+        "Usa una llave de idempotencia para no crear duplicados."
+      ],
+      "suggested_action": "Consulta el estado actual del recurso antes de reintentar.",
+      "retryable": false
+    },
+    "cursor_invalid": {
+      "type": "invalid_request_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "request",
+      "status": "live",
+      "title": "Cursor inválido",
+      "description": "El cursor de paginación no es uno que hayamos emitido.",
+      "causes": [
+        "El cursor fue modificado o quedó cortado.",
+        "Se usó el cursor de otra ruta."
+      ],
+      "solutions": [
+        "Usa tal cual el next_cursor de la respuesta anterior.",
+        "Si lo perdiste, parte de nuevo sin cursor."
+      ],
+      "suggested_action": "Usa el next_cursor de la respuesta anterior sin modificarlo.",
+      "retryable": false
+    },
+    "cursor_expired": {
+      "type": "invalid_request_error",
+      "http_status": [
+        410
+      ],
+      "responsibility": "client",
+      "group": "request",
+      "status": "live",
+      "title": "Cursor vencido",
+      "description": "El cursor es más antiguo que el período que guardamos de cambios, así que podría saltarse algunos.",
+      "causes": [
+        "Pasó mucho tiempo desde la última sincronización."
+      ],
+      "solutions": [
+        "Haz una carga completa sin cursor y sigue desde el nuevo next_cursor."
+      ],
+      "suggested_action": "Vuelve a cargar todo sin cursor y continúa con el nuevo next_cursor.",
+      "retryable": false
+    },
+    "rate_limited": {
+      "type": "rate_limit_error",
+      "http_status": [
+        429
+      ],
+      "responsibility": "client",
+      "group": "limits",
+      "status": "live",
+      "title": "Demasiadas solicitudes",
+      "description": "Superaste el límite de solicitudes de tu cuenta para ese período.",
+      "causes": [
+        "Un ciclo consulta sin pausas.",
+        "Varios procesos comparten la misma API key."
+      ],
+      "solutions": [
+        "Espera los segundos del header Retry-After y reintenta.",
+        "Reintenta con esperas crecientes.",
+        "Usa webhooks en vez de consultar el estado una y otra vez."
+      ],
+      "suggested_action": "Espera los segundos de Retry-After y reintenta con esperas crecientes.",
+      "retryable": true
+    },
+    "idempotency_key_reused": {
+      "type": "idempotency_error",
+      "http_status": [
+        409
+      ],
+      "responsibility": "client",
+      "group": "limits",
+      "status": "planned",
+      "title": "Llave de idempotencia reutilizada",
+      "description": "Esa Idempotency-Key ya se usó con una solicitud distinta.",
+      "causes": [
+        "Se reutilizó la misma llave para otro documento u otros datos."
+      ],
+      "solutions": [
+        "Genera una llave nueva para cada operación distinta.",
+        "Repite la misma llave solo al reintentar exactamente la misma solicitud."
+      ],
+      "suggested_action": "Usa una Idempotency-Key nueva para esta operación.",
+      "retryable": false
+    },
+    "emission_in_progress": {
+      "type": "conflict_error",
+      "http_status": [
+        409
+      ],
+      "responsibility": "client",
+      "group": "limits",
+      "status": "live",
+      "title": "Emisión en curso",
+      "description": "Ya hay una emisión en curso con esa misma Idempotency-Key.",
+      "causes": [
+        "Se reenvió la solicitud antes de que terminara la anterior."
+      ],
+      "solutions": [
+        "Espera un segundo y reintenta con la misma Idempotency-Key: recibirás el resultado de la emisión original."
+      ],
+      "suggested_action": "Espera un segundo y reintenta con la misma Idempotency-Key.",
+      "retryable": true,
+      "retry_after_seconds": 1
+    },
+    "payment_required": {
+      "type": "billing_error",
+      "http_status": [
+        402
+      ],
+      "responsibility": "client",
+      "group": "billing",
+      "status": "live",
+      "title": "Producción en pausa por el plan",
+      "description": "Tu plan Developers no está al día, así que producción está en pausa. Sandbox sigue funcionando.",
+      "causes": [
+        "Terminó la prueba gratis y no hay tarjeta inscrita.",
+        "No pudimos cobrar el plan.",
+        "El plan fue cancelado."
+      ],
+      "solutions": [
+        "Inscribe o actualiza tu tarjeta en la consola; producción vuelve en menos de un minuto.",
+        "Mientras tanto puedes seguir probando en sandbox."
+      ],
+      "suggested_action": "Inscribe o actualiza tu tarjeta en la consola para reactivar producción.",
+      "retryable": false
+    },
+    "card_required": {
+      "type": "billing_error",
+      "http_status": [
+        402
+      ],
+      "responsibility": "client",
+      "group": "billing",
+      "status": "live",
+      "title": "Falta inscribir una tarjeta",
+      "description": "Para activar la cuenta hay que inscribir una tarjeta.",
+      "causes": [
+        "La cuenta todavía no tiene una tarjeta inscrita."
+      ],
+      "solutions": [
+        "Inscribe una tarjeta en la consola y repite la operación."
+      ],
+      "suggested_action": "Inscribe una tarjeta en la consola.",
+      "retryable": false
+    },
+    "no_active_credentials": {
+      "type": "credential_error",
+      "http_status": [
+        400,
+        403
+      ],
+      "responsibility": "client",
+      "group": "credentials",
+      "status": "live",
+      "title": "La empresa no tiene credenciales activas",
+      "description": "La empresa no tiene una credencial del SII o un certificado digital vigente para esta operación.",
+      "causes": [
+        "La empresa nunca conectó sus credenciales.",
+        "La credencial fue desactivada o venció."
+      ],
+      "solutions": [
+        "Conecta la empresa con Tupana Connect.",
+        "Si ya estaba conectada, reautoriza sus credenciales."
+      ],
+      "suggested_action": "Conecta o reautoriza las credenciales de la empresa con Tupana Connect.",
+      "retryable": false
+    },
+    "certificate_password_required": {
+      "type": "credential_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "credentials",
+      "status": "planned",
+      "title": "Falta la clave del certificado digital",
+      "description": "El certificado digital de la empresa está cargado, pero no tenemos su clave.",
+      "causes": [
+        "El certificado se subió sin clave."
+      ],
+      "solutions": [
+        "Vuelve a cargar el certificado indicando su clave."
+      ],
+      "suggested_action": "Carga de nuevo el certificado digital con su clave.",
+      "retryable": false
+    },
+    "certificate_invalid": {
+      "type": "credential_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "credentials",
+      "status": "planned",
+      "title": "Certificado digital inválido",
+      "description": "El certificado digital no se puede usar para firmar.",
+      "causes": [
+        "El certificado venció.",
+        "La clave no corresponde al certificado.",
+        "El archivo está dañado o no es un certificado."
+      ],
+      "solutions": [
+        "Carga un certificado vigente con su clave correcta."
+      ],
+      "suggested_action": "Carga un certificado digital vigente con su clave.",
+      "retryable": false
+    },
+    "sii_credentials_invalid": {
+      "type": "credential_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "credentials",
+      "status": "planned",
+      "title": "Clave del SII incorrecta",
+      "description": "El SII no aceptó el RUT y la clave guardados para la empresa.",
+      "causes": [
+        "La clave del SII cambió.",
+        "El RUT o la clave se ingresaron con un error."
+      ],
+      "solutions": [
+        "Reautoriza la empresa con su clave actual del SII."
+      ],
+      "suggested_action": "Reautoriza la empresa con su clave actual del SII.",
+      "retryable": false
+    },
+    "authorized_user_credential_missing": {
+      "type": "credential_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "credentials",
+      "status": "planned",
+      "title": "Falta la credencial del usuario autorizado",
+      "description": "El usuario autorizado indicado no tiene una credencial conectada.",
+      "causes": [
+        "El RUT del usuario autorizado no está conectado a la empresa."
+      ],
+      "solutions": [
+        "Conecta la credencial de ese usuario o usa uno que ya esté conectado."
+      ],
+      "suggested_action": "Conecta la credencial del usuario autorizado o usa otro ya conectado.",
+      "retryable": false
+    },
+    "folios_exhausted": {
+      "type": "sii_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "sii",
+      "status": "planned",
+      "title": "Sin folios disponibles",
+      "description": "No quedan folios para ese tipo de documento.",
+      "causes": [
+        "Se usaron todos los folios autorizados por el SII para ese tipo."
+      ],
+      "solutions": [
+        "Solicita más folios en el SII para ese tipo de documento y reintenta."
+      ],
+      "suggested_action": "Solicita más folios en el SII para ese tipo de documento.",
+      "retryable": false
+    },
+    "folios_temporarily_unavailable": {
+      "type": "api_error",
+      "http_status": [
+        503
+      ],
+      "responsibility": "own",
+      "group": "sii",
+      "status": "live",
+      "title": "Folios no disponibles por un momento",
+      "description": "La reserva de folios lista para emitir se vació por un momento. No significa que a la empresa se le acabaron los folios en el SII.",
+      "causes": [
+        "Se emitieron muchos documentos seguidos y la reserva todavía se está reponiendo."
+      ],
+      "solutions": [
+        "Reintenta en unos segundos con la misma Idempotency-Key.",
+        "Si se repite durante varios minutos, escríbenos."
+      ],
+      "suggested_action": "Reintenta en unos segundos con la misma Idempotency-Key.",
+      "retryable": true,
+      "retry_after_seconds": 5
+    },
+    "sii_rejected": {
+      "type": "sii_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "sii",
+      "status": "live",
+      "title": "El SII rechazó el documento",
+      "description": "El SII revisó el documento y no lo aceptó. El motivo viene en el mensaje.",
+      "causes": [
+        "Algún dato del documento no cumple una regla del SII."
+      ],
+      "solutions": [
+        "Corrige el dato que indica el mensaje y emite de nuevo."
+      ],
+      "suggested_action": "Corrige lo que indica el mensaje del SII y emite de nuevo.",
+      "retryable": false
+    },
+    "sii_unauthorized": {
+      "type": "sii_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "sii",
+      "status": "live",
+      "title": "La empresa no está autorizada en el SII",
+      "description": "El SII no permite a la empresa, o al usuario, hacer esta operación.",
+      "causes": [
+        "La empresa no está habilitada para emitir ese tipo de documento.",
+        "El usuario no tiene permisos en el SII para la empresa."
+      ],
+      "solutions": [
+        "Revisa en el SII que la empresa esté habilitada para ese tipo de documento.",
+        "Usa la credencial de un usuario con permisos."
+      ],
+      "suggested_action": "Revisa en el SII la habilitación de la empresa y los permisos del usuario.",
+      "retryable": false
+    },
+    "sii_session_expired": {
+      "type": "sii_error",
+      "http_status": [
+        503
+      ],
+      "responsibility": "upstream",
+      "group": "sii",
+      "status": "live",
+      "title": "Sesión del SII vencida",
+      "description": "La sesión con el SII se cerró y la estamos abriendo de nuevo.",
+      "causes": [
+        "El SII cierra las sesiones cada cierto tiempo."
+      ],
+      "solutions": [
+        "Reintenta en unos segundos."
+      ],
+      "suggested_action": "Reintenta en unos segundos.",
+      "retryable": true,
+      "retry_after_seconds": 15
+    },
+    "sii_unavailable": {
+      "type": "sii_error",
+      "http_status": [
+        503
+      ],
+      "responsibility": "upstream",
+      "group": "sii",
+      "status": "live",
+      "title": "SII no disponible",
+      "description": "El SII no está respondiendo o responde con errores.",
+      "causes": [
+        "El SII está caído o en mantención."
+      ],
+      "solutions": [
+        "Reintenta en unos minutos con la misma llave de idempotencia."
+      ],
+      "suggested_action": "Reintenta en unos minutos con la misma llave de idempotencia.",
+      "retryable": true,
+      "retry_after_seconds": 120
+    },
+    "document_ids_empty": {
+      "type": "invalid_request_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "cessions",
+      "status": "live",
+      "title": "Falta la lista de documentos",
+      "description": "document_ids es obligatorio y debe ser una lista con al menos un documento.",
+      "causes": [
+        "document_ids no viene, viene vacío o no es una lista."
+      ],
+      "solutions": [
+        "Envía document_ids como una lista con los ids de los documentos."
+      ],
+      "suggested_action": "Envía document_ids como una lista con al menos un id.",
+      "retryable": false
+    },
+    "document_not_cessionable": {
+      "type": "invalid_request_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "cessions",
+      "status": "live",
+      "title": "El documento no se puede ceder",
+      "description": "Solo se pueden ceder facturas electrónicas (33) y facturas exentas (34).",
+      "causes": [
+        "Alguno de los documentos es de otro tipo."
+      ],
+      "solutions": [
+        "Deja en la lista solo facturas 33 o 34."
+      ],
+      "suggested_action": "Envía solo facturas electrónicas (33) o exentas (34).",
+      "retryable": false
+    },
+    "assignee_data_incomplete": {
+      "type": "invalid_request_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "cessions",
+      "status": "live",
+      "title": "Faltan datos del cesionario",
+      "description": "Falta un dato obligatorio de quien recibe la cesión.",
+      "causes": [
+        "Falta el RUT, el dígito verificador, la razón social, la dirección o el correo del cesionario."
+      ],
+      "solutions": [
+        "Completa el dato que indica el mensaje."
+      ],
+      "suggested_action": "Completa el dato del cesionario que indica el mensaje.",
+      "retryable": false
+    },
+    "assignee_rut_invalid": {
+      "type": "invalid_request_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "cessions",
+      "status": "live",
+      "title": "RUT del cesionario inválido",
+      "description": "El RUT del cesionario no es válido o no coincide con su dígito verificador.",
+      "causes": [
+        "El RUT está mal escrito.",
+        "El dígito verificador enviado aparte no coincide con el del RUT."
+      ],
+      "solutions": [
+        "Corrige el RUT del cesionario."
+      ],
+      "suggested_action": "Corrige el RUT del cesionario.",
+      "retryable": false
+    },
+    "assignor_email_missing": {
+      "type": "invalid_request_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "cessions",
+      "status": "live",
+      "title": "Falta el correo del cedente",
+      "description": "La empresa que cede no tiene un correo configurado, y el SII lo exige.",
+      "causes": [
+        "La empresa no tiene correo de contacto."
+      ],
+      "solutions": [
+        "Configura el correo de la empresa y reintenta."
+      ],
+      "suggested_action": "Configura el correo de la empresa que cede.",
+      "retryable": false
+    },
+    "mixed_payers": {
+      "type": "invalid_request_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "collections",
+      "status": "live",
+      "title": "Documentos de distintos pagadores",
+      "description": "Los documentos de un cobro deben ser todos del mismo pagador.",
+      "causes": [
+        "La lista mezcla documentos de distintos receptores."
+      ],
+      "solutions": [
+        "Crea un cobro por cada pagador."
+      ],
+      "suggested_action": "Crea un cobro separado por cada pagador.",
+      "retryable": false
+    },
+    "cannot_mix_modes": {
+      "type": "invalid_request_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "collections",
+      "status": "live",
+      "title": "Modos de cobro mezclados",
+      "description": "Un cobro se crea a partir de documentos existentes o con una nota de cobro, no con ambos.",
+      "causes": [
+        "La solicitud trae document_ids y también los datos de una nota de cobro."
+      ],
+      "solutions": [
+        "Envía solo una de las dos formas."
+      ],
+      "suggested_action": "Envía document_ids o los datos de la nota de cobro, no ambos.",
+      "retryable": false
+    },
+    "document_not_owned": {
+      "type": "permission_error",
+      "http_status": [
+        403
+      ],
+      "responsibility": "client",
+      "group": "collections",
+      "status": "live",
+      "title": "El documento no es de quien cobra",
+      "description": "Alguno de los documentos no fue emitido por la empresa que cobra.",
+      "causes": [
+        "El documento es de otra empresa."
+      ],
+      "solutions": [
+        "Usa solo documentos emitidos por la empresa que cobra."
+      ],
+      "suggested_action": "Usa solo documentos emitidos por la empresa que cobra.",
+      "retryable": false
+    },
+    "document_not_payable": {
+      "type": "invalid_request_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "collections",
+      "status": "live",
+      "title": "El documento no se puede cobrar",
+      "description": "Ese tipo de documento, o su estado, no admite un cobro.",
+      "causes": [
+        "El documento es de un tipo que no se cobra.",
+        "El documento fue anulado."
+      ],
+      "solutions": [
+        "Usa una factura o boleta vigente."
+      ],
+      "suggested_action": "Usa un documento vigente de un tipo que se pueda cobrar.",
+      "retryable": false
+    },
+    "document_already_paid": {
+      "type": "invalid_request_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "collections",
+      "status": "live",
+      "title": "El documento ya está pagado",
+      "description": "Alguno de los documentos ya figura como pagado.",
+      "causes": [
+        "El documento ya se pagó, por este medio o por otro."
+      ],
+      "solutions": [
+        "Sácalo de la lista."
+      ],
+      "suggested_action": "Saca de la lista los documentos ya pagados.",
+      "retryable": false
+    },
+    "sandbox_document_required": {
+      "type": "invalid_request_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "collections",
+      "status": "live",
+      "title": "Ambiente del documento incorrecto",
+      "description": "El documento y la API key no son del mismo ambiente.",
+      "causes": [
+        "Se usó un documento real con una key de sandbox, o al revés."
+      ],
+      "solutions": [
+        "Usa documentos del mismo ambiente que la API key."
+      ],
+      "suggested_action": "Usa documentos del mismo ambiente que tu API key.",
+      "retryable": false
+    },
+    "banking_info_missing": {
+      "type": "payment_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "collections",
+      "status": "live",
+      "title": "Faltan los datos bancarios",
+      "description": "La empresa que cobra no tiene una cuenta bancaria configurada para recibir el dinero.",
+      "causes": [
+        "La empresa no ha ingresado su cuenta bancaria."
+      ],
+      "solutions": [
+        "Configura la cuenta bancaria de la empresa y reintenta."
+      ],
+      "suggested_action": "Configura la cuenta bancaria de la empresa que cobra.",
+      "retryable": false
+    },
+    "payment_gateway_not_configured": {
+      "type": "payment_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "collections",
+      "status": "planned",
+      "title": "Medio de pago sin configurar",
+      "description": "La empresa no tiene configurado el medio de pago que pide la solicitud.",
+      "causes": [
+        "El medio de pago nunca se activó para la empresa."
+      ],
+      "solutions": [
+        "Activa el medio de pago en Tupana o elige otro."
+      ],
+      "suggested_action": "Activa ese medio de pago para la empresa o elige otro.",
+      "retryable": false
+    },
+    "internal_error": {
+      "type": "api_error",
+      "http_status": [
+        500,
+        502,
+        422
+      ],
+      "responsibility": "own",
+      "group": "server",
+      "status": "live",
+      "title": "Error interno",
+      "description": "Algo falló del lado de Tupana. No es un problema de tu solicitud.",
+      "causes": [
+        "Un error nuestro."
+      ],
+      "solutions": [
+        "Reintenta con la misma llave de idempotencia.",
+        "Si persiste, escríbenos con el request_id."
+      ],
+      "suggested_action": "Reintenta; si persiste, repórtanos el request_id.",
+      "retryable": true
+    },
+    "server_busy": {
+      "type": "api_error",
+      "http_status": [
+        503
+      ],
+      "responsibility": "own",
+      "group": "server",
+      "status": "live",
+      "title": "Servicio ocupado",
+      "description": "Estamos atendiendo el máximo de consultas simultáneas. No es un límite de tu cuenta.",
+      "causes": [
+        "Un momento de mucha carga en Tupana."
+      ],
+      "solutions": [
+        "Reintenta después de los segundos del header Retry-After."
+      ],
+      "suggested_action": "Reintenta en unos segundos.",
+      "retryable": true,
+      "retry_after_seconds": 5
+    },
+    "service_unavailable": {
+      "type": "api_error",
+      "http_status": [
+        503
+      ],
+      "responsibility": "own",
+      "group": "server",
+      "status": "live",
+      "title": "Servicio no disponible",
+      "description": "El servicio no está disponible por un momento.",
+      "causes": [
+        "Una mantención, una caída breve o un momento de alta carga en Tupana."
+      ],
+      "solutions": [
+        "Reintenta en unos minutos con la misma llave de idempotencia."
+      ],
+      "suggested_action": "Reintenta en unos minutos.",
+      "retryable": true,
+      "retry_after_seconds": 60
+    }
+  }
+}

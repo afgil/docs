@@ -1,0 +1,52 @@
+---
+title: 'parameter_missing'
+sidebarTitle: 'parameter_missing'
+description: 'Falta un parámetro requerido. La solicitud no trae un campo obligatorio. El campo que falta viene en param.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `parameter_missing` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400, 422 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Falta un parámetro requerido.** La solicitud no trae un campo obligatorio. El campo que falta viene en param.
+
+## Causas posibles
+
+- Se omitió un campo obligatorio.
+- El campo viene con otro nombre o en otro nivel del JSON.
+
+## Cómo resolverlo
+
+- Agrega el campo indicado en param.
+- Compara tu solicitud con el ejemplo de la referencia de esa ruta.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "parameter_missing",
+    "message": "La solicitud no trae un campo obligatorio. El campo que falta viene en param.",
+    "suggested_action": "Agrega el campo indicado en param y reintenta.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/parameter_missing",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

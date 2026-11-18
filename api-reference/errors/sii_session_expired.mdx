@@ -1,0 +1,51 @@
+---
+title: 'sii_session_expired'
+sidebarTitle: 'sii_session_expired'
+description: 'Sesión del SII vencida. La sesión con el SII se cerró y la estamos abriendo de nuevo.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `sii_session_expired` |
+| **Tipo** | `sii_error` |
+| **Estado HTTP** | 503 |
+| **¿Reintentar?** | Sí |
+
+## Qué significa
+
+**Sesión del SII vencida.** La sesión con el SII se cerró y la estamos abriendo de nuevo.
+
+## Causas posibles
+
+- El SII cierra las sesiones cada cierto tiempo.
+
+## Cómo resolverlo
+
+- Reintenta en unos segundos.
+
+## ¿Conviene reintentar?
+
+Sí. Espera al menos 15 segundos y reintenta; si el error sigue, aumenta la espera en cada intento.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "sii_error",
+    "code": "sii_session_expired",
+    "message": "La sesión con el SII se cerró y la estamos abriendo de nuevo.",
+    "suggested_action": "Reintenta en unos segundos.",
+    "retryable": true,
+    "retry_after_seconds": 15,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/sii_session_expired",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

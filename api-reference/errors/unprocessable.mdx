@@ -1,0 +1,52 @@
+---
+title: 'unprocessable'
+sidebarTitle: 'unprocessable'
+description: 'No se puede procesar. La solicitud está bien formada, pero no cumple una regla del documento o de la operación.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `unprocessable` |
+| **Tipo** | `validation_error` |
+| **Estado HTTP** | 422 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**No se puede procesar.** La solicitud está bien formada, pero no cumple una regla del documento o de la operación.
+
+## Causas posibles
+
+- Los datos se contradicen entre sí.
+- La operación no aplica a ese tipo de documento.
+
+## Cómo resolverlo
+
+- Lee el mensaje: dice qué regla no se cumple.
+- Ajusta los datos y reenvía.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "validation_error",
+    "code": "unprocessable",
+    "message": "La solicitud está bien formada, pero no cumple una regla del documento o de la operación.",
+    "suggested_action": "Ajusta los datos según el mensaje y reenvía.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/unprocessable",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

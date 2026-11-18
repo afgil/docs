@@ -1,0 +1,55 @@
+---
+title: 'forbidden'
+sidebarTitle: 'forbidden'
+description: 'Sin acceso. La API key no puede hacer esta operación o no tiene acceso a esta empresa.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `forbidden` |
+| **Tipo** | `permission_error` |
+| **Estado HTTP** | 403, 401, 422 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Sin acceso.** La API key no puede hacer esta operación o no tiene acceso a esta empresa.
+
+## Causas posibles
+
+- La API key fue desactivada o eliminada.
+- La key no existe (por ejemplo, quedó mal copiada).
+- La key es de sandbox y la ruta es de producción, o al revés.
+- La empresa indicada no está conectada a tu cuenta.
+
+## Cómo resolverlo
+
+- Revisa en la consola que la key esté activa y cópiala de nuevo.
+- Usa la key del ambiente correcto: sandbox para pruebas, producción para documentos reales.
+- Confirma que la empresa esté conectada a tu cuenta en la consola.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "permission_error",
+    "code": "forbidden",
+    "message": "La API key no puede hacer esta operación o no tiene acceso a esta empresa.",
+    "suggested_action": "Revisa en la consola que la API key esté activa y que la empresa esté conectada a tu cuenta.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/forbidden",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

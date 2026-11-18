@@ -1,0 +1,50 @@
+---
+title: 'document_ids_empty'
+sidebarTitle: 'document_ids_empty'
+description: 'Falta la lista de documentos. document_ids es obligatorio y debe ser una lista con al menos un documento.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `document_ids_empty` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Falta la lista de documentos.** document_ids es obligatorio y debe ser una lista con al menos un documento.
+
+## Causas posibles
+
+- document_ids no viene, viene vacío o no es una lista.
+
+## Cómo resolverlo
+
+- Envía document_ids como una lista con los ids de los documentos.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "document_ids_empty",
+    "message": "document_ids es obligatorio y debe ser una lista con al menos un documento.",
+    "suggested_action": "Envía document_ids como una lista con al menos un id.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/document_ids_empty",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).
