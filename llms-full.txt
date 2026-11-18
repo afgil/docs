@@ -902,6 +902,100 @@ Ver [Listar eventos](https://docs.tupana.ai/api-reference/v2/events/list#emision
 
 ---
 
+## Probar errores del SII en sandbox
+
+Fuente: https://docs.tupana.ai/guias/errores-en-sandbox · Sección: Guía de Usuario / Guías por tarea
+
+> RUT de receptor de prueba que hacen fallar una emisión en sandbox igual que el SII: no disponible, rechazo, sin autorización y folios agotados, con sus reintentos y webhooks.
+
+En sandbox una emisión normal siempre termina bien. Para saber qué hace tu
+integración cuando el SII rechaza un documento o no responde, emite en
+sandbox a uno de estos **RUT de receptor de prueba**: el documento falla
+igual que fallaría con el SII, y recorre el mismo camino que en producción.
+
+### Los RUT de prueba
+
+| RUT del receptor | Qué simula | Qué vas a ver |
+| --- | --- | --- |
+| `500.000.001-0` | El SII falla una vez y después responde | El primer intento falla y Tupana reintenta solo. El segundo emite y llega `document.issued` con folio `SANDBOX-…` |
+| `500.000.002-9` | El SII no responde | Se agotan los reintentos automáticos y llega `document.issue_failed` con `sii_unavailable` |
+| `500.000.003-7` | El SII rechaza el documento por sus datos | Fallo definitivo, sin reintentos: `document.issue_failed` con `sii_rejected` |
+| `500.000.004-5` | La empresa no está autorizada a emitir | Fallo definitivo: `document.issue_failed` con `sii_unauthorized` |
+| `500.000.005-3` | No quedan folios | Fallo definitivo: `document.issue_failed` |
+
+Cualquier otro receptor emite como siempre.
+
+### Cómo usarlos
+
+Usa una **API key de sandbox** y envía el documento con el RUT de prueba en
+`document_receiver.rut`. Nada más cambia en la llamada:
+
+```bash
+curl -X POST "https://api.tupana.ai/v2/documents/batch/" \
+  -H "Authorization: Api-Key TU_API_KEY_DE_SANDBOX" \
+  -H "Content-Type: application/json" \
+  -H "X-Use-Defaults: true" \
+  -d '{
+    "documents": [{
+      "dte_type": { "code": "33" },
+      "document_issuer": { "rut": "RUT_DE_TU_EMPRESA_DE_PRUEBA" },
+      "document_receiver": {
+        "rut": "500.000.002-9",
+        "business_name": "Receptor de prueba",
+        "business_activity": "Servicios",
+        "address": "Calle Falsa 123",
+        "district": "Providencia",
+        "city": "Santiago"
+      },
+      "details": [{ "item_name": "Prueba", "quantity": 1, "unit_price": 1000 }]
+    }]
+  }'
+```
+
+La llamada responde `201` igual que cualquier emisión: el resultado llega
+después. El ciclo completo, con reintentos, toma menos de un minuto.
+
+### Cómo te enteras del resultado
+
+Igual que en producción:
+
+- **Por webhook**: `document.issue_failed` trae el bloque `error` con el
+  código (`catalog_code`), qué hacer (`suggested_action`), si conviene enviar
+  el documento de nuevo (`retryable`) y el enlace a la página del código
+  (`doc_url`). Ver [Webhooks](https://docs.tupana.ai/guias/webhooks).
+- **Sin webhook**: consulta
+  [`GET /v2/events/?type=document.issue_failed`](https://docs.tupana.ai/api-reference/v2/events/list#emisiones-que-fallaron).
+- **En la consola**: Requests muestra cada llamada, y la tarjeta "Listo para
+  producción" marca el paso de haber probado un error.
+
+### Qué conviene probar
+
+1. **No reintentes por tu cuenta un error que Tupana ya reintenta.** Con
+   `500.000.001-0` el documento termina emitido sin que hagas nada: si tu
+   sistema lo reenvía al primer fallo, emite dos veces.
+2. **Decide qué haces cuando el fallo es definitivo.** Con `500.000.003-7` o
+   `500.000.004-5` reenviar el mismo documento no sirve: hay que corregir el
+   dato o la autorización.
+3. **Usa una `Idempotency-Key`** en cada envío, para que un reintento de tu
+   lado nunca cree un documento repetido.
+
+### Lo que hay que saber
+
+- **Solo existen en sandbox.** Con una API key de producción estos RUT se
+  rechazan como inválidos antes de crear nada.
+- **Un fallo por emisor afecta a la empresa de prueba entera**, igual que en
+  producción: con `500.000.004-5`, los demás documentos pendientes de esa
+  empresa también quedan en error. Envía ese caso por separado.
+- No consumen folios ni llegan al SII.
+
+### Relacionado
+
+- [Códigos de error](https://docs.tupana.ai/api-reference/error-codes)
+- [Formato de los errores](https://docs.tupana.ai/api-reference/v2/errors)
+- [Emisión masiva](https://docs.tupana.ai/guias/emision-masiva)
+
+---
+
 ## Facturar para varias empresas con una sola integración (multiempresa)
 
 Fuente: https://docs.tupana.ai/guias/multiempresa · Sección: Guía de Usuario / Guías por tarea
@@ -4719,6 +4813,9 @@ Fuente: https://docs.tupana.ai/changelog · Sección: Guía de Usuario / Novedad
 > Historial completo de cambios de la API de facturación electrónica de Tupana para Chile: API v1 y v2, emisión de DTE al SII, webhooks, sandbox, Tupana Connect, cesiones, recaudación, folios, libros del SII, servidor MCP y SDKs.
 
 Aquí registramos cada cambio de la API de Tupana que se nota desde tu integración: endpoints nuevos, campos, eventos de webhook, tipos de documento, límites y cambios de comportamiento. Las fechas son las de salida a producción. Suscríbete por RSS para enterarte de cada novedad.
+
+  - Sandbox: ya puedes provocar errores del SII a propósito. Emite en sandbox a uno de los [RUT de receptor de prueba](https://docs.tupana.ai/guias/errores-en-sandbox) (`500.000.001-0` a `500.000.005-3`) y el documento falla como con el SII: no disponible con y sin recuperación, rechazo por datos, sin autorización y folios agotados, con los mismos reintentos, estados y webhooks que en producción. Con una key de producción esos RUT se rechazan como inválidos.
+  - [`GET /v2/events/`](https://docs.tupana.ai/api-reference/v2/events/list#emisiones-que-fallaron) devuelve también las emisiones fallidas (`document.issue_failed`) y los rechazos del SII (`document.rejected`), con los mismos datos que el webhook, tengas o no un webhook configurado. Quedan registrados desde esta fecha.
 
   - Cada error de la API v2 trae ahora `suggested_action` (qué hacer, en una línea) y `retryable` (si tiene sentido repetir la solicitud); algunos traen además `retry_after_seconds`. Ver [Errores](https://docs.tupana.ai/api-reference/v2/errors).
   - Nueva referencia de [códigos de error](https://docs.tupana.ai/api-reference/error-codes): una página por código, con sus causas, cómo resolverlo y si conviene reintentar. El `doc_url` de cada error lleva a la página de su código.

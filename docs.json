@@ -36,6 +36,7 @@
                 "pages": [
                   "guias/emision-masiva",
                   "guias/webhooks",
+                  "guias/errores-en-sandbox",
                   "guias/multiempresa",
                   "guias/lectura-sii",
                   "guias/movimientos-bancarios",

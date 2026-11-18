@@ -8,6 +8,11 @@ rss: true
 
 Aquí registramos cada cambio de la API de Tupana que se nota desde tu integración: endpoints nuevos, campos, eventos de webhook, tipos de documento, límites y cambios de comportamiento. Las fechas son las de salida a producción. Suscríbete por RSS para enterarte de cada novedad.
 
+<Update label="18 de noviembre de 2026" description="Sandbox y eventos">
+  - Sandbox: ya puedes provocar errores del SII a propósito. Emite en sandbox a uno de los [RUT de receptor de prueba](/guias/errores-en-sandbox) (`500.000.001-0` a `500.000.005-3`) y el documento falla como con el SII: no disponible con y sin recuperación, rechazo por datos, sin autorización y folios agotados, con los mismos reintentos, estados y webhooks que en producción. Con una key de producción esos RUT se rechazan como inválidos.
+  - [`GET /v2/events/`](/api-reference/v2/events/list#emisiones-que-fallaron) devuelve también las emisiones fallidas (`document.issue_failed`) y los rechazos del SII (`document.rejected`), con los mismos datos que el webhook, tengas o no un webhook configurado. Quedan registrados desde esta fecha.
+</Update>
+
 <Update label="18 de noviembre de 2026" description="Errores">
   - Cada error de la API v2 trae ahora `suggested_action` (qué hacer, en una línea) y `retryable` (si tiene sentido repetir la solicitud); algunos traen además `retry_after_seconds`. Ver [Errores](/api-reference/v2/errors).
   - Nueva referencia de [códigos de error](/api-reference/error-codes): una página por código, con sus causas, cómo resolverlo y si conviene reintentar. El `doc_url` de cada error lleva a la página de su código.
