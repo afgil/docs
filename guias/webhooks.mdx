@@ -106,6 +106,13 @@ Otros headers útiles: `X-Pana-Event-Type` (el evento), `X-Pana-Event-Id` (id de
 
 Desde la plataforma (**Configuración → Webhooks → Probar**) se envía un `webhook.test`. El campo `environment` del webhook define de qué ambiente recibe eventos de documentos: `both` (default), `production` o `sandbox`. Con `both` o `sandbox`, los documentos simulados con tu key de sandbox también llegan, así que puedes probar el flujo completo sin emitir nada real. Usa un webhook con `production` cuando pases a producción para no mezclar eventos.
 
+## Sin webhook, o si tu endpoint estuvo caído
+
+Las emisiones que fallan también quedan consultables: `GET /v2/events/?type=document.issue_failed`
+devuelve los mismos datos que el webhook, con el motivo y qué hacer. Sirve si
+no quieres exponer un endpoint, y para ponerte al día después de una caída.
+Ver [Listar eventos](/api-reference/v2/events/list#emisiones-que-fallaron).
+
 ## Relacionado
 
 - [Guía de webhooks: todos los payloads](/user-guide/webhooks)

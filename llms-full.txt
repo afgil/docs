@@ -887,6 +887,13 @@ Otros headers útiles: `X-Pana-Event-Type` (el evento), `X-Pana-Event-Id` (id de
 
 Desde la plataforma (**Configuración → Webhooks → Probar**) se envía un `webhook.test`. El campo `environment` del webhook define de qué ambiente recibe eventos de documentos: `both` (default), `production` o `sandbox`. Con `both` o `sandbox`, los documentos simulados con tu key de sandbox también llegan, así que puedes probar el flujo completo sin emitir nada real. Usa un webhook con `production` cuando pases a producción para no mezclar eventos.
 
+### Sin webhook, o si tu endpoint estuvo caído
+
+Las emisiones que fallan también quedan consultables: `GET /v2/events/?type=document.issue_failed`
+devuelve los mismos datos que el webhook, con el motivo y qué hacer. Sirve si
+no quieres exponer un endpoint, y para ponerte al día después de una caída.
+Ver [Listar eventos](https://docs.tupana.ai/api-reference/v2/events/list#emisiones-que-fallaron).
+
 ### Relacionado
 
 - [Guía de webhooks: todos los payloads](https://docs.tupana.ai/user-guide/webhooks)
@@ -11314,9 +11321,10 @@ Fuente: https://docs.tupana.ai/api-reference/v2/events/list · Sección: API Ban
 
 Endpoint: `GET /events/` (detalle completo en la Parte 2).
 
-Todo lo que los webhooks bancarios y de conexión avisaron, consultable. Un
-webhook que falló, o que nunca configuraste, no te deja sin saber qué pasó:
-cada evento queda registrado con el mismo `data` que viaja en el webhook.
+Todo lo que los webhooks bancarios, de conexión y de emisión fallida avisaron,
+consultable. Un webhook que falló, o que nunca configuraste, no te deja sin
+saber qué pasó: cada evento queda registrado con el mismo `data` que viaja en
+el webhook.
 
 ```bash
 curl "https://api.tupana.ai/v2/events/?type=movement.created&since=2026-10-28T00:00:00Z" \
@@ -11352,13 +11360,33 @@ curl "https://api.tupana.ai/v2/events/?type=movement.created&since=2026-10-28T00
 
 | Parámetro | Qué hace |
 | --- | --- |
-| `type` | Un evento bancario (`bank_account.refreshed`, `movement.created`, `bank_account.refresh_failed`, `connection.degraded`) o de conexión (`connection.active`, `connection.requires_action`). |
-| `resource_id` | Los eventos de ese recurso (`bacc_…`, `cred_…`). |
+| `type` | Un evento bancario (`bank_account.refreshed`, `movement.created`, `bank_account.refresh_failed`, `connection.degraded`), de conexión (`connection.active`, `connection.requires_action`) o de emisión fallida (`document.issue_failed`, `document.rejected`). |
+| `resource_id` | Los eventos de ese recurso (`bacc_…`, `cred_…`, `docu_…`). |
 | `since`, `until` | Rango de `created_at`, ISO 8601. |
 
 Más nuevos primero. Se conservan 400 días. Una key sandbox ve solo los eventos
 del [dataset sandbox](https://docs.tupana.ai/api-reference/v2/banking/guides/sandbox); una de
 producción, solo los reales.
+
+### Emisiones que fallaron
+
+Si no usas webhooks, o quieres revisar lo que pasó mientras tu endpoint estuvo
+caído, pregunta por los documentos que no se emitieron:
+
+```bash
+curl "https://api.tupana.ai/v2/events/?type=document.issue_failed&since=2026-11-18T00:00:00Z" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+Cada evento trae en `data` lo mismo que el webhook `document.issue_failed`: el
+documento y un bloque `error` con el motivo, el código del
+[catálogo de errores](https://docs.tupana.ai/api-reference/error-codes) (`catalog_code`), qué hacer
+(`suggested_action`), si conviene enviarlo de nuevo (`retryable`) y el enlace a
+la página del código (`doc_url`). `document.rejected` es el rechazo del SII a
+un documento ya enviado.
+
+Quedan registrados los fallos ocurridos desde noviembre de 2026; los
+anteriores no se reconstruyen.
 
 ---
 
