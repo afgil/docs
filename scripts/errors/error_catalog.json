@@ -97,6 +97,28 @@
       "suggested_action": "Usa una API key de producción para esta operación.",
       "retryable": false
     },
+    "sandbox_key_real_company": {
+      "type": "permission_error",
+      "http_status": [
+        403,
+        400
+      ],
+      "responsibility": "client",
+      "group": "authentication",
+      "status": "live",
+      "title": "Key de sandbox con una empresa real",
+      "description": "Una API key de sandbox solo ve tu Empresa Demo, y la solicitud nombra una empresa real.",
+      "causes": [
+        "Se usó una key de sandbox con el id de una empresa real.",
+        "El id de la empresa quedó de una prueba anterior en producción."
+      ],
+      "solutions": [
+        "Para tu empresa real, usa una API key de producción.",
+        "Para seguir probando, usa el id de tu Empresa Demo."
+      ],
+      "suggested_action": "Usa una API key de producción para tu empresa real, o el id de tu Empresa Demo para probar.",
+      "retryable": false
+    },
     "bad_request": {
       "type": "invalid_request_error",
       "http_status": [
@@ -162,6 +184,28 @@
         "Revisa el formato esperado en la referencia de esa ruta."
       ],
       "suggested_action": "Corrige el campo indicado en param según el mensaje.",
+      "retryable": false
+    },
+    "rut_invalid": {
+      "type": "invalid_request_error",
+      "http_status": [
+        400
+      ],
+      "responsibility": "client",
+      "group": "request",
+      "status": "live",
+      "title": "RUT inválido",
+      "description": "El RUT enviado no tiene un formato válido o su dígito verificador no corresponde.",
+      "causes": [
+        "El RUT está incompleto o tiene caracteres que no corresponden.",
+        "El dígito verificador no calza con el número.",
+        "Se envió otro identificador en el campo del RUT."
+      ],
+      "solutions": [
+        "Envía el RUT completo con su dígito verificador, por ejemplo 76123456-7.",
+        "Valida el dígito verificador antes de llamar a la API."
+      ],
+      "suggested_action": "Corrige el RUT: envíalo completo y con su dígito verificador, por ejemplo 76123456-7.",
       "retryable": false
     },
     "validation_error": {

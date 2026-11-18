@@ -15,6 +15,7 @@ Cada error de la API trae un `code` estable y un `doc_url` que lleva a la págin
 | [`unauthenticated`](/api-reference/errors/unauthenticated) | Falta la API key | 403, 401, 422 | No |
 | [`forbidden`](/api-reference/errors/forbidden) | Sin acceso | 403, 401, 422 | No |
 | [`sandbox_read_only`](/api-reference/errors/sandbox_read_only) | Operación no disponible con una key de sandbox | 403 | No |
+| [`sandbox_key_real_company`](/api-reference/errors/sandbox_key_real_company) | Key de sandbox con una empresa real | 403, 400 | No |
 
 ### Solicitud
 
@@ -23,6 +24,7 @@ Cada error de la API trae un `code` estable y un `doc_url` que lleva a la págin
 | [`bad_request`](/api-reference/errors/bad_request) | Solicitud inválida | 400, 422 | No |
 | [`parameter_missing`](/api-reference/errors/parameter_missing) | Falta un parámetro requerido | 400, 422 | No |
 | [`parameter_invalid`](/api-reference/errors/parameter_invalid) | Parámetro inválido | 400, 422 | No |
+| [`rut_invalid`](/api-reference/errors/rut_invalid) | RUT inválido | 400 | No |
 | [`validation_error`](/api-reference/errors/validation_error) | Los datos no pasan la validación | 400, 422 | No |
 | [`unprocessable`](/api-reference/errors/unprocessable) | No se puede procesar | 422 | No |
 | [`not_found`](/api-reference/errors/not_found) | No encontrado | 404 | No |

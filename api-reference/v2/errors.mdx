@@ -67,6 +67,29 @@ por el status HTTP solo (varios `code` comparten status).
 | `rate_limit_error` | 429 | Superaste el límite de solicitudes | Sí — con backoff (ver `Retry-After`) |
 | `api_error` | 500 / 502 / 503 | Error interno o de un servicio upstream | Sí — con backoff |
 
+### Bloqueo por plan (402)
+
+Cuando tu plan Developers no está al día, las API keys de producción responden
+`402` hasta que inscribas o actualices tu tarjeta. Sandbox sigue funcionando. El
+error trae dos campos propios: `reason` (`trial_expired`, `payment_failed` o
+`plan_cancelled`) y `settings_url`, la página de la consola donde se resuelve.
+
+```json
+{
+  "error": {
+    "type": "billing_error",
+    "code": "payment_required",
+    "message": "Terminó tu prueba gratis del plan Developers. Inscribe tu tarjeta para seguir usando producción. Sandbox sigue gratis.",
+    "reason": "trial_expired",
+    "settings_url": "https://www.tupana.ai/developers/console/settings",
+    "suggested_action": "Inscribe o actualiza tu tarjeta en la consola para reactivar producción.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/payment_required",
+    "request_id": "req_8f3a9c2b1e7d4"
+  }
+}
+```
+
 ### Ejemplo de manejo (pseudo)
 
 ```python
