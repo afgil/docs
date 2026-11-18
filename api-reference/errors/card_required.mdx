@@ -1,0 +1,50 @@
+---
+title: 'card_required'
+sidebarTitle: 'card_required'
+description: 'Falta inscribir una tarjeta. Para activar la cuenta hay que inscribir una tarjeta.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `card_required` |
+| **Tipo** | `billing_error` |
+| **Estado HTTP** | 402 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Falta inscribir una tarjeta.** Para activar la cuenta hay que inscribir una tarjeta.
+
+## Causas posibles
+
+- La cuenta todavía no tiene una tarjeta inscrita.
+
+## Cómo resolverlo
+
+- Inscribe una tarjeta en la consola y repite la operación.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "billing_error",
+    "code": "card_required",
+    "message": "Para activar la cuenta hay que inscribir una tarjeta.",
+    "suggested_action": "Inscribe una tarjeta en la consola.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/card_required",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

@@ -1,0 +1,31 @@
+name: Páginas de errores
+
+# Las páginas api-reference/errors/*.mdx y api-reference/error-codes.mdx se
+# generan desde scripts/errors/error_catalog.json (copia del catálogo del
+# backend). Este chequeo falla si alguien las editó a mano o si el catálogo
+# cambió y no se regeneraron.
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'scripts/errors/**'
+      - 'scripts/generate_error_pages.py'
+      - 'api-reference/errors/**'
+      - 'api-reference/error-codes.mdx'
+      - 'docs.json'
+  workflow_dispatch:
+
+jobs:
+  error-pages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Tests del generador
+        run: python3 -m unittest scripts.tests.test_generate_error_pages
+      - name: Las páginas calzan con el catálogo
+        run: python3 scripts/generate_error_pages.py --check

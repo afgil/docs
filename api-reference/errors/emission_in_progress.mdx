@@ -1,0 +1,51 @@
+---
+title: 'emission_in_progress'
+sidebarTitle: 'emission_in_progress'
+description: 'Emisión en curso. Ya hay una emisión en curso con esa misma Idempotency-Key.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `emission_in_progress` |
+| **Tipo** | `conflict_error` |
+| **Estado HTTP** | 409 |
+| **¿Reintentar?** | Sí |
+
+## Qué significa
+
+**Emisión en curso.** Ya hay una emisión en curso con esa misma Idempotency-Key.
+
+## Causas posibles
+
+- Se reenvió la solicitud antes de que terminara la anterior.
+
+## Cómo resolverlo
+
+- Espera un segundo y reintenta con la misma Idempotency-Key: recibirás el resultado de la emisión original.
+
+## ¿Conviene reintentar?
+
+Sí. Espera al menos 1 segundos y reintenta; si el error sigue, aumenta la espera en cada intento.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "conflict_error",
+    "code": "emission_in_progress",
+    "message": "Ya hay una emisión en curso con esa misma Idempotency-Key.",
+    "suggested_action": "Espera un segundo y reintenta con la misma Idempotency-Key.",
+    "retryable": true,
+    "retry_after_seconds": 1,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/emission_in_progress",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

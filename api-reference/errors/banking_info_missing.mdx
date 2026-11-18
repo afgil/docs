@@ -1,0 +1,50 @@
+---
+title: 'banking_info_missing'
+sidebarTitle: 'banking_info_missing'
+description: 'Faltan los datos bancarios. La empresa que cobra no tiene una cuenta bancaria configurada para recibir el dinero.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `banking_info_missing` |
+| **Tipo** | `payment_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Faltan los datos bancarios.** La empresa que cobra no tiene una cuenta bancaria configurada para recibir el dinero.
+
+## Causas posibles
+
+- La empresa no ha ingresado su cuenta bancaria.
+
+## Cómo resolverlo
+
+- Configura la cuenta bancaria de la empresa y reintenta.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "payment_error",
+    "code": "banking_info_missing",
+    "message": "La empresa que cobra no tiene una cuenta bancaria configurada para recibir el dinero.",
+    "suggested_action": "Configura la cuenta bancaria de la empresa que cobra.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/banking_info_missing",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

@@ -1,0 +1,53 @@
+---
+title: 'not_found'
+sidebarTitle: 'not_found'
+description: 'No encontrado. La ruta o el recurso no existe.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `not_found` |
+| **Tipo** | `not_found_error` |
+| **Estado HTTP** | 404 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**No encontrado.** La ruta o el recurso no existe.
+
+## Causas posibles
+
+- La URL tiene un error o le falta la barra final.
+- El id no existe o es de otra cuenta.
+- El id es de sandbox y la key de producción, o al revés.
+
+## Cómo resolverlo
+
+- Revisa la URL contra la referencia.
+- Confirma que el id exista y sea del mismo ambiente que la key.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "not_found_error",
+    "code": "not_found",
+    "message": "La ruta o el recurso no existe.",
+    "suggested_action": "Revisa la URL y que el id exista en el ambiente de tu API key.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/not_found",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

@@ -1,0 +1,50 @@
+---
+title: 'sandbox_document_required'
+sidebarTitle: 'sandbox_document_required'
+description: 'Ambiente del documento incorrecto. El documento y la API key no son del mismo ambiente.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `sandbox_document_required` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Ambiente del documento incorrecto.** El documento y la API key no son del mismo ambiente.
+
+## Causas posibles
+
+- Se usó un documento real con una key de sandbox, o al revés.
+
+## Cómo resolverlo
+
+- Usa documentos del mismo ambiente que la API key.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "sandbox_document_required",
+    "message": "El documento y la API key no son del mismo ambiente.",
+    "suggested_action": "Usa documentos del mismo ambiente que tu API key.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/sandbox_document_required",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

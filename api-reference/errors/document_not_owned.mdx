@@ -1,0 +1,50 @@
+---
+title: 'document_not_owned'
+sidebarTitle: 'document_not_owned'
+description: 'El documento no es de quien cobra. Alguno de los documentos no fue emitido por la empresa que cobra.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `document_not_owned` |
+| **Tipo** | `permission_error` |
+| **Estado HTTP** | 403 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**El documento no es de quien cobra.** Alguno de los documentos no fue emitido por la empresa que cobra.
+
+## Causas posibles
+
+- El documento es de otra empresa.
+
+## Cómo resolverlo
+
+- Usa solo documentos emitidos por la empresa que cobra.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "permission_error",
+    "code": "document_not_owned",
+    "message": "Alguno de los documentos no fue emitido por la empresa que cobra.",
+    "suggested_action": "Usa solo documentos emitidos por la empresa que cobra.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/document_not_owned",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

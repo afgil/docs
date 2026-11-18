@@ -1,0 +1,51 @@
+---
+title: 'assignee_rut_invalid'
+sidebarTitle: 'assignee_rut_invalid'
+description: 'RUT del cesionario inválido. El RUT del cesionario no es válido o no coincide con su dígito verificador.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `assignee_rut_invalid` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**RUT del cesionario inválido.** El RUT del cesionario no es válido o no coincide con su dígito verificador.
+
+## Causas posibles
+
+- El RUT está mal escrito.
+- El dígito verificador enviado aparte no coincide con el del RUT.
+
+## Cómo resolverlo
+
+- Corrige el RUT del cesionario.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "assignee_rut_invalid",
+    "message": "El RUT del cesionario no es válido o no coincide con su dígito verificador.",
+    "suggested_action": "Corrige el RUT del cesionario.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/assignee_rut_invalid",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

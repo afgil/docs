@@ -1,0 +1,51 @@
+---
+title: 'internal_error'
+sidebarTitle: 'internal_error'
+description: 'Error interno. Algo falló del lado de Tupana. No es un problema de tu solicitud.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `internal_error` |
+| **Tipo** | `api_error` |
+| **Estado HTTP** | 500, 502, 422 |
+| **¿Reintentar?** | Sí |
+
+## Qué significa
+
+**Error interno.** Algo falló del lado de Tupana. No es un problema de tu solicitud.
+
+## Causas posibles
+
+- Un error nuestro.
+
+## Cómo resolverlo
+
+- Reintenta con la misma llave de idempotencia.
+- Si persiste, escríbenos con el request_id.
+
+## ¿Conviene reintentar?
+
+Sí. Reintenta, aumentando la espera en cada intento.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "api_error",
+    "code": "internal_error",
+    "message": "Algo falló del lado de Tupana. No es un problema de tu solicitud.",
+    "suggested_action": "Reintenta; si persiste, repórtanos el request_id.",
+    "retryable": true,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/internal_error",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

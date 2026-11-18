@@ -1,0 +1,52 @@
+---
+title: 'cursor_invalid'
+sidebarTitle: 'cursor_invalid'
+description: 'Cursor inválido. El cursor de paginación no es uno que hayamos emitido.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `cursor_invalid` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Cursor inválido.** El cursor de paginación no es uno que hayamos emitido.
+
+## Causas posibles
+
+- El cursor fue modificado o quedó cortado.
+- Se usó el cursor de otra ruta.
+
+## Cómo resolverlo
+
+- Usa tal cual el next_cursor de la respuesta anterior.
+- Si lo perdiste, parte de nuevo sin cursor.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "cursor_invalid",
+    "message": "El cursor de paginación no es uno que hayamos emitido.",
+    "suggested_action": "Usa el next_cursor de la respuesta anterior sin modificarlo.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/cursor_invalid",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

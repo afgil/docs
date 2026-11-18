@@ -1,0 +1,52 @@
+---
+title: 'sii_unauthorized'
+sidebarTitle: 'sii_unauthorized'
+description: 'La empresa no está autorizada en el SII. El SII no permite a la empresa, o al usuario, hacer esta operación.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `sii_unauthorized` |
+| **Tipo** | `sii_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**La empresa no está autorizada en el SII.** El SII no permite a la empresa, o al usuario, hacer esta operación.
+
+## Causas posibles
+
+- La empresa no está habilitada para emitir ese tipo de documento.
+- El usuario no tiene permisos en el SII para la empresa.
+
+## Cómo resolverlo
+
+- Revisa en el SII que la empresa esté habilitada para ese tipo de documento.
+- Usa la credencial de un usuario con permisos.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "sii_error",
+    "code": "sii_unauthorized",
+    "message": "El SII no permite a la empresa, o al usuario, hacer esta operación.",
+    "suggested_action": "Revisa en el SII la habilitación de la empresa y los permisos del usuario.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/sii_unauthorized",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

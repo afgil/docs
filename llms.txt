@@ -124,6 +124,46 @@ Detalle: https://docs.tupana.ai/precios · https://developers.tupana.ai/pricing
 - [Actualizar un webhook (API v2)](https://docs.tupana.ai/api-reference/v2/webhooks-pages/update): Cambia la URL, los eventos, el ambiente o la versión de ids (api_version) de un webhook de Tupana.
 - [Eliminar un webhook (API v2)](https://docs.tupana.ai/api-reference/v2/webhooks-pages/delete): Elimina un webhook de Tupana para dejar de recibir eventos.
 - [Errores de la API v2](https://docs.tupana.ai/api-reference/v2/errors): Taxonomía de errores de la API v2 de facturación electrónica de Tupana: estructura estable, tipos, códigos, validación de documentos (422) y qué hacer en cada caso.
+- [Códigos de error](https://docs.tupana.ai/api-reference/error-codes): Lista de todos los códigos de error de la API de Tupana, con su causa, cómo resolverlo y si conviene reintentar.
+- [unauthenticated](https://docs.tupana.ai/api-reference/errors/unauthenticated): Falta la API key. La solicitud llegó sin una API key que podamos leer.
+- [forbidden](https://docs.tupana.ai/api-reference/errors/forbidden): Sin acceso. La API key no puede hacer esta operación o no tiene acceso a esta empresa.
+- [sandbox_read_only](https://docs.tupana.ai/api-reference/errors/sandbox_read_only): Operación no disponible con una key de sandbox. Con una API key de sandbox las conexiones de empresas son de solo lectura.
+- [bad_request](https://docs.tupana.ai/api-reference/errors/bad_request): Solicitud inválida. No pudimos leer la solicitud.
+- [parameter_missing](https://docs.tupana.ai/api-reference/errors/parameter_missing): Falta un parámetro requerido. La solicitud no trae un campo obligatorio. El campo que falta viene en param.
+- [parameter_invalid](https://docs.tupana.ai/api-reference/errors/parameter_invalid): Parámetro inválido. Un campo tiene un valor o un formato que no aceptamos. El campo viene en param.
+- [validation_error](https://docs.tupana.ai/api-reference/errors/validation_error): Los datos no pasan la validación. Uno o más campos no son válidos. El detalle por campo viene en detail.
+- [unprocessable](https://docs.tupana.ai/api-reference/errors/unprocessable): No se puede procesar. La solicitud está bien formada, pero no cumple una regla del documento o de la operación.
+- [not_found](https://docs.tupana.ai/api-reference/errors/not_found): No encontrado. La ruta o el recurso no existe.
+- [resource_missing](https://docs.tupana.ai/api-reference/errors/resource_missing): El recurso no existe. No existe un recurso con ese id, o no pertenece a tu cuenta.
+- [method_not_allowed](https://docs.tupana.ai/api-reference/errors/method_not_allowed): Método no permitido. La ruta existe, pero no acepta ese método HTTP.
+- [conflict](https://docs.tupana.ai/api-reference/errors/conflict): Conflicto con datos existentes. La operación choca con algo que ya existe o con el estado actual del recurso.
+- [cursor_invalid](https://docs.tupana.ai/api-reference/errors/cursor_invalid): Cursor inválido. El cursor de paginación no es uno que hayamos emitido.
+- [cursor_expired](https://docs.tupana.ai/api-reference/errors/cursor_expired): Cursor vencido. El cursor es más antiguo que el período que guardamos de cambios, así que podría saltarse algunos.
+- [rate_limited](https://docs.tupana.ai/api-reference/errors/rate_limited): Demasiadas solicitudes. Superaste el límite de solicitudes de tu cuenta para ese período.
+- [emission_in_progress](https://docs.tupana.ai/api-reference/errors/emission_in_progress): Emisión en curso. Ya hay una emisión en curso con esa misma Idempotency-Key.
+- [payment_required](https://docs.tupana.ai/api-reference/errors/payment_required): Producción en pausa por el plan. Tu plan Developers no está al día, así que producción está en pausa. Sandbox sigue funcionando.
+- [card_required](https://docs.tupana.ai/api-reference/errors/card_required): Falta inscribir una tarjeta. Para activar la cuenta hay que inscribir una tarjeta.
+- [no_active_credentials](https://docs.tupana.ai/api-reference/errors/no_active_credentials): La empresa no tiene credenciales activas. La empresa no tiene una credencial del SII o un certificado digital vigente para esta operación.
+- [folios_temporarily_unavailable](https://docs.tupana.ai/api-reference/errors/folios_temporarily_unavailable): Folios no disponibles por un momento. La reserva de folios lista para emitir se vació por un momento. No significa que a la empresa se le acabaron los folios en el SII.
+- [sii_rejected](https://docs.tupana.ai/api-reference/errors/sii_rejected): El SII rechazó el documento. El SII revisó el documento y no lo aceptó. El motivo viene en el mensaje.
+- [sii_unauthorized](https://docs.tupana.ai/api-reference/errors/sii_unauthorized): La empresa no está autorizada en el SII. El SII no permite a la empresa, o al usuario, hacer esta operación.
+- [sii_session_expired](https://docs.tupana.ai/api-reference/errors/sii_session_expired): Sesión del SII vencida. La sesión con el SII se cerró y la estamos abriendo de nuevo.
+- [sii_unavailable](https://docs.tupana.ai/api-reference/errors/sii_unavailable): SII no disponible. El SII no está respondiendo o responde con errores.
+- [document_ids_empty](https://docs.tupana.ai/api-reference/errors/document_ids_empty): Falta la lista de documentos. document_ids es obligatorio y debe ser una lista con al menos un documento.
+- [document_not_cessionable](https://docs.tupana.ai/api-reference/errors/document_not_cessionable): El documento no se puede ceder. Solo se pueden ceder facturas electrónicas (33) y facturas exentas (34).
+- [assignee_data_incomplete](https://docs.tupana.ai/api-reference/errors/assignee_data_incomplete): Faltan datos del cesionario. Falta un dato obligatorio de quien recibe la cesión.
+- [assignee_rut_invalid](https://docs.tupana.ai/api-reference/errors/assignee_rut_invalid): RUT del cesionario inválido. El RUT del cesionario no es válido o no coincide con su dígito verificador.
+- [assignor_email_missing](https://docs.tupana.ai/api-reference/errors/assignor_email_missing): Falta el correo del cedente. La empresa que cede no tiene un correo configurado, y el SII lo exige.
+- [mixed_payers](https://docs.tupana.ai/api-reference/errors/mixed_payers): Documentos de distintos pagadores. Los documentos de un cobro deben ser todos del mismo pagador.
+- [cannot_mix_modes](https://docs.tupana.ai/api-reference/errors/cannot_mix_modes): Modos de cobro mezclados. Un cobro se crea a partir de documentos existentes o con una nota de cobro, no con ambos.
+- [document_not_owned](https://docs.tupana.ai/api-reference/errors/document_not_owned): El documento no es de quien cobra. Alguno de los documentos no fue emitido por la empresa que cobra.
+- [document_not_payable](https://docs.tupana.ai/api-reference/errors/document_not_payable): El documento no se puede cobrar. Ese tipo de documento, o su estado, no admite un cobro.
+- [document_already_paid](https://docs.tupana.ai/api-reference/errors/document_already_paid): El documento ya está pagado. Alguno de los documentos ya figura como pagado.
+- [sandbox_document_required](https://docs.tupana.ai/api-reference/errors/sandbox_document_required): Ambiente del documento incorrecto. El documento y la API key no son del mismo ambiente.
+- [banking_info_missing](https://docs.tupana.ai/api-reference/errors/banking_info_missing): Faltan los datos bancarios. La empresa que cobra no tiene una cuenta bancaria configurada para recibir el dinero.
+- [internal_error](https://docs.tupana.ai/api-reference/errors/internal_error): Error interno. Algo falló del lado de Tupana. No es un problema de tu solicitud.
+- [server_busy](https://docs.tupana.ai/api-reference/errors/server_busy): Servicio ocupado. Estamos atendiendo el máximo de consultas simultáneas. No es un límite de tu cuenta.
+- [service_unavailable](https://docs.tupana.ai/api-reference/errors/service_unavailable): Servicio no disponible. El servicio no está disponible por un momento.
 
 ### API Bancaria
 

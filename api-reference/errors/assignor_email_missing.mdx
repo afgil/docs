@@ -1,0 +1,50 @@
+---
+title: 'assignor_email_missing'
+sidebarTitle: 'assignor_email_missing'
+description: 'Falta el correo del cedente. La empresa que cede no tiene un correo configurado, y el SII lo exige.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `assignor_email_missing` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Falta el correo del cedente.** La empresa que cede no tiene un correo configurado, y el SII lo exige.
+
+## Causas posibles
+
+- La empresa no tiene correo de contacto.
+
+## Cómo resolverlo
+
+- Configura el correo de la empresa y reintenta.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "assignor_email_missing",
+    "message": "La empresa que cede no tiene un correo configurado, y el SII lo exige.",
+    "suggested_action": "Configura el correo de la empresa que cede.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/assignor_email_missing",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

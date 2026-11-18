@@ -1,0 +1,52 @@
+---
+title: 'bad_request'
+sidebarTitle: 'bad_request'
+description: 'Solicitud inválida. No pudimos leer la solicitud.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `bad_request` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400, 422 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Solicitud inválida.** No pudimos leer la solicitud.
+
+## Causas posibles
+
+- El cuerpo no es JSON válido.
+- Falta el header Content-Type: application/json.
+
+## Cómo resolverlo
+
+- Valida que el cuerpo sea JSON bien formado.
+- Envía el header Content-Type: application/json.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "bad_request",
+    "message": "No pudimos leer la solicitud.",
+    "suggested_action": "Revisa que el cuerpo sea JSON válido y envía Content-Type: application/json.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/bad_request",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

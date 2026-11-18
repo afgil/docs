@@ -1,0 +1,51 @@
+---
+title: 'sii_unavailable'
+sidebarTitle: 'sii_unavailable'
+description: 'SII no disponible. El SII no está respondiendo o responde con errores.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `sii_unavailable` |
+| **Tipo** | `sii_error` |
+| **Estado HTTP** | 503 |
+| **¿Reintentar?** | Sí |
+
+## Qué significa
+
+**SII no disponible.** El SII no está respondiendo o responde con errores.
+
+## Causas posibles
+
+- El SII está caído o en mantención.
+
+## Cómo resolverlo
+
+- Reintenta en unos minutos con la misma llave de idempotencia.
+
+## ¿Conviene reintentar?
+
+Sí. Espera al menos 120 segundos y reintenta; si el error sigue, aumenta la espera en cada intento.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "sii_error",
+    "code": "sii_unavailable",
+    "message": "El SII no está respondiendo o responde con errores.",
+    "suggested_action": "Reintenta en unos minutos con la misma llave de idempotencia.",
+    "retryable": true,
+    "retry_after_seconds": 120,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/sii_unavailable",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

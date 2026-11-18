@@ -1,0 +1,53 @@
+---
+title: 'payment_required'
+sidebarTitle: 'payment_required'
+description: 'Producción en pausa por el plan. Tu plan Developers no está al día, así que producción está en pausa. Sandbox sigue funcionando.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `payment_required` |
+| **Tipo** | `billing_error` |
+| **Estado HTTP** | 402 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Producción en pausa por el plan.** Tu plan Developers no está al día, así que producción está en pausa. Sandbox sigue funcionando.
+
+## Causas posibles
+
+- Terminó la prueba gratis y no hay tarjeta inscrita.
+- No pudimos cobrar el plan.
+- El plan fue cancelado.
+
+## Cómo resolverlo
+
+- Inscribe o actualiza tu tarjeta en la consola; producción vuelve en menos de un minuto.
+- Mientras tanto puedes seguir probando en sandbox.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "billing_error",
+    "code": "payment_required",
+    "message": "Tu plan Developers no está al día, así que producción está en pausa. Sandbox sigue funcionando.",
+    "suggested_action": "Inscribe o actualiza tu tarjeta en la consola para reactivar producción.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/payment_required",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

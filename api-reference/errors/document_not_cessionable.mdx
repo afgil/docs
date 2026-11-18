@@ -1,0 +1,50 @@
+---
+title: 'document_not_cessionable'
+sidebarTitle: 'document_not_cessionable'
+description: 'El documento no se puede ceder. Solo se pueden ceder facturas electrónicas (33) y facturas exentas (34).'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `document_not_cessionable` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**El documento no se puede ceder.** Solo se pueden ceder facturas electrónicas (33) y facturas exentas (34).
+
+## Causas posibles
+
+- Alguno de los documentos es de otro tipo.
+
+## Cómo resolverlo
+
+- Deja en la lista solo facturas 33 o 34.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "document_not_cessionable",
+    "message": "Solo se pueden ceder facturas electrónicas (33) y facturas exentas (34).",
+    "suggested_action": "Envía solo facturas electrónicas (33) o exentas (34).",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/document_not_cessionable",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

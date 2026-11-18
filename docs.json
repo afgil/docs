@@ -149,7 +149,52 @@
               {
                 "group": "Errores",
                 "pages": [
-                  "api-reference/v2/errors"
+                  "api-reference/v2/errors",
+                  "api-reference/error-codes",
+                  {
+                    "group": "Códigos",
+                    "pages": [
+                      "api-reference/errors/unauthenticated",
+                      "api-reference/errors/forbidden",
+                      "api-reference/errors/sandbox_read_only",
+                      "api-reference/errors/bad_request",
+                      "api-reference/errors/parameter_missing",
+                      "api-reference/errors/parameter_invalid",
+                      "api-reference/errors/validation_error",
+                      "api-reference/errors/unprocessable",
+                      "api-reference/errors/not_found",
+                      "api-reference/errors/resource_missing",
+                      "api-reference/errors/method_not_allowed",
+                      "api-reference/errors/conflict",
+                      "api-reference/errors/cursor_invalid",
+                      "api-reference/errors/cursor_expired",
+                      "api-reference/errors/rate_limited",
+                      "api-reference/errors/emission_in_progress",
+                      "api-reference/errors/payment_required",
+                      "api-reference/errors/card_required",
+                      "api-reference/errors/no_active_credentials",
+                      "api-reference/errors/folios_temporarily_unavailable",
+                      "api-reference/errors/sii_rejected",
+                      "api-reference/errors/sii_unauthorized",
+                      "api-reference/errors/sii_session_expired",
+                      "api-reference/errors/sii_unavailable",
+                      "api-reference/errors/document_ids_empty",
+                      "api-reference/errors/document_not_cessionable",
+                      "api-reference/errors/assignee_data_incomplete",
+                      "api-reference/errors/assignee_rut_invalid",
+                      "api-reference/errors/assignor_email_missing",
+                      "api-reference/errors/mixed_payers",
+                      "api-reference/errors/cannot_mix_modes",
+                      "api-reference/errors/document_not_owned",
+                      "api-reference/errors/document_not_payable",
+                      "api-reference/errors/document_already_paid",
+                      "api-reference/errors/sandbox_document_required",
+                      "api-reference/errors/banking_info_missing",
+                      "api-reference/errors/internal_error",
+                      "api-reference/errors/server_busy",
+                      "api-reference/errors/service_unavailable"
+                    ]
+                  }
                 ]
               }
             ]

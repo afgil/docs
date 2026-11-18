@@ -1,0 +1,52 @@
+---
+title: 'validation_error'
+sidebarTitle: 'validation_error'
+description: 'Los datos no pasan la validación. Uno o más campos no son válidos. El detalle por campo viene en detail.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `validation_error` |
+| **Tipo** | `validation_error` |
+| **Estado HTTP** | 400, 422 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Los datos no pasan la validación.** Uno o más campos no son válidos. El detalle por campo viene en detail.
+
+## Causas posibles
+
+- Faltan campos obligatorios.
+- Algún campo tiene un valor o formato inválido.
+
+## Cómo resolverlo
+
+- Lee detail: trae el problema de cada campo.
+- Corrige esos campos y reenvía.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "validation_error",
+    "code": "validation_error",
+    "message": "Uno o más campos no son válidos. El detalle por campo viene en detail.",
+    "suggested_action": "Lee detail, corrige los campos indicados y reenvía.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/validation_error",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

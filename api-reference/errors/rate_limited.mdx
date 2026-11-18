@@ -1,0 +1,53 @@
+---
+title: 'rate_limited'
+sidebarTitle: 'rate_limited'
+description: 'Demasiadas solicitudes. Superaste el límite de solicitudes de tu cuenta para ese período.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `rate_limited` |
+| **Tipo** | `rate_limit_error` |
+| **Estado HTTP** | 429 |
+| **¿Reintentar?** | Sí |
+
+## Qué significa
+
+**Demasiadas solicitudes.** Superaste el límite de solicitudes de tu cuenta para ese período.
+
+## Causas posibles
+
+- Un ciclo consulta sin pausas.
+- Varios procesos comparten la misma API key.
+
+## Cómo resolverlo
+
+- Espera los segundos del header Retry-After y reintenta.
+- Reintenta con esperas crecientes.
+- Usa webhooks en vez de consultar el estado una y otra vez.
+
+## ¿Conviene reintentar?
+
+Sí. Reintenta, aumentando la espera en cada intento.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "rate_limit_error",
+    "code": "rate_limited",
+    "message": "Superaste el límite de solicitudes de tu cuenta para ese período.",
+    "suggested_action": "Espera los segundos de Retry-After y reintenta con esperas crecientes.",
+    "retryable": true,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/rate_limited",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

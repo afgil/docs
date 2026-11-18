@@ -1,0 +1,50 @@
+---
+title: 'cursor_expired'
+sidebarTitle: 'cursor_expired'
+description: 'Cursor vencido. El cursor es más antiguo que el período que guardamos de cambios, así que podría saltarse algunos.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `cursor_expired` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 410 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Cursor vencido.** El cursor es más antiguo que el período que guardamos de cambios, así que podría saltarse algunos.
+
+## Causas posibles
+
+- Pasó mucho tiempo desde la última sincronización.
+
+## Cómo resolverlo
+
+- Haz una carga completa sin cursor y sigue desde el nuevo next_cursor.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "cursor_expired",
+    "message": "El cursor es más antiguo que el período que guardamos de cambios, así que podría saltarse algunos.",
+    "suggested_action": "Vuelve a cargar todo sin cursor y continúa con el nuevo next_cursor.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/cursor_expired",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

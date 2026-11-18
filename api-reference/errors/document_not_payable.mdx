@@ -1,0 +1,51 @@
+---
+title: 'document_not_payable'
+sidebarTitle: 'document_not_payable'
+description: 'El documento no se puede cobrar. Ese tipo de documento, o su estado, no admite un cobro.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `document_not_payable` |
+| **Tipo** | `invalid_request_error` |
+| **Estado HTTP** | 400 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**El documento no se puede cobrar.** Ese tipo de documento, o su estado, no admite un cobro.
+
+## Causas posibles
+
+- El documento es de un tipo que no se cobra.
+- El documento fue anulado.
+
+## Cómo resolverlo
+
+- Usa una factura o boleta vigente.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "document_not_payable",
+    "message": "Ese tipo de documento, o su estado, no admite un cobro.",
+    "suggested_action": "Usa un documento vigente de un tipo que se pueda cobrar.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/document_not_payable",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

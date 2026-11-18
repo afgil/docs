@@ -305,12 +305,36 @@ Se dispara cuando falla la emisión de un documento.
     },
     "details": [ /* array de detalles completo */ ],
     "xml_file": null,
-    "pdf_file": null
+    "pdf_file": null,
+    "error": {
+      "message": "SII no disponible",
+      "code": "sii_no_disponible",
+      "type": "temporary_error",
+      "user_message": "Agotamos los reintentos automáticos y el documento no se emitió; vuelve a enviarlo.",
+      "catalog_code": "sii_unavailable",
+      "suggested_action": "Reintenta en unos minutos con la misma llave de idempotencia.",
+      "retryable": true,
+      "doc_url": "https://docs.tupana.ai/api-reference/errors/sii_unavailable"
+    }
   }
 }
 ```
 
 **Nota:** En este evento, `folio`, `pdf_file` y `xml_file` pueden ser `null` ya que el documento no se emitió exitosamente.
+
+El evento se envía cuando el fallo es **definitivo**: un error permanente, o un error temporal después de agotar nuestros reintentos automáticos. `data.error` dice por qué:
+
+| Campo | Descripción |
+|-------|-------------|
+| `catalog_code` | Código público y **estable** del error, el mismo vocabulario de los [códigos de error](/api-reference/error-codes) de la API. Programa contra este campo. |
+| `suggested_action` | Qué hacer ahora, en una línea. |
+| `retryable` | `true` si puedes volver a enviar el documento; `false` si primero hay que corregir algo. |
+| `doc_url` | Página del código, con sus causas y cómo resolverlo. |
+| `user_message` | Texto en español para mostrarle a una persona. |
+| `message` | Detalle técnico del último intento. Puede cambiar; no lo parsees. |
+| `code`, `type` | Clasificación interna del intento (`type` es `temporary_error` o `permanent_error`). Se mantienen por compatibilidad; para programar usa `catalog_code` y `retryable`. |
+
+`catalog_code`, `suggested_action`, `retryable` y `doc_url` pueden venir en `null` cuando no podemos atribuir el fallo con certeza. En ese caso **no reenvíes el documento a ciegas**: consulta su estado primero, porque podría estar emitido.
 
 #### document.updated
 

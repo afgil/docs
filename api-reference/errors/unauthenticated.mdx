@@ -1,0 +1,54 @@
+---
+title: 'unauthenticated'
+sidebarTitle: 'unauthenticated'
+description: 'Falta la API key. La solicitud llegó sin una API key que podamos leer.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `unauthenticated` |
+| **Tipo** | `authentication_error` |
+| **Estado HTTP** | 403, 401, 422 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Falta la API key.** La solicitud llegó sin una API key que podamos leer.
+
+## Causas posibles
+
+- No se envió el header Authorization.
+- El header no tiene el formato Api-Key &lt;tu_api_key&gt;.
+- Un proxy o intermediario quitó el header antes de llegar a Tupana.
+
+## Cómo resolverlo
+
+- Envía el header Authorization: Api-Key &lt;tu_api_key&gt; en cada solicitud.
+- Revisa que no haya espacios ni comillas de más en la key.
+- Si usas un proxy, confirma que reenvía el header Authorization sin cambios.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "authentication_error",
+    "code": "unauthenticated",
+    "message": "La solicitud llegó sin una API key que podamos leer.",
+    "suggested_action": "Envía el header Authorization: Api-Key <tu_api_key>.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/unauthenticated",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).
