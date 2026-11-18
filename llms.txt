@@ -127,6 +127,7 @@ Detalle: https://docs.tupana.ai/precios · https://developers.tupana.ai/pricing
 - [Códigos de error](https://docs.tupana.ai/api-reference/error-codes): Lista de todos los códigos de error de la API de Tupana, con su causa, cómo resolverlo y si conviene reintentar.
 - [unauthenticated](https://docs.tupana.ai/api-reference/errors/unauthenticated): Falta la API key. La solicitud llegó sin una API key que podamos leer.
 - [forbidden](https://docs.tupana.ai/api-reference/errors/forbidden): Sin acceso. La API key no puede hacer esta operación o no tiene acceso a esta empresa.
+- [company_not_accessible](https://docs.tupana.ai/api-reference/errors/company_not_accessible): Empresa no disponible para esta cuenta. La cuenta conectada no tiene acceso a una empresa con ese RUT, o todavía no tiene ninguna empresa vinculada. Lo devuelven las herramientas del servidor MCP.
 - [sandbox_read_only](https://docs.tupana.ai/api-reference/errors/sandbox_read_only): Operación no disponible con una key de sandbox. Con una API key de sandbox las conexiones de empresas son de solo lectura.
 - [sandbox_key_real_company](https://docs.tupana.ai/api-reference/errors/sandbox_key_real_company): Key de sandbox con una empresa real. Una API key de sandbox solo ve tu Empresa Demo, y la solicitud nombra una empresa real.
 - [bad_request](https://docs.tupana.ai/api-reference/errors/bad_request): Solicitud inválida. No pudimos leer la solicitud.

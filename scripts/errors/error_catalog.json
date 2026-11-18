@@ -78,6 +78,28 @@
       "suggested_action": "Revisa en la consola que la API key esté activa y que la empresa esté conectada a tu cuenta.",
       "retryable": false
     },
+    "company_not_accessible": {
+      "type": "permission_error",
+      "http_status": [
+        403
+      ],
+      "responsibility": "client",
+      "group": "authentication",
+      "status": "live",
+      "title": "Empresa no disponible para esta cuenta",
+      "description": "La cuenta conectada no tiene acceso a una empresa con ese RUT, o todavía no tiene ninguna empresa vinculada. Lo devuelven las herramientas del servidor MCP.",
+      "causes": [
+        "El RUT indicado no corresponde a una empresa de la cuenta.",
+        "El RUT está mal escrito.",
+        "La cuenta aún no tiene empresas vinculadas en Tupana."
+      ],
+      "solutions": [
+        "Lista las empresas disponibles con la herramienta get_entity_info y usa uno de esos RUT.",
+        "Si falta la empresa, agrégala en la aplicación de Tupana y vuelve a intentar."
+      ],
+      "suggested_action": "Usa get_entity_info para ver las empresas disponibles y repite con uno de esos RUT.",
+      "retryable": false
+    },
     "sandbox_read_only": {
       "type": "permission_error",
       "http_status": [

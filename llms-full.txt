@@ -4719,6 +4719,7 @@ Aquí registramos cada cambio de la API de Tupana que se nota desde tu integraci
   - **Cambio incompatible (solo v2, llamadas con API key):** todos los errores de v2 responden con el cuerpo de error de v2. Varias rutas respondían solo `{"error": "texto"}`; ahora ese texto viene en `error.message`, junto a `code`, `type`, `suggested_action`, `retryable` y `doc_url`. Algunos errores frecuentes tienen además código propio, como [`rut_invalid`](https://docs.tupana.ai/api-reference/errors/rut_invalid) y `parameter_missing` con `param`. Siguen igual, como ya estaba documentado, el `422` de validación del lote de documentos y los errores de las keys `gw_` y `sy_`.
   - **Cambio de `type` (solo v2):** una solicitud sin API key responde `type: "authentication_error"` (antes `permission_error`); sigue siendo `403` con `code: "unauthenticated"`. `method_not_allowed` y `cursor_expired` pasan a `invalid_request_error`.
   - Emisión por lote con keys `gw_` y emisión síncrona con keys `sy_`: los errores conservan la lista `errors` y agregan el bloque `error` con `code`, `suggested_action`, `retryable` y `doc_url`. Dos códigos nuevos: [`emission_in_progress`](https://docs.tupana.ai/api-reference/errors/emission_in_progress) y [`folios_temporarily_unavailable`](https://docs.tupana.ai/api-reference/errors/folios_temporarily_unavailable).
+  - Servidor MCP: los errores de las herramientas conservan su texto y agregan `code`, `retryable` y `doc_url` cuando el error tiene un código conocido; el más común es el nuevo [`company_not_accessible`](https://docs.tupana.ai/api-reference/errors/company_not_accessible) (la cuenta no tiene acceso a una empresa con ese RUT). `get_error_resolution` explica ahora cualquier código de la [referencia de errores](https://docs.tupana.ai/api-reference/error-codes): acepta el código, la respuesta completa de la API o su `doc_url`.
   - Webhook [`document.issue_failed`](https://docs.tupana.ai/user-guide/webhooks#documentissue_failed): `data.error` agrega `catalog_code`, `suggested_action`, `retryable` y `doc_url`. Cuando un error temporal agota nuestros reintentos, `user_message` indica que hay que volver a enviar el documento.
 
   - [`GET /v2/connections/`](https://docs.tupana.ai/api-reference/v2/connections/list) responde con el envelope de los demás listados v2: `{data, meta: {page, page_size, total, total_pages}, links: {next, prev}}`. Se pagina con `page` y `page_size` (`limit` queda como alias). **Cambio incompatible:** la raíz ya no trae `total` ni `limit`; léelos en `meta.total` y `meta.page_size`.
@@ -8231,6 +8232,7 @@ Cada error de la API trae un `code` estable y un `doc_url` que lleva a la págin
 |--------|---------------|:----:|:------------:|
 | [`unauthenticated`](https://docs.tupana.ai/api-reference/errors/unauthenticated) | Falta la API key | 403, 401, 422 | No |
 | [`forbidden`](https://docs.tupana.ai/api-reference/errors/forbidden) | Sin acceso | 403, 401, 422 | No |
+| [`company_not_accessible`](https://docs.tupana.ai/api-reference/errors/company_not_accessible) | Empresa no disponible para esta cuenta | 403 | No |
 | [`sandbox_read_only`](https://docs.tupana.ai/api-reference/errors/sandbox_read_only) | Operación no disponible con una key de sandbox | 403 | No |
 | [`sandbox_key_real_company`](https://docs.tupana.ai/api-reference/errors/sandbox_key_real_company) | Key de sandbox con una empresa real | 403, 400 | No |
 
@@ -8415,6 +8417,60 @@ El `message` puede variar según el caso; programa contra `code`.
     "suggested_action": "Revisa en la consola que la API key esté activa y que la empresa esté conectada a tu cuenta.",
     "retryable": false,
     "doc_url": "https://docs.tupana.ai/api-reference/errors/forbidden",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](https://docs.tupana.ai/api-reference/error-codes) o el [formato del error](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## company_not_accessible
+
+Fuente: https://docs.tupana.ai/api-reference/errors/company_not_accessible · Sección: API Facturación / Códigos
+
+> Empresa no disponible para esta cuenta. La cuenta conectada no tiene acceso a una empresa con ese RUT, o todavía no tiene ninguna empresa vinculada. Lo devuelven las herramientas del servidor MCP.
+
+| | |
+|---|---|
+| **Código** | `company_not_accessible` |
+| **Tipo** | `permission_error` |
+| **Estado HTTP** | 403 |
+| **¿Reintentar?** | No |
+
+### Qué significa
+
+**Empresa no disponible para esta cuenta.** La cuenta conectada no tiene acceso a una empresa con ese RUT, o todavía no tiene ninguna empresa vinculada. Lo devuelven las herramientas del servidor MCP.
+
+### Causas posibles
+
+- El RUT indicado no corresponde a una empresa de la cuenta.
+- El RUT está mal escrito.
+- La cuenta aún no tiene empresas vinculadas en Tupana.
+
+### Cómo resolverlo
+
+- Lista las empresas disponibles con la herramienta get_entity_info y usa uno de esos RUT.
+- Si falta la empresa, agrégala en la aplicación de Tupana y vuelve a intentar.
+
+### ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+### Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "permission_error",
+    "code": "company_not_accessible",
+    "message": "La cuenta conectada no tiene acceso a una empresa con ese RUT, o todavía no tiene ninguna empresa vinculada. Lo devuelven las herramientas del servidor MCP.",
+    "suggested_action": "Usa get_entity_info para ver las empresas disponibles y repite con uno de esos RUT.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/company_not_accessible",
     "request_id": "req_8f3a9c2b1e7d4a60"
   }
 }

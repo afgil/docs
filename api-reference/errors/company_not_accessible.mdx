@@ -1,0 +1,53 @@
+---
+title: 'company_not_accessible'
+sidebarTitle: 'company_not_accessible'
+description: 'Empresa no disponible para esta cuenta. La cuenta conectada no tiene acceso a una empresa con ese RUT, o todavía no tiene ninguna empresa vinculada. Lo devuelven las herramientas del servidor MCP.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `company_not_accessible` |
+| **Tipo** | `permission_error` |
+| **Estado HTTP** | 403 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Empresa no disponible para esta cuenta.** La cuenta conectada no tiene acceso a una empresa con ese RUT, o todavía no tiene ninguna empresa vinculada. Lo devuelven las herramientas del servidor MCP.
+
+## Causas posibles
+
+- El RUT indicado no corresponde a una empresa de la cuenta.
+- El RUT está mal escrito.
+- La cuenta aún no tiene empresas vinculadas en Tupana.
+
+## Cómo resolverlo
+
+- Lista las empresas disponibles con la herramienta get_entity_info y usa uno de esos RUT.
+- Si falta la empresa, agrégala en la aplicación de Tupana y vuelve a intentar.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "permission_error",
+    "code": "company_not_accessible",
+    "message": "La cuenta conectada no tiene acceso a una empresa con ese RUT, o todavía no tiene ninguna empresa vinculada. Lo devuelven las herramientas del servidor MCP.",
+    "suggested_action": "Usa get_entity_info para ver las empresas disponibles y repite con uno de esos RUT.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/company_not_accessible",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).
