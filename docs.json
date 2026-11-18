@@ -157,6 +157,7 @@
                       "api-reference/errors/unauthenticated",
                       "api-reference/errors/forbidden",
                       "api-reference/errors/sandbox_read_only",
+                      "api-reference/errors/sandbox_key_real_company",
                       "api-reference/errors/bad_request",
                       "api-reference/errors/parameter_missing",
                       "api-reference/errors/parameter_invalid",

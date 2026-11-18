@@ -1,0 +1,52 @@
+---
+title: 'sandbox_key_real_company'
+sidebarTitle: 'sandbox_key_real_company'
+description: 'Key de sandbox con una empresa real. Una API key de sandbox solo ve tu Empresa Demo, y la solicitud nombra una empresa real.'
+---
+
+{/* Generado por scripts/generate_error_pages.py desde el catálogo de errores. No editar a mano: se sobrescribe. */}
+
+| | |
+|---|---|
+| **Código** | `sandbox_key_real_company` |
+| **Tipo** | `permission_error` |
+| **Estado HTTP** | 403 |
+| **¿Reintentar?** | No |
+
+## Qué significa
+
+**Key de sandbox con una empresa real.** Una API key de sandbox solo ve tu Empresa Demo, y la solicitud nombra una empresa real.
+
+## Causas posibles
+
+- Se usó una key de sandbox con el id de una empresa real.
+- El id de la empresa quedó de una prueba anterior en producción.
+
+## Cómo resolverlo
+
+- Para tu empresa real, usa una API key de producción.
+- Para seguir probando, usa el id de tu Empresa Demo.
+
+## ¿Conviene reintentar?
+
+No. Repetir la misma solicitud va a fallar igual: primero hay que corregir la causa.
+
+## Respuesta de ejemplo
+
+El `message` puede variar según el caso; programa contra `code`.
+
+```json
+{
+  "error": {
+    "type": "permission_error",
+    "code": "sandbox_key_real_company",
+    "message": "Una API key de sandbox solo ve tu Empresa Demo, y la solicitud nombra una empresa real.",
+    "suggested_action": "Usa una API key de producción para tu empresa real, o el id de tu Empresa Demo para probar.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/sandbox_key_real_company",
+    "request_id": "req_8f3a9c2b1e7d4a60"
+  }
+}
+```
+
+Ver [todos los códigos](/api-reference/error-codes) o el [formato del error](/api-reference/v2/errors).

@@ -128,6 +128,7 @@ Detalle: https://docs.tupana.ai/precios · https://developers.tupana.ai/pricing
 - [unauthenticated](https://docs.tupana.ai/api-reference/errors/unauthenticated): Falta la API key. La solicitud llegó sin una API key que podamos leer.
 - [forbidden](https://docs.tupana.ai/api-reference/errors/forbidden): Sin acceso. La API key no puede hacer esta operación o no tiene acceso a esta empresa.
 - [sandbox_read_only](https://docs.tupana.ai/api-reference/errors/sandbox_read_only): Operación no disponible con una key de sandbox. Con una API key de sandbox las conexiones de empresas son de solo lectura.
+- [sandbox_key_real_company](https://docs.tupana.ai/api-reference/errors/sandbox_key_real_company): Key de sandbox con una empresa real. Una API key de sandbox solo ve tu Empresa Demo, y la solicitud nombra una empresa real.
 - [bad_request](https://docs.tupana.ai/api-reference/errors/bad_request): Solicitud inválida. No pudimos leer la solicitud.
 - [parameter_missing](https://docs.tupana.ai/api-reference/errors/parameter_missing): Falta un parámetro requerido. La solicitud no trae un campo obligatorio. El campo que falta viene en param.
 - [parameter_invalid](https://docs.tupana.ai/api-reference/errors/parameter_invalid): Parámetro inválido. Un campo tiene un valor o un formato que no aceptamos. El campo viene en param.

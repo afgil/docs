@@ -8,6 +8,15 @@ rss: true
 
 Aquí registramos cada cambio de la API de Tupana que se nota desde tu integración: endpoints nuevos, campos, eventos de webhook, tipos de documento, límites y cambios de comportamiento. Las fechas son las de salida a producción. Suscríbete por RSS para enterarte de cada novedad.
 
+<Update label="18 de noviembre de 2026" description="Errores">
+  - Cada error de la API v2 trae ahora `suggested_action` (qué hacer, en una línea) y `retryable` (si tiene sentido repetir la solicitud); algunos traen además `retry_after_seconds`. Ver [Errores](/api-reference/v2/errors).
+  - Nueva referencia de [códigos de error](/api-reference/error-codes): una página por código, con sus causas, cómo resolverlo y si conviene reintentar. El `doc_url` de cada error lleva a la página de su código.
+  - **Cambio incompatible (solo v2):** el bloqueo por plan (`402`) y el rechazo de una key de sandbox que nombra una empresa real (`403`) responden con el cuerpo de error de v2. Antes: `{"error": "payment_required", "reason", "message", "settings_url"}`. Ahora: `{"error": {"type": "billing_error", "code": "payment_required", "message", "reason", "settings_url", ...}}`. Si leías `error` como texto, lee `error.code`. En v1 no cambia nada.
+  - **Cambio de `type` (solo v2):** una solicitud sin API key responde `type: "authentication_error"` (antes `permission_error`); sigue siendo `403` con `code: "unauthenticated"`. `method_not_allowed` y `cursor_expired` pasan a `invalid_request_error`.
+  - Emisión por lote con keys `gw_` y emisión síncrona con keys `sy_`: los errores conservan la lista `errors` y agregan el bloque `error` con `code`, `suggested_action`, `retryable` y `doc_url`. Dos códigos nuevos: [`emission_in_progress`](/api-reference/errors/emission_in_progress) y [`folios_temporarily_unavailable`](/api-reference/errors/folios_temporarily_unavailable).
+  - Webhook [`document.issue_failed`](/user-guide/webhooks#documentissue_failed): `data.error` agrega `catalog_code`, `suggested_action`, `retryable` y `doc_url`. Cuando un error temporal agota nuestros reintentos, `user_message` indica que hay que volver a enviar el documento.
+</Update>
+
 <Update label="30 de octubre de 2026" description="Conexiones">
   - [`GET /v2/connections/`](/api-reference/v2/connections/list) responde con el envelope de los demás listados v2: `{data, meta: {page, page_size, total, total_pages}, links: {next, prev}}`. Se pagina con `page` y `page_size` (`limit` queda como alias). **Cambio incompatible:** la raíz ya no trae `total` ni `limit`; léelos en `meta.total` y `meta.page_size`.
   - `meta.total` cuenta conexiones, no empresas: una empresa con su conexión tributaria y una de banco son dos.
