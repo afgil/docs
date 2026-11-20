@@ -6065,13 +6065,39 @@ Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en l
 </details>
 
 <details>
+<summary><strong>🧾 Liquidación-Factura (DTE 43)</strong> - El mandatario liquida al mandante las ventas que hizo por su cuenta y le descuenta su comisión</summary>
+
+**Quién la emite:** el mandatario o comisionista (consignatario, corredor, plataforma que vende por cuenta de terceros). El **receptor** (`document_receiver`) es el **mandante**, dueño de lo que se vendió.
+
+**document_issuer y document_receiver:** iguales a la Factura Electrónica (DTE 33).
+
+**details (Obligatorio):** cada línea es **un documento que se liquida**, no un producto.
+- `item_name` (String): Identifica el documento, por ejemplo `"Factura 1001"`.
+- `settled_document_type` (String): **Tipo del documento que se liquida** (`TpoDocLiq` en el DTE). Valores: `"30"` factura manual, `"32"` factura exenta manual, `"33"` factura electrónica, `"34"` factura exenta electrónica, `"35"` boleta manual, `"38"` boleta exenta manual, `"39"` boleta electrónica, `"40"` liquidación-factura manual, `"41"` boleta exenta electrónica, `"43"` liquidación-factura electrónica, `"45"` factura de compra manual, `"46"` factura de compra electrónica, `"55"` nota de débito manual, `"56"` nota de débito electrónica, `"60"` nota de crédito manual, `"61"` nota de crédito electrónica, `"99"` anticipo. Si no lo envías, se deduce del `item_name`.
+- `quantity` (Number): Siempre `1`.
+- `unit_price` (Number): Monto del documento liquidado: el **neto**, o el **exento** si la línea lleva `is_exempt: true`. La reversa de una liquidación anterior (`settled_document_type` `"43"`) va **negativa**; el total del documento debe quedar positivo.
+- `is_exempt` (Boolean): Opcional. `true` cuando el monto liquidado es exento (no suma IVA).
+
+**commissions (Opcional):** comisiones y otros cargos que retiene el mandatario (bloque `Comisiones` del DTE). Hasta 20.
+- `type` (String): `"commission"` (comisión) u `"other"` (otro cargo). Por defecto `"commission"`.
+- `description` (String): Glosa, hasta 60 caracteres.
+- `net_amount` (Integer): Monto neto afecto. Lleva IVA 19%.
+- `exempt_amount` (Integer): Monto exento.
+
+**Totales:** `net_amount`, `exempt_amount` e `iva_amount` se calculan desde las líneas (IVA 19% sobre el neto) y `total_amount` es su suma. `commission_amount` es el total de las comisiones con su IVA. Lo que se le paga al mandante es `total_amount - commission_amount`, el `MntTotal` del DTE.
+
+**Facturador:** se emite con el facturador de mercado de Tupana. Si la empresa emite por el facturador gratuito del SII, la API responde `422`. En sandbox se puede probar con cualquier empresa, incluida tu Empresa Demo.
+
+</details>
+
+<details>
 <summary><strong>🚚 Guía de Despacho (DTE 52)</strong> - Para amparar el traslado de mercaderías</summary>
 
 **Campos específicos:**
 
 **document_issuer y document_receiver (Obligatorio):** Mismos campos que Factura Electrónica. En un traslado para exportación el receptor es quien recibe la carga en Chile (por ejemplo, la agencia de aduanas), no el importador extranjero.
 
-> **Nota:** **Resolución Exenta SII N°154 (vigente desde el 1 de noviembre de 2026):** en la guía pasan a ser obligatorios el tipo de traslado, la patente, el RUT del transportista, el chofer (o una declaración de transporte no informado), el destino con comuna, la fecha y hora de salida y la unidad de medida de cada línea. Hasta esa fecha la API acepta la guía y devuelve un aviso por cada dato faltante en `warnings` (códigos `res154_*`); desde esa fecha responde `422`. Ver [Resolución 154](#resolucion-154-dte-52).
+> **Nota:** **Resolución Exenta SII N°154 (vigente desde el 1 de noviembre de 2026):** en la guía pasan a ser obligatorios el tipo de traslado, la patente, el RUT del transportista, el chofer (o una declaración de transporte no informado), el destino con comuna, la fecha y hora de salida y la unidad de medida de cada línea. Hasta esa fecha la API acepta la guía y devuelve un aviso por cada dato faltante en `warnings` (códigos `res154_*`); desde esa fecha responde `422`. La fecha y hora de salida (`departure_date`, `departure_time`) no se rechazan: si no vienen, se completan con la fecha de emisión y la hora de Chile. Ver [Resolución 154](#resolucion-154-dte-52).
 
 **transport_data (Opcional hasta el 1 de noviembre de 2026)**
 - **Tipo:** Object
@@ -6094,7 +6120,7 @@ Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en l
 - **Tipo:** Array
 - **Campos de cada elemento:** Mismos campos que Factura Electrónica (`item_name`, `quantity`, `unit_price`), más:
   - `unit` (String): Unidad de medida de la línea (`UN`, `KG`, `M3`, ...). **Obligatoria en la guía desde el 1 de noviembre de 2026** (`UnmdItem` pasa a obligatorio en el Formato DTE 2026-02)
-  - `is_exempt` (Boolean): **Opcional, por defecto `false`.** Marca la línea como no afecta o exenta de IVA (`IndExe = 1`): su monto va a `exempt_amount` y no genera IVA. Por ahora sólo se acepta en DTE 52; en otro tipo de documento la API responde `422`.
+  - `is_exempt` (Boolean): **Opcional, por defecto `false`.** Marca la línea como no afecta o exenta de IVA (`IndExe = 1`): su monto va a `exempt_amount` y no genera IVA. Con el facturador gratuito del SII la API responde `422`.
   - `gross_unit_price` (Number): **No aplica a este tipo de documento.** Solo válido para boletas electrónicas (DTE 39 y 41).
 
 **references (Opcional)**
@@ -6886,6 +6912,53 @@ La guía queda con `exempt_amount` 4.050.000, IVA 0 y total 4.050.000.
 }
 ```
 
+##### Liquidación-Factura (DTE 43)
+
+El mandatario liquida al mandante dos facturas afectas, una exenta y la reversa de una liquidación anterior, y le descuenta una comisión y un flete.
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": { "code": "43" },
+      "date_issued": "2026-11-20",
+      "document_issuer": {
+        "rut": "76.123.456-0"
+      },
+      "document_receiver": {
+        "rut": "76.543.210-3",
+        "business_name": "Mandante Demo SpA",
+        "business_activity": "Venta de productos agrícolas",
+        "address": "Av. Providencia 1234",
+        "district": "Providencia",
+        "city": "Santiago"
+      },
+      "details": [
+        { "item_name": "Factura 1001", "settled_document_type": "33", "quantity": 1, "unit_price": 1000000 },
+        { "item_name": "Factura 1002", "settled_document_type": "33", "quantity": 1, "unit_price": 500000 },
+        { "item_name": "Factura exenta 88", "settled_document_type": "34", "quantity": 1, "unit_price": 200000, "is_exempt": true },
+        { "item_name": "Reversa liquidación 7", "settled_document_type": "43", "quantity": 1, "unit_price": -100000 }
+      ],
+      "commissions": [
+        { "type": "commission", "description": "Comisión 5%", "net_amount": 70000 },
+        { "type": "other", "description": "Flete", "exempt_amount": 15000 }
+      ]
+    }
+  ]
+}
+```
+
+| Total | Monto |
+|---|---|
+| `net_amount` (1.000.000 + 500.000 - 100.000) | 1.400.000 |
+| `iva_amount` (19% del neto) | 266.000 |
+| `exempt_amount` | 200.000 |
+| `total_amount` | 1.866.000 |
+| `commission_amount` (70.000 + IVA 13.300 + 15.000) | 98.300 |
+| A pagar al mandante (`MntTotal` del DTE) | 1.767.700 |
+
+Cada línea lleva `quantity: 1` y en `unit_price` el monto del documento liquidado; con otra cantidad la API responde `422`. `commissions` y `settled_document_type` sólo se aceptan en el tipo `43`.
+
 ##### Boleta de Honorarios por usuario autorizado (DTE 80)
 
 El emisor de la boleta es `document_issuer.rut`, pero la emite un **usuario autorizado** por el SII (dueño de una credencial `sii_company`). `header.authorized_user_rut` indica cuál credencial usar cuando hay varias accesibles.
@@ -7075,14 +7148,13 @@ En guías de traslado 8 y 9 el SII exige indicar en qué calidad se emite la gu�
 La [Resolución Exenta SII N°154 de 2025](https://www.sii.cl/normativa_legislacion/resoluciones/2025/reso154.pdf), prorrogada por la Resolución Exenta N°52 de 2026, fija el contenido mínimo de la guía de despacho y rige desde el **1 de noviembre de 2026**. La API aplica las mismas reglas en v1 y v2:
 
 - **Hasta el 31 de octubre de 2026:** la guía se acepta igual y la respuesta del batch trae un aviso por cada dato faltante en `warnings`, con `document_index`, `field`, `code` (`res154_*`), `message` y `suggestion`. Los avisos también aparecen en el borrador y en la vista previa de la plataforma.
-- **Desde el 1 de noviembre de 2026:** los mismos datos faltantes responden `422` con el campo bajo `documents` → posición → `transport_data` o `details[]`, y la guía no se crea. El único aviso que nunca pasa a `422` es `res154_trailer_plate`.
+- **Desde el 1 de noviembre de 2026:** los mismos datos faltantes responden `422` con el campo bajo `documents` → posición → `transport_data` o `details[]`, y la guía no se crea. El único aviso que nunca pasa a `422` es `res154_trailer_plate`. La fecha y hora de salida (`departure_date`, `departure_time`) no se rechazan: si no vienen, se completan con la fecha de emisión y la hora de Chile.
 
 | Código del aviso | Qué falta | Cómo resolverlo |
 |---|---|---|
 | `res154_transfer_type` | `transport_type` | Informar el tipo de traslado `"1"`–`"9"` |
 | `res154_carrier` | `transport_plate`, `transport_rut` o `driver_rut` + `driver_name` | Informarlos, o declarar en `transport_unknown_reason` por qué no se conocen |
 | `res154_destination` | Dirección o comuna de destino | `destination_address` + `destination_district`, o la dirección y comuna del receptor en `document_receiver` |
-| `res154_departure` | `departure_date` o `departure_time` | Fecha y hora de inicio del traslado |
 | `res154_unit` | `details[].unit` | Unidad de medida en cada línea (`UN`, `KG`, `M3`, ...) |
 | `res154_transfer_reason` | Precio unitario | En un traslado que constituye venta (`"1"`, `"9"`) cada línea lleva `unit_price`; en los demás se puede omitir si viene `transfer_reason` |
 | `res154_trailer_plate` | `trailer_plate` | Sólo aviso: si el vehículo lleva carro o remolque, informar su patente |
@@ -7095,10 +7167,10 @@ Ejemplo de aviso (misma forma en v1 y v2):
   "warnings": [
     {
       "document_index": 0,
-      "field": "transport_data.departure_time",
-      "code": "res154_departure",
-      "message": "La hora de inicio del traslado es obligatoria.",
-      "suggestion": "Informe transport_data.departure_time (HH:MM)."
+      "field": "details[0].unit",
+      "code": "res154_unit",
+      "message": "La unidad de medida es obligatoria en cada línea de la guía.",
+      "suggestion": "Informe details[].unit (por ejemplo UN, KG, M3)."
     }
   ]
 }
@@ -7142,7 +7214,7 @@ Respuesta `200`:
 - `is_exempt: true` marca la línea como no afecta o exenta (`IndExe = 1` en el DTE).
 - Las líneas exentas suman a `document_total.exempt_amount` y no generan IVA; las afectas suman al neto y llevan IVA 19%. `total_amount = net_amount + iva_amount + exempt_amount`.
 - Para una guía toda exenta, marca todas las líneas. No hay marca a nivel de documento.
-- Por ahora sólo en DTE 52: en otros tipos de documento la API responde `422`.
+- Con el facturador de mercado se acepta en cualquier tipo de documento; en la liquidación-factura (43) marca un documento liquidado exento. Con el facturador gratuito del SII la API responde `422`.
 
 #### Facturador gratuito del SII (MiPyme)
 
@@ -7176,13 +7248,12 @@ La guía se valida al recibir el batch, antes de emitir, para no quemar folios c
 | Puerto, unidad o tipo de bulto fuera de la tabla de Aduana | `422` |
 | `gross_weight` o `total_packages` menor o igual a 0 | `422` |
 | `total_packages` sin `package_type_code` | `422` |
-| `details[].is_exempt` en un documento que no es DTE 52 | `422`: no soportado para este tipo de documento |
 | Aduana, destino de la madera o `is_exempt` con emisor del facturador gratuito | `422`: no disponible para emisores del facturador gratuito del SII |
 | `trailer_plate` de más de 8 caracteres (sin guion ni espacios) | `422` |
 | `arrival_date` anterior a `departure_date` | `422` |
 | `transfer_reason` > 200 o `transport_unknown_reason` > 100 caracteres | `422` |
 | Rol predial de destino de la madera con otra cosa que 1 a 6 dígitos | `422` |
-| **Desde el 1 de noviembre de 2026:** falta tipo de traslado, patente/transportista/chofer (sin `transport_unknown_reason`), destino, salida, `details[].unit`, precio en una venta o rol predial de destino con madera | `422` (hasta esa fecha, aviso `res154_*`) |
+| **Desde el 1 de noviembre de 2026:** falta tipo de traslado, patente/transportista/chofer (sin `transport_unknown_reason`), destino, `details[].unit`, precio en una venta o rol predial de destino con madera | `422` (hasta esa fecha, aviso `res154_*`) |
 
 Ejemplo de respuesta v1 (el error va en la posición del documento dentro de `documents`):
 
@@ -8095,10 +8166,12 @@ identifica el campo por su ruta.
 | Traslado `"8"`/`"9"` sin `transfer_issuer_code`, puertos, peso bruto o unidad, con emisor del facturador de mercado | 422 |
 | `transfer_issuer_code` `"4"` sin `authorization_resolution_number` / `authorization_resolution_date`, o esos campos con otro código | 422 |
 | Puerto, unidad o tipo de bulto fuera de las tablas de Aduana; `gross_weight` o `total_packages` ≤ 0; `total_packages` sin `package_type_code` | 422 |
-| `details[].is_exempt` en un documento que no es DTE 52 | 422 |
 | Datos de Aduana, destino de la madera (`destination_commune_role`, `destination_block_role`, `destination_property_role`, `work_execution_notice`, `destination_latitude`, `destination_longitude`) o `details[].is_exempt` con emisor del **facturador gratuito del SII**: *"no disponible para emisores del facturador gratuito del SII"* | 422 |
+| Liquidación-factura (43): `settled_document_type` fuera de los tipos que se pueden liquidar, una línea con `quantity` distinta de 1, más de 20 `commissions` o una comisión sin `net_amount` ni `exempt_amount` | 422 |
+| `commissions` o `details[].settled_document_type` en un documento que no es liquidación-factura (43) | 422 |
+| Liquidación-factura (43) de una empresa que emite por el facturador gratuito del SII (en producción) | 422 |
 | `trailer_plate` > 8 caracteres; `arrival_date` anterior a `departure_date`; `transfer_reason` > 200 o `transport_unknown_reason` > 100 caracteres; rol predial de destino de la madera con otra cosa que 1 a 6 dígitos | 422 |
-| **Desde el 1 de noviembre de 2026 (Res. Ex. SII N°154):** guía sin `transport_type`; sin patente, transportista o chofer y sin `transport_unknown_reason`; sin dirección o comuna de destino (propia o del receptor); sin `departure_date` o `departure_time`; línea sin `unit`; venta (`"1"`/`"9"`) sin `unit_price`; traslado sin venta sin precio ni `transfer_reason`; `timber_enabled` sin rol predial de destino. Hasta esa fecha son avisos `res154_*` (ver abajo) | 422 |
+| **Desde el 1 de noviembre de 2026 (Res. Ex. SII N°154):** guía sin `transport_type`; sin patente, transportista o chofer y sin `transport_unknown_reason`; sin dirección o comuna de destino (propia o del receptor); línea sin `unit`; venta (`"1"`/`"9"`) sin `unit_price`; traslado sin venta sin precio ni `transfer_reason`; `timber_enabled` sin rol predial de destino. Hasta esa fecha son avisos `res154_*` (ver abajo) | 422 |
 
 Detalle de cada campo en [Emisión masiva de documentos (v1)](https://docs.tupana.ai/api-reference/documents/batch), bloque "Guía de Despacho (DTE 52)".
 
@@ -8151,14 +8224,13 @@ Hasta el **31 de octubre de 2026** la guía se emite aunque falten los datos que
 Res. Ex. SII N°154 vuelve obligatorios; la respuesta del batch (v1 y v2, con o sin
 API key) los lista en `warnings` con estos códigos. Desde el **1 de noviembre de
 2026** los mismos casos responden **422**, salvo `res154_trailer_plate`, que sigue
-siendo sólo un aviso.
+siendo sólo un aviso. La fecha y hora de salida (`transport_data.departure_date` y `departure_time`) no se rechazan: si no vienen, se completan con la fecha de emisión y la hora de Chile.
 
 | `code` | `field` | Qué falta |
 |--------|---------|-----------|
 | `res154_transfer_type` | `transport_data.transport_type` | Tipo de traslado |
 | `res154_carrier` | `transport_data.transport_plate`, `transport_rut` o `driver_rut` | Patente, RUT del transportista o chofer, sin `transport_unknown_reason` |
 | `res154_destination` | `transport_data.destination_address` o `destination_district` | Dirección o comuna de destino (propia o del receptor) |
-| `res154_departure` | `transport_data.departure_date` o `departure_time` | Fecha u hora de inicio del traslado |
 | `res154_unit` | `details[n].unit` | Unidad de medida de la línea |
 | `res154_transfer_reason` | `details[n].unit_price` o `transport_data.transfer_reason` | Precio en una venta, o motivo del traslado cuando se omite el precio |
 | `res154_trailer_plate` | `transport_data.trailer_plate` | Patente del carro, si el vehículo lleva uno (nunca 422) |
@@ -8169,10 +8241,10 @@ siendo sólo un aviso.
   "warnings": [
     {
       "document_index": 0,
-      "field": "transport_data.departure_time",
-      "code": "res154_departure",
-      "message": "La hora de inicio del traslado es obligatoria.",
-      "suggestion": "Informe transport_data.departure_time (HH:MM)."
+      "field": "details[0].unit",
+      "code": "res154_unit",
+      "message": "La unidad de medida es obligatoria en cada línea de la guía.",
+      "suggestion": "Informe details[].unit (por ejemplo UN, KG, M3)."
     }
   ]
 }
@@ -16069,6 +16141,7 @@ Tipo: object
 - `transport_data` (`TransportData`)
 - `json_param` (object, nullable): Campos propios del cliente (objeto JSON libre, ej. `{"external_order_id": "PED-123"}`). Se guarda tal cual con el documento, vuelve en `GET /documents/{document_id}/` y en el listado, y permite buscar el documento con `json_param__<key>=<valor>` en `GET /documents/`. Úsalo para guardar tu propio identificador (ej. el `Idempotency-Key` o el id de tu pedido) y así reencontrar el documento aunque pierdas la respuesta de creación.
 - `additional_info` (string, nullable; ej: `Orden de compra N° 4500123 - Centro de costo: Operaciones`; máx. largo 1000): Texto libre (máximo 1000 caracteres) que se imprime en un recuadro "Información adicional" al final del PDF, justo antes del timbre. No se envía al SII: no forma parte del XML. Solo se imprime si tu empresa usa el PDF propio (PDF personalizado de Tu Pana) o emite con el facturador de mercado; en cualquier otro caso (PDF oficial del SII) el texto se guarda y se devuelve en la API, pero no aparece en el PDF. Los saltos de línea se respetan. No se puede modificar una vez emitido el documento.
+- `commissions` (array de `LiquidationCommission`; máx. ítems 20): Sólo liquidación-factura (43): comisiones y otros cargos del mandatario. Su total con IVA queda en document_total.commission_amount; al mandante se le paga total_amount - commission_amount (MntTotal del DTE).
 
 #### `DteType`
 
@@ -16123,7 +16196,7 @@ Tipo: object
 - `quantity` (number; requerido): Cantidad
 - `unit_price` (number (float); requerido; mín. 0): Precio unitario neto, sin IVA (no puede ser negativo)
 - `gross_unit_price` (number (float)): Precio unitario bruto, con IVA incluido. Solo válido para boletas electrónicas (dte_type 39 y 41); en cualquier otro tipo de documento la API responde 422. No se puede combinar con unit_price en el mismo documento: todas las líneas deben usar uno u otro. Si se envía, se usa como unit_price para calcular item_total, y el neto/IVA del documento se derivan a partir del bruto.
-- `is_exempt` (boolean; default: `false`): Marca la línea como no afecta o exenta de IVA (Detalle/IndExe = 1): su monto va a exempt_amount y no genera IVA. Por ahora sólo en guía de despacho (DTE 52); en otro tipo de documento la API responde 422. No disponible para emisores del facturador gratuito del SII (422).
+- `is_exempt` (boolean; default: `false`): Marca la línea como no afecta o exenta de IVA (Detalle/IndExe = 1): su monto va a exempt_amount y no genera IVA. En la liquidación-factura (43) marca un documento liquidado exento. No disponible para emisores del facturador gratuito del SII (422).
 - `item_description` (string): Descripción del ítem
 - `discount_percent` (number (float)): Porcentaje de descuento
 - `item_code` (string): Código del ítem
@@ -16144,6 +16217,7 @@ Tipo: object
   - `event_location` (string; máx. largo 20): Sector o sección de la ubicación en el evento.
   - `row` (string, nullable; máx. largo 3): Fila de la ubicación.
   - `seat` (string, nullable; máx. largo 3): Asiento de la ubicación.
+- `settled_document_type` (string; valores: `30`, `32`, `33`, `34`, `35`, `38`, `39`, `40`, `41`, `43`, `45`, `46`, `55`, `56`, `60`, `61`, `99`; ej: `33`): Sólo liquidación-factura (43): tipo del documento que liquida la línea (Detalle/TpoDocLiq), por ejemplo "33" factura electrónica o "61" nota de crédito electrónica. Si no se envía, se deduce de item_name. En una liquidación cada línea lleva quantity 1 y en unit_price el monto del documento liquidado.
 
 #### `ReferenceItem`
 
@@ -16194,6 +16268,7 @@ Tipo: object
       - `discount_percent` (number, nullable)
       - `other_tax` (number, nullable)
       - `is_exempt` (boolean): true si la línea es no afecta o exenta de IVA (IndExe = 1).
+      - `settled_document_type` (string): Tipo del documento liquidado (sólo liquidación-factura 43); vacío en el resto.
     - `document_total` (object, nullable)
       - `net_amount` (number, nullable)
       - `iva_rate` (number, nullable)
@@ -16817,6 +16892,17 @@ Tipo: object
 - `service_indicator` (integer, nullable): Indicador de servicio.
 - `note_issuer` (integer, nullable): Emisor de la nota.
 - `aggressive_issuer` (boolean, nullable): El SII marca al emisor como agresivo.
+
+#### `LiquidationCommission`
+
+Comisión u otro cargo que retiene el mandatario en una liquidación-factura (bloque Comisiones del DTE 43).
+
+Tipo: object
+
+- `type` (string; valores: `commission`, `other`; default: `"commission"`): commission (comisión) u other (otro cargo).
+- `description` (string; requerido; ej: `Comisión 5%`; máx. largo 60): Glosa.
+- `net_amount` (integer; default: `0`; ej: `70000`): Monto neto afecto: lleva IVA 19%.
+- `exempt_amount` (integer; default: `0`; ej: `0`): Monto exento.
 
 ## Tupana API - Recaudación (OpenAPI 1.0.0)
 
