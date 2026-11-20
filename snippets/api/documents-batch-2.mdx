@@ -513,6 +513,53 @@ La guía queda con `exempt_amount` 4.050.000, IVA 0 y total 4.050.000.
 }
 ```
 
+#### Liquidación-Factura (DTE 43)
+
+El mandatario liquida al mandante dos facturas afectas, una exenta y la reversa de una liquidación anterior, y le descuenta una comisión y un flete.
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": { "code": "43" },
+      "date_issued": "2026-11-20",
+      "document_issuer": {
+        "rut": "76.123.456-0"
+      },
+      "document_receiver": {
+        "rut": "76.543.210-3",
+        "business_name": "Mandante Demo SpA",
+        "business_activity": "Venta de productos agrícolas",
+        "address": "Av. Providencia 1234",
+        "district": "Providencia",
+        "city": "Santiago"
+      },
+      "details": [
+        { "item_name": "Factura 1001", "settled_document_type": "33", "quantity": 1, "unit_price": 1000000 },
+        { "item_name": "Factura 1002", "settled_document_type": "33", "quantity": 1, "unit_price": 500000 },
+        { "item_name": "Factura exenta 88", "settled_document_type": "34", "quantity": 1, "unit_price": 200000, "is_exempt": true },
+        { "item_name": "Reversa liquidación 7", "settled_document_type": "43", "quantity": 1, "unit_price": -100000 }
+      ],
+      "commissions": [
+        { "type": "commission", "description": "Comisión 5%", "net_amount": 70000 },
+        { "type": "other", "description": "Flete", "exempt_amount": 15000 }
+      ]
+    }
+  ]
+}
+```
+
+| Total | Monto |
+|---|---|
+| `net_amount` (1.000.000 + 500.000 - 100.000) | 1.400.000 |
+| `iva_amount` (19% del neto) | 266.000 |
+| `exempt_amount` | 200.000 |
+| `total_amount` | 1.866.000 |
+| `commission_amount` (70.000 + IVA 13.300 + 15.000) | 98.300 |
+| A pagar al mandante (`MntTotal` del DTE) | 1.767.700 |
+
+Cada línea lleva `quantity: 1` y en `unit_price` el monto del documento liquidado; con otra cantidad la API responde `422`. `commissions` y `settled_document_type` sólo se aceptan en el tipo `43`.
+
 #### Boleta de Honorarios por usuario autorizado (DTE 80)
 
 El emisor de la boleta es `document_issuer.rut`, pero la emite un **usuario autorizado** por el SII (dueño de una credencial `sii_company`). `header.authorized_user_rut` indica cuál credencial usar cuando hay varias accesibles.
@@ -703,14 +750,13 @@ En guías de traslado 8 y 9 el SII exige indicar en qué calidad se emite la gu�
 La [Resolución Exenta SII N°154 de 2025](https://www.sii.cl/normativa_legislacion/resoluciones/2025/reso154.pdf), prorrogada por la Resolución Exenta N°52 de 2026, fija el contenido mínimo de la guía de despacho y rige desde el **1 de noviembre de 2026**. La API aplica las mismas reglas en v1 y v2:
 
 - **Hasta el 31 de octubre de 2026:** la guía se acepta igual y la respuesta del batch trae un aviso por cada dato faltante en `warnings`, con `document_index`, `field`, `code` (`res154_*`), `message` y `suggestion`. Los avisos también aparecen en el borrador y en la vista previa de la plataforma.
-- **Desde el 1 de noviembre de 2026:** los mismos datos faltantes responden `422` con el campo bajo `documents` → posición → `transport_data` o `details[]`, y la guía no se crea. El único aviso que nunca pasa a `422` es `res154_trailer_plate`.
+- **Desde el 1 de noviembre de 2026:** los mismos datos faltantes responden `422` con el campo bajo `documents` → posición → `transport_data` o `details[]`, y la guía no se crea. El único aviso que nunca pasa a `422` es `res154_trailer_plate`. La fecha y hora de salida (`departure_date`, `departure_time`) no se rechazan: si no vienen, se completan con la fecha de emisión y la hora de Chile.
 
 | Código del aviso | Qué falta | Cómo resolverlo |
 |---|---|---|
 | `res154_transfer_type` | `transport_type` | Informar el tipo de traslado `"1"`–`"9"` |
 | `res154_carrier` | `transport_plate`, `transport_rut` o `driver_rut` + `driver_name` | Informarlos, o declarar en `transport_unknown_reason` por qué no se conocen |
 | `res154_destination` | Dirección o comuna de destino | `destination_address` + `destination_district`, o la dirección y comuna del receptor en `document_receiver` |
-| `res154_departure` | `departure_date` o `departure_time` | Fecha y hora de inicio del traslado |
 | `res154_unit` | `details[].unit` | Unidad de medida en cada línea (`UN`, `KG`, `M3`, ...) |
 | `res154_transfer_reason` | Precio unitario | En un traslado que constituye venta (`"1"`, `"9"`) cada línea lleva `unit_price`; en los demás se puede omitir si viene `transfer_reason` |
 | `res154_trailer_plate` | `trailer_plate` | Sólo aviso: si el vehículo lleva carro o remolque, informar su patente |
@@ -723,10 +769,10 @@ Ejemplo de aviso (misma forma en v1 y v2):
   "warnings": [
     {
       "document_index": 0,
-      "field": "transport_data.departure_time",
-      "code": "res154_departure",
-      "message": "La hora de inicio del traslado es obligatoria.",
-      "suggestion": "Informe transport_data.departure_time (HH:MM)."
+      "field": "details[0].unit",
+      "code": "res154_unit",
+      "message": "La unidad de medida es obligatoria en cada línea de la guía.",
+      "suggestion": "Informe details[].unit (por ejemplo UN, KG, M3)."
     }
   ]
 }
@@ -770,7 +816,7 @@ Respuesta `200`:
 - `is_exempt: true` marca la línea como no afecta o exenta (`IndExe = 1` en el DTE).
 - Las líneas exentas suman a `document_total.exempt_amount` y no generan IVA; las afectas suman al neto y llevan IVA 19%. `total_amount = net_amount + iva_amount + exempt_amount`.
 - Para una guía toda exenta, marca todas las líneas. No hay marca a nivel de documento.
-- Por ahora sólo en DTE 52: en otros tipos de documento la API responde `422`.
+- Con el facturador de mercado se acepta en cualquier tipo de documento; en la liquidación-factura (43) marca un documento liquidado exento. Con el facturador gratuito del SII la API responde `422`.
 
 ### Facturador gratuito del SII (MiPyme)
 
@@ -806,13 +852,12 @@ La guía se valida al recibir el batch, antes de emitir, para no quemar folios c
 | Puerto, unidad o tipo de bulto fuera de la tabla de Aduana | `422` |
 | `gross_weight` o `total_packages` menor o igual a 0 | `422` |
 | `total_packages` sin `package_type_code` | `422` |
-| `details[].is_exempt` en un documento que no es DTE 52 | `422`: no soportado para este tipo de documento |
 | Aduana, destino de la madera o `is_exempt` con emisor del facturador gratuito | `422`: no disponible para emisores del facturador gratuito del SII |
 | `trailer_plate` de más de 8 caracteres (sin guion ni espacios) | `422` |
 | `arrival_date` anterior a `departure_date` | `422` |
 | `transfer_reason` > 200 o `transport_unknown_reason` > 100 caracteres | `422` |
 | Rol predial de destino de la madera con otra cosa que 1 a 6 dígitos | `422` |
-| **Desde el 1 de noviembre de 2026:** falta tipo de traslado, patente/transportista/chofer (sin `transport_unknown_reason`), destino, salida, `details[].unit`, precio en una venta o rol predial de destino con madera | `422` (hasta esa fecha, aviso `res154_*`) |
+| **Desde el 1 de noviembre de 2026:** falta tipo de traslado, patente/transportista/chofer (sin `transport_unknown_reason`), destino, `details[].unit`, precio en una venta o rol predial de destino con madera | `422` (hasta esa fecha, aviso `res154_*`) |
 
 Ejemplo de respuesta v1 (el error va en la posición del documento dentro de `documents`):
 

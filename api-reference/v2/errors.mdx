@@ -182,10 +182,12 @@ identifica el campo por su ruta.
 | Traslado `"8"`/`"9"` sin `transfer_issuer_code`, puertos, peso bruto o unidad, con emisor del facturador de mercado | 422 |
 | `transfer_issuer_code` `"4"` sin `authorization_resolution_number` / `authorization_resolution_date`, o esos campos con otro código | 422 |
 | Puerto, unidad o tipo de bulto fuera de las tablas de Aduana; `gross_weight` o `total_packages` ≤ 0; `total_packages` sin `package_type_code` | 422 |
-| `details[].is_exempt` en un documento que no es DTE 52 | 422 |
 | Datos de Aduana, destino de la madera (`destination_commune_role`, `destination_block_role`, `destination_property_role`, `work_execution_notice`, `destination_latitude`, `destination_longitude`) o `details[].is_exempt` con emisor del **facturador gratuito del SII**: *"no disponible para emisores del facturador gratuito del SII"* | 422 |
+| Liquidación-factura (43): `settled_document_type` fuera de los tipos que se pueden liquidar, una línea con `quantity` distinta de 1, más de 20 `commissions` o una comisión sin `net_amount` ni `exempt_amount` | 422 |
+| `commissions` o `details[].settled_document_type` en un documento que no es liquidación-factura (43) | 422 |
+| Liquidación-factura (43) de una empresa que emite por el facturador gratuito del SII (en producción) | 422 |
 | `trailer_plate` > 8 caracteres; `arrival_date` anterior a `departure_date`; `transfer_reason` > 200 o `transport_unknown_reason` > 100 caracteres; rol predial de destino de la madera con otra cosa que 1 a 6 dígitos | 422 |
-| **Desde el 1 de noviembre de 2026 (Res. Ex. SII N°154):** guía sin `transport_type`; sin patente, transportista o chofer y sin `transport_unknown_reason`; sin dirección o comuna de destino (propia o del receptor); sin `departure_date` o `departure_time`; línea sin `unit`; venta (`"1"`/`"9"`) sin `unit_price`; traslado sin venta sin precio ni `transfer_reason`; `timber_enabled` sin rol predial de destino. Hasta esa fecha son avisos `res154_*` (ver abajo) | 422 |
+| **Desde el 1 de noviembre de 2026 (Res. Ex. SII N°154):** guía sin `transport_type`; sin patente, transportista o chofer y sin `transport_unknown_reason`; sin dirección o comuna de destino (propia o del receptor); línea sin `unit`; venta (`"1"`/`"9"`) sin `unit_price`; traslado sin venta sin precio ni `transfer_reason`; `timber_enabled` sin rol predial de destino. Hasta esa fecha son avisos `res154_*` (ver abajo) | 422 |
 
 Detalle de cada campo en [Emisión masiva de documentos (v1)](/api-reference/documents/batch), bloque "Guía de Despacho (DTE 52)".
 
@@ -240,14 +242,13 @@ Hasta el **31 de octubre de 2026** la guía se emite aunque falten los datos que
 Res. Ex. SII N°154 vuelve obligatorios; la respuesta del batch (v1 y v2, con o sin
 API key) los lista en `warnings` con estos códigos. Desde el **1 de noviembre de
 2026** los mismos casos responden **422**, salvo `res154_trailer_plate`, que sigue
-siendo sólo un aviso.
+siendo sólo un aviso. La fecha y hora de salida (`transport_data.departure_date` y `departure_time`) no se rechazan: si no vienen, se completan con la fecha de emisión y la hora de Chile.
 
 | `code` | `field` | Qué falta |
 |--------|---------|-----------|
 | `res154_transfer_type` | `transport_data.transport_type` | Tipo de traslado |
 | `res154_carrier` | `transport_data.transport_plate`, `transport_rut` o `driver_rut` | Patente, RUT del transportista o chofer, sin `transport_unknown_reason` |
 | `res154_destination` | `transport_data.destination_address` o `destination_district` | Dirección o comuna de destino (propia o del receptor) |
-| `res154_departure` | `transport_data.departure_date` o `departure_time` | Fecha u hora de inicio del traslado |
 | `res154_unit` | `details[n].unit` | Unidad de medida de la línea |
 | `res154_transfer_reason` | `details[n].unit_price` o `transport_data.transfer_reason` | Precio en una venta, o motivo del traslado cuando se omite el precio |
 | `res154_trailer_plate` | `transport_data.trailer_plate` | Patente del carro, si el vehículo lleva uno (nunca 422) |
@@ -258,10 +259,10 @@ siendo sólo un aviso.
   "warnings": [
     {
       "document_index": 0,
-      "field": "transport_data.departure_time",
-      "code": "res154_departure",
-      "message": "La hora de inicio del traslado es obligatoria.",
-      "suggestion": "Informe transport_data.departure_time (HH:MM)."
+      "field": "details[0].unit",
+      "code": "res154_unit",
+      "message": "La unidad de medida es obligatoria en cada línea de la guía.",
+      "suggestion": "Informe details[].unit (por ejemplo UN, KG, M3)."
     }
   ]
 }

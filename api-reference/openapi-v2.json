@@ -8299,6 +8299,14 @@
             "nullable": true,
             "description": "Texto libre (máximo 1000 caracteres) que se imprime en un recuadro \"Información adicional\" al final del PDF, justo antes del timbre. No se envía al SII: no forma parte del XML. Solo se imprime si tu empresa usa el PDF propio (PDF personalizado de Tu Pana) o emite con el facturador de mercado; en cualquier otro caso (PDF oficial del SII) el texto se guarda y se devuelve en la API, pero no aparece en el PDF. Los saltos de línea se respetan. No se puede modificar una vez emitido el documento.",
             "example": "Orden de compra N° 4500123 - Centro de costo: Operaciones"
+          },
+          "commissions": {
+            "type": "array",
+            "maxItems": 20,
+            "description": "Sólo liquidación-factura (43): comisiones y otros cargos del mandatario. Su total con IVA queda en document_total.commission_amount; al mandante se le paga total_amount - commission_amount (MntTotal del DTE).",
+            "items": {
+              "$ref": "#/components/schemas/LiquidationCommission"
+            }
           }
         }
       },
@@ -8504,7 +8512,7 @@
           "is_exempt": {
             "type": "boolean",
             "default": false,
-            "description": "Marca la línea como no afecta o exenta de IVA (Detalle/IndExe = 1): su monto va a exempt_amount y no genera IVA. Por ahora sólo en guía de despacho (DTE 52); en otro tipo de documento la API responde 422. No disponible para emisores del facturador gratuito del SII (422)."
+            "description": "Marca la línea como no afecta o exenta de IVA (Detalle/IndExe = 1): su monto va a exempt_amount y no genera IVA. En la liquidación-factura (43) marca un documento liquidado exento. No disponible para emisores del facturador gratuito del SII (422)."
           },
           "item_description": {
             "type": "string",
@@ -8608,6 +8616,30 @@
                 "description": "Asiento de la ubicación."
               }
             }
+          },
+          "settled_document_type": {
+            "type": "string",
+            "enum": [
+              "30",
+              "32",
+              "33",
+              "34",
+              "35",
+              "38",
+              "39",
+              "40",
+              "41",
+              "43",
+              "45",
+              "46",
+              "55",
+              "56",
+              "60",
+              "61",
+              "99"
+            ],
+            "description": "Sólo liquidación-factura (43): tipo del documento que liquida la línea (Detalle/TpoDocLiq), por ejemplo \"33\" factura electrónica o \"61\" nota de crédito electrónica. Si no se envía, se deduce de item_name. En una liquidación cada línea lleva quantity 1 y en unit_price el monto del documento liquidado.",
+            "example": "33"
           }
         }
       },
@@ -8809,6 +8841,10 @@
                           "is_exempt": {
                             "type": "boolean",
                             "description": "true si la línea es no afecta o exenta de IVA (IndExe = 1)."
+                          },
+                          "settled_document_type": {
+                            "type": "string",
+                            "description": "Tipo del documento liquidado (sólo liquidación-factura 43); vacío en el resto."
                           }
                         }
                       }
@@ -11537,6 +11573,42 @@
             "type": "boolean",
             "nullable": true,
             "description": "El SII marca al emisor como agresivo."
+          }
+        }
+      },
+      "LiquidationCommission": {
+        "type": "object",
+        "required": [
+          "description"
+        ],
+        "description": "Comisión u otro cargo que retiene el mandatario en una liquidación-factura (bloque Comisiones del DTE 43).",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "commission",
+              "other"
+            ],
+            "default": "commission",
+            "description": "commission (comisión) u other (otro cargo)."
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 60,
+            "description": "Glosa.",
+            "example": "Comisión 5%"
+          },
+          "net_amount": {
+            "type": "integer",
+            "default": 0,
+            "description": "Monto neto afecto: lleva IVA 19%.",
+            "example": 70000
+          },
+          "exempt_amount": {
+            "type": "integer",
+            "default": 0,
+            "description": "Monto exento.",
+            "example": 0
           }
         }
       }
