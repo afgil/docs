@@ -281,6 +281,8 @@ verificador de los RUT, porque el documento no llega al SII.
 
 #### Factura de Compra (DTE 46)
 
+La empresa compradora emite la factura a nombre del proveedor y retiene el IVA.
+
 ```json
 {
   "documents": [
@@ -290,16 +292,17 @@ verificador de los RUT, porque el documento no llega al SII.
       },
       "date_issued": "2024-01-15",
       "document_issuer": {
-        "rut": "76.543.210-3",
-        "business_name": "Proveedor SpA"
-      },
-      "document_receiver": {
         "rut": "76.123.456-0",
         "business_name": "Mi Empresa SpA"
       },
+      "document_receiver": {
+        "rut": "76.543.210-3",
+        "business_name": "Proveedor SpA"
+      },
       "header": {
         "purchase_transaction_type": 1,
-        "payment_method": "2"
+        "payment_method": "2",
+        "vat_withheld": true
       },
       "details": [
         {
@@ -625,37 +628,48 @@ Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y 
 }
 ```
 
-## 🧾 **Factura de Compra (DTE 46)**
+## Factura de Compra (DTE 46)
 
-### Campos específicos del header:
-- **`purchase_transaction_type`** (Integer, Obligatorio):
-  - `1`: Compras del giro - Productos/servicios relacionados con tu actividad principal
-  - `2`: Compras fuera del giro - Productos/servicios no relacionados con tu actividad principal
-  - `3`: Activo fijo - Bienes que se incorporan al patrimonio de la empresa (maquinaria, muebles, etc.)
+La emite el comprador en lugar del proveedor: `document_issuer` es la empresa que compra y emite el documento, y `document_receiver` es el proveedor.
 
-- **`payment_method`** (String, Opcional):
-  - `"1"`: Contado - Pago inmediato
-  - `"2"`: Crédito - Pago diferido
-  - `"3"`: Sin costo - Producto/servicio recibido gratuitamente
+### Campos del header
 
-### Validaciones importantes:
-- **Registro contable**: Este documento genera asiento automático en tu contabilidad
-- **IVA recuperable**: El IVA pagado puede ser recuperado según el tipo de compra
-- **Proveedor extranjero**: Si el proveedor es extranjero, usar RUT genérico `55555555-5`
-- **Fecha límite**: Las compras deben registrarse dentro del mes siguiente a la recepción
+| Campo | Tipo | Obligatorio | Descripción |
+|---|---|---|---|
+| `purchase_transaction_type` | String o Integer | No | Tipo de transacción de compra (`TpoTranCompra` del DTE). Ver la tabla siguiente |
+| `payment_method` | String | No | Forma de pago: `"1"` contado, `"2"` crédito, `"3"` sin costo |
+| `due_date` | String `YYYY-MM-DD` | No | Fecha de vencimiento |
+| `vat_withheld` | Boolean | No (por defecto `false`) | `true` cuando el comprador retiene el IVA. Ver [Retención de IVA](#retencion-de-iva-dte-46) |
 
-### Casos de uso comunes:
-- Registro de compras a proveedores locales
-- Incorporación de activos fijos
-- Servicios profesionales recibidos
-- Compras de materias primas o insumos
+### Tipo de transacción de compra (`purchase_transaction_type`)
+
+Valores del Formato DTE del SII:
+
+| Código | Tipo de transacción |
+|---|---|
+| `1` | Compras del giro |
+| `2` | Supermercados y similares |
+| `3` | Adquisición o construcción de bienes inmuebles |
+| `4` | Activo fijo |
+| `5` | Compra con IVA de uso común o no recuperable |
+
+<a id="retencion-de-iva-dte-46"></a>
+
+### Retención de IVA (`vat_withheld`)
+
+| `vat_withheld` | `iva_amount` | `total_amount` |
+|---|---|---|
+| `true` | 19% del neto, retenido por el comprador | Igual al neto |
+| `false` | `0` | Igual al neto |
+
+Una nota de crédito o de débito que referencia (`references[]` con `dte_type_code` `"46"` y `reference_folio`) una factura de compra del mismo emisor emitida en Tupana hereda el `vat_withheld` de esa factura, aunque el request envíe otro valor. Así la nota mantiene la retención del documento original, como exige el SII.
 
 
-## 🚚 **Guía de Despacho (DTE 52)**
+## Guía de Despacho (DTE 52)
 
 <a id="guia-de-despacho-dte-52-transport-data"></a>
 
-### Campos de transport_data
+### Campos de `transport_data`
 
 Todos los campos son opcionales salvo lo que se indica. Los mismos campos se aceptan en `POST /v1/documents/batch/` y en `POST /v2/documents/batch/`. La columna **Res. 154** marca lo que pasa a ser obligatorio en la guía el **1 de noviembre de 2026** (ver [Resolución 154](#resolucion-154-dte-52)).
 
@@ -880,19 +894,15 @@ En v2 el error usa el formato de [errores v2](/api-reference/v2/errors) con `typ
 `GET /v1/documents/{id}` y `GET /v2/documents/{id}/` devuelven `transport_data` con todos los campos anteriores, `details[].is_exempt` y `document_total.exempt_amount`.
 
 
-## ✈️ **Factura de Exportación (DTE 110)**
+## Factura de Exportación (DTE 110)
 
-### Campos requeridos en export_data:
+### Campos obligatorios de `export_data`
 
-- **`destination_country_code`** (String, Obligatorio):
-  - **No es código ISO 3166-1.** Es el código de país del SII (ej: `"225"` = U.S.A., `"220"` = Brasil, `"224"` = Argentina). Ver [Países de exportación](/user-guide/export-countries) para la tabla completa.
-  - Es el destino final de la mercadería (`CodPaisDestin`). Si el receptor está en otro país, ver la sección "País y nacionalidad del receptor" más abajo
-
-- **`currency_code`** (String, Obligatorio):
-  - Código de moneda del SII (ej: `"13"` = Dólar USA). No es ISO 4217.
-
-- **`sale_mode_code`** (String, Obligatorio):
-  - Código de modalidad de venta del SII (no una cláusula Incoterm). Ver [Modalidades de venta de exportación](/user-guide/export-sale-modes) para la tabla completa.
+| Campo | Tipo | Obligatorio | Descripción |
+|---|---|---|---|
+| `destination_country_code` | String | Sí | Destino final de la mercadería (`CodPaisDestin`). **No es código ISO 3166-1**: es el código de país del SII (ej: `"225"` = U.S.A., `"220"` = Brasil, `"224"` = Argentina). Ver [Países de exportación](/user-guide/export-countries) para la tabla completa. Si el receptor está en otro país, ver "País y nacionalidad del receptor" más abajo |
+| `currency_code` | String | Sí | Código de moneda del SII (ej: `"13"` = Dólar USA). No es ISO 4217 |
+| `sale_mode_code` | String | Sí | Código de modalidad de venta del SII (no una cláusula Incoterm). Ver [Modalidades de venta de exportación](/user-guide/export-sale-modes) para la tabla completa |
 
 ### País y nacionalidad del receptor
 
@@ -934,7 +944,7 @@ En este ejemplo la carga va a Alemania (`563`), el comprador está en Holanda (`
   | `"6"` | S/CL | `"17"` | DAT |
   | | | `"18"` | DAP |
 
-  Ejemplo — pasar de Ex Works a FOB:
+  Ejemplo, pasar de Ex Works a FOB:
 
   ```json
   "export_data": {
@@ -964,55 +974,49 @@ En este ejemplo la carga va a Alemania (`563`), el comprador está en Holanda (`
   - Con **ANTICIPO** (`"32"`) el DTE declara como fecha de pago la fecha de emisión.
   - La forma de pago se muestra en el PDF, en el recuadro de exportación.
 
-### Campos específicos del header:
+### Campos del header
 
-- **`sale_transaction_type`** (Integer, Obligatorio):
-  - `1`: Operación constituye venta - Venta normal
-  - `2`: Ventas por acto o contrato - Contratos especiales
-  - `3`: Boleto de pasaje - Para agencias de viajes
+| Campo | Tipo | Obligatorio | Descripción |
+|---|---|---|---|
+| `sale_transaction_type` | Integer | Sí | `1`: operación constituye venta (venta normal). `2`: ventas por acto o contrato (contratos especiales). `3`: boleto de pasaje (agencias de viajes) |
+| `currency` | String | Sí | `"USD"`: dólares americanos. `"EUR"`: euros. `"CLP"`: pesos chilenos. `"UF"`: Unidades de Fomento |
 
-- **`currency`** (String, Obligatorio):
-  - `"USD"`: Dólares americanos
-  - `"EUR"`: Euros
-  - `"CLP"`: Pesos chilenos
-  - `"UF"`: Unidades de Fomento
-
-### Información del receptor extranjero:
+### Receptor extranjero
 - **RUT**: Puede usar identificadores especiales como `99999999-9` para extranjeros
 - **Dirección**: Dirección completa en el extranjero
 - **País**: `document_receiver` no lleva país. Los países van en `export_data`: `destination_country_code` (destino) y, si son distintos, `receiver_country_code` y `receiver_nationality_code`
 
-### Precios y cálculos:
+### Precios y cálculos
 - **FOB (Free on Board)**: Los precios deben incluir costos hasta la entrega al transportista
 - **Moneda**: Debe coincidir con `header.currency`
 - **Sin IVA**: Las exportaciones están exentas de IVA chileno
 
-### Requisitos legales:
+### Requisitos legales
 - **Registro de exportación**: Debe estar registrado en el sistema aduanero
 - **Certificado de origen**: Puede requerirse según acuerdos comerciales
 - **Documentos aduaneros**: Factura comercial, certificado de origen, etc.
 
 
-## 💼 **Boletas de Honorarios (DTE 80, 90)**
+## Boletas de Honorarios (DTE 80 y 90)
 
-### Campos específicos del header:
+### Campos del header
 
-- **`retention_type`** (String, Opcional; por defecto `"RETRECEPTOR"`):
-  - `"RETRECEPTOR"`: retiene y entera el impuesto quien paga la boleta
-  - `"RETCONTRIBUYENTE"`: retiene y entera el impuesto el propio profesional que emite
-- **`authorized_user_rut`** (String, Opcional): RUT del usuario autorizado por el SII (dueño de la credencial `sii_company`) que emite en representación del emisor. Selecciona determinísticamente la credencial cuando hay varias accesibles. Solo válido para DTE 80 y 90.
+| Campo | Tipo | Obligatorio | Descripción |
+|---|---|---|---|
+| `retention_type` | String | No (por defecto `"RETRECEPTOR"`) | `"RETRECEPTOR"`: retiene y entera el impuesto quien paga la boleta. `"RETCONTRIBUYENTE"`: retiene y entera el impuesto el propio profesional que emite |
+| `authorized_user_rut` | String | No | RUT del usuario autorizado por el SII (dueño de la credencial `sii_company`) que emite en representación del emisor. Selecciona determinísticamente la credencial cuando hay varias accesibles. Solo válido para DTE 80 y 90 |
 
-### Retención:
+### Retención
 - **Tasa**: la tasa vigente según el año de emisión (14,5% en 2025, **15,25% en 2026**, 16% en 2027 y 17% desde 2028)
 - **Cálculo**: sobre el monto bruto; líquido = bruto − retención (en 2026, el 84,75% del bruto)
 - **Responsable**: quien indique `retention_type`
 - **Respuesta**: `honorary_amounts` trae el bruto, la tasa, el retenido y el líquido
 
-### Información del receptor (quien paga, en DTE 80):
+### Receptor (quien paga, en DTE 80)
 - **Campos opcionales**: A diferencia de facturas, no todos los datos son obligatorios
 - **RUT obligatorio**: Siempre se requiere el RUT del receptor
 
-### Diferencias entre DTE 80 y 90:
+### Diferencias entre DTE 80 y 90
 
 **DTE 80 - Boleta de Honorarios:**
 - La emite el propio profesional (persona natural) a quien le paga
@@ -1021,29 +1025,29 @@ En este ejemplo la carga va a Alemania (`563`), el comprador está en Holanda (`
 
 **DTE 90 - Boleta de Honorarios de Terceros:**
 - Emisión por intermediario (plataformas, marketplaces)
-- **document_issuer**: Contribuyente real (quien paga — restaurante, empresa cliente)
+- **document_issuer**: Contribuyente real (quien paga: restaurante, empresa cliente)
 - **document_receiver**: Profesional que recibe (repartidor, freelancer, instructor)
 - Requiere enrolamiento de usuarios autorizados para emisión por terceros
 - Misma estructura de request que DTE 80; solo cambia `dte_type.code: "90"`
 
-### Validaciones específicas:
+### Validaciones
 - **Tope mensual**: Límite de emisión sin retención ampliada
 - **Tipo de servicio**: Debe corresponder a honorarios profesionales
 - **Declaración**: El retenedor debe declarar y pagar el impuesto retenido
 
-### Casos de uso:
+### Casos de uso
 - **DTE 80**: Honorarios de abogados, contadores, médicos; servicios de consultoría; pagos directos a freelancers
 - **DTE 90**: Apps de delivery (Rappi, Uber Eats); plataformas freelance; marketplaces de servicios; plataformas educativas
 
 
-## 🔒 **Seguridad y URLs temporales**
+## Seguridad y URLs temporales
 
-### URLs de archivos temporales:
+### URLs de archivos temporales
 - **PDF y XML**: URLs válidas por 1 hora aproximadamente
 - **Autenticación**: Incluyen tokens de acceso automático
 - **Recomendación**: Descargar inmediatamente al recibir el webhook
 
-### Medidas de seguridad:
+### Medidas de seguridad
 - **Encriptación**: Archivos transmitidos de forma segura
 - **Validación**: Solo el emisor puede acceder a sus documentos
 - **Auditoría**: Todas las descargas quedan registradas
