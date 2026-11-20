@@ -241,6 +241,32 @@ Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en l
 </details>
 
 <details>
+<summary><strong>🧾 Liquidación-Factura (DTE 43)</strong> - El mandatario liquida al mandante las ventas que hizo por su cuenta y le descuenta su comisión</summary>
+
+**Quién la emite:** el mandatario o comisionista (consignatario, corredor, plataforma que vende por cuenta de terceros). El **receptor** (`document_receiver`) es el **mandante**, dueño de lo que se vendió.
+
+**document_issuer y document_receiver:** iguales a la Factura Electrónica (DTE 33).
+
+**details (Obligatorio):** cada línea es **un documento que se liquida**, no un producto.
+- `item_name` (String): Identifica el documento, por ejemplo `"Factura 1001"`.
+- `settled_document_type` (String): **Tipo del documento que se liquida** (`TpoDocLiq` en el DTE). Valores: `"30"` factura manual, `"32"` factura exenta manual, `"33"` factura electrónica, `"34"` factura exenta electrónica, `"35"` boleta manual, `"38"` boleta exenta manual, `"39"` boleta electrónica, `"40"` liquidación-factura manual, `"41"` boleta exenta electrónica, `"43"` liquidación-factura electrónica, `"45"` factura de compra manual, `"46"` factura de compra electrónica, `"55"` nota de débito manual, `"56"` nota de débito electrónica, `"60"` nota de crédito manual, `"61"` nota de crédito electrónica, `"99"` anticipo. Si no lo envías, se deduce del `item_name`.
+- `quantity` (Number): Siempre `1`.
+- `unit_price` (Number): Monto del documento liquidado: el **neto**, o el **exento** si la línea lleva `is_exempt: true`. La reversa de una liquidación anterior (`settled_document_type` `"43"`) va **negativa**; el total del documento debe quedar positivo.
+- `is_exempt` (Boolean): Opcional. `true` cuando el monto liquidado es exento (no suma IVA).
+
+**commissions (Opcional):** comisiones y otros cargos que retiene el mandatario (bloque `Comisiones` del DTE). Hasta 20.
+- `type` (String): `"commission"` (comisión) u `"other"` (otro cargo). Por defecto `"commission"`.
+- `description` (String): Glosa, hasta 60 caracteres.
+- `net_amount` (Integer): Monto neto afecto. Lleva IVA 19%.
+- `exempt_amount` (Integer): Monto exento.
+
+**Totales:** `net_amount`, `exempt_amount` e `iva_amount` se calculan desde las líneas (IVA 19% sobre el neto) y `total_amount` es su suma. `commission_amount` es el total de las comisiones con su IVA. Lo que se le paga al mandante es `total_amount - commission_amount`, el `MntTotal` del DTE.
+
+**Facturador:** se emite con el facturador de mercado de Tupana. Si la empresa emite por el facturador gratuito del SII, la API responde `422`. En sandbox se puede probar con cualquier empresa, incluida tu Empresa Demo.
+
+</details>
+
+<details>
 <summary><strong>🚚 Guía de Despacho (DTE 52)</strong> - Para amparar el traslado de mercaderías</summary>
 
 **Campos específicos:**
@@ -272,7 +298,7 @@ Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en l
 - **Tipo:** Array
 - **Campos de cada elemento:** Mismos campos que Factura Electrónica (`item_name`, `quantity`, `unit_price`), más:
   - `unit` (String): Unidad de medida de la línea (`UN`, `KG`, `M3`, ...). **Obligatoria en la guía desde el 1 de noviembre de 2026** (`UnmdItem` pasa a obligatorio en el Formato DTE 2026-02)
-  - `is_exempt` (Boolean): **Opcional, por defecto `false`.** Marca la línea como no afecta o exenta de IVA (`IndExe = 1`): su monto va a `exempt_amount` y no genera IVA. Por ahora sólo se acepta en DTE 52; en otro tipo de documento la API responde `422`.
+  - `is_exempt` (Boolean): **Opcional, por defecto `false`.** Marca la línea como no afecta o exenta de IVA (`IndExe = 1`): su monto va a `exempt_amount` y no genera IVA. Con el facturador gratuito del SII la API responde `422`.
   - `gross_unit_price` (Number): **No aplica a este tipo de documento.** Solo válido para boletas electrónicas (DTE 39 y 41).
 
 **references (Opcional)**

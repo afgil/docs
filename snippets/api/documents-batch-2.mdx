@@ -513,6 +513,53 @@ La guía queda con `exempt_amount` 4.050.000, IVA 0 y total 4.050.000.
 }
 ```
 
+#### Liquidación-Factura (DTE 43)
+
+El mandatario liquida al mandante dos facturas afectas, una exenta y la reversa de una liquidación anterior, y le descuenta una comisión y un flete.
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": { "code": "43" },
+      "date_issued": "2026-11-20",
+      "document_issuer": {
+        "rut": "76.123.456-0"
+      },
+      "document_receiver": {
+        "rut": "76.543.210-3",
+        "business_name": "Mandante Demo SpA",
+        "business_activity": "Venta de productos agrícolas",
+        "address": "Av. Providencia 1234",
+        "district": "Providencia",
+        "city": "Santiago"
+      },
+      "details": [
+        { "item_name": "Factura 1001", "settled_document_type": "33", "quantity": 1, "unit_price": 1000000 },
+        { "item_name": "Factura 1002", "settled_document_type": "33", "quantity": 1, "unit_price": 500000 },
+        { "item_name": "Factura exenta 88", "settled_document_type": "34", "quantity": 1, "unit_price": 200000, "is_exempt": true },
+        { "item_name": "Reversa liquidación 7", "settled_document_type": "43", "quantity": 1, "unit_price": -100000 }
+      ],
+      "commissions": [
+        { "type": "commission", "description": "Comisión 5%", "net_amount": 70000 },
+        { "type": "other", "description": "Flete", "exempt_amount": 15000 }
+      ]
+    }
+  ]
+}
+```
+
+| Total | Monto |
+|---|---|
+| `net_amount` (1.000.000 + 500.000 - 100.000) | 1.400.000 |
+| `iva_amount` (19% del neto) | 266.000 |
+| `exempt_amount` | 200.000 |
+| `total_amount` | 1.866.000 |
+| `commission_amount` (70.000 + IVA 13.300 + 15.000) | 98.300 |
+| A pagar al mandante (`MntTotal` del DTE) | 1.767.700 |
+
+Cada línea lleva `quantity: 1` y en `unit_price` el monto del documento liquidado; con otra cantidad la API responde `422`. `commissions` y `settled_document_type` sólo se aceptan en el tipo `43`.
+
 #### Boleta de Honorarios por usuario autorizado (DTE 80)
 
 El emisor de la boleta es `document_issuer.rut`, pero la emite un **usuario autorizado** por el SII (dueño de una credencial `sii_company`). `header.authorized_user_rut` indica cuál credencial usar cuando hay varias accesibles.
@@ -770,7 +817,7 @@ Respuesta `200`:
 - `is_exempt: true` marca la línea como no afecta o exenta (`IndExe = 1` en el DTE).
 - Las líneas exentas suman a `document_total.exempt_amount` y no generan IVA; las afectas suman al neto y llevan IVA 19%. `total_amount = net_amount + iva_amount + exempt_amount`.
 - Para una guía toda exenta, marca todas las líneas. No hay marca a nivel de documento.
-- Por ahora sólo en DTE 52: en otros tipos de documento la API responde `422`.
+- Con el facturador de mercado se acepta en cualquier tipo de documento; en la liquidación-factura (43) marca un documento liquidado exento. Con el facturador gratuito del SII la API responde `422`.
 
 ### Facturador gratuito del SII (MiPyme)
 
@@ -806,7 +853,6 @@ La guía se valida al recibir el batch, antes de emitir, para no quemar folios c
 | Puerto, unidad o tipo de bulto fuera de la tabla de Aduana | `422` |
 | `gross_weight` o `total_packages` menor o igual a 0 | `422` |
 | `total_packages` sin `package_type_code` | `422` |
-| `details[].is_exempt` en un documento que no es DTE 52 | `422`: no soportado para este tipo de documento |
 | Aduana, destino de la madera o `is_exempt` con emisor del facturador gratuito | `422`: no disponible para emisores del facturador gratuito del SII |
 | `trailer_plate` de más de 8 caracteres (sin guion ni espacios) | `422` |
 | `arrival_date` anterior a `departure_date` | `422` |
