@@ -5329,7 +5329,7 @@ window.addEventListener('message', (event) => {
 | `external_customer_id` | | Tu id de cliente. Vuelve en el webhook |
 | `environment` | | `sandbox` o `production`. Default: el de la API key |
 | `return_url` | | A dónde vuelve al terminar |
-| `theme_config` | | `accent_color` (`#RRGGBB`) y `logo_url`. Si no lo mandas, usa tu marca de la consola |
+| `theme_config` | | `accent_color` (`#RRGGBB`), `logo_url` y `bank_layout` (`"grid"` por defecto o `"list"`) para el selector de bancos. Si no lo mandas, usa tu marca de la consola |
 
 #### Tu marca en el widget
 
@@ -5445,6 +5445,14 @@ El widget no manda `success` cuando guarda la clave. Se queda en
 
 Guardar la clave con estado interno `VALID` no es la confirmación. La
 confirmación es `connection.active`, cuando el banco ya listó las cuentas.
+
+> **Nota:** Algunos bancos (por ejemplo **Banco Internacional**) piden un **código de
+verificación**: después del RUT y la clave, el widget muestra un paso para
+ingresar el código que le llega al usuario por SMS. El progreso es interactivo
+(por WebSocket), así que no tienes que hacer nada: el widget maneja el paso del
+código y, al confirmarlo, deja el dispositivo enrolado para que las próximas
+lecturas no vuelvan a pedirlo. Tu backend recibe `connection.active` igual que
+con cualquier otro banco.
 
 Los movimientos no vienen en ese aviso. Cuando la cartola está sincronizada
 se leen como documentos tipo 100:
