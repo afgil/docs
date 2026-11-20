@@ -5899,9 +5899,7 @@ Con `X-Use-Defaults: true`, solo necesitas proporcionar el `rut` del receptor. E
 ### Tipos de Documentos Soportados
 
 <details>
-<summary><strong>📄 Factura Electrónica (DTE 33)</strong> - Documento tributario más común para ventas</summary>
-
-**Campos específicos:**
+<summary><strong>Factura Electrónica (DTE 33)</strong> - Documento tributario más común para ventas</summary>
 
 **document_issuer (Obligatorio)**
 - **Tipo:** Object
@@ -5938,25 +5936,23 @@ Con `X-Use-Defaults: true`, solo necesitas proporcionar el `rut` del receptor. E
 </details>
 
 <details>
-<summary><strong>📄 Factura Exenta (DTE 34)</strong> - Para ventas exentas de IVA</summary>
+<summary><strong>Factura Exenta (DTE 34)</strong> - Para ventas exentas de IVA</summary>
 
-**Campos específicos:**
-Iguales a la Factura Electrónica (DTE 33), pero el documento no incluye IVA en los cálculos.
+Igual a la Factura Electrónica (DTE 33), pero el documento no incluye IVA en los cálculos.
+
+**document_issuer y document_receiver (Obligatorio):** Mismos campos que Factura Electrónica.
+
+**details (Obligatorio):** Mismos campos que Factura Electrónica (solo `unit_price`; `gross_unit_price` no aplica a este tipo de documento).
 
 **Casos de uso:**
 - Ventas a clientes exentos de IVA
 - Exportaciones (aunque se recomienda usar DTE específico de exportación)
 - Servicios específicos exentos por ley
 
-**document_issuer y document_receiver:** Mismos campos que Factura Electrónica
-**details:** Mismos campos que Factura Electrónica (solo `unit_price`; `gross_unit_price` no aplica a este tipo de documento)
-
 </details>
 
 <details>
-<summary><strong>🧾 Boleta Electrónica (DTE 39)</strong> - Venta a consumidor final, IVA incluido en el precio</summary>
-
-**Campos específicos:**
+<summary><strong>Boleta Electrónica (DTE 39)</strong> - Venta a consumidor final, IVA incluido en el precio</summary>
 
 **document_issuer (Obligatorio)**
 - **Tipo:** Object
@@ -5978,7 +5974,7 @@ Iguales a la Factura Electrónica (DTE 33), pero el documento no incluye IVA en 
     - **No se puede mezclar** `unit_price` (neto) y `gross_unit_price` (bruto) entre líneas del mismo documento: todas las líneas deben usar el mismo modo.
     - Si se usa `gross_unit_price` en cualquier tipo de documento que no sea 39 o 41, la API responde `422`.
 
-**Ejemplo — boleta en bruto:**
+**Ejemplo: boleta en bruto**
 
 ```json
 {
@@ -6002,70 +5998,44 @@ Iguales a la Factura Electrónica (DTE 33), pero el documento no incluye IVA en 
 </details>
 
 <details>
-<summary><strong>🧾 Boleta Exenta Electrónica (DTE 41)</strong> - Venta a consumidor final exenta de IVA</summary>
+<summary><strong>Boleta Exenta Electrónica (DTE 41)</strong> - Venta a consumidor final exenta de IVA</summary>
 
-**Campos específicos:**
-Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en los cálculos.
+Igual a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en los cálculos.
 
-**details:** Mismos campos que Boleta Electrónica, incluyendo `gross_unit_price` (bruto). Al no llevar IVA, en la práctica `unit_price` y `gross_unit_price` producen el mismo resultado, pero la restricción de no mezclar ambos modos en el mismo documento se mantiene.
+**document_issuer y document_receiver:** Mismos campos que Boleta Electrónica.
+
+**details (Obligatorio):** Mismos campos que Boleta Electrónica, incluyendo `gross_unit_price` (bruto). Al no llevar IVA, en la práctica `unit_price` y `gross_unit_price` producen el mismo resultado, pero la restricción de no mezclar ambos modos en el mismo documento se mantiene.
 
 </details>
 
 <details>
-<summary><strong>🧾 Factura de Compra (DTE 46)</strong> - Para registro de compras realizadas</summary>
-
-**Campos específicos:**
+<summary><strong>Factura de Compra (DTE 46)</strong> - La emite el comprador en lugar del proveedor</summary>
 
 **document_issuer (Obligatorio)**
 - **Tipo:** Object
-- **Descripción:** Datos del proveedor/vendedor
-- **Campos obligatorios:**
-  - `rut` (String): RUT del proveedor
-  - `business_name` (String): Razón social del proveedor - Opcional con `X-Use-Defaults: true`
-  - `business_activity` (String): Giro del proveedor - Opcional con `X-Use-Defaults: true`
-  - `address` (String): Dirección del proveedor - Opcional con `X-Use-Defaults: true`
-  - `district` (String): Comuna del proveedor - Opcional con `X-Use-Defaults: true`
-  - `city` (String): Ciudad del proveedor - Opcional con `X-Use-Defaults: true`
+- **Descripción:** La empresa compradora, que emite la factura. Mismos campos que Factura Electrónica.
 
 **document_receiver (Obligatorio)**
 - **Tipo:** Object
-- **Descripción:** Datos del comprador (tu empresa)
-- **Campos obligatorios:**
-  - `rut` (String): RUT de tu empresa
-  - `business_name` (String): Razón social - Opcional con `X-Use-Defaults: true`
-  - `business_activity` (String): Giro - Opcional con `X-Use-Defaults: true`
-  - `address` (String): Dirección - Opcional con `X-Use-Defaults: true`
-  - `district` (String): Comuna - Opcional con `X-Use-Defaults: true`
-  - `city` (String): Ciudad - Opcional con `X-Use-Defaults: true`
+- **Descripción:** El proveedor (vendedor). Mismos campos que Factura Electrónica.
 
 **details (Obligatorio)**
 - **Tipo:** Array
-- **Descripción:** Lista de productos/servicios comprados
-- **Campos de cada elemento:**
-  - `item_name` (String): Nombre del producto/servicio comprado
-  - `quantity` (Number): Cantidad comprada
-  - `unit_price` (Number): Precio unitario sin IVA pagado
+- **Campos de cada elemento:** Mismos campos que Factura Electrónica (`item_name`, `quantity`, `unit_price` neto)
   - `gross_unit_price` (Number): **No aplica a este tipo de documento.** Solo válido para boletas electrónicas (DTE 39 y 41).
 
-**header (Obligatorio para ciertos casos)**
+**header (Opcional)**
 - **Tipo:** Object
-- **Campos opcionales:**
-  - `purchase_transaction_type` (Integer): **Obligatorio para compras** - Clasifica el tipo de compra para efectos contables y tributarios
-    - `1`: **Compras del giro** - Productos/servicios directamente relacionados con tu actividad económica principal (ej: materias primas para fabricante)
-    - `2`: **Compras fuera del giro** - Productos/servicios no relacionados con tu giro (ej: útiles de oficina para una fábrica)
-    - `3`: **Activo fijo** - Bienes que se incorporan al patrimonio y se deprecian (ej: maquinaria, vehículos, muebles)
-  - `payment_method` (String): **Opcional** - Forma de pago acordada
-    - `"1"`: **Contado** - Pago inmediato al recibir la mercadería/servicio
-    - `"2"`: **Crédito** - Pago diferido (especificar plazo en `due_date`)
-    - `"3"`: **Sin costo** - Mercadería/servicio recibido gratuitamente (donación, regalo)
-  - `due_date` (String): **Condicional** - Fecha de vencimiento cuando `payment_method` es crédito
-    - Formato: `YYYY-MM-DD`
-    - Obligatorio cuando es compra a crédito
+- **Campos:**
+  - `purchase_transaction_type` (String o Integer): Tipo de transacción de compra (`TpoTranCompra` del DTE). `1` compras del giro, `2` supermercados y similares, `3` adquisición o construcción de bienes inmuebles, `4` activo fijo, `5` compra con IVA de uso común o no recuperable
+  - `payment_method` (String): Forma de pago. `"1"` contado, `"2"` crédito, `"3"` sin costo
+  - `due_date` (String): Fecha de vencimiento, formato `YYYY-MM-DD`
+  - `vat_withheld` (Boolean): Por defecto `false`. Con `true` el IVA (19% del neto) se calcula y queda retenido por el comprador; con `false` el IVA es `0`. En ambos casos `total_amount` es igual al neto. Una nota de crédito o débito que referencia una factura de compra del mismo emisor hereda su `vat_withheld`. Ver [Retención de IVA](#retencion-de-iva-dte-46).
 
 </details>
 
 <details>
-<summary><strong>🧾 Liquidación-Factura (DTE 43)</strong> - El mandatario liquida al mandante las ventas que hizo por su cuenta y le descuenta su comisión</summary>
+<summary><strong>Liquidación-Factura (DTE 43)</strong> - El mandatario liquida al mandante las ventas que hizo por su cuenta y le descuenta su comisión</summary>
 
 **Quién la emite:** el mandatario o comisionista (consignatario, corredor, plataforma que vende por cuenta de terceros). El **receptor** (`document_receiver`) es el **mandante**, dueño de lo que se vendió.
 
@@ -6091,9 +6061,7 @@ Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en l
 </details>
 
 <details>
-<summary><strong>🚚 Guía de Despacho (DTE 52)</strong> - Para amparar el traslado de mercaderías</summary>
-
-**Campos específicos:**
+<summary><strong>Guía de Despacho (DTE 52)</strong> - Para amparar el traslado de mercaderías</summary>
 
 **document_issuer y document_receiver (Obligatorio):** Mismos campos que Factura Electrónica. En un traslado para exportación el receptor es quien recibe la carga en Chile (por ejemplo, la agencia de aduanas), no el importador extranjero.
 
@@ -6131,9 +6099,7 @@ Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en l
 </details>
 
 <details>
-<summary><strong>✈️ Factura de Exportación (DTE 110)</strong> - Para ventas al extranjero</summary>
-
-**Campos específicos:**
+<summary><strong>Factura de Exportación (DTE 110)</strong> - Para ventas al extranjero</summary>
 
 **document_issuer (Obligatorio)**
 - **Tipo:** Object
@@ -6229,10 +6195,9 @@ Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en l
 </details>
 
 <details>
-<summary><strong>📝 Nota de Crédito (DTE 61)</strong> - Para anular o corregir documentos emitidos</summary>
+<summary><strong>Nota de Crédito (DTE 61)</strong> - Para anular o corregir documentos emitidos</summary>
 
-**Campos específicos:**
-Incluye todos los campos de las Facturas Electrónicas más:
+Incluye todos los campos de la Factura Electrónica, más:
 
 **references (Obligatorio)**
 - **Tipo:** Array
@@ -6253,27 +6218,13 @@ Incluye todos los campos de las Facturas Electrónicas más:
 </details>
 
 <details>
-<summary><strong>💼 Boleta de Honorarios (DTE 80)</strong> - Para pagos de servicios profesionales</summary>
+<summary><strong>Boleta de Honorarios (DTE 80)</strong> - Para pagos de servicios profesionales</summary>
 
-**Campos específicos:**
-Incluye todos los campos de las Facturas Electrónicas con:
+Incluye todos los campos de la Factura Electrónica, con estas diferencias:
 
 **document_issuer (Obligatorio)**
-- **Descripción:** El profesional que emite la boleta (persona natural). Su clave tributaria del SII debe estar conectada en Tupana.
-
-**header (Opcional)**
 - **Tipo:** Object
-- **Campos:**
-  - `retention_type` (String): **Quién entera la retención al SII.** Opcional; por defecto `"RETRECEPTOR"`.
-    - `"RETRECEPTOR"`: **Retiene el receptor** (quien paga la boleta) y entera el impuesto al SII.
-    - `"RETCONTRIBUYENTE"`: **Retiene el propio emisor** (el profesional) y entera el impuesto al SII.
-  - `payment_method` (String): **Forma de pago** (opcional pero recomendado)
-    - `"1"`: Contado
-    - `"2"`: Crédito
-  - `due_date` (String): **Fecha de vencimiento** (opcional, formato YYYY-MM-DD)
-  - `authorized_user_rut` (String): **Opcional** - Emisión por **usuario autorizado**. RUT del usuario autorizado por el SII (dueño de la credencial `sii_company`) que emite la boleta en representación del emisor (`document_issuer.rut`). Úsalo cuando el RUT del emisor es distinto del usuario que tiene la sesión SII, para seleccionar **determinísticamente** qué credencial usar. Solo aplica a boletas de honorarios (DTE 80 y 90); en otros tipos de documento la API responde `422`.
-
-> **Nota:** **¿Cuándo usar `authorized_user_rut`?** El emisor de la boleta es siempre `document_issuer.rut`. Cuando una misma cuenta tiene acceso a **varias** credenciales `sii_company` (p. ej. un contador que emite para varios contribuyentes), enviar `header.authorized_user_rut` indica exactamente cuál usuario autorizado realiza la emisión. Sin este campo, la API elige una credencial `sii_company` accesible de forma no determinística. El campo no se persiste en el documento; queda registrado en los logs de la API.
+- **Descripción:** El profesional que emite la boleta (persona natural). Su clave tributaria del SII debe estar conectada en Tupana.
 
 **document_receiver (Condicional)**
 - **Tipo:** Object
@@ -6293,6 +6244,20 @@ Incluye todos los campos de las Facturas Electrónicas con:
 - **Campos de cada elemento:** Mismos campos que Factura Electrónica (`item_name`, `quantity`, `unit_price`)
 - `gross_unit_price` (Number): **No aplica a este tipo de documento** (Boleta de Honorarios, DTE 80). Solo válido para boletas electrónicas de venta (DTE 39 y 41).
 
+**header (Opcional)**
+- **Tipo:** Object
+- **Campos:**
+  - `retention_type` (String): **Quién entera la retención al SII.** Opcional; por defecto `"RETRECEPTOR"`.
+    - `"RETRECEPTOR"`: **Retiene el receptor** (quien paga la boleta) y entera el impuesto al SII.
+    - `"RETCONTRIBUYENTE"`: **Retiene el propio emisor** (el profesional) y entera el impuesto al SII.
+  - `payment_method` (String): **Forma de pago** (opcional pero recomendado)
+    - `"1"`: Contado
+    - `"2"`: Crédito
+  - `due_date` (String): **Fecha de vencimiento** (opcional, formato YYYY-MM-DD)
+  - `authorized_user_rut` (String): **Opcional** - Emisión por **usuario autorizado**. RUT del usuario autorizado por el SII (dueño de la credencial `sii_company`) que emite la boleta en representación del emisor (`document_issuer.rut`). Úsalo cuando el RUT del emisor es distinto del usuario que tiene la sesión SII, para seleccionar **determinísticamente** qué credencial usar. Solo aplica a boletas de honorarios (DTE 80 y 90); en otros tipos de documento la API responde `422`.
+
+> **Nota:** **¿Cuándo usar `authorized_user_rut`?** El emisor de la boleta es siempre `document_issuer.rut`. Cuando una misma cuenta tiene acceso a **varias** credenciales `sii_company` (p. ej. un contador que emite para varios contribuyentes), enviar `header.authorized_user_rut` indica exactamente cuál usuario autorizado realiza la emisión. Sin este campo, la API elige una credencial `sii_company` accesible de forma no determinística. El campo no se persiste en el documento; queda registrado en los logs de la API.
+
 **Cálculo automático de retención:**
 - **Tasa**: la tasa vigente según el año de emisión (14,5% en 2025, **15,25% en 2026**, 16% en 2027 y 17% desde 2028), sobre el monto bruto
 - **Base imponible**: Suma de (quantity × unit_price) por cada ítem en details
@@ -6301,7 +6266,7 @@ Incluye todos los campos de las Facturas Electrónicas con:
 - **Responsable**: quien indique `retention_type`
 - **Respuesta**: el documento emitido trae `honorary_amounts` con `gross_amount`, `retention_rate`, `retention_amount` y `net_amount`. Ver [Emitir una boleta de honorarios](https://docs.tupana.ai/api-reference/v2/honorary/emission).
 
-**Características especiales:**
+**Notas:**
 - Aplica la retención legal del año sobre el monto bruto (15,25% en 2026)
 - Se utiliza para pagos a profesionales independientes
 - No requiere todos los datos del receptor obligatoriamente
@@ -6309,17 +6274,13 @@ Incluye todos los campos de las Facturas Electrónicas con:
 </details>
 
 <details>
-<summary><strong>🏢 Boleta de Honorarios de Terceros (DTE 90)</strong> - Para plataformas digitales</summary>
+<summary><strong>Boleta de Honorarios de Terceros (DTE 90)</strong> - Para plataformas digitales</summary>
 
-**Descripción:** Documento para que plataformas digitales emitan boletas de honorarios en nombre de terceros (contribuyentes reales). La estructura del request es **idéntica a DTE 80**; la diferencia está en el código `dte_type.code: "90"`.
+Documento para que plataformas digitales emitan boletas de honorarios en nombre de terceros (contribuyentes reales). Código DTE `"90"`: Boleta de Honorarios a Terceros Electrónica. La estructura del request es **idéntica a DTE 80**; la diferencia está en el código `dte_type.code: "90"`.
 
-**Código DTE:** `"90"` — Boleta de Honorarios a Terceros Electrónica (confirmado en normativa SII).
+**Requisito previo: agregar el contribuyente real (SII Company)**
 
----
-
-#### Requisito previo: agregar el contribuyente real (SII Company)
-
-**Antes de emitir DTE 90, debes registrar el contribuyente real en Tupana:**
+Antes de emitir DTE 90, debes registrar el contribuyente real en Tupana:
 
 1. El `document_issuer.rut` debe corresponder a una **MasterEntity** ya existente en Tupana.
 2. Esa entidad debe tener **credenciales SII de tipo `sii_company`** configuradas y activas.
@@ -6332,9 +6293,7 @@ Incluye todos los campos de las Facturas Electrónicas con:
 - Configurar credenciales SII de tipo `sii_company` para esa entidad.
 - Opcionalmente enrolar usuarios autorizados para emisión por terceros (ver [API de Honorarios](https://docs.tupana.ai/api-reference/honorary/introduction)).
 
----
-
-#### X-Use-Defaults para DTE 90
+**X-Use-Defaults para DTE 90**
 
 **Sí se puede usar** `X-Use-Defaults: true`, pero con una limitación importante:
 
@@ -6344,43 +6303,39 @@ Incluye todos los campos de las Facturas Electrónicas con:
 
 **Recomendación:** Si emites DTE 90 de forma recurrente, registra los contribuyentes reales (restaurantes, clientes) como MasterEntity en Tupana para poder usar X-Use-Defaults con solo el RUT.
 
----
-
-#### Campos requeridos (mismos que DTE 80)
-
 **dte_type (Obligatorio)**
-- `code` (String): `"90"` — Boleta de Honorarios a Terceros Electrónica
+- `code` (String): `"90"`, Boleta de Honorarios a Terceros Electrónica
 
-**document_issuer (Obligatorio)** — Contribuyente real (el tercero en cuyo nombre emite la plataforma)
+**document_issuer (Obligatorio)**
 - **Tipo:** Object
-- **Descripción:** Datos del contribuyente que paga los honorarios (restaurante, empresa cliente, etc.).
+- **Descripción:** Contribuyente real, el tercero en cuyo nombre emite la plataforma: quien paga los honorarios (restaurante, empresa cliente, etc.).
 - **Campos obligatorios:**
-  - `rut` (String): RUT del contribuyente real — **debe existir como MasterEntity con credenciales sii_company**
+  - `rut` (String): RUT del contribuyente real: **debe existir como MasterEntity con credenciales sii_company**
   - `business_name` (String): Razón social del contribuyente real
   - `activity_code` (Integer): Código de actividad económica (ej: 620900)
 - **Con X-Use-Defaults:** Si el RUT existe en Tupana, los demás campos se completan automáticamente.
 
-**document_receiver (Obligatorio)** — Profesional que recibe los honorarios
+**document_receiver (Obligatorio)**
 - **Tipo:** Object
+- **Descripción:** Profesional que recibe los honorarios.
 - **Campos obligatorios:** `rut` (String)
 - **Opcionales:** `business_name`, `business_activity`, `address`, `district`, `city`, `contact`
-
-**header (Obligatorio)**
-- `retention_type` (String): `"RETRECEPTOR"` o `"RETCONTRIBUYENTE"`
-- Opcionales: `payment_method`, `due_date`
 
 **details (Obligatorio)**
 - Array con `item_name`, `quantity`, `unit_price`
 - `gross_unit_price`: **No aplica a este tipo de documento** (Boleta de Honorarios de Terceros, DTE 90). Solo válido para boletas electrónicas de venta (DTE 39 y 41).
+
+**header (Opcional)**
+- Mismos campos que DTE 80: `retention_type` (`"RETRECEPTOR"` o `"RETCONTRIBUYENTE"`, por defecto `"RETRECEPTOR"`), `payment_method`, `due_date`, `authorized_user_rut`
 
 **Responsabilidades:**
 - **Contribuyente real** (document_issuer): Debe estar en Tupana con credenciales sii_company; es el responsable tributario.
 - **Retención:** la tasa legal del año sobre el monto bruto (15,25% en 2026), igual que DTE 80.
 
 **Casos de uso:**
-- Apps de delivery (Rappi, Uber Eats) — restaurante paga al repartidor
-- Plataformas freelance — empresa paga al freelancer
-- Marketplaces de servicios — cliente paga al proveedor
+- Apps de delivery (Rappi, Uber Eats): restaurante paga al repartidor
+- Plataformas freelance: empresa paga al freelancer
+- Marketplaces de servicios: cliente paga al proveedor
 
 </details>
 
@@ -6684,6 +6639,8 @@ verificador de los RUT, porque el documento no llega al SII.
 
 ##### Factura de Compra (DTE 46)
 
+La empresa compradora emite la factura a nombre del proveedor y retiene el IVA.
+
 ```json
 {
   "documents": [
@@ -6693,16 +6650,17 @@ verificador de los RUT, porque el documento no llega al SII.
       },
       "date_issued": "2024-01-15",
       "document_issuer": {
-        "rut": "76.543.210-3",
-        "business_name": "Proveedor SpA"
-      },
-      "document_receiver": {
         "rut": "76.123.456-0",
         "business_name": "Mi Empresa SpA"
       },
+      "document_receiver": {
+        "rut": "76.543.210-3",
+        "business_name": "Proveedor SpA"
+      },
       "header": {
         "purchase_transaction_type": 1,
-        "payment_method": "2"
+        "payment_method": "2",
+        "vat_withheld": true
       },
       "details": [
         {
@@ -7024,36 +6982,47 @@ Ejemplo mínimo con **header `X-Use-Defaults: true`**: con solo RUT en emisor y 
 }
 ```
 
-### 🧾 **Factura de Compra (DTE 46)**
+### Factura de Compra (DTE 46)
 
-#### Campos específicos del header:
-- **`purchase_transaction_type`** (Integer, Obligatorio):
-  - `1`: Compras del giro - Productos/servicios relacionados con tu actividad principal
-  - `2`: Compras fuera del giro - Productos/servicios no relacionados con tu actividad principal
-  - `3`: Activo fijo - Bienes que se incorporan al patrimonio de la empresa (maquinaria, muebles, etc.)
+La emite el comprador en lugar del proveedor: `document_issuer` es la empresa que compra y emite el documento, y `document_receiver` es el proveedor.
 
-- **`payment_method`** (String, Opcional):
-  - `"1"`: Contado - Pago inmediato
-  - `"2"`: Crédito - Pago diferido
-  - `"3"`: Sin costo - Producto/servicio recibido gratuitamente
+#### Campos del header
 
-#### Validaciones importantes:
-- **Registro contable**: Este documento genera asiento automático en tu contabilidad
-- **IVA recuperable**: El IVA pagado puede ser recuperado según el tipo de compra
-- **Proveedor extranjero**: Si el proveedor es extranjero, usar RUT genérico `55555555-5`
-- **Fecha límite**: Las compras deben registrarse dentro del mes siguiente a la recepción
+| Campo | Tipo | Obligatorio | Descripción |
+|---|---|---|---|
+| `purchase_transaction_type` | String o Integer | No | Tipo de transacción de compra (`TpoTranCompra` del DTE). Ver la tabla siguiente |
+| `payment_method` | String | No | Forma de pago: `"1"` contado, `"2"` crédito, `"3"` sin costo |
+| `due_date` | String `YYYY-MM-DD` | No | Fecha de vencimiento |
+| `vat_withheld` | Boolean | No (por defecto `false`) | `true` cuando el comprador retiene el IVA. Ver [Retención de IVA](#retencion-de-iva-dte-46) |
 
-#### Casos de uso comunes:
-- Registro de compras a proveedores locales
-- Incorporación de activos fijos
-- Servicios profesionales recibidos
-- Compras de materias primas o insumos
+#### Tipo de transacción de compra (`purchase_transaction_type`)
 
-### 🚚 **Guía de Despacho (DTE 52)**
+Valores del Formato DTE del SII:
+
+| Código | Tipo de transacción |
+|---|---|
+| `1` | Compras del giro |
+| `2` | Supermercados y similares |
+| `3` | Adquisición o construcción de bienes inmuebles |
+| `4` | Activo fijo |
+| `5` | Compra con IVA de uso común o no recuperable |
+
+<a id="retencion-de-iva-dte-46"></a>
+
+#### Retención de IVA (`vat_withheld`)
+
+| `vat_withheld` | `iva_amount` | `total_amount` |
+|---|---|---|
+| `true` | 19% del neto, retenido por el comprador | Igual al neto |
+| `false` | `0` | Igual al neto |
+
+Una nota de crédito o de débito que referencia (`references[]` con `dte_type_code` `"46"` y `reference_folio`) una factura de compra del mismo emisor emitida en Tupana hereda el `vat_withheld` de esa factura, aunque el request envíe otro valor. Así la nota mantiene la retención del documento original, como exige el SII.
+
+### Guía de Despacho (DTE 52)
 
 <a id="guia-de-despacho-dte-52-transport-data"></a>
 
-#### Campos de transport_data
+#### Campos de `transport_data`
 
 Todos los campos son opcionales salvo lo que se indica. Los mismos campos se aceptan en `POST /v1/documents/batch/` y en `POST /v2/documents/batch/`. La columna **Res. 154** marca lo que pasa a ser obligatorio en la guía el **1 de noviembre de 2026** (ver [Resolución 154](#resolucion-154-dte-52)).
 
@@ -7275,19 +7244,15 @@ En v2 el error usa el formato de [errores v2](https://docs.tupana.ai/api-referen
 
 `GET /v1/documents/{id}` y `GET /v2/documents/{id}/` devuelven `transport_data` con todos los campos anteriores, `details[].is_exempt` y `document_total.exempt_amount`.
 
-### ✈️ **Factura de Exportación (DTE 110)**
+### Factura de Exportación (DTE 110)
 
-#### Campos requeridos en export_data:
+#### Campos obligatorios de `export_data`
 
-- **`destination_country_code`** (String, Obligatorio):
-  - **No es código ISO 3166-1.** Es el código de país del SII (ej: `"225"` = U.S.A., `"220"` = Brasil, `"224"` = Argentina). Ver [Países de exportación](https://docs.tupana.ai/user-guide/export-countries) para la tabla completa.
-  - Es el destino final de la mercadería (`CodPaisDestin`). Si el receptor está en otro país, ver la sección "País y nacionalidad del receptor" más abajo
-
-- **`currency_code`** (String, Obligatorio):
-  - Código de moneda del SII (ej: `"13"` = Dólar USA). No es ISO 4217.
-
-- **`sale_mode_code`** (String, Obligatorio):
-  - Código de modalidad de venta del SII (no una cláusula Incoterm). Ver [Modalidades de venta de exportación](https://docs.tupana.ai/user-guide/export-sale-modes) para la tabla completa.
+| Campo | Tipo | Obligatorio | Descripción |
+|---|---|---|---|
+| `destination_country_code` | String | Sí | Destino final de la mercadería (`CodPaisDestin`). **No es código ISO 3166-1**: es el código de país del SII (ej: `"225"` = U.S.A., `"220"` = Brasil, `"224"` = Argentina). Ver [Países de exportación](https://docs.tupana.ai/user-guide/export-countries) para la tabla completa. Si el receptor está en otro país, ver "País y nacionalidad del receptor" más abajo |
+| `currency_code` | String | Sí | Código de moneda del SII (ej: `"13"` = Dólar USA). No es ISO 4217 |
+| `sale_mode_code` | String | Sí | Código de modalidad de venta del SII (no una cláusula Incoterm). Ver [Modalidades de venta de exportación](https://docs.tupana.ai/user-guide/export-sale-modes) para la tabla completa |
 
 #### País y nacionalidad del receptor
 
@@ -7329,7 +7294,7 @@ En este ejemplo la carga va a Alemania (`563`), el comprador está en Holanda (`
   | `"6"` | S/CL | `"17"` | DAT |
   | | | `"18"` | DAP |
 
-  Ejemplo — pasar de Ex Works a FOB:
+  Ejemplo, pasar de Ex Works a FOB:
 
   ```json
   "export_data": {
@@ -7359,54 +7324,48 @@ En este ejemplo la carga va a Alemania (`563`), el comprador está en Holanda (`
   - Con **ANTICIPO** (`"32"`) el DTE declara como fecha de pago la fecha de emisión.
   - La forma de pago se muestra en el PDF, en el recuadro de exportación.
 
-#### Campos específicos del header:
+#### Campos del header
 
-- **`sale_transaction_type`** (Integer, Obligatorio):
-  - `1`: Operación constituye venta - Venta normal
-  - `2`: Ventas por acto o contrato - Contratos especiales
-  - `3`: Boleto de pasaje - Para agencias de viajes
+| Campo | Tipo | Obligatorio | Descripción |
+|---|---|---|---|
+| `sale_transaction_type` | Integer | Sí | `1`: operación constituye venta (venta normal). `2`: ventas por acto o contrato (contratos especiales). `3`: boleto de pasaje (agencias de viajes) |
+| `currency` | String | Sí | `"USD"`: dólares americanos. `"EUR"`: euros. `"CLP"`: pesos chilenos. `"UF"`: Unidades de Fomento |
 
-- **`currency`** (String, Obligatorio):
-  - `"USD"`: Dólares americanos
-  - `"EUR"`: Euros
-  - `"CLP"`: Pesos chilenos
-  - `"UF"`: Unidades de Fomento
-
-#### Información del receptor extranjero:
+#### Receptor extranjero
 - **RUT**: Puede usar identificadores especiales como `99999999-9` para extranjeros
 - **Dirección**: Dirección completa en el extranjero
 - **País**: `document_receiver` no lleva país. Los países van en `export_data`: `destination_country_code` (destino) y, si son distintos, `receiver_country_code` y `receiver_nationality_code`
 
-#### Precios y cálculos:
+#### Precios y cálculos
 - **FOB (Free on Board)**: Los precios deben incluir costos hasta la entrega al transportista
 - **Moneda**: Debe coincidir con `header.currency`
 - **Sin IVA**: Las exportaciones están exentas de IVA chileno
 
-#### Requisitos legales:
+#### Requisitos legales
 - **Registro de exportación**: Debe estar registrado en el sistema aduanero
 - **Certificado de origen**: Puede requerirse según acuerdos comerciales
 - **Documentos aduaneros**: Factura comercial, certificado de origen, etc.
 
-### 💼 **Boletas de Honorarios (DTE 80, 90)**
+### Boletas de Honorarios (DTE 80 y 90)
 
-#### Campos específicos del header:
+#### Campos del header
 
-- **`retention_type`** (String, Opcional; por defecto `"RETRECEPTOR"`):
-  - `"RETRECEPTOR"`: retiene y entera el impuesto quien paga la boleta
-  - `"RETCONTRIBUYENTE"`: retiene y entera el impuesto el propio profesional que emite
-- **`authorized_user_rut`** (String, Opcional): RUT del usuario autorizado por el SII (dueño de la credencial `sii_company`) que emite en representación del emisor. Selecciona determinísticamente la credencial cuando hay varias accesibles. Solo válido para DTE 80 y 90.
+| Campo | Tipo | Obligatorio | Descripción |
+|---|---|---|---|
+| `retention_type` | String | No (por defecto `"RETRECEPTOR"`) | `"RETRECEPTOR"`: retiene y entera el impuesto quien paga la boleta. `"RETCONTRIBUYENTE"`: retiene y entera el impuesto el propio profesional que emite |
+| `authorized_user_rut` | String | No | RUT del usuario autorizado por el SII (dueño de la credencial `sii_company`) que emite en representación del emisor. Selecciona determinísticamente la credencial cuando hay varias accesibles. Solo válido para DTE 80 y 90 |
 
-#### Retención:
+#### Retención
 - **Tasa**: la tasa vigente según el año de emisión (14,5% en 2025, **15,25% en 2026**, 16% en 2027 y 17% desde 2028)
 - **Cálculo**: sobre el monto bruto; líquido = bruto − retención (en 2026, el 84,75% del bruto)
 - **Responsable**: quien indique `retention_type`
 - **Respuesta**: `honorary_amounts` trae el bruto, la tasa, el retenido y el líquido
 
-#### Información del receptor (quien paga, en DTE 80):
+#### Receptor (quien paga, en DTE 80)
 - **Campos opcionales**: A diferencia de facturas, no todos los datos son obligatorios
 - **RUT obligatorio**: Siempre se requiere el RUT del receptor
 
-#### Diferencias entre DTE 80 y 90:
+#### Diferencias entre DTE 80 y 90
 
 **DTE 80 - Boleta de Honorarios:**
 - La emite el propio profesional (persona natural) a quien le paga
@@ -7415,28 +7374,28 @@ En este ejemplo la carga va a Alemania (`563`), el comprador está en Holanda (`
 
 **DTE 90 - Boleta de Honorarios de Terceros:**
 - Emisión por intermediario (plataformas, marketplaces)
-- **document_issuer**: Contribuyente real (quien paga — restaurante, empresa cliente)
+- **document_issuer**: Contribuyente real (quien paga: restaurante, empresa cliente)
 - **document_receiver**: Profesional que recibe (repartidor, freelancer, instructor)
 - Requiere enrolamiento de usuarios autorizados para emisión por terceros
 - Misma estructura de request que DTE 80; solo cambia `dte_type.code: "90"`
 
-#### Validaciones específicas:
+#### Validaciones
 - **Tope mensual**: Límite de emisión sin retención ampliada
 - **Tipo de servicio**: Debe corresponder a honorarios profesionales
 - **Declaración**: El retenedor debe declarar y pagar el impuesto retenido
 
-#### Casos de uso:
+#### Casos de uso
 - **DTE 80**: Honorarios de abogados, contadores, médicos; servicios de consultoría; pagos directos a freelancers
 - **DTE 90**: Apps de delivery (Rappi, Uber Eats); plataformas freelance; marketplaces de servicios; plataformas educativas
 
-### 🔒 **Seguridad y URLs temporales**
+### Seguridad y URLs temporales
 
-#### URLs de archivos temporales:
+#### URLs de archivos temporales
 - **PDF y XML**: URLs válidas por 1 hora aproximadamente
 - **Autenticación**: Incluyen tokens de acceso automático
 - **Recomendación**: Descargar inmediatamente al recibir el webhook
 
-#### Medidas de seguridad:
+#### Medidas de seguridad
 - **Encriptación**: Archivos transmitidos de forma segura
 - **Validación**: Solo el emisor puede acceder a sus documentos
 - **Auditoría**: Todas las descargas quedan registradas
