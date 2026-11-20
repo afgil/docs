@@ -274,7 +274,7 @@ Iguales a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en l
 **document_issuer y document_receiver (Obligatorio):** Mismos campos que Factura Electrónica. En un traslado para exportación el receptor es quien recibe la carga en Chile (por ejemplo, la agencia de aduanas), no el importador extranjero.
 
 <Note>
-**Resolución Exenta SII N°154 (vigente desde el 1 de noviembre de 2026):** en la guía pasan a ser obligatorios el tipo de traslado, la patente, el RUT del transportista, el chofer (o una declaración de transporte no informado), el destino con comuna, la fecha y hora de salida y la unidad de medida de cada línea. Hasta esa fecha la API acepta la guía y devuelve un aviso por cada dato faltante en `warnings` (códigos `res154_*`); desde esa fecha responde `422`. Ver [Resolución 154](#resolucion-154-dte-52).
+**Resolución Exenta SII N°154 (vigente desde el 1 de noviembre de 2026):** en la guía pasan a ser obligatorios el tipo de traslado, la patente, el RUT del transportista, el chofer (o una declaración de transporte no informado), el destino con comuna, la fecha y hora de salida y la unidad de medida de cada línea. Hasta esa fecha la API acepta la guía y devuelve un aviso por cada dato faltante en `warnings` (códigos `res154_*`); desde esa fecha responde `422`. La fecha y hora de salida (`departure_date`, `departure_time`) no se rechazan: si no vienen, se completan con la fecha de emisión y la hora de Chile. Ver [Resolución 154](#resolucion-154-dte-52).
 </Note>
 
 **transport_data (Opcional hasta el 1 de noviembre de 2026)**

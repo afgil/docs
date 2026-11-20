@@ -750,14 +750,13 @@ En guías de traslado 8 y 9 el SII exige indicar en qué calidad se emite la gu�
 La [Resolución Exenta SII N°154 de 2025](https://www.sii.cl/normativa_legislacion/resoluciones/2025/reso154.pdf), prorrogada por la Resolución Exenta N°52 de 2026, fija el contenido mínimo de la guía de despacho y rige desde el **1 de noviembre de 2026**. La API aplica las mismas reglas en v1 y v2:
 
 - **Hasta el 31 de octubre de 2026:** la guía se acepta igual y la respuesta del batch trae un aviso por cada dato faltante en `warnings`, con `document_index`, `field`, `code` (`res154_*`), `message` y `suggestion`. Los avisos también aparecen en el borrador y en la vista previa de la plataforma.
-- **Desde el 1 de noviembre de 2026:** los mismos datos faltantes responden `422` con el campo bajo `documents` → posición → `transport_data` o `details[]`, y la guía no se crea. El único aviso que nunca pasa a `422` es `res154_trailer_plate`.
+- **Desde el 1 de noviembre de 2026:** los mismos datos faltantes responden `422` con el campo bajo `documents` → posición → `transport_data` o `details[]`, y la guía no se crea. El único aviso que nunca pasa a `422` es `res154_trailer_plate`. La fecha y hora de salida (`departure_date`, `departure_time`) no se rechazan: si no vienen, se completan con la fecha de emisión y la hora de Chile.
 
 | Código del aviso | Qué falta | Cómo resolverlo |
 |---|---|---|
 | `res154_transfer_type` | `transport_type` | Informar el tipo de traslado `"1"`–`"9"` |
 | `res154_carrier` | `transport_plate`, `transport_rut` o `driver_rut` + `driver_name` | Informarlos, o declarar en `transport_unknown_reason` por qué no se conocen |
 | `res154_destination` | Dirección o comuna de destino | `destination_address` + `destination_district`, o la dirección y comuna del receptor en `document_receiver` |
-| `res154_departure` | `departure_date` o `departure_time` | Fecha y hora de inicio del traslado |
 | `res154_unit` | `details[].unit` | Unidad de medida en cada línea (`UN`, `KG`, `M3`, ...) |
 | `res154_transfer_reason` | Precio unitario | En un traslado que constituye venta (`"1"`, `"9"`) cada línea lleva `unit_price`; en los demás se puede omitir si viene `transfer_reason` |
 | `res154_trailer_plate` | `trailer_plate` | Sólo aviso: si el vehículo lleva carro o remolque, informar su patente |
@@ -770,10 +769,10 @@ Ejemplo de aviso (misma forma en v1 y v2):
   "warnings": [
     {
       "document_index": 0,
-      "field": "transport_data.departure_time",
-      "code": "res154_departure",
-      "message": "La hora de inicio del traslado es obligatoria.",
-      "suggestion": "Informe transport_data.departure_time (HH:MM)."
+      "field": "details[0].unit",
+      "code": "res154_unit",
+      "message": "La unidad de medida es obligatoria en cada línea de la guía.",
+      "suggestion": "Informe details[].unit (por ejemplo UN, KG, M3)."
     }
   ]
 }
@@ -858,7 +857,7 @@ La guía se valida al recibir el batch, antes de emitir, para no quemar folios c
 | `arrival_date` anterior a `departure_date` | `422` |
 | `transfer_reason` > 200 o `transport_unknown_reason` > 100 caracteres | `422` |
 | Rol predial de destino de la madera con otra cosa que 1 a 6 dígitos | `422` |
-| **Desde el 1 de noviembre de 2026:** falta tipo de traslado, patente/transportista/chofer (sin `transport_unknown_reason`), destino, salida, `details[].unit`, precio en una venta o rol predial de destino con madera | `422` (hasta esa fecha, aviso `res154_*`) |
+| **Desde el 1 de noviembre de 2026:** falta tipo de traslado, patente/transportista/chofer (sin `transport_unknown_reason`), destino, `details[].unit`, precio en una venta o rol predial de destino con madera | `422` (hasta esa fecha, aviso `res154_*`) |
 
 Ejemplo de respuesta v1 (el error va en la posición del documento dentro de `documents`):
 
