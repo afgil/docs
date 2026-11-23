@@ -199,6 +199,7 @@ Igual a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en los
 - **Tipo:** Array
 - **Campos de cada elemento:** Mismos campos que Factura Electrónica (`item_name`, `quantity`, `unit_price` neto)
   - `gross_unit_price` (Number): **No aplica a este tipo de documento.** Solo válido para boletas electrónicas (DTE 39 y 41).
+  - `vat_withholding_code` (String): Opcional. Retención parcial o total por producto con cambio de sujeto (p. ej. `"48"`, berries al 14%), junto con `item_type_code: "CPCS"`, el `item_code` del producto y su `unit`. Sin este campo se retiene todo el IVA, como siempre. Requiere que la empresa sea agente retenedor del producto ante el SII. Ver [Códigos de retención de IVA](/api-reference/v2/documents/vat-withholding-codes).
 
 **header (Opcional)**
 - **Tipo:** Object
@@ -206,7 +207,7 @@ Igual a la Boleta Electrónica (DTE 39), pero el documento no incluye IVA en los
   - `purchase_transaction_type` (String o Integer): Tipo de transacción de compra (`TpoTranCompra` del DTE). `1` compras del giro, `2` supermercados y similares, `3` adquisición o construcción de bienes inmuebles, `4` activo fijo, `5` compra con IVA de uso común o no recuperable
   - `payment_method` (String): Forma de pago. `"1"` contado, `"2"` crédito, `"3"` sin costo
   - `due_date` (String): Fecha de vencimiento, formato `YYYY-MM-DD`
-  - `vat_withheld` (Boolean): Por defecto `false`. Con `true` el IVA (19% del neto) se calcula y queda retenido por el comprador; con `false` el IVA es `0`. En ambos casos `total_amount` es igual al neto. Una nota de crédito o débito que referencia una factura de compra del mismo emisor hereda su `vat_withheld`. Ver [Retención de IVA](#retencion-de-iva-dte-46).
+  - `vat_withheld` (Boolean): Por defecto `false`. Con `true` el IVA (19% del neto) se calcula y queda retenido por el comprador; con `false` el IVA es `0`. En ambos casos `total_amount` es igual al neto, salvo con retención parcial por producto (`details[].vat_withholding_code`), donde suma el IVA no retenido. Una nota de crédito o débito que referencia una factura de compra del mismo emisor hereda su `vat_withheld`. Ver [Retención de IVA](#retencion-de-iva-dte-46).
 
 </details>
 

@@ -9100,6 +9100,11 @@
             "type": "integer",
             "description": "Código de tipo de ítem"
           },
+          "vat_withholding_code": {
+            "type": "string",
+            "description": "Solo factura de compra (DTE 46) y sus notas de crédito y débito. Código de retención de IVA (CodImpAdic) del producto con cambio de sujeto: el parcial del rubro (p. ej. `48`, berries al 14%) o el total (p. ej. `481`). Exige `item_type_code: \"CPCS\"`, un `item_code` de la tabla y la unidad del producto. Si no se envía, la línea retiene el IVA completo (código 15), como siempre. Requiere que el SII haya autorizado a la empresa como agente retenedor del producto. Ver [Códigos de retención de IVA](/api-reference/v2/documents/vat-withholding-codes).",
+            "example": "48"
+          },
           "line_number": {
             "type": "integer",
             "description": "Número de línea del ítem. Opcional: si no viene, se usa el orden del arreglo.",
