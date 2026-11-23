@@ -3948,6 +3948,8 @@ Cada notificación incluye los siguientes headers:
 - **`bank_account.refresh_failed`**: La lectura de la cuenta falló en esa corrida
 - **`connection.degraded`**: Una cuenta quedó detenida tras fallos repetidos; las demás siguen
 - **`movement.updated`**: Reservado para la sincronización por cursor (hoy no se emite)
+- **`card_movement.created`**, **`card_movement.billed`**, **`card_movement.updated`**, **`card_movement.removed`**, **`card_movement.reversed`**: Cambios en los movimientos de tarjeta de crédito, con la lista de ids `cmov_…`
+- **`card_statement.mismatch`**: Un estado de cuenta de tarjeta no cuadró con el total facturado del banco
 
 Los payloads están en [Webhooks bancarios](https://docs.tupana.ai/api-reference/v2/banking/webhooks). No existe refresh bajo demanda: estos eventos son la forma de enterarse de datos nuevos.
 
@@ -7905,6 +7907,8 @@ No puede existir un webhook con la misma URL para la misma entidad. Si intentas 
 - `movement.created` - Esa corrida trajo movimientos nuevos (lista de ids, uno por cuenta y corrida)
 - `bank_account.refresh_failed` - La lectura de la cuenta falló
 - `connection.degraded` - Una cuenta quedó detenida tras fallos repetidos
+- `card_movement.created` / `card_movement.billed` / `card_movement.updated` / `card_movement.removed` / `card_movement.reversed` - Cambios en movimientos de tarjeta de crédito
+- `card_statement.mismatch` - Un estado de cuenta de tarjeta no cuadró
 
 Los eventos bancarios se detallan en [Webhooks bancarios](https://docs.tupana.ai/api-reference/v2/banking/webhooks).
 
@@ -10678,7 +10682,8 @@ y los **eventos** consultables. Para empezar, sigue la guía
 [Primera lectura de un banco](https://docs.tupana.ai/api-reference/v2/banking/guides/first-sync);
 para mantener una copia al día, [Sincronizar con cursor](https://docs.tupana.ai/api-reference/v2/banking/guides/sync);
 para probar sin un banco real, [Sandbox bancario](https://docs.tupana.ai/api-reference/v2/banking/guides/sandbox);
-para las tarjetas, [Tarjetas de crédito](https://docs.tupana.ai/api-reference/v2/banking/guides/credit-cards).
+para las tarjetas, [Tarjetas de crédito](https://docs.tupana.ai/api-reference/v2/banking/guides/credit-cards)
+y [Ciclo de vida de un movimiento de tarjeta](https://docs.tupana.ai/api-reference/v2/banking/guides/card-movement-lifecycle).
 
 ### Permiso
 
@@ -10696,6 +10701,8 @@ conectadas; no hay permiso que activar. Cada key ve solo sus propias empresas.
 | Cuenta | Una cuenta en una institución: corriente, vista, ahorro, tarjeta o línea. Cuelga de una conexión y de una empresa. | `bacc_…` |
 | Movimiento | Un abono o cargo en una cuenta, con la glosa cruda del banco y la contraparte que Tupana resuelve. | `move_…` |
 | Estado de cuenta | La cartola de un período: de una tarjeta o importada a una cuenta corriente, con su PDF original. | `ccs_…` / `bsu_…` |
+| Movimiento de tarjeta | Un cargo, cuota, pago o devolución de una tarjeta de crédito, con id estable e historia de cambios. | `cmov_…` |
+| Estado de cuenta de tarjeta | Un período cerrado de la tarjeta, verificado contra el total facturado del banco, con sus líneas. | `cstm_…` |
 
 La conexión de banco es la misma `connection_id` que devuelve Tupana Connect y que
 lista [`GET /connections/`](https://docs.tupana.ai/api-reference/v2/connections/list) con `type: "bank"`.
@@ -10729,7 +10736,8 @@ Ningún `GET` de esta API toca al banco: devuelve lo que dejó la última lectur
 con `balances.refreshed_at`. Cada lectura extra es riesgo de bloqueo para la
 cuenta del usuario, así que no hay un botón para forzarla. La frescura la marca
 el ciclo de sincronización de Tupana, y tu backend se entera por webhook:
-suscríbete a `bank_account.refreshed` y `movement.created` (ver
+suscríbete a `bank_account.refreshed`, `movement.created` y, para tarjetas,
+`card_movement.*` (ver
 [Webhooks bancarios](https://docs.tupana.ai/api-reference/v2/banking/webhooks)).
 
 ### Sandbox
@@ -10940,8 +10948,14 @@ Fuente: https://docs.tupana.ai/api-reference/v2/banking/guides/credit-cards · S
 
 Una tarjeta de crédito es una cuenta más en
 [`GET /bank-accounts/`](https://docs.tupana.ai/api-reference/v2/bank-accounts/list), con
-`type: "credit"` y `subtype: "credit_card"`. No hay un recurso aparte: los mismos
-endpoints de cuentas, movimientos y estados de cuenta sirven para la tarjeta.
+`type: "credit"` y `subtype: "credit_card"`. Los mismos endpoints de cuentas,
+movimientos y estados de cuenta sirven para la tarjeta.
+
+> **Info:** En los bancos con carga diaria de tarjetas, los cargos también están en
+[`/v2/card-movements/`](https://docs.tupana.ai/api-reference/v2/card-movements/list), con id estable,
+estados (`posted`, `billed`, `missing`, `reversed`…), historia de cambios y
+estados de cuenta verificados en [`/v2/card-statements/`](https://docs.tupana.ai/api-reference/v2/card-statements/list).
+Lee [Ciclo de vida de un movimiento de tarjeta](https://docs.tupana.ai/api-reference/v2/banking/guides/card-movement-lifecycle).
 
 ### Qué significa cada saldo
 
@@ -10991,10 +11005,321 @@ Hoy las tarjetas entran por **cartola en PDF** (o por la integración con el
 emisor cuando existe), y la API lo dice en la conexión: `source: "manual_upload"`.
 Cuando se carga una cartola, la tarjeta aparece como cuenta, sus cargos como
 movimientos y la cartola como estado de cuenta, con el PDF original
-descargable. La lectura automática desde el banco es un proyecto aparte.
+descargable. En Banco Santander (personas y empresas), Banco de Chile, BICE y
+Banco Falabella (personas), Tupana Connect además carga los movimientos de la
+tarjeta todos los días: ver
+[Ciclo de vida de un movimiento de tarjeta](https://docs.tupana.ai/api-reference/v2/banking/guides/card-movement-lifecycle#bancos-con-carga-diaria-de-tarjetas).
 
 > **Info:** Una misma tarjeta se reconoce por banco y últimos cuatro dígitos: cargar la
 cartola del mes siguiente agrega movimientos a la misma cuenta, no crea otra.
+
+---
+
+## Ciclo de vida de un movimiento de tarjeta
+
+Fuente: https://docs.tupana.ai/api-reference/v2/banking/guides/card-movement-lifecycle · Sección: API Bancaria / Introducción
+
+> Por qué un cargo de tarjeta cambia después de aparecer, qué estados recorre, cómo se verifican los estados de cuenta y cómo integrarlo sin descuadrar tu contabilidad
+
+## Ciclo de vida de un movimiento de tarjeta
+
+Lo que muestra el banco de una tarjeta de crédito es una **foto que se corrige
+con el tiempo**. Un cargo aparece sin facturar, después cambia de monto porque
+se sumó la propina, el banco lo factura con otra fecha y otra glosa, o lo
+retira porque era solo una autorización. Si tratas cada lectura como la
+verdad, terminas con cargos duplicados o fantasmas.
+
+Tupana sigue cada movimiento a lo largo de esas correcciones y **nunca borra**:
+el id de Tupana (`cmov_…`) es estable. Cuando el banco cambia algo, es el
+mismo movimiento, actualizado, con su [historia](https://docs.tupana.ai/api-reference/v2/card-movements/events).
+Cuando el banco lo retira, el movimiento cambia de estado y sigue consultable.
+
+### Estados
+
+| `state` | Qué significa | ¿Vigente? |
+| --- | --- | --- |
+| `pending` | Autorizado, el banco todavía no lo contabiliza. | Sí |
+| `posted` | Contabilizado, todavía no facturado. `provisional: true`. | Sí |
+| `billed` | Salió en un estado de cuenta. `provisional: false` y `statement_id`. | Sí |
+| `missing` | El banco dejó de mostrarlo; está en período de gracia. `missing_since`. | Sí |
+| `reversed` | Cargo anulado por el banco, con su devolución enlazada. | Sí |
+| `dropped` | Desapareció de forma definitiva. | No |
+| `superseded` | Lo reemplazó otro movimiento (`superseded_by_id`). | No |
+
+El [listado](https://docs.tupana.ai/api-reference/v2/card-movements/list) trae por defecto solo los
+vigentes; los otros se piden con `include=superseded,dropped`. En la
+[sincronización](https://docs.tupana.ai/api-reference/v2/card-movements/sync), un movimiento que
+pasa a `dropped` o `superseded` llega en `removed`.
+
+```mermaid
+stateDiagram-v2
+    [*] --> pending
+    [*] --> posted
+    pending --> posted
+    posted --> billed: sale en un estado de cuenta
+    posted --> missing: el banco deja de mostrarlo
+    missing --> posted: restored
+    missing --> dropped: 2 lecturas seguidas sin verlo
+    posted --> superseded
+    posted --> reversed: anulado, con devolución
+    billed --> reversed: anulado, con devolución
+```
+
+### Las transiciones
+
+#### Sin facturar a facturado: el mismo movimiento
+
+Un cargo aparece `posted` apenas el banco lo contabiliza. Cuando cierra el
+período y sale en el estado de cuenta, pasa a `billed`. Muchas veces el banco
+lo factura **con otra fecha, otra glosa u otro monto** que el que mostraba sin
+facturar. Tupana lo reconoce como el mismo movimiento: conserva el `id`,
+actualiza los campos y deja el cambio en la historia.
+
+```json
+{
+  "id": "cmov_Vx4810293847561",
+  "account_id": "bacc_Tc5520193847261",
+  "company_id": "ment_3672486436546233854",
+  "state": "billed",
+  "provisional": false,
+  "kind": "purchase",
+  "transaction_date": "2026-10-14",
+  "post_date": "2026-10-16",
+  "description": "RESTAURANT LA PICADA",
+  "amount": "-41500.00",
+  "currency": "CLP",
+  "original_amount": null,
+  "original_currency": null,
+  "installment": null,
+  "card_last4": "2105",
+  "statement_id": "cstm_Rb5829104736251",
+  "superseded_by_id": null,
+  "reversal_of_id": null,
+  "parent_id": null,
+  "missing_since": null,
+  "needs_review": false,
+  "locked": true,
+  "created_at": "2026-10-15T09:12:03Z",
+  "updated_at": "2026-10-26T08:40:11Z"
+}
+```
+
+Su historia en [`GET /v2/card-movements/{id}/events/`](https://docs.tupana.ai/api-reference/v2/card-movements/events):
+
+```json
+{
+  "data": [
+    {
+      "id": "cmev_Lp2938475610201",
+      "kind": "created",
+      "created_at": "2026-10-15T09:12:03Z",
+      "changes": {},
+      "related_movement_id": null
+    },
+    {
+      "id": "cmev_Lp2938475610284",
+      "kind": "billed",
+      "created_at": "2026-10-26T08:40:11Z",
+      "changes": {
+        "state": ["posted", "billed"],
+        "amount": ["-38500.00", "-41500.00"],
+        "description": ["REST LA PICADA SANTIAGO", "RESTAURANT LA PICADA"],
+        "post_date": ["2026-10-15", "2026-10-16"],
+        "statement_id": [null, "cstm_Rb5829104736251"]
+      },
+      "related_movement_id": null
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 2, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+#### Desaparece: `posted`, `missing` y `dropped`
+
+Algunos cargos son solo **autorizaciones** que el comercio libera después:
+bencineras, hoteles, rent a car o Uber retienen un monto y luego lo sueltan o
+lo cobran por otro valor. Cuando el banco deja de mostrar un movimiento, Tupana
+no lo borra al tiro: lo pasa a `missing`, marca `missing_since` y espera.
+
+El período de gracia es de **dos lecturas seguidas** sin verlo. Si en ese
+plazo el banco no lo vuelve a mostrar, pasa a `dropped` y llega en `removed`
+de la sincronización. Un movimiento `missing` sigue contando como vigente
+mientras dura la gracia.
+
+#### Vuelve: `missing` a `posted`
+
+Si el banco lo vuelve a mostrar dentro del período de gracia (pasa cuando la
+página del banco falla a medias o pagina distinto), el movimiento vuelve a
+`posted` con el mismo id y su historia registra un evento `restored`.
+
+#### Reversa: el cargo queda `reversed`
+
+El banco anula un cargo de dos formas: lo borra de la lista o agrega un abono
+que lo compensa. En los dos casos el cargo original **no desaparece**: queda
+`reversed`, y la devolución es un movimiento `refund` aparte, con
+`reversal_of_id` apuntando al cargo. En la historia del cargo, el evento
+`reversed` trae la devolución en `related_movement_id`.
+
+```json
+[
+  {
+    "id": "cmov_Vx4810293847577",
+    "state": "reversed",
+    "kind": "purchase",
+    "transaction_date": "2026-10-03",
+    "description": "FALABELLA.COM",
+    "amount": "-129990.00",
+    "currency": "CLP",
+    "reversal_of_id": null,
+    "...": "..."
+  },
+  {
+    "id": "cmov_Vx4810293847590",
+    "state": "billed",
+    "kind": "refund",
+    "transaction_date": "2026-10-08",
+    "description": "DEVOLUCION FALABELLA.COM",
+    "amount": "129990.00",
+    "currency": "CLP",
+    "reversal_of_id": "cmov_Vx4810293847577",
+    "...": "..."
+  }
+]
+```
+
+Así el cargo y su devolución siempre suman cero y tu conciliación del cargo
+original no queda huérfana.
+
+#### Cambios de monto: el mismo movimiento
+
+Una propina que se suma a la cuenta del restaurante, o una compra en dólares
+que se convierte con el tipo de cambio del día de facturación, cambian el
+monto de un cargo que ya existía. No es un cargo nuevo: Tupana actualiza
+`amount` en el mismo movimiento y registra un evento `updated` (o `billed`, si
+el cambio llegó con la facturación) con el antes y el después.
+
+#### Cuotas: `parent_id`
+
+Una compra en cuotas genera una cuota por período. Cada cuota es un movimiento
+`installment` con `installment: { "number", "total" }` y `parent_id` apuntando
+a la **primera cuota** de la compra. Para ver la compra completa, filtra por
+`parent_id` en tu copia.
+
+```json
+{
+  "id": "cmov_Vx4810293847612",
+  "account_id": "bacc_Tc5520193847261",
+  "company_id": "ment_3672486436546233854",
+  "state": "posted",
+  "provisional": true,
+  "kind": "installment",
+  "transaction_date": "2026-08-20",
+  "post_date": "2026-10-27",
+  "description": "PARIS.CL CUOTA 3/6",
+  "amount": "-49990.00",
+  "currency": "CLP",
+  "original_amount": null,
+  "original_currency": null,
+  "installment": { "number": 3, "total": 6 },
+  "card_last4": "2105",
+  "statement_id": null,
+  "superseded_by_id": null,
+  "reversal_of_id": null,
+  "parent_id": "cmov_Vx4810293847433",
+  "missing_since": null,
+  "needs_review": false,
+  "locked": false,
+  "created_at": "2026-10-28T09:12:03Z",
+  "updated_at": "2026-10-28T09:12:03Z"
+}
+```
+
+#### Duplicados legítimos
+
+Dos cafés iguales, por el mismo monto, en el mismo local y el mismo día, son
+**dos movimientos** con ids distintos. Tupana no fusiona cargos solo porque se
+parezcan.
+
+### Estados de cuenta verificados
+
+Cuando una tarjeta cierra su período, Tupana revisa que **el saldo anterior
+más los movimientos del período sea igual al total facturado** que informa el
+banco. El resultado queda en [`GET /v2/card-statements/`](https://docs.tupana.ai/api-reference/v2/card-statements/list):
+
+- `check_status: "ok"`: cuadra. Los movimientos del período quedan
+  `locked: true` y ya no cambian.
+- `check_status: "mismatch"`: no cuadra. `check_difference` dice por cuánto,
+  se envía el webhook `card_statement.mismatch` y **nada se corrige en
+  silencio**: los movimientos quedan como los leyó el banco hasta que se
+  resuelva.
+- `check_status: "unchecked"`: todavía no se pudo verificar.
+
+### Recomendaciones para integradores
+
+**Concilia y contabiliza solo lo facturado**
+
+    Un movimiento `billed` (`provisional: false`) ya salió en un estado de
+    cuenta. Los `posted` muéstralos como provisorios: pueden cambiar de monto
+    o desaparecer.
+
+**Sincroniza con cursor y webhooks, no por rango de fechas**
+
+    Usa [`/v2/card-movements/sync/`](https://docs.tupana.ai/api-reference/v2/card-movements/sync) y
+    los [webhooks](https://docs.tupana.ai/api-reference/v2/banking/webhooks#movimientos-de-tarjeta)
+    `card_movement.*`. Un cargo puede aparecer hoy con una fecha de hace diez
+    días; si relees por rango, no lo ves.
+
+**Si algo que conciliaste cambia, ponlo en revisión**
+
+    Si un movimiento que ya conciliaste llega en `modified` con otro monto, o
+    llega en `removed`, deja esa conciliación **en revisión** en tu sistema en
+    vez de mantenerla o borrarla sin mirar.
+
+**No reabras períodos cerrados**
+
+    Si el movimiento estaba contabilizado en un período ya cerrado, registra
+    un ajuste en el período abierto.
+
+Un ejemplo de respuesta de la sincronización con los tres casos:
+
+```json
+{
+  "added": [
+    { "id": "cmov_Vx4810293847612", "state": "posted", "kind": "installment", "parent_id": "cmov_Vx4810293847433", "...": "..." }
+  ],
+  "modified": [
+    { "id": "cmov_Vx4810293847561", "state": "billed", "amount": "-41500.00", "statement_id": "cstm_Rb5829104736251", "...": "..." },
+    { "id": "cmov_Vx4810293847577", "state": "reversed", "...": "..." }
+  ],
+  "removed": [
+    { "id": "cmov_Vx4810293847502", "account_id": "bacc_Tc5520193847261", "removed_at": "2026-10-28T09:12:03Z" }
+  ],
+  "next_cursor": "Yzo5MTI0OjE3NjE2ODk...",
+  "has_more": false,
+  "limit": 200
+}
+```
+
+### Bancos con carga diaria de tarjetas
+
+Estos bancos cargan los movimientos de tarjeta todos los días a través de
+[Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect):
+
+| Banco | Personas | Empresas |
+| --- | :---: | :---: |
+| Banco Santander | ✓ | ✓ |
+| Banco de Chile | ✓ | |
+| BICE | ✓ | |
+| Banco Falabella | ✓ | |
+
+En los demás bancos, las tarjetas entran por cartola, como se explica en
+[Tarjetas de crédito](https://docs.tupana.ai/api-reference/v2/banking/guides/credit-cards).
+
+### Precio
+
+La carga diaria de movimientos de tarjeta cuesta **0,15 UF + IVA** extra,
+sobre la [lectura bancaria](https://docs.tupana.ai/precios).
 
 ---
 
@@ -11451,6 +11776,669 @@ curl https://api.tupana.ai/v2/bank-accounts/bacc_7Hk2938475610293/statements/ccs
 
 ---
 
+## Listar movimientos de tarjeta
+
+Fuente: https://docs.tupana.ai/api-reference/v2/card-movements/list · Sección: API Bancaria / Movimientos de tarjeta
+
+Endpoint: `GET /card-movements/` (detalle completo en la Parte 2).
+
+Los movimientos de las tarjetas de crédito de una empresa, los más nuevos
+primero: compras, cuotas, pagos, devoluciones, comisiones, intereses,
+impuestos y avances. El GET nunca toca al banco.
+
+```bash
+curl "https://api.tupana.ai/v2/card-movements/?company_id=ment_3672486436546233854&account_id=bacc_Tc5520193847261&since=2026-10-01" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "cmov_Vx4810293847561",
+      "account_id": "bacc_Tc5520193847261",
+      "company_id": "ment_3672486436546233854",
+      "state": "billed",
+      "provisional": false,
+      "kind": "purchase",
+      "transaction_date": "2026-10-14",
+      "post_date": "2026-10-16",
+      "description": "RESTAURANT LA PICADA",
+      "amount": "-41500.00",
+      "currency": "CLP",
+      "original_amount": null,
+      "original_currency": null,
+      "installment": null,
+      "card_last4": "2105",
+      "statement_id": "cstm_Rb5829104736251",
+      "superseded_by_id": null,
+      "reversal_of_id": null,
+      "parent_id": null,
+      "missing_since": null,
+      "needs_review": false,
+      "locked": true,
+      "created_at": "2026-10-15T09:12:03Z",
+      "updated_at": "2026-10-26T08:40:11Z"
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 1, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+Cualquier API key lee los movimientos de tarjeta de sus empresas conectadas,
+igual que los [movimientos bancarios](https://docs.tupana.ai/api-reference/v2/movements/company-list).
+Una empresa o una cuenta que no es de tu integración responde `404`.
+
+### Filtros
+
+| Parámetro | Qué hace |
+| --- | --- |
+| `company_id` | Obligatorio. La empresa (`ment_…`). |
+| `account_id` | Acota a una tarjeta (`bacc_…`). |
+| `state` | Uno o más estados separados por coma: `pending`, `posted`, `billed`, `missing`, `reversed`. |
+| `include` | Suma los estados que por defecto no salen: `superseded`, `dropped` o `superseded,dropped`. |
+| `since`, `until` | Rango de `transaction_date`, inclusivo, `YYYY-MM-DD`. |
+| `kind` | `purchase`, `installment`, `payment`, `refund`, `fee`, `interest`, `tax`, `advance` u `other`. |
+
+Sin `state` ni `include`, la lista trae solo los movimientos **vigentes**:
+`pending`, `posted`, `billed`, `reversed` y `missing`. Los `dropped` y
+`superseded` siguen existiendo (Tupana nunca borra) y se consultan con
+`include` o por su id.
+
+Un valor inválido responde `400` con `code: parameter_invalid` y `param`.
+`page` y `page_size` (tope 200) paginan.
+
+### Cómo leer un movimiento
+
+- `id` (`cmov_…`) es **estable**. Si el banco cambia la fecha, la glosa o el
+  monto de un cargo, es el mismo movimiento, actualizado; los cambios quedan en
+  su [historia](https://docs.tupana.ai/api-reference/v2/card-movements/events).
+- `amount` es un decimal como string, **con signo**: negativo es un cargo
+  (sube la deuda), positivo es un pago o una devolución (baja la deuda).
+- `provisional` es `true` hasta que el movimiento sale en un estado de cuenta
+  (`state: "billed"`). Concilia y contabiliza solo los facturados.
+- `original_amount` y `original_currency` vienen en compras en el extranjero;
+  `amount` y `currency` son lo que el banco cobra.
+- `installment` es `{ "number": 2, "total": 6 }` en una cuota y `null` en lo
+  demás. Cada cuota trae `parent_id` con la primera cuota de la compra.
+- `statement_id` (`cstm_…`) dice en qué [estado de cuenta](https://docs.tupana.ai/api-reference/v2/card-statements/get)
+  se facturó.
+- `locked: true` significa que su estado de cuenta cuadró y el movimiento ya
+  no cambia.
+- `needs_review: true` marca un cambio que Tupana no decidió solo. El
+  movimiento se muestra igual; revísalo antes de conciliarlo.
+
+> **Info:** Para mantener una copia al día usa
+[`GET /v2/card-movements/sync/`](https://docs.tupana.ai/api-reference/v2/card-movements/sync), no
+rangos de fechas: un cargo puede aparecer hoy con una fecha de hace diez días.
+Lee la guía [Ciclo de vida de un movimiento de tarjeta](https://docs.tupana.ai/api-reference/v2/banking/guides/card-movement-lifecycle).
+
+---
+
+## Obtener un movimiento de tarjeta
+
+Fuente: https://docs.tupana.ai/api-reference/v2/card-movements/get · Sección: API Bancaria / Movimientos de tarjeta
+
+Endpoint: `GET /card-movements/{card_movement_id}/` (detalle completo en la Parte 2).
+
+Un movimiento de tarjeta por su id (`cmov_…`), con la misma forma que en
+[el listado](https://docs.tupana.ai/api-reference/v2/card-movements/list). Responde en cualquier
+estado, incluidos `dropped` y `superseded`: Tupana nunca borra un movimiento.
+
+```bash
+curl https://api.tupana.ai/v2/card-movements/cmov_Vx4810293847577/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+Un cargo que el banco anuló queda `reversed`, y la devolución que lo compensa
+apunta a él con `reversal_of_id`:
+
+```json
+{
+  "id": "cmov_Vx4810293847577",
+  "account_id": "bacc_Tc5520193847261",
+  "company_id": "ment_3672486436546233854",
+  "state": "reversed",
+  "provisional": false,
+  "kind": "purchase",
+  "transaction_date": "2026-10-03",
+  "post_date": "2026-10-04",
+  "description": "FALABELLA.COM",
+  "amount": "-129990.00",
+  "currency": "CLP",
+  "original_amount": null,
+  "original_currency": null,
+  "installment": null,
+  "card_last4": "2105",
+  "statement_id": "cstm_Rb5829104736251",
+  "superseded_by_id": null,
+  "reversal_of_id": null,
+  "parent_id": null,
+  "missing_since": null,
+  "needs_review": false,
+  "locked": true,
+  "created_at": "2026-10-04T09:05:41Z",
+  "updated_at": "2026-10-09T09:07:12Z"
+}
+```
+
+```json
+{
+  "id": "cmov_Vx4810293847590",
+  "account_id": "bacc_Tc5520193847261",
+  "company_id": "ment_3672486436546233854",
+  "state": "billed",
+  "provisional": false,
+  "kind": "refund",
+  "transaction_date": "2026-10-08",
+  "post_date": "2026-10-08",
+  "description": "DEVOLUCION FALABELLA.COM",
+  "amount": "129990.00",
+  "currency": "CLP",
+  "original_amount": null,
+  "original_currency": null,
+  "installment": null,
+  "card_last4": "2105",
+  "statement_id": "cstm_Rb5829104736251",
+  "superseded_by_id": null,
+  "reversal_of_id": "cmov_Vx4810293847577",
+  "parent_id": null,
+  "missing_since": null,
+  "needs_review": false,
+  "locked": true,
+  "created_at": "2026-10-09T09:07:12Z",
+  "updated_at": "2026-10-26T08:40:11Z"
+}
+```
+
+Para ver qué le pasó a un movimiento desde que apareció, pide su
+[historia](https://docs.tupana.ai/api-reference/v2/card-movements/events).
+
+Si el movimiento es de una empresa que no está conectada a tu integración, o
+no existe, responde `404`.
+
+---
+
+## Historia de un movimiento de tarjeta
+
+Fuente: https://docs.tupana.ai/api-reference/v2/card-movements/events · Sección: API Bancaria / Movimientos de tarjeta
+
+Endpoint: `GET /card-movements/{card_movement_id}/events/` (detalle completo en la Parte 2).
+
+Cada cambio que tuvo un movimiento desde que apareció, del más antiguo al más
+nuevo. Sirve para auditar por qué un cargo que ya conciliaste cambió de monto,
+de fecha o de estado.
+
+```bash
+curl https://api.tupana.ai/v2/card-movements/cmov_Vx4810293847561/events/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+Una compra en un restaurante que apareció sin facturar por $38.500 y se
+facturó con la propina incluida, otra glosa y otra fecha contable. Es el mismo
+movimiento, con el mismo id:
+
+```json
+{
+  "data": [
+    {
+      "id": "cmev_Lp2938475610201",
+      "kind": "created",
+      "created_at": "2026-10-15T09:12:03Z",
+      "changes": {},
+      "related_movement_id": null
+    },
+    {
+      "id": "cmev_Lp2938475610284",
+      "kind": "billed",
+      "created_at": "2026-10-26T08:40:11Z",
+      "changes": {
+        "state": ["posted", "billed"],
+        "amount": ["-38500.00", "-41500.00"],
+        "description": ["REST LA PICADA SANTIAGO", "RESTAURANT LA PICADA"],
+        "post_date": ["2026-10-15", "2026-10-16"],
+        "statement_id": [null, "cstm_Rb5829104736251"]
+      },
+      "related_movement_id": null
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 2, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+### Tipos de evento
+
+| `kind` | Qué pasó |
+| --- | --- |
+| `created` | El movimiento apareció por primera vez. |
+| `billed` | Salió en un estado de cuenta. Si el banco lo facturó con otra fecha, glosa o monto, los cambios vienen en `changes`. |
+| `updated` | Cambió la fecha, la glosa o el monto sin facturarse (una propina, el tipo de cambio). |
+| `missing` | El banco dejó de mostrarlo. Empieza el período de gracia. |
+| `restored` | Volvió a aparecer después de un `missing`. |
+| `removed` | Quedó `dropped` (desapareció de forma definitiva) o `superseded` (lo reemplazó otro movimiento, en `related_movement_id`). |
+| `reversed` | El banco anuló el cargo. `related_movement_id` es la devolución que lo compensa. |
+
+### `changes`
+
+Es un objeto `{campo: [antes, después]}` con los campos que cambiaron en ese
+evento, en el mismo formato del [movimiento](https://docs.tupana.ai/api-reference/v2/card-movements/get).
+Viene vacío cuando el evento no cambió campos, como en `created`.
+
+`related_movement_id` (`cmov_…`) apunta al otro movimiento involucrado:
+la devolución en un `reversed` y el reemplazo en un `removed` por
+`superseded`. En el resto es `null`.
+
+`page` y `page_size` (tope 200) paginan. Un movimiento que no es de tu
+integración, o que no existe, responde `404`.
+
+---
+
+## Sincronizar movimientos de tarjeta (cursor)
+
+Fuente: https://docs.tupana.ai/api-reference/v2/card-movements/sync · Sección: API Bancaria / Movimientos de tarjeta
+
+Endpoint: `GET /card-movements/sync/` (detalle completo en la Parte 2).
+
+Mantén una copia fiel de los movimientos de tarjeta sin releer rangos. Funciona
+igual que la [sincronización de movimientos bancarios](https://docs.tupana.ai/api-reference/v2/movements/sync):
+sin cursor, la primera llamada recorre la historia visible de tu API key,
+página a página; cuando se agota, el `next_cursor` pasa a apuntar al registro
+de cambios y cada llamada siguiente entrega solo lo que cambió desde la
+anterior.
+
+```bash
+# Primera vez: sin cursor
+curl "https://api.tupana.ai/v2/card-movements/sync/?limit=200" \
+  -H "Authorization: Api-Key TU_API_KEY"
+
+# Después: siempre con el next_cursor de la respuesta anterior
+curl "https://api.tupana.ai/v2/card-movements/sync/?cursor=Yzo5MTIzOjE3NjE0NjQ..." \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "added": [
+    {
+      "id": "cmov_Vx4810293847612",
+      "account_id": "bacc_Tc5520193847261",
+      "company_id": "ment_3672486436546233854",
+      "state": "posted",
+      "provisional": true,
+      "kind": "installment",
+      "transaction_date": "2026-08-20",
+      "post_date": "2026-10-27",
+      "description": "PARIS.CL CUOTA 3/6",
+      "amount": "-49990.00",
+      "currency": "CLP",
+      "original_amount": null,
+      "original_currency": null,
+      "installment": { "number": 3, "total": 6 },
+      "card_last4": "2105",
+      "statement_id": null,
+      "superseded_by_id": null,
+      "reversal_of_id": null,
+      "parent_id": "cmov_Vx4810293847433",
+      "missing_since": null,
+      "needs_review": false,
+      "locked": false,
+      "created_at": "2026-10-28T09:12:03Z",
+      "updated_at": "2026-10-28T09:12:03Z"
+    }
+  ],
+  "modified": [
+    { "id": "cmov_Vx4810293847561", "state": "billed", "amount": "-41500.00", "...": "..." }
+  ],
+  "removed": [
+    { "id": "cmov_Vx4810293847502", "account_id": "bacc_Tc5520193847261", "removed_at": "2026-10-28T09:12:03Z" }
+  ],
+  "next_cursor": "Yzo5MTI0OjE3NjE2ODk...",
+  "has_more": false,
+  "limit": 200
+}
+```
+
+### Qué trae cada lista
+
+- `added`: movimientos nuevos, con la [misma forma](https://docs.tupana.ai/api-reference/v2/card-movements/list) del listado.
+- `modified`: movimientos que cambiaron después de creados: se facturaron,
+  cambiaron de monto o de glosa, quedaron `missing`, volvieron (`restored`) o
+  quedaron `reversed`. Vienen completos; reemplaza tu copia.
+- `removed`: movimientos que pasaron a `dropped` o `superseded`. Solo `id`,
+  `account_id` y `removed_at`. Siguen consultables por id con su
+  [historia](https://docs.tupana.ai/api-reference/v2/card-movements/events); en un `superseded`,
+  `superseded_by_id` apunta al que lo reemplazó.
+
+Un movimiento aparece **una vez por página**: si en el mismo tramo se creó y se
+modificó, viene en `added`; si se retiró, solo en `removed`.
+
+### El cursor
+
+Es opaco: guárdalo tal cual y mándalo en la próxima llamada. Mientras
+`has_more` sea `true`, sigue llamando con el `next_cursor` que recibes; cuando
+sea `false`, guarda el cursor y vuelve cuando llegue un webhook
+`card_movement.*` (ver [Webhooks bancarios](https://docs.tupana.ai/api-reference/v2/banking/webhooks)).
+
+| Respuesta | Qué significa | Qué hacer |
+| --- | --- | --- |
+| `400 cursor_invalid` | El cursor no es uno que emitimos. | Revisa que lo guardaste completo. |
+| `410 cursor_expired` | El cursor es más antiguo que la retención de cambios: pudo perder cambios ya purgados. | Vuelve a sincronizar sin cursor y reconstruye la copia. |
+
+`limit` va de 1 a 500 (default 100). El cursor de tarjetas es independiente
+del de [`/v2/movements/sync/`](https://docs.tupana.ai/api-reference/v2/movements/sync): no los
+mezcles.
+
+> **Info:** Lee la guía [Ciclo de vida de un movimiento de tarjeta](https://docs.tupana.ai/api-reference/v2/banking/guides/card-movement-lifecycle)
+para saber qué hacer cuando un movimiento que ya conciliaste cambia o
+desaparece.
+
+---
+
+## Listar estados de cuenta de tarjeta
+
+Fuente: https://docs.tupana.ai/api-reference/v2/card-statements/list · Sección: API Bancaria / Estados de cuenta de tarjeta
+
+Endpoint: `GET /card-statements/` (detalle completo en la Parte 2).
+
+Los estados de cuenta **cerrados** de una tarjeta, los más nuevos primero, con
+el resultado de la verificación que hace Tupana al cerrar cada período.
+
+```bash
+curl "https://api.tupana.ai/v2/card-statements/?company_id=ment_3672486436546233854&account_id=bacc_Tc5520193847261" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "cstm_Rb5829104736251",
+      "account_id": "bacc_Tc5520193847261",
+      "period_end": "2026-10-25",
+      "due_date": "2026-11-05",
+      "currency": "CLP",
+      "total_billed": "968146.00",
+      "minimum_payment": "48407.00",
+      "check_status": "ok",
+      "check_difference": "0.00",
+      "total_source": "bank",
+      "locked_at": "2026-10-26T08:40:11Z"
+    },
+    {
+      "id": "cstm_Rb5829104736188",
+      "account_id": "bacc_Tc5520193847261",
+      "period_end": "2026-09-25",
+      "due_date": "2026-10-06",
+      "currency": "CLP",
+      "total_billed": "1204530.00",
+      "minimum_payment": "60227.00",
+      "check_status": "mismatch",
+      "check_difference": "-12990.00",
+      "total_source": "bank",
+      "locked_at": null
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 2, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+`company_id` y `account_id` son obligatorios. `page` y `page_size` (tope 200)
+paginan. Una empresa o una tarjeta que no es de tu integración responde `404`.
+
+### Qué trae
+
+- `period_end` es la fecha de cierre (facturación) del período y `due_date`
+  la fecha de vencimiento del pago.
+- `total_billed` y `minimum_payment` son decimales como string, en `currency`.
+- `total_source` dice de dónde sale el total: `bank` si lo informó el banco,
+  `computed` si el banco no lo informó y Tupana lo calculó desde los
+  movimientos.
+
+### La verificación
+
+Al cerrar un período, Tupana revisa que el saldo anterior más los movimientos
+del período sea igual al total facturado que informa el banco.
+
+| `check_status` | Qué significa |
+| --- | --- |
+| `unchecked` | Todavía no se pudo verificar. `check_difference` es `null`. |
+| `ok` | Cuadra. Los movimientos del período quedan `locked` y `locked_at` dice desde cuándo. |
+| `mismatch` | No cuadra. `check_difference` dice por cuánto, se envía el webhook `card_statement.mismatch` y nada se corrige en silencio. |
+
+Las líneas de cada estado de cuenta están en el
+[detalle](https://docs.tupana.ai/api-reference/v2/card-statements/get). Más contexto en
+[Ciclo de vida de un movimiento de tarjeta](https://docs.tupana.ai/api-reference/v2/banking/guides/card-movement-lifecycle#estados-de-cuenta-verificados).
+
+---
+
+## Obtener un estado de cuenta de tarjeta
+
+Fuente: https://docs.tupana.ai/api-reference/v2/card-statements/get · Sección: API Bancaria / Estados de cuenta de tarjeta
+
+Endpoint: `GET /card-statements/{card_statement_id}/` (detalle completo en la Parte 2).
+
+Un estado de cuenta de tarjeta por su id (`cstm_…`), con la misma forma que en
+[el listado](https://docs.tupana.ai/api-reference/v2/card-statements/list) más sus líneas en
+`movements`. Cada línea es un [movimiento de tarjeta](https://docs.tupana.ai/api-reference/v2/card-movements/get)
+completo, con `statement_id` apuntando a este estado de cuenta.
+
+```bash
+curl https://api.tupana.ai/v2/card-statements/cstm_Rb5829104736251/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "id": "cstm_Rb5829104736251",
+  "account_id": "bacc_Tc5520193847261",
+  "period_end": "2026-10-25",
+  "due_date": "2026-11-05",
+  "currency": "CLP",
+  "total_billed": "968146.00",
+  "minimum_payment": "48407.00",
+  "check_status": "ok",
+  "check_difference": "0.00",
+  "total_source": "bank",
+  "locked_at": "2026-10-26T08:40:11Z",
+  "movements": [
+    {
+      "id": "cmov_Vx4810293847561",
+      "account_id": "bacc_Tc5520193847261",
+      "company_id": "ment_3672486436546233854",
+      "state": "billed",
+      "provisional": false,
+      "kind": "purchase",
+      "transaction_date": "2026-10-14",
+      "post_date": "2026-10-16",
+      "description": "RESTAURANT LA PICADA",
+      "amount": "-41500.00",
+      "currency": "CLP",
+      "original_amount": null,
+      "original_currency": null,
+      "installment": null,
+      "card_last4": "2105",
+      "statement_id": "cstm_Rb5829104736251",
+      "superseded_by_id": null,
+      "reversal_of_id": null,
+      "parent_id": null,
+      "missing_since": null,
+      "needs_review": false,
+      "locked": true,
+      "created_at": "2026-10-15T09:12:03Z",
+      "updated_at": "2026-10-26T08:40:11Z"
+    },
+    {
+      "id": "cmov_Vx4810293847640",
+      "account_id": "bacc_Tc5520193847261",
+      "company_id": "ment_3672486436546233854",
+      "state": "billed",
+      "provisional": false,
+      "kind": "purchase",
+      "transaction_date": "2026-10-19",
+      "post_date": "2026-10-21",
+      "description": "AMAZON WEB SERVICES",
+      "amount": "-91342.00",
+      "currency": "CLP",
+      "original_amount": "96.40",
+      "original_currency": "USD",
+      "installment": null,
+      "card_last4": "2105",
+      "statement_id": "cstm_Rb5829104736251",
+      "superseded_by_id": null,
+      "reversal_of_id": null,
+      "parent_id": null,
+      "missing_since": null,
+      "needs_review": false,
+      "locked": true,
+      "created_at": "2026-10-20T09:03:51Z",
+      "updated_at": "2026-10-26T08:40:11Z"
+    }
+  ]
+}
+```
+
+Si el estado de cuenta no existe, o la tarjeta no es de tu integración,
+responde `404`.
+
+---
+
+## Webhooks bancarios
+
+Fuente: https://docs.tupana.ai/api-reference/v2/banking/webhooks · Sección: API Bancaria / Webhooks
+
+> Eventos de la API bancaria: lecturas de cuentas, movimientos nuevos, movimientos de tarjeta y estados de cuenta que no cuadran. Payloads y cuándo llega cada uno
+
+## Webhooks bancarios
+
+Ningún `GET` de la API bancaria toca al banco, así que los webhooks son la
+forma de enterarte de que hay datos nuevos. Se crean como cualquier webhook de
+Tupana, con [`POST /v2/webhooks/`](https://docs.tupana.ai/api-reference/v2/webhooks-pages/create),
+eligiendo los eventos bancarios que quieras recibir. La firma
+(`X-Pana-Signature`), los headers y los reintentos son los mismos de la
+[guía de webhooks](https://docs.tupana.ai/user-guide/webhooks).
+
+Todos los eventos bancarios llevan `api_version: 2` y public ids, y quedan
+también consultables en [`GET /v2/events/`](https://docs.tupana.ai/api-reference/v2/events/list)
+aunque tu endpoint haya estado caído.
+
+```json
+{
+  "event": "movement.created",
+  "api_version": 2,
+  "created_at": "2026-10-28T09:12:04Z",
+  "data": { "...": "..." }
+}
+```
+
+Un evento resume una **corrida de lectura por cuenta**: nunca llega uno por
+movimiento. Úsalo como señal para llamar a la sincronización por cursor, no
+como fuente de datos.
+
+### Cuentas y movimientos
+
+| Evento | Cuándo llega |
+| --- | --- |
+| `bank_account.refreshed` | Una corrida leyó la cuenta. Trae la cuenta con su saldo y cuántos movimientos nuevos hubo. |
+| `movement.created` | Esa corrida trajo movimientos nuevos. Uno por cuenta y corrida, con la lista de ids. |
+| `bank_account.refresh_failed` | La lectura de la cuenta falló en esa corrida. |
+| `connection.degraded` | Una cuenta quedó detenida tras fallos repetidos; las demás siguen. |
+
+#### `movement.created`
+
+```json
+{
+  "event": "movement.created",
+  "api_version": 2,
+  "created_at": "2026-10-28T09:12:04Z",
+  "data": {
+    "account_id": "bacc_7Hk2938475610293",
+    "connection_id": "cred_9Pq5028174639201",
+    "company_id": "ment_3672486436546233854",
+    "movement_ids": ["move_Qm8102938475612"],
+    "count": 1
+  }
+}
+```
+
+Al recibirlo, llama a [`GET /v2/movements/sync/`](https://docs.tupana.ai/api-reference/v2/movements/sync)
+con tu cursor.
+
+### Movimientos de tarjeta
+
+Los [movimientos de tarjeta](https://docs.tupana.ai/api-reference/v2/card-movements/list) tienen sus
+propios eventos, porque cambian después de aparecer. Lee
+[Ciclo de vida de un movimiento de tarjeta](https://docs.tupana.ai/api-reference/v2/banking/guides/card-movement-lifecycle)
+para el detalle de cada transición.
+
+| Evento | Cuándo llega |
+| --- | --- |
+| `card_movement.created` | Aparecieron movimientos nuevos en la tarjeta. |
+| `card_movement.billed` | Movimientos que salieron en un estado de cuenta (`state: "billed"`). |
+| `card_movement.updated` | Movimientos que cambiaron de fecha, glosa o monto, que quedaron `missing` o que volvieron (`restored`). |
+| `card_movement.removed` | Movimientos que pasaron a `dropped` o `superseded`. |
+| `card_movement.reversed` | Cargos que el banco anuló, con su devolución enlazada. |
+| `card_statement.mismatch` | Un estado de cuenta no cuadró con el total facturado del banco. |
+
+Los cinco eventos `card_movement.*` tienen el mismo `data`: la cuenta, la
+conexión, la empresa y la lista de movimientos afectados en esa corrida.
+
+```json
+{
+  "event": "card_movement.billed",
+  "api_version": 2,
+  "created_at": "2026-10-26T08:40:12Z",
+  "data": {
+    "account_id": "bacc_Tc5520193847261",
+    "connection_id": "cred_9Pq5028174639201",
+    "company_id": "ment_3672486436546233854",
+    "card_movement_ids": ["cmov_Vx4810293847561", "cmov_Vx4810293847590"],
+    "count": 2
+  }
+}
+```
+
+Al recibir cualquiera de ellos, llama a
+[`GET /v2/card-movements/sync/`](https://docs.tupana.ai/api-reference/v2/card-movements/sync) con tu
+cursor: ahí vienen los movimientos completos.
+
+#### `card_statement.mismatch`
+
+Tupana verifica cada estado de cuenta al cierre: el saldo anterior más los
+movimientos del período debe ser igual al total facturado. Si no cuadra, el
+estado de cuenta queda `check_status: "mismatch"` y llega este evento. Nada se
+corrige en silencio.
+
+```json
+{
+  "event": "card_statement.mismatch",
+  "api_version": 2,
+  "created_at": "2026-09-26T08:41:02Z",
+  "data": {
+    "account_id": "bacc_Tc5520193847261",
+    "connection_id": "cred_9Pq5028174639201",
+    "company_id": "ment_3672486436546233854",
+    "card_statement_id": "cstm_Rb5829104736188",
+    "period_end": "2026-09-25",
+    "total_billed": "1204530.00",
+    "difference": "-12990.00"
+  }
+}
+```
+
+El detalle está en [`GET /v2/card-statements/{id}/`](https://docs.tupana.ai/api-reference/v2/card-statements/get).
+Mientras no se resuelva, no des por cerrados los movimientos de ese período.
+
+### Sandbox
+
+La corrida diaria del [dataset sandbox](https://docs.tupana.ai/api-reference/v2/banking/guides/sandbox)
+emite `bank_account.refreshed` y `movement.created` a los webhooks de ambiente
+`sandbox` o `both` de esa empresa.
+
+---
+
 ## Listar eventos
 
 Fuente: https://docs.tupana.ai/api-reference/v2/events/list · Sección: API Bancaria / Eventos
@@ -11496,7 +12484,7 @@ curl "https://api.tupana.ai/v2/events/?type=movement.created&since=2026-10-28T00
 
 | Parámetro | Qué hace |
 | --- | --- |
-| `type` | Un evento bancario (`bank_account.refreshed`, `movement.created`, `bank_account.refresh_failed`, `connection.degraded`), de conexión (`connection.active`, `connection.requires_action`) o de emisión fallida (`document.issue_failed`, `document.rejected`). |
+| `type` | Un evento bancario (`bank_account.refreshed`, `movement.created`, `bank_account.refresh_failed`, `connection.degraded`), de tarjetas (`card_movement.created`, `card_movement.billed`, `card_movement.updated`, `card_movement.removed`, `card_movement.reversed`, `card_statement.mismatch`), de conexión (`connection.active`, `connection.requires_action`) o de emisión fallida (`document.issue_failed`, `document.rejected`). |
 | `resource_id` | Los eventos de ese recurso (`bacc_…`, `cred_…`, `docu_…`). |
 | `since`, `until` | Rango de `created_at`, ISO 8601. |
 
@@ -15845,6 +16833,130 @@ Esquema: `MarketInvoicerEnrollment`
 
 Respuesta `404`: No existe o no tienes acceso
 
+### GET /v2/card-movements/
+
+**Listar movimientos de tarjeta**
+
+Los movimientos de las tarjetas de crédito de una empresa, los más nuevos primero. Por defecto solo los vigentes: `pending`, `posted`, `billed`, `reversed` y `missing`. El GET nunca toca al banco.
+
+URL completa: `GET https://api.tupana.ai/v2/card-movements/`
+
+Parámetros:
+
+- `company_id` (query, string; requerido): Tupana ID de la empresa (`ment_…`).
+- `account_id` (query, string): Acota a una tarjeta (`bacc_…`).
+- `state` (query, string): Uno o más estados separados por coma (`posted,billed`).
+- `include` (query, string): Suma estados que por defecto no salen: `superseded`, `dropped` o ambos separados por coma.
+- `since` (query, string (date)): Desde esta `transaction_date`, inclusive.
+- `until` (query, string (date)): Hasta esta `transaction_date`, inclusive.
+- `kind` (query, string; valores: `purchase`, `installment`, `payment`, `refund`, `fee`, `interest`, `tax`, `advance`, `other`): Tipo de movimiento.
+- `page` (query, integer; default: `1`)
+- `page_size` (query, integer; default: `50`)
+
+Respuesta `200`: Movimientos de tarjeta
+
+Esquema: object
+
+Respuesta `400`: Un filtro inválido (`code: parameter_invalid`, `param`)
+
+Respuesta `404`: La empresa o la cuenta no existen para esta API key
+
+### GET /v2/card-movements/sync/
+
+**Sincronizar movimientos de tarjeta con cursor**
+
+Sin cursor recorre la historia visible; con cursor entrega `added`, `modified` y `removed` desde la última llamada. Un movimiento `removed` pasó a `dropped` o `superseded`. El cursor es opaco.
+
+URL completa: `GET https://api.tupana.ai/v2/card-movements/sync/`
+
+Parámetros:
+
+- `cursor` (query, string): El `next_cursor` de la respuesta anterior.
+- `limit` (query, integer; default: `100`)
+
+Respuesta `200`: Cambios desde el cursor
+
+Esquema: object
+
+Respuesta `400`: `cursor_invalid`: el cursor no es uno emitido por la API
+
+Respuesta `410`: `cursor_expired`: el cursor es más antiguo que la retención; resincroniza sin cursor
+
+### GET /v2/card-movements/{card_movement_id}/
+
+**Obtener un movimiento de tarjeta**
+
+URL completa: `GET https://api.tupana.ai/v2/card-movements/{card_movement_id}/`
+
+Parámetros:
+
+- `card_movement_id` (path, string; requerido)
+
+Respuesta `200`: Movimiento de tarjeta
+
+Esquema: `CardMovement`
+
+Respuesta `404`: El movimiento no existe para esta API key
+
+### GET /v2/card-movements/{card_movement_id}/events/
+
+**Historia de un movimiento de tarjeta**
+
+Cada cambio que tuvo el movimiento, del más antiguo al más nuevo.
+
+URL completa: `GET https://api.tupana.ai/v2/card-movements/{card_movement_id}/events/`
+
+Parámetros:
+
+- `card_movement_id` (path, string; requerido)
+- `page` (query, integer; default: `1`)
+- `page_size` (query, integer; default: `50`)
+
+Respuesta `200`: Eventos del movimiento
+
+Esquema: object
+
+Respuesta `404`: El movimiento no existe para esta API key
+
+### GET /v2/card-statements/
+
+**Listar estados de cuenta de tarjeta**
+
+Los estados de cuenta cerrados de una tarjeta, los más nuevos primero, con el resultado de su verificación.
+
+URL completa: `GET https://api.tupana.ai/v2/card-statements/`
+
+Parámetros:
+
+- `company_id` (query, string; requerido): Tupana ID de la empresa (`ment_…`).
+- `account_id` (query, string; requerido): La tarjeta (`bacc_…`).
+- `page` (query, integer; default: `1`)
+- `page_size` (query, integer; default: `50`)
+
+Respuesta `200`: Estados de cuenta de tarjeta
+
+Esquema: object
+
+Respuesta `400`: Un filtro inválido (`code: parameter_invalid`, `param`)
+
+Respuesta `404`: La empresa o la cuenta no existen para esta API key
+
+### GET /v2/card-statements/{card_statement_id}/
+
+**Obtener un estado de cuenta de tarjeta**
+
+URL completa: `GET https://api.tupana.ai/v2/card-statements/{card_statement_id}/`
+
+Parámetros:
+
+- `card_statement_id` (path, string; requerido)
+
+Respuesta `200`: Estado de cuenta con sus líneas
+
+Esquema: `CardStatementDetail`
+
+Respuesta `404`: El estado de cuenta no existe para esta API key
+
 ### Esquemas de Tupana API — v2
 
 #### `BookSummaryItem`
@@ -16870,6 +17982,88 @@ Tipo: object
 - `description` (string; requerido; ej: `Comisión 5%`; máx. largo 60): Glosa.
 - `net_amount` (integer; default: `0`; ej: `70000`): Monto neto afecto: lleva IVA 19%.
 - `exempt_amount` (integer; default: `0`; ej: `0`): Monto exento.
+
+#### `CardMovement`
+
+Un cargo, abono o cuota de una tarjeta de crédito. El `id` es estable: el mismo movimiento conserva su id aunque el banco cambie su fecha, glosa o monto.
+
+Tipo: object
+
+- `id` (string; ej: `cmov_Vx4810293847561`): Id estable del movimiento (`cmov_…`).
+- `account_id` (string; ej: `bacc_7Hk2938475610293`): La tarjeta, como cuenta (`bacc_…`).
+- `company_id` (string; ej: `ment_3672486436546233854`)
+- `state` (string; valores: `pending`, `posted`, `billed`, `missing`, `dropped`, `superseded`, `reversed`): `pending` autorizado sin contabilizar; `posted` contabilizado, no facturado; `billed` ya salió en un estado de cuenta; `missing` el banco dejó de mostrarlo y está en período de gracia; `dropped` desapareció de forma definitiva; `superseded` reemplazado por otro movimiento; `reversed` cargo anulado por el banco, con su devolución enlazada.
+- `provisional` (boolean; ej: `False`): `true` hasta que el movimiento queda `billed`.
+- `kind` (string; valores: `purchase`, `installment`, `payment`, `refund`, `fee`, `interest`, `tax`, `advance`, `other`)
+- `transaction_date` (string (date); ej: `2026-10-14`)
+- `post_date` (string (date), nullable; ej: `2026-10-16`)
+- `description` (string; ej: `AMAZON WEB SERVICES`): La glosa tal cual la entrega el banco en la última lectura.
+- `amount` (string (decimal); ej: `-45990.00`): Decimal como string. Negativo: cargo, sube la deuda. Positivo: pago o devolución, baja la deuda.
+- `currency` (string; ej: `CLP`)
+- `original_amount` (string (decimal), nullable; ej: `None`): Monto en la moneda de origen, en compras en el extranjero.
+- `original_currency` (string, nullable; ej: `None`): Moneda de origen (`USD`, `EUR`…), en compras en el extranjero.
+- `installment` (object, nullable): Cuota de una compra en cuotas. `null` si no es cuota.
+  - `number` (integer; ej: `2`)
+  - `total` (integer; ej: `6`)
+- `card_last4` (string, nullable; ej: `2105`): Últimos cuatro dígitos de la tarjeta (titular o adicional).
+- `statement_id` (string, nullable; ej: `cstm_Rb5829104736251`): Estado de cuenta en que se facturó (`cstm_…`). `null` hasta que se factura.
+- `superseded_by_id` (string, nullable; ej: `None`): En un `superseded`: el movimiento que lo reemplazó (`cmov_…`).
+- `reversal_of_id` (string, nullable; ej: `None`): En una devolución: el cargo que revierte (`cmov_…`).
+- `parent_id` (string, nullable; ej: `None`): En una cuota: la primera cuota de la compra (`cmov_…`).
+- `missing_since` (string (date-time), nullable; ej: `None`): Desde cuándo el banco dejó de mostrarlo. `null` si se ve.
+- `needs_review` (boolean; ej: `False`): Tupana no pudo decidir solo un cambio sobre este movimiento y lo dejó marcado.
+- `locked` (boolean; ej: `True`): `true` cuando su estado de cuenta cuadró (`check_status: ok`): ya no cambia.
+- `created_at` (string (date-time); ej: `2026-10-15T09:12:03Z`)
+- `updated_at` (string (date-time); ej: `2026-10-26T08:40:11Z`)
+
+#### `CardMovementEvent`
+
+Un cambio en la historia de un movimiento de tarjeta.
+
+Tipo: object
+
+- `id` (string; ej: `cmev_Lp2938475610284`)
+- `kind` (string; valores: `created`, `billed`, `updated`, `missing`, `restored`, `removed`, `reversed`): `created` apareció; `billed` salió en un estado de cuenta; `updated` cambió fecha, glosa o monto; `missing` el banco dejó de mostrarlo; `restored` volvió a aparecer; `removed` quedó `dropped` o `superseded`; `reversed` el banco lo anuló.
+- `created_at` (string (date-time); ej: `2026-10-26T08:40:11Z`)
+- `changes` (object): Campos que cambiaron: `{campo: [antes, después]}`. Vacío si el evento no cambió campos.
+- `related_movement_id` (string, nullable; ej: `None`): Otro movimiento involucrado (`cmov_…`): la devolución en un `reversed`, el reemplazo en un `removed`.
+
+#### `CardStatement`
+
+Un estado de cuenta cerrado de una tarjeta.
+
+Tipo: object
+
+- `id` (string; ej: `cstm_Rb5829104736251`)
+- `account_id` (string; ej: `bacc_7Hk2938475610293`)
+- `period_end` (string (date); ej: `2026-10-25`): Fecha de cierre (facturación) del período.
+- `due_date` (string (date), nullable; ej: `2026-11-05`): Fecha de vencimiento del pago.
+- `currency` (string; ej: `CLP`)
+- `total_billed` (string (decimal); ej: `968146.00`): Monto facturado del período.
+- `minimum_payment` (string (decimal), nullable; ej: `48407.00`)
+- `check_status` (string; valores: `unchecked`, `ok`, `mismatch`): Resultado de la verificación: saldo anterior más los movimientos del período contra el total facturado.
+- `check_difference` (string (decimal), nullable; ej: `0.00`): Diferencia encontrada. `0.00` en `ok`; `null` en `unchecked`.
+- `total_source` (string; valores: `bank`, `computed`): `bank`: el total lo informó el banco. `computed`: el banco no lo informó y Tupana lo calculó desde los movimientos.
+- `locked_at` (string (date-time), nullable; ej: `2026-10-26T08:40:11Z`): Cuándo quedó cerrado tras cuadrar. `null` si no cuadró.
+
+#### `CardStatementDetail`
+
+Un estado de cuenta con sus líneas.
+
+Tipo: object
+
+- `id` (string; ej: `cstm_Rb5829104736251`)
+- `account_id` (string; ej: `bacc_7Hk2938475610293`)
+- `period_end` (string (date); ej: `2026-10-25`): Fecha de cierre (facturación) del período.
+- `due_date` (string (date), nullable; ej: `2026-11-05`): Fecha de vencimiento del pago.
+- `currency` (string; ej: `CLP`)
+- `total_billed` (string (decimal); ej: `968146.00`): Monto facturado del período.
+- `minimum_payment` (string (decimal), nullable; ej: `48407.00`)
+- `check_status` (string; valores: `unchecked`, `ok`, `mismatch`): Resultado de la verificación: saldo anterior más los movimientos del período contra el total facturado.
+- `check_difference` (string (decimal), nullable; ej: `0.00`): Diferencia encontrada. `0.00` en `ok`; `null` en `unchecked`.
+- `total_source` (string; valores: `bank`, `computed`): `bank`: el total lo informó el banco. `computed`: el banco no lo informó y Tupana lo calculó desde los movimientos.
+- `locked_at` (string (date-time), nullable; ej: `2026-10-26T08:40:11Z`): Cuándo quedó cerrado tras cuadrar. `null` si no cuadró.
+- `movements` (array de `CardMovement`): Las líneas del estado de cuenta.
 
 ## Tupana API - Recaudación (OpenAPI 1.0.0)
 
