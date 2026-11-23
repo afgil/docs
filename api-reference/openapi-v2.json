@@ -11242,7 +11242,8 @@
           },
           "folio": {
             "type": "string",
-            "example": "12345"
+            "example": "12345",
+            "description": "Folio (número) del documento que asignó el emisor."
           },
           "issue_date": {
             "type": "string",
@@ -11251,7 +11252,12 @@
             "example": "2026-03-10"
           },
           "counterparty": {
-            "$ref": "#/components/schemas/BookDocumentCounterparty"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookDocumentCounterparty"
+              }
+            ],
+            "description": "La otra parte del documento: el proveedor en COMPRA y el cliente en VENTA. `rut` (XXXXXXXX-X) y `name`; cualquiera puede ser null."
           },
           "status": {
             "type": "string",
@@ -11341,7 +11347,12 @@
             "description": "Monto total."
           },
           "taxes": {
-            "$ref": "#/components/schemas/BookDocumentTaxes"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookDocumentTaxes"
+              }
+            ],
+            "description": "Columnas de IVA y otros impuestos que informa el RCV para el documento, en pesos enteros; null cuando el SII deja la columna vacía."
           },
           "settlement": {
             "allOf": [
@@ -11349,10 +11360,16 @@
                 "$ref": "#/components/schemas/BookDocumentSettlement"
               }
             ],
+            "description": "Solo en liquidaciones de factura (DTE 43): RUT del emisor y comisión neta, exenta e IVA. null en los demás tipos.",
             "nullable": true
           },
           "register_info": {
-            "$ref": "#/components/schemas/BookDocumentRegisterInfo"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookDocumentRegisterInfo"
+              }
+            ],
+            "description": "Datos informativos del registro del SII: pasajes, exportación e indicadores."
           },
           "reference": {
             "type": "object",
