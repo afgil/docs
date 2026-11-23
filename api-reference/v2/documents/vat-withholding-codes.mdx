@@ -1,0 +1,207 @@
+---
+title: 'Códigos de retención de IVA en la factura de compra (cambio de sujeto)'
+sidebarTitle: 'Códigos de retención de IVA'
+description: 'Qué enviar en details[].vat_withholding_code para emitir una factura de compra (DTE 46) con retención parcial o total de IVA por producto con cambio de sujeto: tabla completa de productos CPCS, códigos, tasas y unidades del SII.'
+---
+
+# Códigos de retención de IVA en la factura de compra
+
+Algunos productos tienen **cambio de sujeto de IVA**: el comprador (agente retenedor) emite una
+factura de compra (DTE 46) y retiene todo o parte del IVA. Por ejemplo, en la compra de berries el
+comprador retiene el **14%** y el vendedor declara y paga el **5%** restante.
+
+Con la API indicas el producto y su código de retención en cada línea de `details`:
+
+| Campo | Valor |
+|---|---|
+| `item_type_code` | `"CPCS"` (Código de Producto de Cambio de Sujeto) |
+| `item_code` | El código del producto de la tabla de abajo, p. ej. `"4801"` |
+| `unit` | Una de las unidades permitidas para ese producto, p. ej. `"KG"` |
+| `vat_withholding_code` | El código de retención: el **parcial** del rubro (p. ej. `"48"`) o el **total** (p. ej. `"481"`) |
+
+<Warning>
+**Requiere autorización del SII.** Solo puede usar estos códigos una empresa que tenga la calidad
+de **agente retenedor** del producto. Tupana no conoce esa calidad: si la empresa no la tiene, el
+SII rechaza el documento. Confírmala con tu contador o en el SII antes de emitir.
+</Warning>
+
+<Note>
+**Si no envías `vat_withholding_code`, nada cambia:** la línea retiene el IVA completo con el
+código genérico `15`, como siempre, aunque traiga un producto de la tabla. La retención por
+producto solo se activa cuando envías el código.
+</Note>
+
+## Dónde aplica
+
+- **Factura de compra (DTE 46)** con `header.vat_withheld: true`.
+- **Notas de crédito y débito (DTE 61 / 56) que referencian una factura de compra.** Envía en
+  sus líneas el mismo producto y código que la factura original (no se heredan).
+- Funciona igual con el **facturador de mercado** y con el **facturador gratuito del SII (MiPyme)**.
+- Es un campo **solo de la API**: no está en la plataforma web ni en el MCP.
+
+## Retención parcial o total
+
+Cada rubro con retención parcial tiene dos códigos:
+
+- **Parcial** (2 dígitos, p. ej. `48`): el comprador retiene la tasa del rubro (14% en berries) y el
+  resto del IVA (`IVANoRet`) lo declara y paga el vendedor.
+- **Total** (3 dígitos, p. ej. `481`): el comprador retiene el IVA completo (19%). Corresponde, entre
+  otros, cuando el vendedor está en la **Nómina de Difícil Fiscalización** o en la **Nómina de
+  Contribuyentes Sujetos a Retención**, o es una persona natural agricultora que no emite factura
+  (para berries, Res. Ex. SII N° 11 de 2025).
+
+Los rubros de la segunda tabla solo admiten retención total y su único código es el del rubro.
+
+## Tabla de productos
+
+### Rubros con retención parcial
+
+| Rubro | Parcial | Tasa | Total (19%) | `item_code` | Producto | `unit` |
+|---|---|---|---|---|---|---|
+| Berries | `48` | 14% | `481` | `4801` | Frambuesa fresca | `KG` |
+| | | | | `4802` | Frambuesa congelada | `KG` |
+| | | | | `4803` | Arándano (blueberry) | `KG` |
+| | | | | `4804` | Arándano (blueberry) congelado | `KG` |
+| | | | | `4805` | Arándana (cranberry) | `KG` |
+| | | | | `4806` | Arándana (cranberry) congelada | `KG` |
+| | | | | `4807` | Frutilla | `KG` |
+| | | | | `4808` | Frutilla congelada | `KG` |
+| | | | | `4809` | Mora cultivada y mora híbrida (boysenberry) | `KG` |
+| | | | | `4810` | Mora cultivada y mora híbrida (boysenberry) congelada | `KG` |
+| | | | | `4811` | Otros berries | `KG` |
+| | | | | `4812` | Servicios de maquila de berries | cualquiera |
+| Arroz | `36` | 10% | `361` | `3600` | Arroz | `TON` |
+| Especies hidrobiológicas | `37` | 10% | `371` | `3701` | Pescado | `TON` |
+| | | | | `3702` | Moluscos | `TON` |
+| | | | | `3703` | Crustáceos | `TON` |
+| | | | | `3704` | Algas | `TON` |
+| | | | | `3705` | Otras especies hidrobiológicas | `TON` |
+| | | | | `3706` | Especies hidrobiológicas procesadas | `TON` |
+| Legumbres | `30` | 10% | `301` | `3001` | Frejoles | `TON` |
+| | | | | `3002` | Lenteja | `TON` |
+| | | | | `3003` | Garbanzo | `TON` |
+| | | | | `3004` | Arvejas secas | `TON` |
+| Madera | `33` | 8% | `331` | `3301` | Bosque en pie | `M3`, `MR` |
+| | | | | `3302` | Astillas | `M3`, `TBDM`, `TBDU` |
+| | | | | `3303` | Trozos pulpables | `M3`, `MR` |
+| | | | | `3304` | Trozos aserrables | `M3` |
+| | | | | `3305` | Madera aserrada | `M3`, `PP`, `PM` |
+| | | | | `3306` | Leña | `KG`, `M3` |
+| | | | | `3307` | Otras maderas | `M3` |
+| Trigo | `34` | 4% | `341` | `3400` | Trigo | `TON`, `QTAL` |
+
+### Rubros con retención total
+
+| Rubro | Código | `item_code` | Producto | `unit` |
+|---|---|---|---|---|
+| Cartones | `47` | `4701` | Papel blanco | `KG` |
+| | | `4702` | Cartón corrugado | `KG` |
+| | | `4703` | Diarios | `KG` |
+| | | `4704` | Otros cartones | `KG` |
+| Chatarra | `38` | `3801` | Acero dulce | `KG` |
+| | | `3802` | Fierro | `KG` |
+| | | `3803` | Cobre | `KG` |
+| | | `3804` | Bronce | `KG` |
+| | | `3805` | Latón | `KG` |
+| | | `3806` | Aluminio | `KG` |
+| | | `3807` | Otra chatarra | `KG` |
+| | | `3808` | Servicios de maquila de chatarra | cualquiera |
+| Construcción | `41` | `4100` | Construcción | cualquiera |
+| Pequeños productores agrícolas (PPA) | `39` | `3900` | Productos vendidos por el pequeño productor agrícola | cualquiera |
+| Productos silvestres | `31` | `3101` | Rosa mosqueta | `KG` |
+| | | `3102` | Mora | `KG` |
+| | | `3103` | Hongos | `KG` |
+| | | `3104` | Frutos de espino | `KG` |
+| | | `3105` | Hojas de boldo | `KG` |
+| | | `3106` | Tilo | `KG` |
+| | | `3107` | Manzanilla | `KG` |
+| | | `3108` | Llantén | `KG` |
+| | | `3109` | Toronjil | `KG` |
+| | | `3110` | Cedrón | `KG` |
+| | | `3111` | Hierbas pectorales | `KG` |
+| | | `3112` | Romero | `KG` |
+| | | `3113` | Quillay | `KG` |
+| | | `3114` | Hierba de hipérico | `KG` |
+| | | `3115` | Cera de abeja | `KG` |
+
+Unidades: `TON` tonelada, `KG` kilogramo, `QTAL` quintal (100 kg), `M3` metro cúbico, `MR` metro
+ruma, `TBDM` tonelada BDMT, `TBDU` tonelada BDU, `PP` pulgada pinera, `PM` pulgada maderera.
+
+<Note>
+**Ganado (códigos 32 y 321) todavía no está disponible:** el SII exige informar además el número
+de cabezas (cantidad de referencia), que la API aún no recibe.
+</Note>
+
+Fuente: tabla anexa del instructivo del SII para agentes retenedores de cambio de sujeto de IVA;
+tasas vigentes según Res. Ex. SII N° 11 de 2025 (berries) y N° 189 y N° 192 de 2010 (legumbres y
+trigo).
+
+## Ejemplo: compra de frambuesa fresca con retención del 14%
+
+```json
+{
+  "documents": [
+    {
+      "dte_type": { "code": "46" },
+      "date_issued": "2026-11-23",
+      "document_issuer": { "rut": "76.111.111-1" },
+      "document_receiver": {
+        "rut": "12.345.678-5",
+        "business_name": "Productor Agrícola",
+        "business_activity": "Cultivo de frutas",
+        "address": "Fundo Los Robles s/n",
+        "district": "Linares",
+        "city": "Linares"
+      },
+      "header": { "purchase_transaction_type": 1, "vat_withheld": true },
+      "details": [
+        {
+          "item_name": "Frambuesa fresca",
+          "item_type_code": "CPCS",
+          "item_code": "4801",
+          "unit": "KG",
+          "quantity": 100,
+          "unit_price": 1000,
+          "vat_withholding_code": "48"
+        }
+      ]
+    }
+  ]
+}
+```
+
+Montos del documento:
+
+| Concepto | Monto |
+|---|---|
+| Neto | $100.000 |
+| IVA (19%) | $19.000 |
+| IVA retenido por el comprador (código 48, 14%) | $14.000 |
+| IVA no retenido (lo paga el vendedor, 5%) | $5.000 |
+| **Total** (neto + IVA no retenido) | **$105.000** |
+
+Con `"vat_withholding_code": "481"` el comprador retiene los $19.000 y el total es $100.000.
+
+## Errores de validación
+
+Se responden con `422` antes de crear el documento, bajo `documents.<posición>.<campo>` (no se
+emite nada ni se consume folio). Por ejemplo:
+
+```json
+{
+  "documents": {
+    "0": {
+      "unit": ["Línea 1: El producto 4801 (Frambuesa fresca) se informa en KG; se recibió 'UN'."]
+    }
+  }
+}
+```
+
+
+| Caso | Campo | Mensaje (ejemplo) |
+|---|---|---|
+| Código en un documento que no es factura de compra ni nota de una | `vat_withholding_code` | `vat_withholding_code sólo aplica a la factura de compra (46) y a sus notas de crédito y débito.` |
+| Producto que no está en la tabla o sin `item_type_code: "CPCS"` | `vat_withholding_code` | `vat_withholding_code requiere item_type_code 'CPCS' y un item_code de la tabla de productos con cambio de sujeto.` |
+| Código de otro rubro | `vat_withholding_code` | `Línea 1: El producto 4801 (Berries) admite vat_withholding_code 48 o 481; se recibió '361'.` |
+| Unidad no permitida | `unit` | `Línea 1: El producto 4801 (Frambuesa fresca) se informa en KG; se recibió 'UN'.` |
+| Línea exenta con código | `is_exempt` | `Línea 1: El producto 4801 (Frambuesa fresca) tiene retención de IVA: la línea no puede ser exenta.` |

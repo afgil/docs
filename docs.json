@@ -116,6 +116,7 @@
                 "pages": [
                   "api-reference/v2/documents/list",
                   "api-reference/v2/documents/batch",
+                  "api-reference/v2/documents/vat-withholding-codes",
                   "api-reference/v2/documents/annulment",
                   "api-reference/v2/documents/get"
                 ]

@@ -664,6 +664,23 @@ Valores del Formato DTE del SII:
 
 Una nota de crédito o de débito que referencia (`references[]` con `dte_type_code` `"46"` y `reference_folio`) una factura de compra del mismo emisor emitida en Tupana hereda el `vat_withheld` de esa factura, aunque el request envíe otro valor. Así la nota mantiene la retención del documento original, como exige el SII.
 
+<a id="retencion-por-producto-dte-46"></a>
+
+### Retención parcial por producto con cambio de sujeto (`details[].vat_withholding_code`)
+
+Sin este campo, `vat_withheld: true` retiene **todo** el IVA (código `15`), como en la tabla de arriba. Si la empresa es **agente retenedor** de un producto con cambio de sujeto (berries, arroz, legumbres, madera, trigo, chatarra, etc.), cada línea puede indicar el producto y su código de retención del SII:
+
+| Campo de la línea | Valor |
+|---|---|
+| `item_type_code` | `"CPCS"` |
+| `item_code` | Código del producto, p. ej. `"4801"` (frambuesa fresca) |
+| `unit` | Unidad permitida para el producto, p. ej. `"KG"` |
+| `vat_withholding_code` | Código parcial del rubro (p. ej. `"48"`, retiene 14%) o total (p. ej. `"481"`, retiene 19%) |
+
+Con retención parcial el comprador retiene solo la tasa del rubro y el resto del IVA lo paga el vendedor: `total_amount` = neto + IVA no retenido (con berries al 14%: neto $100.000 → total $105.000). Aplica también a las notas de crédito y débito sobre una factura de compra, que deben enviar el mismo código en sus líneas. Funciona con el facturador de mercado y con el facturador gratuito del SII.
+
+**La tabla completa de productos, códigos, tasas y unidades está en [Códigos de retención de IVA](/api-reference/v2/documents/vat-withholding-codes).** Usar estos códigos requiere que el SII haya autorizado a la empresa como agente retenedor del producto; si no, el SII rechaza el documento.
+
 
 ## Guía de Despacho (DTE 52)
 
