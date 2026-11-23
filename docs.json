@@ -75,6 +75,7 @@
                   "user-guide/export-countries",
                   "user-guide/export-sale-modes",
                   "user-guide/transport-codes",
+                  "user-guide/vat-withholding-codes",
                   "user-guide/webhooks"
                 ]
               },
@@ -116,7 +117,6 @@
                 "pages": [
                   "api-reference/v2/documents/list",
                   "api-reference/v2/documents/batch",
-                  "api-reference/v2/documents/vat-withholding-codes",
                   "api-reference/v2/documents/annulment",
                   "api-reference/v2/documents/get"
                 ]
@@ -515,6 +515,7 @@
                   "user-guide/export-countries",
                   "user-guide/export-sale-modes",
                   "user-guide/transport-codes",
+                  "user-guide/vat-withholding-codes",
                   "user-guide/webhooks"
                 ]
               }
@@ -810,6 +811,10 @@
     "prompt": "Busca en la documentación de Tupana..."
   },
   "redirects": [
+    {
+      "source": "/api-reference/v2/documents/vat-withholding-codes",
+      "destination": "/user-guide/vat-withholding-codes"
+    },
     {
       "source": "/webhooks",
       "destination": "/user-guide/webhooks"
