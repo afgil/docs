@@ -142,6 +142,8 @@ Cada notificación incluye los siguientes headers:
 - **`bank_account.refresh_failed`**: La lectura de la cuenta falló en esa corrida
 - **`connection.degraded`**: Una cuenta quedó detenida tras fallos repetidos; las demás siguen
 - **`movement.updated`**: Reservado para la sincronización por cursor (hoy no se emite)
+- **`card_movement.created`**, **`card_movement.billed`**, **`card_movement.updated`**, **`card_movement.removed`**, **`card_movement.reversed`**: Cambios en los movimientos de tarjeta de crédito, con la lista de ids `cmov_…`
+- **`card_statement.mismatch`**: Un estado de cuenta de tarjeta no cuadró con el total facturado del banco
 
 Los payloads están en [Webhooks bancarios](/api-reference/v2/banking/webhooks). No existe refresh bajo demanda: estos eventos son la forma de enterarse de datos nuevos.
 

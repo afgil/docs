@@ -7225,6 +7225,566 @@
           }
         }
       }
+    },
+    "/card-movements/": {
+      "get": {
+        "operationId": "listCardMovements_v2",
+        "tags": [
+          "Movimientos de tarjeta"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar movimientos de tarjeta",
+        "description": "Los movimientos de las tarjetas de crédito de una empresa, los más nuevos primero. Por defecto solo los vigentes: `pending`, `posted`, `billed`, `reversed` y `missing`. El GET nunca toca al banco.",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "required": true,
+            "description": "Tupana ID de la empresa (`ment_…`).",
+            "schema": {
+              "type": "string",
+              "example": "ment_3672486436546233854"
+            }
+          },
+          {
+            "name": "account_id",
+            "in": "query",
+            "required": false,
+            "description": "Acota a una tarjeta (`bacc_…`).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "description": "Uno o más estados separados por coma (`posted,billed`).",
+            "schema": {
+              "type": "string",
+              "example": "posted,billed"
+            }
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "required": false,
+            "description": "Suma estados que por defecto no salen: `superseded`, `dropped` o ambos separados por coma.",
+            "schema": {
+              "type": "string",
+              "example": "superseded,dropped"
+            }
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "description": "Desde esta `transaction_date`, inclusive.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "required": false,
+            "description": "Hasta esta `transaction_date`, inclusive.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "description": "Tipo de movimiento.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "purchase",
+                "installment",
+                "payment",
+                "refund",
+                "fee",
+                "interest",
+                "tax",
+                "advance",
+                "other"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "maximum": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Movimientos de tarjeta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CardMovement"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer"
+                        },
+                        "page_size": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "next": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "prev": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Un filtro inválido (`code: parameter_invalid`, `param`)"
+          },
+          "404": {
+            "description": "La empresa o la cuenta no existen para esta API key"
+          }
+        }
+      }
+    },
+    "/card-movements/sync/": {
+      "get": {
+        "operationId": "syncCardMovements_v2",
+        "tags": [
+          "Movimientos de tarjeta"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Sincronizar movimientos de tarjeta con cursor",
+        "description": "Sin cursor recorre la historia visible; con cursor entrega `added`, `modified` y `removed` desde la última llamada. Un movimiento `removed` pasó a `dropped` o `superseded`. El cursor es opaco.",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "El `next_cursor` de la respuesta anterior."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "minimum": 1,
+              "maximum": 500
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cambios desde el cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "added": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CardMovement"
+                      }
+                    },
+                    "modified": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CardMovement"
+                      }
+                    },
+                    "removed": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "cmov_Vx4810293847502"
+                          },
+                          "account_id": {
+                            "type": "string",
+                            "example": "bacc_7Hk2938475610293"
+                          },
+                          "removed_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          }
+                        }
+                      }
+                    },
+                    "next_cursor": {
+                      "type": "string"
+                    },
+                    "has_more": {
+                      "type": "boolean"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`cursor_invalid`: el cursor no es uno emitido por la API"
+          },
+          "410": {
+            "description": "`cursor_expired`: el cursor es más antiguo que la retención; resincroniza sin cursor"
+          }
+        }
+      }
+    },
+    "/card-movements/{card_movement_id}/": {
+      "get": {
+        "operationId": "getCardMovement_v2",
+        "tags": [
+          "Movimientos de tarjeta"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Obtener un movimiento de tarjeta",
+        "parameters": [
+          {
+            "name": "card_movement_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "cmov_Vx4810293847561"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Movimiento de tarjeta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardMovement"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El movimiento no existe para esta API key"
+          }
+        }
+      }
+    },
+    "/card-movements/{card_movement_id}/events/": {
+      "get": {
+        "operationId": "listCardMovementEvents_v2",
+        "tags": [
+          "Movimientos de tarjeta"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Historia de un movimiento de tarjeta",
+        "description": "Cada cambio que tuvo el movimiento, del más antiguo al más nuevo.",
+        "parameters": [
+          {
+            "name": "card_movement_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "cmov_Vx4810293847561"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "maximum": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Eventos del movimiento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CardMovementEvent"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer"
+                        },
+                        "page_size": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "next": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "prev": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El movimiento no existe para esta API key"
+          }
+        }
+      }
+    },
+    "/card-statements/": {
+      "get": {
+        "operationId": "listCardStatements_v2",
+        "tags": [
+          "Estados de cuenta de tarjeta"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar estados de cuenta de tarjeta",
+        "description": "Los estados de cuenta cerrados de una tarjeta, los más nuevos primero, con el resultado de su verificación.",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "required": true,
+            "description": "Tupana ID de la empresa (`ment_…`).",
+            "schema": {
+              "type": "string",
+              "example": "ment_3672486436546233854"
+            }
+          },
+          {
+            "name": "account_id",
+            "in": "query",
+            "required": true,
+            "description": "La tarjeta (`bacc_…`).",
+            "schema": {
+              "type": "string",
+              "example": "bacc_7Hk2938475610293"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "maximum": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estados de cuenta de tarjeta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CardStatement"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer"
+                        },
+                        "page_size": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "next": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "prev": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Un filtro inválido (`code: parameter_invalid`, `param`)"
+          },
+          "404": {
+            "description": "La empresa o la cuenta no existen para esta API key"
+          }
+        }
+      }
+    },
+    "/card-statements/{card_statement_id}/": {
+      "get": {
+        "operationId": "getCardStatement_v2",
+        "tags": [
+          "Estados de cuenta de tarjeta"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Obtener un estado de cuenta de tarjeta",
+        "parameters": [
+          {
+            "name": "card_statement_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "cstm_Rb5829104736251"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado de cuenta con sus líneas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardStatementDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El estado de cuenta no existe para esta API key"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -11609,6 +12169,378 @@
             "default": 0,
             "description": "Monto exento.",
             "example": 0
+          }
+        }
+      },
+      "CardMovement": {
+        "type": "object",
+        "description": "Un cargo, abono o cuota de una tarjeta de crédito. El `id` es estable: el mismo movimiento conserva su id aunque el banco cambie su fecha, glosa o monto.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "cmov_Vx4810293847561",
+            "description": "Id estable del movimiento (`cmov_…`)."
+          },
+          "account_id": {
+            "type": "string",
+            "example": "bacc_7Hk2938475610293",
+            "description": "La tarjeta, como cuenta (`bacc_…`)."
+          },
+          "company_id": {
+            "type": "string",
+            "example": "ment_3672486436546233854"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "posted",
+              "billed",
+              "missing",
+              "dropped",
+              "superseded",
+              "reversed"
+            ],
+            "description": "`pending` autorizado sin contabilizar; `posted` contabilizado, no facturado; `billed` ya salió en un estado de cuenta; `missing` el banco dejó de mostrarlo y está en período de gracia; `dropped` desapareció de forma definitiva; `superseded` reemplazado por otro movimiento; `reversed` cargo anulado por el banco, con su devolución enlazada."
+          },
+          "provisional": {
+            "type": "boolean",
+            "example": false,
+            "description": "`true` hasta que el movimiento queda `billed`."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "purchase",
+              "installment",
+              "payment",
+              "refund",
+              "fee",
+              "interest",
+              "tax",
+              "advance",
+              "other"
+            ]
+          },
+          "transaction_date": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-10-14"
+          },
+          "post_date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "2026-10-16"
+          },
+          "description": {
+            "type": "string",
+            "example": "AMAZON WEB SERVICES",
+            "description": "La glosa tal cual la entrega el banco en la última lectura."
+          },
+          "amount": {
+            "type": "string",
+            "format": "decimal",
+            "example": "-45990.00",
+            "description": "Decimal como string. Negativo: cargo, sube la deuda. Positivo: pago o devolución, baja la deuda."
+          },
+          "currency": {
+            "type": "string",
+            "example": "CLP"
+          },
+          "original_amount": {
+            "type": "string",
+            "format": "decimal",
+            "nullable": true,
+            "example": null,
+            "description": "Monto en la moneda de origen, en compras en el extranjero."
+          },
+          "original_currency": {
+            "type": "string",
+            "nullable": true,
+            "example": null,
+            "description": "Moneda de origen (`USD`, `EUR`…), en compras en el extranjero."
+          },
+          "installment": {
+            "type": "object",
+            "nullable": true,
+            "description": "Cuota de una compra en cuotas. `null` si no es cuota.",
+            "properties": {
+              "number": {
+                "type": "integer",
+                "example": 2
+              },
+              "total": {
+                "type": "integer",
+                "example": 6
+              }
+            }
+          },
+          "card_last4": {
+            "type": "string",
+            "nullable": true,
+            "example": "2105",
+            "description": "Últimos cuatro dígitos de la tarjeta (titular o adicional)."
+          },
+          "statement_id": {
+            "type": "string",
+            "nullable": true,
+            "example": "cstm_Rb5829104736251",
+            "description": "Estado de cuenta en que se facturó (`cstm_…`). `null` hasta que se factura."
+          },
+          "superseded_by_id": {
+            "type": "string",
+            "nullable": true,
+            "example": null,
+            "description": "En un `superseded`: el movimiento que lo reemplazó (`cmov_…`)."
+          },
+          "reversal_of_id": {
+            "type": "string",
+            "nullable": true,
+            "example": null,
+            "description": "En una devolución: el cargo que revierte (`cmov_…`)."
+          },
+          "parent_id": {
+            "type": "string",
+            "nullable": true,
+            "example": null,
+            "description": "En una cuota: la primera cuota de la compra (`cmov_…`)."
+          },
+          "missing_since": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": null,
+            "description": "Desde cuándo el banco dejó de mostrarlo. `null` si se ve."
+          },
+          "needs_review": {
+            "type": "boolean",
+            "example": false,
+            "description": "Tupana no pudo decidir solo un cambio sobre este movimiento y lo dejó marcado."
+          },
+          "locked": {
+            "type": "boolean",
+            "example": true,
+            "description": "`true` cuando su estado de cuenta cuadró (`check_status: ok`): ya no cambia."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-10-15T09:12:03Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-10-26T08:40:11Z"
+          }
+        }
+      },
+      "CardMovementEvent": {
+        "type": "object",
+        "description": "Un cambio en la historia de un movimiento de tarjeta.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "cmev_Lp2938475610284"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "created",
+              "billed",
+              "updated",
+              "missing",
+              "restored",
+              "removed",
+              "reversed"
+            ],
+            "description": "`created` apareció; `billed` salió en un estado de cuenta; `updated` cambió fecha, glosa o monto; `missing` el banco dejó de mostrarlo; `restored` volvió a aparecer; `removed` quedó `dropped` o `superseded`; `reversed` el banco lo anuló."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-10-26T08:40:11Z"
+          },
+          "changes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {}
+            },
+            "description": "Campos que cambiaron: `{campo: [antes, después]}`. Vacío si el evento no cambió campos.",
+            "example": {
+              "state": [
+                "posted",
+                "billed"
+              ],
+              "amount": [
+                "-38500.00",
+                "-41500.00"
+              ]
+            }
+          },
+          "related_movement_id": {
+            "type": "string",
+            "nullable": true,
+            "example": null,
+            "description": "Otro movimiento involucrado (`cmov_…`): la devolución en un `reversed`, el reemplazo en un `removed`."
+          }
+        }
+      },
+      "CardStatement": {
+        "type": "object",
+        "description": "Un estado de cuenta cerrado de una tarjeta.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "cstm_Rb5829104736251"
+          },
+          "account_id": {
+            "type": "string",
+            "example": "bacc_7Hk2938475610293"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-10-25",
+            "description": "Fecha de cierre (facturación) del período."
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "2026-11-05",
+            "description": "Fecha de vencimiento del pago."
+          },
+          "currency": {
+            "type": "string",
+            "example": "CLP"
+          },
+          "total_billed": {
+            "type": "string",
+            "format": "decimal",
+            "example": "968146.00",
+            "description": "Monto facturado del período."
+          },
+          "minimum_payment": {
+            "type": "string",
+            "format": "decimal",
+            "nullable": true,
+            "example": "48407.00"
+          },
+          "check_status": {
+            "type": "string",
+            "enum": [
+              "unchecked",
+              "ok",
+              "mismatch"
+            ],
+            "description": "Resultado de la verificación: saldo anterior más los movimientos del período contra el total facturado."
+          },
+          "check_difference": {
+            "type": "string",
+            "format": "decimal",
+            "nullable": true,
+            "example": "0.00",
+            "description": "Diferencia encontrada. `0.00` en `ok`; `null` en `unchecked`."
+          },
+          "total_source": {
+            "type": "string",
+            "enum": [
+              "bank",
+              "computed"
+            ],
+            "description": "`bank`: el total lo informó el banco. `computed`: el banco no lo informó y Tupana lo calculó desde los movimientos."
+          },
+          "locked_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2026-10-26T08:40:11Z",
+            "description": "Cuándo quedó cerrado tras cuadrar. `null` si no cuadró."
+          }
+        }
+      },
+      "CardStatementDetail": {
+        "type": "object",
+        "description": "Un estado de cuenta con sus líneas.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "cstm_Rb5829104736251"
+          },
+          "account_id": {
+            "type": "string",
+            "example": "bacc_7Hk2938475610293"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-10-25",
+            "description": "Fecha de cierre (facturación) del período."
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "2026-11-05",
+            "description": "Fecha de vencimiento del pago."
+          },
+          "currency": {
+            "type": "string",
+            "example": "CLP"
+          },
+          "total_billed": {
+            "type": "string",
+            "format": "decimal",
+            "example": "968146.00",
+            "description": "Monto facturado del período."
+          },
+          "minimum_payment": {
+            "type": "string",
+            "format": "decimal",
+            "nullable": true,
+            "example": "48407.00"
+          },
+          "check_status": {
+            "type": "string",
+            "enum": [
+              "unchecked",
+              "ok",
+              "mismatch"
+            ],
+            "description": "Resultado de la verificación: saldo anterior más los movimientos del período contra el total facturado."
+          },
+          "check_difference": {
+            "type": "string",
+            "format": "decimal",
+            "nullable": true,
+            "example": "0.00",
+            "description": "Diferencia encontrada. `0.00` en `ok`; `null` en `unchecked`."
+          },
+          "total_source": {
+            "type": "string",
+            "enum": [
+              "bank",
+              "computed"
+            ],
+            "description": "`bank`: el total lo informó el banco. `computed`: el banco no lo informó y Tupana lo calculó desde los movimientos."
+          },
+          "locked_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2026-10-26T08:40:11Z",
+            "description": "Cuándo quedó cerrado tras cuadrar. `null` si no cuadró."
+          },
+          "movements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CardMovement"
+            },
+            "description": "Las líneas del estado de cuenta."
           }
         }
       }

@@ -1,0 +1,87 @@
+---
+title: "Obtener un estado de cuenta de tarjeta"
+openapi: "api-reference/openapi-v2.json GET /card-statements/{card_statement_id}/"
+---
+
+Un estado de cuenta de tarjeta por su id (`cstm_…`), con la misma forma que en
+[el listado](/api-reference/v2/card-statements/list) más sus líneas en
+`movements`. Cada línea es un [movimiento de tarjeta](/api-reference/v2/card-movements/get)
+completo, con `statement_id` apuntando a este estado de cuenta.
+
+```bash
+curl https://api.tupana.ai/v2/card-statements/cstm_Rb5829104736251/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "id": "cstm_Rb5829104736251",
+  "account_id": "bacc_Tc5520193847261",
+  "period_end": "2026-10-25",
+  "due_date": "2026-11-05",
+  "currency": "CLP",
+  "total_billed": "968146.00",
+  "minimum_payment": "48407.00",
+  "check_status": "ok",
+  "check_difference": "0.00",
+  "total_source": "bank",
+  "locked_at": "2026-10-26T08:40:11Z",
+  "movements": [
+    {
+      "id": "cmov_Vx4810293847561",
+      "account_id": "bacc_Tc5520193847261",
+      "company_id": "ment_3672486436546233854",
+      "state": "billed",
+      "provisional": false,
+      "kind": "purchase",
+      "transaction_date": "2026-10-14",
+      "post_date": "2026-10-16",
+      "description": "RESTAURANT LA PICADA",
+      "amount": "-41500.00",
+      "currency": "CLP",
+      "original_amount": null,
+      "original_currency": null,
+      "installment": null,
+      "card_last4": "2105",
+      "statement_id": "cstm_Rb5829104736251",
+      "superseded_by_id": null,
+      "reversal_of_id": null,
+      "parent_id": null,
+      "missing_since": null,
+      "needs_review": false,
+      "locked": true,
+      "created_at": "2026-10-15T09:12:03Z",
+      "updated_at": "2026-10-26T08:40:11Z"
+    },
+    {
+      "id": "cmov_Vx4810293847640",
+      "account_id": "bacc_Tc5520193847261",
+      "company_id": "ment_3672486436546233854",
+      "state": "billed",
+      "provisional": false,
+      "kind": "purchase",
+      "transaction_date": "2026-10-19",
+      "post_date": "2026-10-21",
+      "description": "AMAZON WEB SERVICES",
+      "amount": "-91342.00",
+      "currency": "CLP",
+      "original_amount": "96.40",
+      "original_currency": "USD",
+      "installment": null,
+      "card_last4": "2105",
+      "statement_id": "cstm_Rb5829104736251",
+      "superseded_by_id": null,
+      "reversal_of_id": null,
+      "parent_id": null,
+      "missing_since": null,
+      "needs_review": false,
+      "locked": true,
+      "created_at": "2026-10-20T09:03:51Z",
+      "updated_at": "2026-10-26T08:40:11Z"
+    }
+  ]
+}
+```
+
+Si el estado de cuenta no existe, o la tarjeta no es de tu integración,
+responde `404`.

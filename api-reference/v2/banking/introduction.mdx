@@ -16,7 +16,8 @@ y los **eventos** consultables. Para empezar, sigue la guía
 [Primera lectura de un banco](/api-reference/v2/banking/guides/first-sync);
 para mantener una copia al día, [Sincronizar con cursor](/api-reference/v2/banking/guides/sync);
 para probar sin un banco real, [Sandbox bancario](/api-reference/v2/banking/guides/sandbox);
-para las tarjetas, [Tarjetas de crédito](/api-reference/v2/banking/guides/credit-cards).
+para las tarjetas, [Tarjetas de crédito](/api-reference/v2/banking/guides/credit-cards)
+y [Ciclo de vida de un movimiento de tarjeta](/api-reference/v2/banking/guides/card-movement-lifecycle).
 
 ## Permiso
 
@@ -34,6 +35,8 @@ conectadas; no hay permiso que activar. Cada key ve solo sus propias empresas.
 | Cuenta | Una cuenta en una institución: corriente, vista, ahorro, tarjeta o línea. Cuelga de una conexión y de una empresa. | `bacc_…` |
 | Movimiento | Un abono o cargo en una cuenta, con la glosa cruda del banco y la contraparte que Tupana resuelve. | `move_…` |
 | Estado de cuenta | La cartola de un período: de una tarjeta o importada a una cuenta corriente, con su PDF original. | `ccs_…` / `bsu_…` |
+| Movimiento de tarjeta | Un cargo, cuota, pago o devolución de una tarjeta de crédito, con id estable e historia de cambios. | `cmov_…` |
+| Estado de cuenta de tarjeta | Un período cerrado de la tarjeta, verificado contra el total facturado del banco, con sus líneas. | `cstm_…` |
 
 La conexión de banco es la misma `connection_id` que devuelve Tupana Connect y que
 lista [`GET /connections/`](/api-reference/v2/connections/list) con `type: "bank"`.
@@ -67,7 +70,8 @@ Ningún `GET` de esta API toca al banco: devuelve lo que dejó la última lectur
 con `balances.refreshed_at`. Cada lectura extra es riesgo de bloqueo para la
 cuenta del usuario, así que no hay un botón para forzarla. La frescura la marca
 el ciclo de sincronización de Tupana, y tu backend se entera por webhook:
-suscríbete a `bank_account.refreshed` y `movement.created` (ver
+suscríbete a `bank_account.refreshed`, `movement.created` y, para tarjetas,
+`card_movement.*` (ver
 [Webhooks bancarios](/api-reference/v2/banking/webhooks)).
 
 ## Sandbox

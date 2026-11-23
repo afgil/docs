@@ -42,7 +42,7 @@ curl "https://api.tupana.ai/v2/events/?type=movement.created&since=2026-10-28T00
 
 | Parámetro | Qué hace |
 | --- | --- |
-| `type` | Un evento bancario (`bank_account.refreshed`, `movement.created`, `bank_account.refresh_failed`, `connection.degraded`), de conexión (`connection.active`, `connection.requires_action`) o de emisión fallida (`document.issue_failed`, `document.rejected`). |
+| `type` | Un evento bancario (`bank_account.refreshed`, `movement.created`, `bank_account.refresh_failed`, `connection.degraded`), de tarjetas (`card_movement.created`, `card_movement.billed`, `card_movement.updated`, `card_movement.removed`, `card_movement.reversed`, `card_statement.mismatch`), de conexión (`connection.active`, `connection.requires_action`) o de emisión fallida (`document.issue_failed`, `document.rejected`). |
 | `resource_id` | Los eventos de ese recurso (`bacc_…`, `cred_…`, `docu_…`). |
 | `since`, `until` | Rango de `created_at`, ISO 8601. |
 

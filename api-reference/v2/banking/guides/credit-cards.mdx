@@ -7,8 +7,16 @@ description: 'Una tarjeta es una cuenta con type credit: qué significa cada sal
 
 Una tarjeta de crédito es una cuenta más en
 [`GET /bank-accounts/`](/api-reference/v2/bank-accounts/list), con
-`type: "credit"` y `subtype: "credit_card"`. No hay un recurso aparte: los mismos
-endpoints de cuentas, movimientos y estados de cuenta sirven para la tarjeta.
+`type: "credit"` y `subtype: "credit_card"`. Los mismos endpoints de cuentas,
+movimientos y estados de cuenta sirven para la tarjeta.
+
+<Info>
+En los bancos con carga diaria de tarjetas, los cargos también están en
+[`/v2/card-movements/`](/api-reference/v2/card-movements/list), con id estable,
+estados (`posted`, `billed`, `missing`, `reversed`…), historia de cambios y
+estados de cuenta verificados en [`/v2/card-statements/`](/api-reference/v2/card-statements/list).
+Lee [Ciclo de vida de un movimiento de tarjeta](/api-reference/v2/banking/guides/card-movement-lifecycle).
+</Info>
 
 ## Qué significa cada saldo
 
@@ -58,7 +66,10 @@ Hoy las tarjetas entran por **cartola en PDF** (o por la integración con el
 emisor cuando existe), y la API lo dice en la conexión: `source: "manual_upload"`.
 Cuando se carga una cartola, la tarjeta aparece como cuenta, sus cargos como
 movimientos y la cartola como estado de cuenta, con el PDF original
-descargable. La lectura automática desde el banco es un proyecto aparte.
+descargable. En Banco Santander (personas y empresas), Banco de Chile, BICE y
+Banco Falabella (personas), Tupana Connect además carga los movimientos de la
+tarjeta todos los días: ver
+[Ciclo de vida de un movimiento de tarjeta](/api-reference/v2/banking/guides/card-movement-lifecycle#bancos-con-carga-diaria-de-tarjetas).
 
 <Info>
 Una misma tarjeta se reconoce por banco y últimos cuatro dígitos: cargar la
