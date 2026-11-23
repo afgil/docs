@@ -1,0 +1,164 @@
+---
+title: 'Bajar los libros de compra, venta y honorarios a tu ERP'
+sidebarTitle: 'Libros de compra, venta y honorarios'
+description: 'Importa a tu sistema el registro de compras y ventas (RCV) del SII y las boletas de honorarios de cada empresa conectada: pasos, campos, estados, períodos y sincronización incremental.'
+keywords: ['libro de compras api', 'libro de ventas api', 'rcv api', 'boletas de honorarios api', 'integración erp sii']
+---
+
+Esta guía es para un ERP o software contable que quiere traer, de cada empresa que conecta, su **libro de compras**, su **libro de ventas** y sus **boletas de honorarios**, y mantenerlos al día. Es solo lectura.
+
+<Tip>
+Si construyes con Claude, Cursor o ChatGPT, conecta el [servidor MCP](/agentes/claude-connector) y pide la integración: la tool `get_sii_books_integration_guide` le entrega a la IA estos pasos y todos los campos, con su tipo y sus valores posibles.
+</Tip>
+
+## Qué endpoint trae cada cosa
+
+| Qué | Endpoint | Cómo se lee |
+|---|---|---|
+| Totales del libro por tipo de documento | [`GET /v2/book-summaries/`](/api-reference/v2/book-summaries/list) | Por período (`YYYYMM`) |
+| Libro de compras y libro de ventas, documento por documento | [`GET /v2/book-documents/`](/api-reference/v2/book-documents/list) | Por período y `operation=COMPRA` o `VENTA`, paginado |
+| Boletas de honorarios | [`GET /v2/documents/`](/api-reference/v2/documents/list) con `dte_type__code__in=80` o `90` | Por fecha de emisión, paginado |
+| Última sincronización de cada dato | `GET /v2/sync-status/` | Por empresa |
+
+Todas usan el header `Authorization: Api-Key <tu_key>` desde tu backend y el `master_entity_id` (`ment_…`) de la empresa.
+
+## 1. Conecta la empresa
+
+Crea una sesión de Tupana Connect con `sii_data`. Tu cliente escribe la clave del SII de su empresa en el widget; nunca pasa por tu código. Sin una clave conectada no hay datos de esa empresa.
+
+```bash
+curl -X POST https://api.tupana.ai/v2/connect-sessions/ \
+  -H "Authorization: Api-Key $TUPANA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"capabilities": ["sii_data"], "app_name": "Mi ERP", "tax_id": "76.543.210-3", "external_customer_id": "emp_912"}'
+```
+
+Guarda el `company_id` (`ment_…`) que llega en el webhook `connection.active`. Si llega `connection.requires_action`, la clave dejó de servir y tu cliente tiene que volver a conectarla.
+
+## 2. Espera la primera sincronización
+
+```bash
+curl "https://api.tupana.ai/v2/sync-status/?master_entity_id=ment_4829301923847" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+Cuando `PURCHASE_BOOK` y `SALE_BOOK` tienen una última sincronización, el libro está listo. Las boletas son `RECEIVED_HONORARY_BILLS` (recibidas), `EMITTED_HONORARY_BILLS` (emitidas por una persona) y `THIRD_PARTY_HONORARY` (de terceros). Si no quieres esperar el ciclo, pide una con `POST /v2/sync-requests/` (ver [Leer datos del SII](/guias/lectura-sii#5-frecuencia-y-sincronizacion-a-demanda)).
+
+Cada empresa se sincroniza sola cada 24 horas; hay planes de 12 y de 3 horas. Usa `sync-status` para mostrar "actualizado hace X horas" en vez de suponer la frecuencia.
+
+## 3. Lee los totales del período
+
+```bash
+curl "https://api.tupana.ai/v2/book-summaries/?master_entity_id=ment_4829301923847&period=202610&operation=COMPRA" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+Una fila por tipo de documento con `total_docs`, `net_amount`, `exempt_amount`, `vat_amount` y `total_amount`, tal como los muestra el SII. Sirve para cuadrar lo que importaste. El resumen se habilita por empresa: si `meta.is_enabled` es `false` no trae filas y puedes sumar tú el detalle.
+
+## 4. Pagina el detalle de cada libro
+
+```bash
+curl "https://api.tupana.ai/v2/book-documents/?master_entity_id=ment_4829301923847&period=202610&operation=COMPRA&page_size=100" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+Sigue `links.next` hasta que sea `null` (máximo 100 filas por página). Repite con `operation=VENTA`. Filtros opcionales: `dte_type_code=33,61` y `status`.
+
+Una fila trae, entre otros campos:
+
+```json
+{
+  "document_id": "docu_228268552177901642",
+  "operation": "COMPRA",
+  "period": "202610",
+  "dte_type_code": 33,
+  "folio": "18234",
+  "issue_date": "2026-09-30",
+  "counterparty": { "rut": "76222333-4", "name": "Proveedora Andes SpA" },
+  "status": "REGISTRO",
+  "reception_date": "2026-10-01T10:14:00Z",
+  "acknowledgment_date": null,
+  "claimed_date": null,
+  "receiver_event": { "code": "A", "label": "No reclamado en plazo" },
+  "transaction_type": { "code": 1, "description": "Del Giro" },
+  "cancelled": null,
+  "exempt_amount": 0,
+  "net_amount": 100000,
+  "vat_amount": 19000,
+  "total_amount": 119000,
+  "taxes": { "other_taxes_amount": null, "additional": null, "...": "..." },
+  "settlement": null,
+  "register_info": { "...": "..." },
+  "reference": null,
+  "sii_branch_code": null,
+  "synced_at": "2026-10-02T06:00:12Z"
+}
+```
+
+Todos los campos, incluidos los de `taxes`, `settlement` y `register_info`, con su tipo y significado, están en la [referencia de book-documents](/api-reference/v2/book-documents/list).
+
+## 5. Guarda sin duplicar y vuelve a leer los períodos abiertos
+
+- **Clave de cada fila:** `(document_id, operation)`. Un documento aparece una sola vez en cada libro de la empresa.
+- **Vuelve a leer al menos el mes en curso y el anterior** en cada sincronización. Una fila cambia: pasa de `PENDIENTE` a `REGISTRO` o a `RECLAMADO`, recibe acuse o reclamo, o entra tarde al período. Compara `synced_at` para saber cuáles cambiaron.
+- **Los totales de book-summaries** se actualizan en el mismo `id` (`bosu_…`); también son únicos por `(period, operation, dte_type_code)`.
+
+## 6. Reglas para contabilizar
+
+- **El período es `period`, no la fecha de emisión.** El SII cuenta cada documento en un período del RCV: una factura emitida el 30 de septiembre y recibida en octubre va en `202610`. Contabiliza y declara IVA por `period`. En el libro de ventas del emisor y en el de compras del receptor el período puede ser distinto.
+- **Solo `status = REGISTRO` es el libro** (y una fila sin estado, que viene del registro). Es lo que va al F29 y al crédito fiscal. `PENDIENTE` (el receptor aún no acepta ni reclama, dentro de los 8 días), `NO_INCLUIR` y `RECLAMADO` vienen para que avises a tu usuario. Con `status=registro` traes exactamente el libro.
+- **Las notas de crédito (61) vienen con montos positivos:** réstalas. `reference` dice a qué documento corrigen (`dte_type_code` y `folio`).
+- **Facturas exentas (34):** `net_amount` es 0 y el monto va en `exempt_amount`.
+- **Otros impuestos:** `net_amount + exempt_amount + vat_amount + taxes.other_taxes_amount = total_amount`. El detalle por código (ILA, específico de combustibles) está en `taxes.additional`. En las facturas de compra (46) el IVA retenido viene como código 15 en negativo.
+- **Tipo de compra:** `transaction_type.code` es 1 Del giro, 2 Supermercados, 3 Bienes raíces, 4 Activo fijo, 5 IVA uso común, 6 IVA no recuperable o 7 No corresponde incluir.
+- **Montos:** pesos enteros, como los informa el SII. Los RUT del libro vienen como `76222333-4` (sin puntos); los de `/v2/documents/` como `76.222.333-4` (con puntos). Normalízalos antes de cruzarlos: quita los puntos, deja el guion y pasa a mayúscula el dígito verificador K (`76.222.333-4` queda `76222333-4`).
+
+## 7. Boletas de honorarios
+
+Las boletas no son filas del RCV: son documentos. Se leen en `/v2/documents/` por fecha de emisión.
+
+| Qué boletas | Query | Quién es quién |
+|---|---|---|
+| Recibidas por la empresa (BHE) | `document_type=received&dte_type__code__in=80` | `sender_*` es el profesional; `receiver_*` la empresa |
+| Emitidas por una persona natural | `document_type=issued&dte_type__code__in=80` | Solo si la conexión es de una persona |
+| De terceros, emitidas por la empresa (BTE) | `document_type=issued&dte_type__code__in=90` | `sender_*` es la empresa; `receiver_*` el prestador |
+
+```bash
+curl "https://api.tupana.ai/v2/documents/?master_entity_id=ment_4829301923847&document_type=received&dte_type__code__in=80&issue_date_gte=2026-10-01&issue_date_lte=2026-10-31&page_size=100" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+Cada boleta trae `id` (`docu_…`, tu clave para no duplicar), `folio`, `date_issued`, `sender_tax_id`, `sender_name`, `receiver_tax_id`, `receiver_name`, `amount_with_iva` (el bruto, como texto decimal: `"94395.00"`), `state` (`issued` o `cancelled` si se anuló) y el detalle del SII en `json_param.honorary_bill`:
+
+| Campo | Tipo | Qué es |
+|---|---|---|
+| `status` | string | Estado como lo escribe el SII: 80 recibidas `Normal` o `Anulada`; 80 emitidas `Vigente` o `Anulada`; 90 `VIG` o `ANUL` |
+| `cancellation_date` | date o null | Fecha de anulación (80; en 90 siempre null) |
+| `gross_amount` | integer | Honorarios brutos |
+| `withheld_amount` | integer | Recibidas y de terceros: retención |
+| `paid_amount` | integer | Recibidas y de terceros: líquido pagado |
+| `retention_issuer` | integer | Emitidas por una persona: retención que paga el emisor |
+| `retention_receiver` | integer | Emitidas por una persona: retención que hace el receptor |
+| `net_amount` | integer | Emitidas por una persona: líquido |
+| `professional_society` | boolean | La emitió una sociedad de profesionales |
+| `barcode` | string | Código de verificación del SII de la boleta |
+
+Las boletas no tienen período del RCV: contabilízalas por `date_issued`. Vuelve a leer el mes en curso y el anterior para recoger anulaciones.
+
+## Errores
+
+| Código HTTP | Cuándo |
+|---|---|
+| `400` | Parámetro inválido. El cuerpo es `{"error": {"code": "parameter_invalid", "param": "period", "message": "...", ...}}`. `period` va como `YYYYMM`, `operation` como `COMPRA` o `VENTA` |
+| `401` | Falta la API key o no es válida |
+| `403` | La empresa no está conectada a tu cuenta, o la key no tiene permiso para leer libros |
+| `404` | El `master_entity_id` no existe |
+
+## Lo que todavía no trae la API
+
+- No hay un filtro por fecha de modificación (`updated_since`): la lectura incremental es por período en los libros y por fecha de emisión en las boletas.
+- La sincronización diaria de boletas de honorarios recibidas lee los últimos días. Si necesitas meses anteriores a la conexión, escríbenos.
+
+## Precio
+
+La lectura del SII cuesta **0,2 UF al mes por empresa**, más IVA, e incluye el registro de compras y ventas y las boletas de honorarios. Detalle en [Precios](/precios).

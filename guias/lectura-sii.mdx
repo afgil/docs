@@ -64,7 +64,7 @@ curl "https://api.tupana.ai/v2/book-documents/?master_entity_id=ment_48293019238
   -H "Authorization: Api-Key $TUPANA_API_KEY"
 ```
 
-Cada fila trae folio, tipo, fecha de emisión, contraparte, montos neto, exento, IVA y total, otros impuestos, fecha de recepción, acuse y reclamo, y la referencia de las notas de crédito y débito. Si `meta.is_enabled` es `false`, ese libro no está habilitado para la empresa. Referencia: [book-documents](/api-reference/v2/book-documents/list) y [book-summaries](/api-reference/v2/book-summaries/list).
+Cada fila trae folio, tipo, fecha de emisión, contraparte, montos neto, exento, IVA y total, otros impuestos, fecha de recepción, acuse y reclamo, y la referencia de las notas de crédito y débito. Si `meta.is_enabled` es `false`, ese libro no está habilitado para la empresa. Referencia: [book-documents](/api-reference/v2/book-documents/list) y [book-summaries](/api-reference/v2/book-summaries/list). Para importarlos a un ERP (claves, períodos, estados, notas de crédito y boletas de honorarios), sigue [Libros de compra, venta y honorarios](/guias/libros-compra-venta-honorarios).
 
 ## 4. Lee los DTE emitidos y recibidos
 
