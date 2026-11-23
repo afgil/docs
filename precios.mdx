@@ -20,7 +20,7 @@ Para SaaS, ERP y plataformas que facturan por API para sus clientes. Pagas por e
 | **Facturación** | **0,5 UF** al mes por empresa que enroles | Hasta 100 documentos o 1.000 boletas de venta al mes por empresa. Facturas, boletas, notas de crédito y boletas de honorarios. XML, PDF y estados del SII. Con el facturador de mercado de Tupana (sin restricciones de monto, cantidad de productos ni referencias) o con el facturador gratuito del SII, al mismo precio. Solo por API: no incluye la plataforma web. |
 | **Boletas de honorarios** | **$9.990** al mes por persona, IVA incluido | Para personas naturales que emiten sus boletas de honorarios electrónicas (DTE 80) por API. Hasta 100 boletas de honorarios al mes, con la retención del año y el PDF oficial del SII. Ver [Emitir una boleta de honorarios](/api-reference/v2/honorary/emission). |
 | **Lectura SII** | **0,2 UF** al mes por empresa | Registro de compra y venta, boletas de honorarios emitidas y recibidas. Solo lectura; requiere la clave del SII de la empresa. |
-| **Lectura bancaria** | **0,35 UF** al mes por banco que enroles | Cuentas, saldos y movimientos sincronizados sin límite. |
+| **Lectura bancaria** | **0,35 UF** al mes por banco que enroles | Cuentas, saldos y movimientos sincronizados sin límite. En los bancos de personas con carga diaria de tarjetas (Banco Santander, Banco de Chile, BICE y Banco Falabella), las tarjetas de crédito vienen incluidas. |
 | **Recaudación** | **2% + IVA** de lo recaudado | Link de pago integrado a Transbank y webhook cuando llega el dinero. Sin costo fijo. |
 | **Sandbox** | **Gratis** | APIs, MCP, Tupana Connect, facturas y webhooks de prueba. |
 | **Bases de datos gratuitas** | **Gratis** | [Nómina de empresas del SII](/api-reference/v2/free-databases/introduction), con cualquier API key. No consume cupo. |
@@ -64,6 +64,9 @@ Son productos distintos. Los planes web (Independent 0,3 UF, Starter 1,0 UF, Pro
 
 **¿Cuánto cuesta emitir boletas de honorarios por la API?**
 El plan **Boletas de honorarios** cuesta $9.990 al mes por persona, IVA incluido, y permite hasta 100 boletas de honorarios al mes. Se emiten con el mismo endpoint de emisión de documentos, con el código 80.
+
+**¿Cuánto cuestan las tarjetas de crédito?**
+En las conexiones de personas (Banco Santander, Banco de Chile, BICE y Banco Falabella), las tarjetas vienen incluidas en la lectura bancaria. Si conectas solo las tarjetas, se cobra la lectura bancaria completa. Para los clientes de la plataforma Tupana, las tarjetas de Banco Santander empresas (Office Banking) son un adicional de 0,15 UF + IVA al mes por banco por empresa, y si la empresa conecta solo las tarjetas paga solo ese adicional. Ver [Tarjetas de crédito](/api-reference/v2/banking/guides/credit-cards).
 
 **¿Hay precio mínimo o costo fijo?**
 No. Pagas por las empresas enroladas en el mes. Si un mes no tienes ninguna, no pagas nada.
