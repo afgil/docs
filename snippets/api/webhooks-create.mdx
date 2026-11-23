@@ -52,5 +52,7 @@ No puede existir un webhook con la misma URL para la misma entidad. Si intentas 
 - `movement.created` - Esa corrida trajo movimientos nuevos (lista de ids, uno por cuenta y corrida)
 - `bank_account.refresh_failed` - La lectura de la cuenta falló
 - `connection.degraded` - Una cuenta quedó detenida tras fallos repetidos
+- `card_movement.created` / `card_movement.billed` / `card_movement.updated` / `card_movement.removed` / `card_movement.reversed` - Cambios en movimientos de tarjeta de crédito
+- `card_statement.mismatch` - Un estado de cuenta de tarjeta no cuadró
 
 Los eventos bancarios se detallan en [Webhooks bancarios](/api-reference/v2/banking/webhooks).

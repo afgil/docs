@@ -1,0 +1,74 @@
+---
+title: "Listar estados de cuenta de tarjeta"
+openapi: "api-reference/openapi-v2.json GET /card-statements/"
+---
+
+Los estados de cuenta **cerrados** de una tarjeta, los más nuevos primero, con
+el resultado de la verificación que hace Tupana al cerrar cada período.
+
+```bash
+curl "https://api.tupana.ai/v2/card-statements/?company_id=ment_3672486436546233854&account_id=bacc_Tc5520193847261" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "cstm_Rb5829104736251",
+      "account_id": "bacc_Tc5520193847261",
+      "period_end": "2026-10-25",
+      "due_date": "2026-11-05",
+      "currency": "CLP",
+      "total_billed": "968146.00",
+      "minimum_payment": "48407.00",
+      "check_status": "ok",
+      "check_difference": "0.00",
+      "total_source": "bank",
+      "locked_at": "2026-10-26T08:40:11Z"
+    },
+    {
+      "id": "cstm_Rb5829104736188",
+      "account_id": "bacc_Tc5520193847261",
+      "period_end": "2026-09-25",
+      "due_date": "2026-10-06",
+      "currency": "CLP",
+      "total_billed": "1204530.00",
+      "minimum_payment": "60227.00",
+      "check_status": "mismatch",
+      "check_difference": "-12990.00",
+      "total_source": "bank",
+      "locked_at": null
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 2, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+`company_id` y `account_id` son obligatorios. `page` y `page_size` (tope 200)
+paginan. Una empresa o una tarjeta que no es de tu integración responde `404`.
+
+## Qué trae
+
+- `period_end` es la fecha de cierre (facturación) del período y `due_date`
+  la fecha de vencimiento del pago.
+- `total_billed` y `minimum_payment` son decimales como string, en `currency`.
+- `total_source` dice de dónde sale el total: `bank` si lo informó el banco,
+  `computed` si el banco no lo informó y Tupana lo calculó desde los
+  movimientos.
+
+## La verificación
+
+Al cerrar un período, Tupana revisa que el saldo anterior más los movimientos
+del período sea igual al total facturado que informa el banco.
+
+| `check_status` | Qué significa |
+| --- | --- |
+| `unchecked` | Todavía no se pudo verificar. `check_difference` es `null`. |
+| `ok` | Cuadra. Los movimientos del período quedan `locked` y `locked_at` dice desde cuándo. |
+| `mismatch` | No cuadra. `check_difference` dice por cuánto, se envía el webhook `card_statement.mismatch` y nada se corrige en silencio. |
+
+Las líneas de cada estado de cuenta están en el
+[detalle](/api-reference/v2/card-statements/get). Más contexto en
+[Ciclo de vida de un movimiento de tarjeta](/api-reference/v2/banking/guides/card-movement-lifecycle#estados-de-cuenta-verificados).

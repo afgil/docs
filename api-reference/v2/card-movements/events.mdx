@@ -1,0 +1,71 @@
+---
+title: "Historia de un movimiento de tarjeta"
+openapi: "api-reference/openapi-v2.json GET /card-movements/{card_movement_id}/events/"
+---
+
+Cada cambio que tuvo un movimiento desde que apareció, del más antiguo al más
+nuevo. Sirve para auditar por qué un cargo que ya conciliaste cambió de monto,
+de fecha o de estado.
+
+```bash
+curl https://api.tupana.ai/v2/card-movements/cmov_Vx4810293847561/events/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+Una compra en un restaurante que apareció sin facturar por $38.500 y se
+facturó con la propina incluida, otra glosa y otra fecha contable. Es el mismo
+movimiento, con el mismo id:
+
+```json
+{
+  "data": [
+    {
+      "id": "cmev_Lp2938475610201",
+      "kind": "created",
+      "created_at": "2026-10-15T09:12:03Z",
+      "changes": {},
+      "related_movement_id": null
+    },
+    {
+      "id": "cmev_Lp2938475610284",
+      "kind": "billed",
+      "created_at": "2026-10-26T08:40:11Z",
+      "changes": {
+        "state": ["posted", "billed"],
+        "amount": ["-38500.00", "-41500.00"],
+        "description": ["REST LA PICADA SANTIAGO", "RESTAURANT LA PICADA"],
+        "post_date": ["2026-10-15", "2026-10-16"],
+        "statement_id": [null, "cstm_Rb5829104736251"]
+      },
+      "related_movement_id": null
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 2, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+## Tipos de evento
+
+| `kind` | Qué pasó |
+| --- | --- |
+| `created` | El movimiento apareció por primera vez. |
+| `billed` | Salió en un estado de cuenta. Si el banco lo facturó con otra fecha, glosa o monto, los cambios vienen en `changes`. |
+| `updated` | Cambió la fecha, la glosa o el monto sin facturarse (una propina, el tipo de cambio). |
+| `missing` | El banco dejó de mostrarlo. Empieza el período de gracia. |
+| `restored` | Volvió a aparecer después de un `missing`. |
+| `removed` | Quedó `dropped` (desapareció de forma definitiva) o `superseded` (lo reemplazó otro movimiento, en `related_movement_id`). |
+| `reversed` | El banco anuló el cargo. `related_movement_id` es la devolución que lo compensa. |
+
+## `changes`
+
+Es un objeto `{campo: [antes, después]}` con los campos que cambiaron en ese
+evento, en el mismo formato del [movimiento](/api-reference/v2/card-movements/get).
+Viene vacío cuando el evento no cambió campos, como en `created`.
+
+`related_movement_id` (`cmov_…`) apunta al otro movimiento involucrado:
+la devolución en un `reversed` y el reemplazo en un `removed` por
+`superseded`. En el resto es `null`.
+
+`page` y `page_size` (tope 200) paginan. Un movimiento que no es de tu
+integración, o que no existe, responde `404`.

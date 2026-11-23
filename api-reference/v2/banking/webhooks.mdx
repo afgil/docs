@@ -1,0 +1,130 @@
+---
+title: 'Webhooks bancarios'
+description: 'Eventos de la API bancaria: lecturas de cuentas, movimientos nuevos, movimientos de tarjeta y estados de cuenta que no cuadran. Payloads y cuándo llega cada uno'
+---
+
+# Webhooks bancarios
+
+Ningún `GET` de la API bancaria toca al banco, así que los webhooks son la
+forma de enterarte de que hay datos nuevos. Se crean como cualquier webhook de
+Tupana, con [`POST /v2/webhooks/`](/api-reference/v2/webhooks-pages/create),
+eligiendo los eventos bancarios que quieras recibir. La firma
+(`X-Pana-Signature`), los headers y los reintentos son los mismos de la
+[guía de webhooks](/user-guide/webhooks).
+
+Todos los eventos bancarios llevan `api_version: 2` y public ids, y quedan
+también consultables en [`GET /v2/events/`](/api-reference/v2/events/list)
+aunque tu endpoint haya estado caído.
+
+```json
+{
+  "event": "movement.created",
+  "api_version": 2,
+  "created_at": "2026-10-28T09:12:04Z",
+  "data": { "...": "..." }
+}
+```
+
+Un evento resume una **corrida de lectura por cuenta**: nunca llega uno por
+movimiento. Úsalo como señal para llamar a la sincronización por cursor, no
+como fuente de datos.
+
+## Cuentas y movimientos
+
+| Evento | Cuándo llega |
+| --- | --- |
+| `bank_account.refreshed` | Una corrida leyó la cuenta. Trae la cuenta con su saldo y cuántos movimientos nuevos hubo. |
+| `movement.created` | Esa corrida trajo movimientos nuevos. Uno por cuenta y corrida, con la lista de ids. |
+| `bank_account.refresh_failed` | La lectura de la cuenta falló en esa corrida. |
+| `connection.degraded` | Una cuenta quedó detenida tras fallos repetidos; las demás siguen. |
+
+### `movement.created`
+
+```json
+{
+  "event": "movement.created",
+  "api_version": 2,
+  "created_at": "2026-10-28T09:12:04Z",
+  "data": {
+    "account_id": "bacc_7Hk2938475610293",
+    "connection_id": "cred_9Pq5028174639201",
+    "company_id": "ment_3672486436546233854",
+    "movement_ids": ["move_Qm8102938475612"],
+    "count": 1
+  }
+}
+```
+
+Al recibirlo, llama a [`GET /v2/movements/sync/`](/api-reference/v2/movements/sync)
+con tu cursor.
+
+## Movimientos de tarjeta
+
+Los [movimientos de tarjeta](/api-reference/v2/card-movements/list) tienen sus
+propios eventos, porque cambian después de aparecer. Lee
+[Ciclo de vida de un movimiento de tarjeta](/api-reference/v2/banking/guides/card-movement-lifecycle)
+para el detalle de cada transición.
+
+| Evento | Cuándo llega |
+| --- | --- |
+| `card_movement.created` | Aparecieron movimientos nuevos en la tarjeta. |
+| `card_movement.billed` | Movimientos que salieron en un estado de cuenta (`state: "billed"`). |
+| `card_movement.updated` | Movimientos que cambiaron de fecha, glosa o monto, que quedaron `missing` o que volvieron (`restored`). |
+| `card_movement.removed` | Movimientos que pasaron a `dropped` o `superseded`. |
+| `card_movement.reversed` | Cargos que el banco anuló, con su devolución enlazada. |
+| `card_statement.mismatch` | Un estado de cuenta no cuadró con el total facturado del banco. |
+
+Los cinco eventos `card_movement.*` tienen el mismo `data`: la cuenta, la
+conexión, la empresa y la lista de movimientos afectados en esa corrida.
+
+```json
+{
+  "event": "card_movement.billed",
+  "api_version": 2,
+  "created_at": "2026-10-26T08:40:12Z",
+  "data": {
+    "account_id": "bacc_Tc5520193847261",
+    "connection_id": "cred_9Pq5028174639201",
+    "company_id": "ment_3672486436546233854",
+    "card_movement_ids": ["cmov_Vx4810293847561", "cmov_Vx4810293847590"],
+    "count": 2
+  }
+}
+```
+
+Al recibir cualquiera de ellos, llama a
+[`GET /v2/card-movements/sync/`](/api-reference/v2/card-movements/sync) con tu
+cursor: ahí vienen los movimientos completos.
+
+### `card_statement.mismatch`
+
+Tupana verifica cada estado de cuenta al cierre: el saldo anterior más los
+movimientos del período debe ser igual al total facturado. Si no cuadra, el
+estado de cuenta queda `check_status: "mismatch"` y llega este evento. Nada se
+corrige en silencio.
+
+```json
+{
+  "event": "card_statement.mismatch",
+  "api_version": 2,
+  "created_at": "2026-09-26T08:41:02Z",
+  "data": {
+    "account_id": "bacc_Tc5520193847261",
+    "connection_id": "cred_9Pq5028174639201",
+    "company_id": "ment_3672486436546233854",
+    "card_statement_id": "cstm_Rb5829104736188",
+    "period_end": "2026-09-25",
+    "total_billed": "1204530.00",
+    "difference": "-12990.00"
+  }
+}
+```
+
+El detalle está en [`GET /v2/card-statements/{id}/`](/api-reference/v2/card-statements/get).
+Mientras no se resuelva, no des por cerrados los movimientos de ese período.
+
+## Sandbox
+
+La corrida diaria del [dataset sandbox](/api-reference/v2/banking/guides/sandbox)
+emite `bank_account.refreshed` y `movement.created` a los webhooks de ambiente
+`sandbox` o `both` de esa empresa.

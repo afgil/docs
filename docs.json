@@ -213,7 +213,8 @@
                   "api-reference/v2/banking/guides/first-sync",
                   "api-reference/v2/banking/guides/sync",
                   "api-reference/v2/banking/guides/sandbox",
-                  "api-reference/v2/banking/guides/credit-cards"
+                  "api-reference/v2/banking/guides/credit-cards",
+                  "api-reference/v2/banking/guides/card-movement-lifecycle"
                 ]
               },
               {
@@ -253,6 +254,22 @@
                 "pages": [
                   "api-reference/v2/statements/list",
                   "api-reference/v2/statements/get"
+                ]
+              },
+              {
+                "group": "Movimientos de tarjeta",
+                "pages": [
+                  "api-reference/v2/card-movements/list",
+                  "api-reference/v2/card-movements/get",
+                  "api-reference/v2/card-movements/events",
+                  "api-reference/v2/card-movements/sync"
+                ]
+              },
+              {
+                "group": "Estados de cuenta de tarjeta",
+                "pages": [
+                  "api-reference/v2/card-statements/list",
+                  "api-reference/v2/card-statements/get"
                 ]
               },
               {

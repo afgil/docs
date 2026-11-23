@@ -2402,7 +2402,6 @@
           "description": {
             "type": "string",
             "maxLength": 60,
-            "description": "Glosa.",
             "example": "Comisión 5%"
           },
           "net_amount": {

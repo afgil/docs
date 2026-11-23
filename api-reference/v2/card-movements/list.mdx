@@ -1,0 +1,98 @@
+---
+title: "Listar movimientos de tarjeta"
+openapi: "api-reference/openapi-v2.json GET /card-movements/"
+---
+
+Los movimientos de las tarjetas de crédito de una empresa, los más nuevos
+primero: compras, cuotas, pagos, devoluciones, comisiones, intereses,
+impuestos y avances. El GET nunca toca al banco.
+
+```bash
+curl "https://api.tupana.ai/v2/card-movements/?company_id=ment_3672486436546233854&account_id=bacc_Tc5520193847261&since=2026-10-01" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "cmov_Vx4810293847561",
+      "account_id": "bacc_Tc5520193847261",
+      "company_id": "ment_3672486436546233854",
+      "state": "billed",
+      "provisional": false,
+      "kind": "purchase",
+      "transaction_date": "2026-10-14",
+      "post_date": "2026-10-16",
+      "description": "RESTAURANT LA PICADA",
+      "amount": "-41500.00",
+      "currency": "CLP",
+      "original_amount": null,
+      "original_currency": null,
+      "installment": null,
+      "card_last4": "2105",
+      "statement_id": "cstm_Rb5829104736251",
+      "superseded_by_id": null,
+      "reversal_of_id": null,
+      "parent_id": null,
+      "missing_since": null,
+      "needs_review": false,
+      "locked": true,
+      "created_at": "2026-10-15T09:12:03Z",
+      "updated_at": "2026-10-26T08:40:11Z"
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 1, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+Cualquier API key lee los movimientos de tarjeta de sus empresas conectadas,
+igual que los [movimientos bancarios](/api-reference/v2/movements/company-list).
+Una empresa o una cuenta que no es de tu integración responde `404`.
+
+## Filtros
+
+| Parámetro | Qué hace |
+| --- | --- |
+| `company_id` | Obligatorio. La empresa (`ment_…`). |
+| `account_id` | Acota a una tarjeta (`bacc_…`). |
+| `state` | Uno o más estados separados por coma: `pending`, `posted`, `billed`, `missing`, `reversed`. |
+| `include` | Suma los estados que por defecto no salen: `superseded`, `dropped` o `superseded,dropped`. |
+| `since`, `until` | Rango de `transaction_date`, inclusivo, `YYYY-MM-DD`. |
+| `kind` | `purchase`, `installment`, `payment`, `refund`, `fee`, `interest`, `tax`, `advance` u `other`. |
+
+Sin `state` ni `include`, la lista trae solo los movimientos **vigentes**:
+`pending`, `posted`, `billed`, `reversed` y `missing`. Los `dropped` y
+`superseded` siguen existiendo (Tupana nunca borra) y se consultan con
+`include` o por su id.
+
+Un valor inválido responde `400` con `code: parameter_invalid` y `param`.
+`page` y `page_size` (tope 200) paginan.
+
+## Cómo leer un movimiento
+
+- `id` (`cmov_…`) es **estable**. Si el banco cambia la fecha, la glosa o el
+  monto de un cargo, es el mismo movimiento, actualizado; los cambios quedan en
+  su [historia](/api-reference/v2/card-movements/events).
+- `amount` es un decimal como string, **con signo**: negativo es un cargo
+  (sube la deuda), positivo es un pago o una devolución (baja la deuda).
+- `provisional` es `true` hasta que el movimiento sale en un estado de cuenta
+  (`state: "billed"`). Concilia y contabiliza solo los facturados.
+- `original_amount` y `original_currency` vienen en compras en el extranjero;
+  `amount` y `currency` son lo que el banco cobra.
+- `installment` es `{ "number": 2, "total": 6 }` en una cuota y `null` en lo
+  demás. Cada cuota trae `parent_id` con la primera cuota de la compra.
+- `statement_id` (`cstm_…`) dice en qué [estado de cuenta](/api-reference/v2/card-statements/get)
+  se facturó.
+- `locked: true` significa que su estado de cuenta cuadró y el movimiento ya
+  no cambia.
+- `needs_review: true` marca un cambio que Tupana no decidió solo. El
+  movimiento se muestra igual; revísalo antes de conciliarlo.
+
+<Info>
+Para mantener una copia al día usa
+[`GET /v2/card-movements/sync/`](/api-reference/v2/card-movements/sync), no
+rangos de fechas: un cargo puede aparecer hoy con una fecha de hace diez días.
+Lee la guía [Ciclo de vida de un movimiento de tarjeta](/api-reference/v2/banking/guides/card-movement-lifecycle).
+</Info>
