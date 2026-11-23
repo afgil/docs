@@ -111,7 +111,7 @@ Todos los campos, incluidos los de `taxes`, `settlement` y `register_info`, con 
 - **Facturas exentas (34):** `net_amount` es 0 y el monto va en `exempt_amount`.
 - **Otros impuestos:** `net_amount + exempt_amount + vat_amount + taxes.other_taxes_amount = total_amount`. El detalle por código (ILA, específico de combustibles) está en `taxes.additional`. En las facturas de compra (46) el IVA retenido viene como código 15 en negativo.
 - **Tipo de compra:** `transaction_type.code` es 1 Del giro, 2 Supermercados, 3 Bienes raíces, 4 Activo fijo, 5 IVA uso común, 6 IVA no recuperable o 7 No corresponde incluir.
-- **Montos:** pesos enteros, como los informa el SII. Los RUT del libro vienen como `76222333-4`; los de `/v2/documents/` como `76.222.333-4`. Normalízalos antes de cruzarlos.
+- **Montos:** pesos enteros, como los informa el SII. Los RUT del libro vienen como `76222333-4` (sin puntos); los de `/v2/documents/` como `76.222.333-4` (con puntos). Normalízalos antes de cruzarlos: quita los puntos, deja el guion y pasa a mayúscula el dígito verificador K (`76.222.333-4` queda `76222333-4`).
 
 ## 7. Boletas de honorarios
 
