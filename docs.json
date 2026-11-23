@@ -812,6 +812,10 @@
   },
   "redirects": [
     {
+      "source": "/api-reference/v2/documents/vat-withholding-codes",
+      "destination": "/user-guide/vat-withholding-codes"
+    },
+    {
       "source": "/webhooks",
       "destination": "/user-guide/webhooks"
     },
