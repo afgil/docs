@@ -11356,10 +11356,13 @@ movimientos de sus cuentas, sus tarjetas de crédito, o ambos.
 
 - **Personas** (Banco Santander, Banco de Chile, BICE y Banco Falabella): la
   tarjeta de crédito viene incluida en la conexión del banco, sin costo
-  adicional.
-- **Banco Santander empresas (Office Banking)**: la tarjeta de crédito cuesta
-  **0,15 UF + IVA por banco por empresa**, adicional a la
-  [lectura bancaria](https://docs.tupana.ai/precios).
+  adicional. Si se conectan solo las tarjetas, se cobra la conexión del banco
+  completa.
+- **Banco Santander empresas (Office Banking)**: para los clientes de la
+  plataforma Tupana, la tarjeta de crédito es un adicional de
+  **0,15 UF + IVA al mes por banco por empresa**, que se ofrece en el Connect
+  abierto desde la plataforma. Si la empresa conecta solo las tarjetas, paga
+  solo esos 0,15 UF. Ver [Precios](https://docs.tupana.ai/precios).
 
 ---
 
