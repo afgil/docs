@@ -172,7 +172,7 @@ X-Webhook-Delivery: 12345
     "receiver_rut": "12345678-9",
     "issue_date": "2025-01-13",
     "xml_file": "https://s3.amazonaws.com/bucket/xml-file-url?signature=...",
-    "pdf_file": "https://s3.amazonaws.com/bucket/pdf-file-url?signature=..."
+    "pdf_file": "https://cdn.tupana.ai/documents/documentfile/8f3c2a91d4e64b7f9a0c5e2d1b7a6f43.pdf"
   }
 }
 ```

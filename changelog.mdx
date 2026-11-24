@@ -8,6 +8,12 @@ rss: true
 
 Aquí registramos cada cambio de la API de Tupana que se nota desde tu integración: endpoints nuevos, campos, eventos de webhook, tipos de documento, límites y cambios de comportamiento. Las fechas son las de salida a producción. Suscríbete por RSS para enterarte de cada novedad.
 
+<Update label="24 de noviembre de 2026" description="Links al PDF">
+  - El link al PDF de los documentos vuelve a ser permanente: `pdf` y `pdf_url` en la API (v1 y v2) y `pdf_file` en el webhook `document.issued` traen una URL limpia de `cdn.tupana.ai`, sin firma y sin vencimiento, como antes del 15 de noviembre. Puedes guardarla y ponerla en tus correos.
+  - Si guardaste un link al PDF entre el 15 y el 24 de noviembre, ese link vence. Vuelve a pedir el documento para obtener el link permanente.
+  - El XML (`xml_url`, `xml_file`) sigue siendo una URL temporal firmada: vence en 1 hora en la API y en 7 días en los webhooks.
+</Update>
+
 <Update label="18 de noviembre de 2026" description="Sandbox y eventos">
   - Sandbox: ya puedes provocar errores del SII a propósito. Emite en sandbox a uno de los [RUT de receptor de prueba](/guias/errores-en-sandbox) (`500.000.001-0` a `500.000.005-3`) y el documento falla como con el SII: no disponible con y sin recuperación, rechazo por datos, sin autorización y folios agotados, con los mismos reintentos, estados y webhooks que en producción. Con una key de producción esos RUT se rechazan como inválidos.
   - [`GET /v2/events/`](/api-reference/v2/events/list#emisiones-que-fallaron) devuelve también las emisiones fallidas (`document.issue_failed`) y los rechazos del SII (`document.rejected`), con los mismos datos que el webhook, tengas o no un webhook configurado. Quedan registrados desde esta fecha.

@@ -528,13 +528,13 @@
                                 "type": "string",
                                 "format": "uri",
                                 "nullable": true,
-                                "description": "URL del XML (presigned)"
+                                "description": "URL temporal del XML (firmada, vence en 7 días)"
                             },
                             "pdf_file": {
                                 "type": "string",
                                 "format": "uri",
                                 "nullable": true,
-                                "description": "URL del PDF (presigned, solo en `document.issued`)"
+                                "description": "Link permanente al PDF en cdn.tupana.ai, no vence (solo en `document.issued`)"
                             }
                         }
                     }
