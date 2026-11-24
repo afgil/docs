@@ -1391,7 +1391,7 @@
                           "iva_amount": 19000.0,
                           "total_amount": 119000.0
                         },
-                        "pdf_url": "https://s3.amazonaws.com/bucket/documento_12345.pdf?signature=...",
+                        "pdf_url": "https://cdn.tupana.ai/documents/documentfile/8f3c2a91d4e64b7f9a0c5e2d1b7a6f43.pdf",
                         "pdf_download_url": "/api/master-entities/123/documents/12345/file/"
                       }
                     }
@@ -9312,13 +9312,13 @@
                 "type": "string",
                 "format": "uri",
                 "nullable": true,
-                "description": "URL del XML (presigned)"
+                "description": "URL temporal del XML (firmada, vence en 7 días)"
               },
               "pdf_file": {
                 "type": "string",
                 "format": "uri",
                 "nullable": true,
-                "description": "URL del PDF (presigned, solo en `document.issued`)"
+                "description": "Link permanente al PDF en cdn.tupana.ai, no vence (solo en `document.issued`)"
               }
             }
           }
@@ -9991,7 +9991,7 @@
                       "type": "string",
                       "format": "uri",
                       "nullable": true,
-                      "description": "URL presignada al PDF del documento (válida por 2 horas)"
+                      "description": "Link permanente al PDF del documento en cdn.tupana.ai. No vence."
                     },
                     "pdf_download_url": {
                       "type": "string",
@@ -10303,7 +10303,7 @@
               "pdf": {
                 "type": "string",
                 "format": "uri",
-                "description": "URL presignada al PDF del documento (válida por tiempo limitado, generalmente 1 hora)",
+                "description": "Link permanente al PDF del documento en cdn.tupana.ai. No vence.",
                 "nullable": true
               },
               "xml": {

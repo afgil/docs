@@ -119,7 +119,7 @@
                           "iva_amount": 19000.0,
                           "total_amount": 119000.0
                         },
-                        "pdf_url": "https://s3.amazonaws.com/bucket/documento_12345.pdf?signature=...",
+                        "pdf_url": "https://cdn.tupana.ai/documents/documentfile/8f3c2a91d4e64b7f9a0c5e2d1b7a6f43.pdf",
                         "pdf_download_url": "/api/master-entities/123/documents/12345/file/"
                       }
                     }

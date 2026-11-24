@@ -8,10 +8,10 @@ Obtiene toda la información completa de un documento tributario específico, in
 ### Notas Importantes
 
 - **El PDF siempre se incluye** en la respuesta sin necesidad de parámetros adicionales
-- El campo `pdf_url` contiene la URL presignada del PDF cuando está disponible
+- El campo `pdf_url` contiene el link permanente al PDF (en `cdn.tupana.ai`) cuando está disponible. No vence: puedes guardarlo y ponerlo en tus correos
 - El campo `pdf_source` indica el origen del PDF (`document_file`, `sandbox_generated`, `sii_scraped`, etc.)
 - El PDF se obtiene dinámicamente y puede tomar unos segundos en generarse si no está cacheado
-- Las URLs presignadas del PDF tienen una expiración limitada (generalmente 1 hora)
+- El campo `xml_url` es una URL temporal que vence en 1 hora: descarga el XML apenas lo recibas o vuelve a pedir el documento
 - El XML solo está disponible para documentos que han sido enviados al SII
 - Para documentos muy antiguos, es posible que el XML no esté disponible en el sistema
 - El campo `xml_error` indica problemas específicos al obtener el XML

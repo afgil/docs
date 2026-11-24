@@ -662,7 +662,7 @@
                       "type": "string",
                       "format": "uri",
                       "nullable": true,
-                      "description": "URL presignada al PDF del documento (válida por 2 horas)"
+                      "description": "Link permanente al PDF del documento en cdn.tupana.ai. No vence."
                     },
                     "pdf_download_url": {
                       "type": "string",
@@ -979,7 +979,7 @@
               "pdf": {
                 "type": "string",
                 "format": "uri",
-                "description": "URL presignada al PDF del documento (válida por tiempo limitado, generalmente 1 hora)",
+                "description": "Link permanente al PDF del documento en cdn.tupana.ai. No vence.",
                 "nullable": true
               },
               "xml": {

@@ -505,7 +505,7 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
 - `reference_reason` (String): Razón de la referencia
 
 **Archivos generados:**
-- `pdf_file` (String): URL temporal para descargar el PDF del documento
+- `pdf_file` (String): link permanente al PDF del documento (no vence)
 - `xml_file` (String): URL temporal para descargar el XML del documento
 
 **json_param (Object):**
@@ -803,16 +803,9 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
 
 ---
 
-## 🔒 **Seguridad y URLs temporales**
+## 🔒 **Links a los archivos**
 
-### URLs de archivos temporales:
-- **PDF y XML**: URLs válidas por 1 hora aproximadamente
-- **Autenticación**: Incluyen tokens de acceso automático
-- **Recomendación**: Descargar inmediatamente al recibir el webhook
-
-### Medidas de seguridad:
-- **Encriptación**: Archivos transmitidos de forma segura
-- **Validación**: Solo el emisor puede acceder a sus documentos
-- **Auditoría**: Todas las descargas quedan registradas
+- **PDF**: link permanente en `cdn.tupana.ai`. No vence, así que puedes guardarlo y ponerlo en tus correos. Cualquiera que tenga el link puede abrir el PDF; el nombre del archivo es aleatorio y no se puede adivinar.
+- **XML**: URL temporal firmada. Vence en 1 hora en la API y en 7 días en los webhooks: descárgalo apenas lo recibas o vuelve a pedir el documento para obtener una nueva.
 
 </details>
