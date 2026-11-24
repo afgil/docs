@@ -10,6 +10,14 @@ Una tarjeta de crédito es una cuenta más en
 `type: "credit"` y `subtype: "credit_card"`. Los mismos endpoints de cuentas,
 movimientos y estados de cuenta sirven para la tarjeta.
 
+<Note>
+Las tarjetas de crédito no están en todos los bancos: Tupana Connect ofrece
+conectarlas solo en los bancos que las soportan, hoy Banco Santander (personas,
+y empresas con Office Banking), Banco de Chile (personas y empresas), BICE y
+Banco Falabella (personas). Ver
+[Bancos con carga diaria de tarjetas](/api-reference/v2/banking/guides/card-movement-lifecycle#bancos-con-carga-diaria-de-tarjetas).
+</Note>
+
 <Info>
 En los bancos con carga diaria de tarjetas, los cargos también están en
 [`/v2/card-movements/`](/api-reference/v2/card-movements/list), con id estable,
@@ -66,22 +74,25 @@ Hoy las tarjetas entran por **cartola en PDF** (o por la integración con el
 emisor cuando existe), y la API lo dice en la conexión: `source: "manual_upload"`.
 Cuando se carga una cartola, la tarjeta aparece como cuenta, sus cargos como
 movimientos y la cartola como estado de cuenta, con el PDF original
-descargable. En Banco Santander (personas y empresas con Office Banking),
-Banco de Chile (personas), BICE (personas) y Banco Falabella (personas),
+descargable. En Banco Santander (personas, y empresas con Office Banking),
+Banco de Chile (personas y empresas), BICE (personas) y Banco Falabella
+(personas),
 Tupana Connect además carga los movimientos de la
 tarjeta todos los días: ver
 [Ciclo de vida de un movimiento de tarjeta](/api-reference/v2/banking/guides/card-movement-lifecycle#bancos-con-carga-diaria-de-tarjetas).
 
-En Tupana Connect, el usuario elige **¿Qué quieres conectar?**: **Saldos y
-movimientos** o **Tarjetas de crédito**. Puede conectar solo las tarjetas.
+En los bancos que soportan tarjetas, Tupana Connect le pregunta al usuario
+**¿Qué quieres conectar?**: **Saldos y movimientos** o **Tarjetas de
+crédito**. Puede conectar solo las tarjetas. En los demás bancos esa opción no
+aparece.
 
 En las conexiones de personas (Banco Santander, Banco de Chile, BICE y Banco
 Falabella), la tarjeta viene incluida en la conexión del banco, sin costo
 adicional. Si conecta solo las tarjetas, se cobra la conexión del banco
 completa, igual que si conectara saldos y movimientos.
 
-Para los clientes de la plataforma Tupana, las tarjetas de Banco Santander
-empresas (Office Banking) son un adicional de 0,15 UF + IVA al mes por banco
+Para los clientes de la plataforma Tupana, las tarjetas de empresas en Banco
+Santander (Office Banking) y Banco de Chile son un adicional de 0,15 UF + IVA al mes por banco
 por empresa. Esta opción se ofrece en el Connect que se abre desde la
 plataforma Tupana. Si la empresa conecta solo las tarjetas, paga solo esos
 0,15 UF.

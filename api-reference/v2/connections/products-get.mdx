@@ -1,0 +1,29 @@
+---
+title: "Ver productos y adicionales de una conexión"
+sidebarTitle: "Ver productos y adicionales"
+openapi: "api-reference/openapi-v2.json GET /connections/{connection_id}/products/"
+---
+
+Qué lee una conexión bancaria y qué adicionales tiene activos.
+
+```bash
+curl https://api.tupana.ai/v2/connections/cred_5028174639201/products/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+- `active`, `paused` y `available`: los productos de la conexión, `accounts`
+  (saldos y movimientos) y `credit_cards`. Ver
+  [Tarjetas de crédito](/api-reference/v2/banking/guides/credit-cards).
+- `addons` y `available_addons`: los adicionales activos y los que se pueden
+  activar, como `reconciliation_suggestions`. En una conexión creada desde la
+  plataforma Tupana, `available_addons` viene vacío: allí las recomendaciones
+  ya vienen incluidas en el módulo de conciliación.
+- `reconciliation_suggestions_price_uf` (`"0.10"`) y
+  `reconciliation_suggestions_block` (`1000`): el precio en UF netas al mes por
+  cada bloque de movimientos.
+- `reconciliation_suggestions_requires`: `"sii"` si la empresa no tiene su SII
+  conectado en Tupana; `null` si se pueden activar.
+
+Si la conexión no existe para tu API key, responde `404` con `code: "not_found"`.
+
+Lee [Recomendaciones de conciliación](/api-reference/v2/banking/guides/reconciliation-suggestions).

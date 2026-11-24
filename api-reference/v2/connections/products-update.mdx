@@ -1,0 +1,68 @@
+---
+title: "Cambiar productos y adicionales de una conexión"
+sidebarTitle: "Cambiar productos y adicionales"
+openapi: "api-reference/openapi-v2.json PATCH /connections/{connection_id}/products/"
+---
+
+Cambia qué lee una conexión bancaria y qué adicionales tiene. Manda `active`,
+`addons` o ambos; lo que no mandas no cambia. Responde el estado nuevo, con la
+misma forma que el [`GET`](/api-reference/v2/connections/products-get).
+
+## Adicionales
+
+`addons` deja exactamente esos adicionales activos. Para activar las
+[recomendaciones de conciliación](/api-reference/v2/banking/guides/reconciliation-suggestions):
+
+```bash
+curl -X PATCH https://api.tupana.ai/v2/connections/cred_5028174639201/products/ \
+  -H "Authorization: Api-Key TU_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "addons": ["reconciliation_suggestions"] }'
+```
+
+Al activarlas, Tupana revisa los movimientos sin conciliar de los últimos 60
+días y desde ahí cada movimiento nuevo. Para apagarlas: `{ "addons": [] }`.
+Solo se activan en conexiones creadas por la API.
+
+<Warning>
+Las recomendaciones de conciliación tienen un costo adicional de 0,1 UF + IVA
+al mes por cada 1.000 movimientos de la empresa (por bloque iniciado, según la
+fecha de los movimientos del mes anterior). Un mes sin movimientos no se cobra.
+</Warning>
+
+## Productos
+
+`active` deja exactamente esos productos encendidos (`accounts` y/o
+`credit_cards`, al menos uno) y pausa el resto de `available`. Un producto
+pausado deja de leerse y de cobrarse; lo que ya se leyó no se borra.
+
+```bash
+curl -X PATCH https://api.tupana.ai/v2/connections/cred_5028174639201/products/ \
+  -H "Authorization: Api-Key TU_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "active": ["credit_cards"] }'
+```
+
+## Errores
+
+Vienen en el [formato de la API v2](/api-reference/v2/errors):
+
+```json
+{
+  "error": {
+    "type": "conflict_error",
+    "code": "conflict",
+    "message": "Esta conexión la usa otra cuenta: no se puede cambiar.",
+    "doc_url": "https://docs.tupana.ai/api-reference/v2/errors",
+    "request_id": "req_8f3a9c2b1e7d4"
+  }
+}
+```
+
+| Status | `code` | Cuándo |
+| --- | --- | --- |
+| `400` | `sii_required` | Activar `reconciliation_suggestions` sin el SII de la empresa conectado en Tupana. |
+| `400` | `bad_request` | Un valor que no está disponible en esta conexión, `active` vacío, o un adicional en una conexión creada desde la plataforma. |
+| `403` | `sandbox_read_only` | Con una API key de sandbox las conexiones son de solo lectura. |
+| `404` | `not_found` | La conexión bancaria no existe para tu API key. |
+| `409` | `conflict` | La conexión la usa otra cuenta: no se puede cambiar. |
