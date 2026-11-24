@@ -20,7 +20,9 @@ curl -X PATCH https://api.tupana.ai/v2/connections/cred_5028174639201/products/ 
   -d '{ "addons": ["reconciliation_suggestions"] }'
 ```
 
-Para apagarlas: `{ "addons": [] }`.
+Al activarlas, Tupana revisa los movimientos sin conciliar de los últimos 60
+días y desde ahí cada movimiento nuevo. Para apagarlas: `{ "addons": [] }`.
+Solo se activan en conexiones creadas por la API.
 
 <Warning>
 Las recomendaciones de conciliación tienen un costo adicional de 0,1 UF + IVA
@@ -43,10 +45,24 @@ curl -X PATCH https://api.tupana.ai/v2/connections/cred_5028174639201/products/ 
 
 ## Errores
 
-| Respuesta | Cuándo |
-| --- | --- |
-| `400` | Un valor que no está disponible en esta conexión, o `active` vacío. |
-| `400 sii_required` | Activar `reconciliation_suggestions` sin el SII de la empresa conectado en Tupana. |
-| `403 sandbox_read_only` | Con una API key de sandbox las conexiones son de solo lectura. |
-| `404` | La conexión bancaria no existe para tu API key. |
-| `409` | La conexión la usa otra cuenta: no se puede cambiar. |
+Vienen en el [formato de la API v2](/api-reference/v2/errors):
+
+```json
+{
+  "error": {
+    "type": "conflict_error",
+    "code": "conflict",
+    "message": "Esta conexión la usa otra cuenta: no se puede cambiar.",
+    "doc_url": "https://docs.tupana.ai/api-reference/v2/errors",
+    "request_id": "req_8f3a9c2b1e7d4"
+  }
+}
+```
+
+| Status | `code` | Cuándo |
+| --- | --- | --- |
+| `400` | `sii_required` | Activar `reconciliation_suggestions` sin el SII de la empresa conectado en Tupana. |
+| `400` | `bad_request` | Un valor que no está disponible en esta conexión, `active` vacío, o un adicional en una conexión creada desde la plataforma. |
+| `403` | `sandbox_read_only` | Con una API key de sandbox las conexiones son de solo lectura. |
+| `404` | `not_found` | La conexión bancaria no existe para tu API key. |
+| `409` | `conflict` | La conexión la usa otra cuenta: no se puede cambiar. |

@@ -13,10 +13,22 @@ curl "https://api.tupana.ai/v2/reconciliation-suggestions/?company_id=ment_36724
   -H "Authorization: Api-Key TU_API_KEY"
 ```
 
-Filtra por `account_id`, `movement_id`, `since` (fecha de creación) y `status`
-(`suggested`, `applied`, `discarded`). Pagina con `page` y `page_size` (máximo
-200); la respuesta trae `count`, `total_pages`, `current_page`, `page_size`,
-`next`, `previous` y `results`.
+Las más nuevas primero. Filtra por `company_id`, `account_id`, `movement_id`,
+`since` (fecha de creación de la recomendación; con una key de sandbox, fecha
+del movimiento) y `status` (`suggested`, `applied`, `discarded`). Sin
+`company_id`, trae las de todas las empresas de tu key con el adicional activo.
 
-Si las recomendaciones no están activas en la conexión, responde `403` con
-`code: "addon_required"`.
+La respuesta usa el mismo envelope que el resto de los listados v2:
+
+```json
+{
+  "data": [ { "id": "brr_8810293746521", "type": "perfect", "score": 96, "status": "suggested", "...": "..." } ],
+  "meta": { "page": 1, "page_size": 50, "total": 1, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+Pagina con `page` y `page_size` (máximo 200).
+
+Si las recomendaciones no están activas, responde `403` con
+`code: "addon_required"` en el [formato de error v2](/api-reference/v2/errors).

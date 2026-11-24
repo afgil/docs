@@ -43,8 +43,13 @@ curl -X PATCH https://api.tupana.ai/v2/connections/cred_5028174639201/products/ 
   -d '{ "addons": ["reconciliation_suggestions"] }'
 ```
 
-Al activarlas, Tupana revisa los movimientos de los **últimos 60 días** y desde
-ahí cada movimiento nuevo que entra.
+Al activarlas, Tupana revisa los movimientos sin conciliar de los **últimos 60
+días** y desde ahí cada movimiento nuevo que entra.
+
+Se activan en las conexiones creadas por la API. En una conexión creada desde
+la plataforma Tupana, `available_addons` viene vacío y activarlas responde
+`400`: allí las recomendaciones ya vienen incluidas en el módulo de
+conciliación.
 
 Para apagarlas, manda la lista vacía: `{ "addons": [] }`. Las recomendaciones
 que ya se crearon no se borran.
@@ -67,16 +72,34 @@ Antes de activarlas puedes ver el precio y si falta algo con
 }
 ```
 
-| Respuesta | Cuándo |
-| --- | --- |
-| `400 sii_required` | La empresa no tiene su SII conectado en Tupana. |
-| `403 sandbox_read_only` | Con una API key de sandbox las conexiones no se cambian. |
-| `409` | La conexión la usa otra cuenta: no se puede cambiar. |
+Los errores vienen en el [formato de la API v2](/api-reference/v2/errors):
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "sii_required",
+    "message": "Conecta el SII de esta empresa para recibir recomendaciones de conciliación.",
+    "doc_url": "https://docs.tupana.ai/api-reference/v2/errors",
+    "request_id": "req_8f3a9c2b1e7d4"
+  }
+}
+```
+
+| Status | `code` | Cuándo |
+| --- | --- | --- |
+| `400` | `sii_required` | La empresa no tiene su SII conectado en Tupana. |
+| `400` | `bad_request` | Un adicional desconocido, o una conexión creada desde la plataforma. |
+| `403` | `sandbox_read_only` | Con una API key de sandbox las conexiones no se cambian. |
+| `409` | `conflict` | La conexión la usa otra cuenta: no se puede cambiar. |
 
 ## Leerlas
 
-Todas las de una empresa, con filtros por cuenta, movimiento, fecha y estado:
+Las de una empresa, las más nuevas primero, con filtros por cuenta,
+movimiento, fecha de creación (`since`) y estado:
 [`GET /reconciliation-suggestions/`](/api-reference/v2/reconciliation-suggestions/list).
+Sin `company_id`, trae las de todas las empresas de tu key que tienen el
+adicional activo.
 
 ```bash
 curl "https://api.tupana.ai/v2/reconciliation-suggestions/?company_id=ment_3672486436546233854&status=suggested" \
@@ -86,11 +109,40 @@ curl "https://api.tupana.ai/v2/reconciliation-suggestions/?company_id=ment_36724
 Las de un movimiento:
 [`GET /movements/{movement_id}/reconciliation-suggestions/`](/api-reference/v2/reconciliation-suggestions/movement).
 
-Cada recomendación se ve así:
+Las dos responden con la misma lista que el resto de la API v2:
 
 ```json
 {
-  "id": "rsug_8810293746521",
+  "data": [
+    {
+      "id": "brr_8810293746521",
+      "type": "perfect",
+      "score": 96,
+      "status": "suggested",
+      "movement_ids": ["move_Qm8102938475612"],
+      "documents": [
+        {
+          "id": "docu_4417209385561",
+          "folio": 1834,
+          "dte_type": 33,
+          "amount": 1190000.0,
+          "date": "2026-11-03",
+          "counterpart_name": "Constructora Los Andes SpA"
+        }
+      ],
+      "created_at": "2026-11-24T09:12:44-03:00"
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 1, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+Pagina con `page` y `page_size` (máximo 200). Cada recomendación trae:
+
+```json
+{
+  "id": "brr_8810293746521",
   "type": "perfect",
   "score": 96,
   "status": "suggested",
@@ -100,7 +152,7 @@ Cada recomendación se ve así:
       "id": "docu_4417209385561",
       "folio": 1834,
       "dte_type": 33,
-      "amount": 1190000,
+      "amount": 1190000.0,
       "date": "2026-11-03",
       "counterpart_name": "Constructora Los Andes SpA"
     }
@@ -126,14 +178,20 @@ Cada recomendación se ve así:
 `status` es `suggested` mientras nadie la toca, `applied` cuando la
 conciliación se registró y `discarded` cuando se descartó.
 
-Si las recomendaciones no están activas en la conexión de esa cuenta, los dos
-endpoints responden:
+Si las recomendaciones no están activas en la conexión de esa empresa, los dos
+endpoints responden `403`:
 
 ```json
-{ "error": "Activa las recomendaciones de conciliación en esta conexión.", "code": "addon_required" }
+{
+  "error": {
+    "type": "permission_error",
+    "code": "addon_required",
+    "message": "Activa las recomendaciones de conciliación en esta conexión.",
+    "doc_url": "https://docs.tupana.ai/api-reference/v2/errors",
+    "request_id": "req_8f3a9c2b1e7d4"
+  }
+}
 ```
-
-con status `403`.
 
 ## Sandbox
 
@@ -141,3 +199,15 @@ En sandbox las recomendaciones son **gratis y están siempre activas**: no hay
 que activarlas. Funcionan con los datos de prueba del
 [sandbox bancario](/api-reference/v2/banking/guides/sandbox), así que puedes
 probar la lectura completa antes de activarlas en producción.
+
+Se calculan al vuelo en cada consulta, sobre los 100 movimientos más
+recientes, y no se guardan. Por eso cambian algunas cosas:
+
+- El `id` tiene la forma `brr_sandbox_<movement_id>_<n>`, por ejemplo
+  `brr_sandbox_move_Qm8102938475612_1`.
+- `created_at` es el momento de la consulta, y `since` filtra por la fecha del
+  movimiento.
+- Todas vienen `suggested`, con `type` `perfect` o `partial` y `score` 100, 70
+  o 50. Filtrar por `applied` o `discarded` devuelve una lista vacía.
+- La lista puede venir vacía si ningún movimiento de prueba calza con un
+  documento.
