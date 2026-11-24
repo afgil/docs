@@ -454,7 +454,7 @@ Cuando se emite un documento (`document.issued`), recibirás un POST con el sigu
         "reference_reason": "Orden de compra"
       }
     ],
-    "pdf_file": "https://tupanabucketdata.s3.us-east-2.amazonaws.com/pdf_files/example.pdf?AWSAccessKeyId=...&Expires=...",
+    "pdf_file": "https://cdn.tupana.ai/documents/documentfile/8f3c2a91d4e64b7f9a0c5e2d1b7a6f43.pdf",
     "json_param": {
       "custom_field": "valor_personalizado",
       "metadata": {
@@ -4438,7 +4438,7 @@ Se dispara cuando un documento se emite exitosamente. Incluye el PDF y XML del d
     "references": [],
     "json_param": null,
     "additional_info": null,
-    "pdf_file": "https://s3.amazonaws.com/bucket/documento.pdf",
+    "pdf_file": "https://cdn.tupana.ai/documents/documentfile/8f3c2a91d4e64b7f9a0c5e2d1b7a6f43.pdf",
     "xml_file": "https://s3.amazonaws.com/bucket/documento.xml"
   }
 }
@@ -5191,6 +5191,10 @@ Fuente: https://docs.tupana.ai/changelog · Sección: Guía de Usuario / Novedad
 > Historial completo de cambios de la API de facturación electrónica de Tupana para Chile: API v1 y v2, emisión de DTE al SII, webhooks, sandbox, Tupana Connect, cesiones, recaudación, folios, libros del SII, servidor MCP y SDKs.
 
 Aquí registramos cada cambio de la API de Tupana que se nota desde tu integración: endpoints nuevos, campos, eventos de webhook, tipos de documento, límites y cambios de comportamiento. Las fechas son las de salida a producción. Suscríbete por RSS para enterarte de cada novedad.
+
+  - El link al PDF de los documentos vuelve a ser permanente: `pdf` y `pdf_url` en la API (v1 y v2) y `pdf_file` en el webhook `document.issued` traen una URL limpia de `cdn.tupana.ai`, sin firma y sin vencimiento, como antes del 15 de noviembre. Puedes guardarla y ponerla en tus correos.
+  - Si guardaste un link al PDF entre el 15 y el 24 de noviembre, ese link vence. Vuelve a pedir el documento para obtener el link permanente.
+  - El XML (`xml_url`, `xml_file`) sigue siendo una URL temporal firmada: vence en 1 hora en la API y en 7 días en los webhooks.
 
   - Sandbox: ya puedes provocar errores del SII a propósito. Emite en sandbox a uno de los [RUT de receptor de prueba](https://docs.tupana.ai/guias/errores-en-sandbox) (`500.000.001-0` a `500.000.005-3`) y el documento falla como con el SII: no disponible con y sin recuperación, rechazo por datos, sin autorización y folios agotados, con los mismos reintentos, estados y webhooks que en producción. Con una key de producción esos RUT se rechazan como inválidos.
   - [`GET /v2/events/`](https://docs.tupana.ai/api-reference/v2/events/list#emisiones-que-fallaron) devuelve también las emisiones fallidas (`document.issue_failed`) y los rechazos del SII (`document.rejected`), con los mismos datos que el webhook, tengas o no un webhook configurado. Quedan registrados desde esta fecha.
@@ -6939,7 +6943,7 @@ Referencias a otros documentos (solo para notas de crédito). Cada elemento cont
 - `reference_reason` (String): Razón de la referencia
 
 **Archivos generados:**
-- `pdf_file` (String): URL temporal para descargar el PDF del documento
+- `pdf_file` (String): link permanente al PDF del documento (no vence)
 - `xml_file` (String): URL temporal para descargar el XML del documento
 
 **json_param (Object):**
@@ -7798,17 +7802,10 @@ En este ejemplo la carga va a Alemania (`563`), el comprador está en Holanda (`
 - **DTE 80**: Honorarios de abogados, contadores, médicos; servicios de consultoría; pagos directos a freelancers
 - **DTE 90**: Apps de delivery (Rappi, Uber Eats); plataformas freelance; marketplaces de servicios; plataformas educativas
 
-### Seguridad y URLs temporales
+### Links a los archivos
 
-#### URLs de archivos temporales
-- **PDF y XML**: URLs válidas por 1 hora aproximadamente
-- **Autenticación**: Incluyen tokens de acceso automático
-- **Recomendación**: Descargar inmediatamente al recibir el webhook
-
-#### Medidas de seguridad
-- **Encriptación**: Archivos transmitidos de forma segura
-- **Validación**: Solo el emisor puede acceder a sus documentos
-- **Auditoría**: Todas las descargas quedan registradas
+- **PDF**: link permanente en `cdn.tupana.ai`. No vence, así que puedes guardarlo y ponerlo en tus correos. Cualquiera que tenga el link puede abrir el PDF; el nombre del archivo es aleatorio y no se puede adivinar.
+- **XML**: URL temporal firmada. Vence en 1 hora en la API y en 7 días en los webhooks: descárgalo apenas lo recibas o vuelve a pedir el documento para obtener una nueva.
 
 ---
 
@@ -15729,7 +15726,7 @@ Esquema: `BatchResponse`
           "iva_amount": 19000.0,
           "total_amount": 119000.0
         },
-        "pdf_url": "https://s3.amazonaws.com/bucket/documento_12345.pdf?signature=...",
+        "pdf_url": "https://cdn.tupana.ai/documents/documentfile/8f3c2a91d4e64b7f9a0c5e2d1b7a6f43.pdf",
         "pdf_download_url": "/api/master-entities/123/documents/12345/file/"
       }
     }
@@ -18246,8 +18243,8 @@ Tipo: object
   - `document_total` (object, nullable)
   - `details` (array de object)
   - `references` (array de object)
-  - `xml_file` (string (uri), nullable): URL del XML (presigned)
-  - `pdf_file` (string (uri), nullable): URL del PDF (presigned, solo en `document.issued`)
+  - `xml_file` (string (uri), nullable): URL temporal del XML (firmada, vence en 7 días)
+  - `pdf_file` (string (uri), nullable): Link permanente al PDF en cdn.tupana.ai, no vence (solo en `document.issued`)
 
 #### `DocumentBatch`
 
@@ -18406,7 +18403,7 @@ Tipo: object
       - `iva_amount` (number, nullable)
       - `exempt_amount` (number, nullable): Monto exento: suma de las líneas con is_exempt en true. total_amount = net_amount + iva_amount + exempt_amount.
       - `total_amount` (number, nullable)
-    - `pdf_url` (string (uri), nullable): URL presignada al PDF del documento (válida por 2 horas)
+    - `pdf_url` (string (uri), nullable): Link permanente al PDF del documento en cdn.tupana.ai. No vence.
     - `pdf_download_url` (string, nullable): URL de descarga del PDF
     - `retention_type` (string, nullable; valores: `RETRECEPTOR`, `RETCONTRIBUYENTE`): Tipo de retención para boletas de honorarios (DTE 80, 90)
     - `export_data` (object, nullable): Datos de exportación para facturas internacionales (DTE 110, 111, 112)
@@ -18488,7 +18485,7 @@ Tipo: `DocumentDetail` + object
 - `original_amount` (string, nullable): Monto original en moneda extranjera para facturas internacionales
 - `state` (string, nullable): Estado del documento (draft, issued, etc.)
 - `dte_type_description` (string): Descripción del tipo de DTE
-- `pdf` (string (uri), nullable): URL presignada al PDF del documento (válida por tiempo limitado, generalmente 1 hora)
+- `pdf` (string (uri), nullable): Link permanente al PDF del documento en cdn.tupana.ai. No vence.
 - `xml` (string, nullable): Contenido completo del XML del documento tributario electrónico
 - `xml_error` (string, nullable): Mensaje de error si no se pudo obtener el XML (null si está disponible)
 - `references` (array de `ReferenceItem`): Array de documentos referenciados (para notas de crédito, etc.)
