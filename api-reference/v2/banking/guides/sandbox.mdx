@@ -42,8 +42,11 @@ con cursor. Así pruebas el ciclo completo sin un banco real.
 
 ## Solo lectura
 
-Con una key sandbox, `DELETE /connections/{id}/` y
-`POST /connections/{id}/reauthorizations/` responden `403 sandbox_read_only`.
+Con una key sandbox, `DELETE /connections/{id}/`,
+`POST /connections/{id}/reauthorizations/` y `PATCH /connections/{id}/products/`
+responden `403 sandbox_read_only`. Las
+[recomendaciones de conciliación](/api-reference/v2/banking/guides/reconciliation-suggestions)
+vienen siempre activas y gratis en sandbox.
 
 <Info>
 La key sandbox lee los datos bancarios de prueba sin permiso que activar. Para los webhooks,

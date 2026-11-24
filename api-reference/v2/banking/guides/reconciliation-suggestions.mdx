@@ -1,0 +1,143 @@
+---
+title: 'Recomendaciones de conciliación'
+description: 'Para cada movimiento bancario, qué factura, boleta o nota de crédito concilia, con un tipo y un puntaje. Un adicional que se activa por conexión bancaria'
+---
+
+# Recomendaciones de conciliación
+
+Con las recomendaciones de conciliación, Tupana revisa cada movimiento de la
+cuenta y te dice qué documentos emitidos o recibidos (facturas, boletas, notas
+de crédito) concilia. Cada recomendación trae un **tipo** y un **puntaje** de 0
+a 100, así tu sistema decide qué conciliar solo y qué mostrarle al usuario para
+que lo revise.
+
+<Warning>
+Las recomendaciones de conciliación tienen un costo adicional de 0,1 UF + IVA
+al mes por cada 1.000 movimientos de la empresa (por bloque iniciado, según la
+fecha de los movimientos del mes anterior). Un mes sin movimientos no se cobra.
+</Warning>
+
+Por ejemplo, una empresa con 2.400 movimientos en octubre paga 0,3 UF + IVA en
+noviembre: son tres bloques iniciados.
+
+## Requisito: el SII de la empresa
+
+Las recomendaciones cruzan los movimientos del banco con los documentos de la
+empresa en el SII. La empresa necesita su **SII conectado en Tupana**: sin sus
+documentos no hay nada que recomendar.
+
+Si la empresa no lo tiene, el `GET` de los productos de la conexión lo dice
+con `reconciliation_suggestions_requires: "sii"`, y activarlas responde
+`400 sii_required`. Conecta el SII con
+[Tupana Connect](/api-reference/v2/connect/tupana-connect) y vuelve a intentar.
+
+## Activarlas
+
+Se activan **por conexión bancaria**, con
+[`PATCH /connections/{connection_id}/products/`](/api-reference/v2/connections/products-update):
+
+```bash
+curl -X PATCH https://api.tupana.ai/v2/connections/cred_5028174639201/products/ \
+  -H "Authorization: Api-Key TU_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "addons": ["reconciliation_suggestions"] }'
+```
+
+Al activarlas, Tupana revisa los movimientos de los **últimos 60 días** y desde
+ahí cada movimiento nuevo que entra.
+
+Para apagarlas, manda la lista vacía: `{ "addons": [] }`. Las recomendaciones
+que ya se crearon no se borran.
+
+Antes de activarlas puedes ver el precio y si falta algo con
+[`GET /connections/{connection_id}/products/`](/api-reference/v2/connections/products-get):
+
+```json
+{
+  "connection_id": "cred_5028174639201",
+  "active": ["accounts"],
+  "paused": [],
+  "available": ["accounts", "credit_cards"],
+  "card_price_uf": null,
+  "addons": [],
+  "available_addons": ["reconciliation_suggestions"],
+  "reconciliation_suggestions_price_uf": "0.10",
+  "reconciliation_suggestions_block": 1000,
+  "reconciliation_suggestions_requires": null
+}
+```
+
+| Respuesta | Cuándo |
+| --- | --- |
+| `400 sii_required` | La empresa no tiene su SII conectado en Tupana. |
+| `403 sandbox_read_only` | Con una API key de sandbox las conexiones no se cambian. |
+| `409` | La conexión la usa otra cuenta: no se puede cambiar. |
+
+## Leerlas
+
+Todas las de una empresa, con filtros por cuenta, movimiento, fecha y estado:
+[`GET /reconciliation-suggestions/`](/api-reference/v2/reconciliation-suggestions/list).
+
+```bash
+curl "https://api.tupana.ai/v2/reconciliation-suggestions/?company_id=ment_3672486436546233854&status=suggested" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+Las de un movimiento:
+[`GET /movements/{movement_id}/reconciliation-suggestions/`](/api-reference/v2/reconciliation-suggestions/movement).
+
+Cada recomendación se ve así:
+
+```json
+{
+  "id": "rsug_8810293746521",
+  "type": "perfect",
+  "score": 96,
+  "status": "suggested",
+  "movement_ids": ["move_Qm8102938475612"],
+  "documents": [
+    {
+      "id": "docu_4417209385561",
+      "folio": 1834,
+      "dte_type": 33,
+      "amount": 1190000,
+      "date": "2026-11-03",
+      "counterpart_name": "Constructora Los Andes SpA"
+    }
+  ],
+  "created_at": "2026-11-24T09:12:44-03:00"
+}
+```
+
+### El tipo
+
+| `type` | Qué significa |
+| --- | --- |
+| `perfect` | El monto y el RUT de la contraparte calzan con los documentos. |
+| `partial` | El RUT calza, pero el monto cubre solo una parte (un abono, o un pago que junta varios documentos y falta alguno). |
+| `other_rut` | El monto calza, pero el pago viene de otro RUT (por ejemplo, una empresa relacionada que paga por el cliente). |
+
+### El puntaje y el estado
+
+`score` va de 0 a 100: mientras más alto, más segura la recomendación. Un
+`perfect` con puntaje alto suele poder conciliarse sin revisión; un
+`other_rut` conviene mostrárselo al usuario.
+
+`status` es `suggested` mientras nadie la toca, `applied` cuando la
+conciliación se registró y `discarded` cuando se descartó.
+
+Si las recomendaciones no están activas en la conexión de esa cuenta, los dos
+endpoints responden:
+
+```json
+{ "error": "Activa las recomendaciones de conciliación en esta conexión.", "code": "addon_required" }
+```
+
+con status `403`.
+
+## Sandbox
+
+En sandbox las recomendaciones son **gratis y están siempre activas**: no hay
+que activarlas. Funcionan con los datos de prueba del
+[sandbox bancario](/api-reference/v2/banking/guides/sandbox), así que puedes
+probar la lectura completa antes de activarlas en producción.

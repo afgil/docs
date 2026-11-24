@@ -1,0 +1,16 @@
+---
+title: "Recomendaciones de un movimiento"
+openapi: "api-reference/openapi-v2.json GET /movements/{movement_id}/reconciliation-suggestions/"
+---
+
+Las recomendaciones de conciliación de un movimiento (`move_…`), con la misma
+forma que en [el listado](/api-reference/v2/reconciliation-suggestions/list).
+
+```bash
+curl https://api.tupana.ai/v2/movements/move_Qm8102938475612/reconciliation-suggestions/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+Si las recomendaciones no están activas en la conexión de esa cuenta, responde
+`403` con `code: "addon_required"`. Si el movimiento no existe para tu API key,
+`404`.

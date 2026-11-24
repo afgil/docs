@@ -7785,6 +7785,437 @@
           }
         }
       }
+    },
+    "/connections/{connection_id}/products/": {
+      "get": {
+        "operationId": "getConnectionProducts_v2",
+        "tags": [
+          "Conexiones"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Productos y adicionales de una conexión",
+        "description": "Qué lee una conexión bancaria (`accounts` y/o `credit_cards`) y qué adicionales tiene activos, como las recomendaciones de conciliación.",
+        "parameters": [
+          {
+            "name": "connection_id",
+            "in": "path",
+            "required": true,
+            "description": "Id de la conexión bancaria (`cred_…`), el que devuelve GET /connections/.",
+            "schema": {
+              "type": "string",
+              "example": "cred_5028174639201"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Productos y adicionales",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionProducts"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "La conexión bancaria no existe para esta API key"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateConnectionProducts_v2",
+        "tags": [
+          "Conexiones"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Cambiar productos y adicionales de una conexión",
+        "description": "Con `active` dejas exactamente esos productos encendidos y pausas el resto: un producto pausado deja de leerse y de cobrarse, y lo ya leído no se borra. Con `addons` activas o apagas adicionales: `[\"reconciliation_suggestions\"]` enciende las recomendaciones de conciliación y `[]` las apaga.",
+        "parameters": [
+          {
+            "name": "connection_id",
+            "in": "path",
+            "required": true,
+            "description": "Id de la conexión bancaria (`cred_…`), el que devuelve GET /connections/.",
+            "schema": {
+              "type": "string",
+              "example": "cred_5028174639201"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionProductsUpdate"
+              },
+              "examples": {
+                "activar_recomendaciones": {
+                  "summary": "Activar recomendaciones de conciliación",
+                  "value": {
+                    "addons": [
+                      "reconciliation_suggestions"
+                    ]
+                  }
+                },
+                "apagar_recomendaciones": {
+                  "summary": "Apagar recomendaciones de conciliación",
+                  "value": {
+                    "addons": []
+                  }
+                },
+                "solo_tarjetas": {
+                  "summary": "Leer solo las tarjetas",
+                  "value": {
+                    "active": [
+                      "credit_cards"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Estado nuevo de la conexión",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionProducts"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Valor inválido, o la empresa no tiene su SII conectado (`code: sii_required`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "detail": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Conecta el SII de la empresa para activar las recomendaciones de conciliación.",
+                  "code": "sii_required"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Con una API key de sandbox las conexiones son de solo lectura (`code: sandbox_read_only`)"
+          },
+          "404": {
+            "description": "La conexión bancaria no existe para esta API key"
+          },
+          "409": {
+            "description": "La conexión la usa otra cuenta: no se puede cambiar"
+          }
+        }
+      }
+    },
+    "/reconciliation-suggestions/": {
+      "get": {
+        "operationId": "listReconciliationSuggestions_v2",
+        "tags": [
+          "Recomendaciones de conciliación"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar recomendaciones de conciliación",
+        "description": "Para cada movimiento bancario, qué documentos emitidos o recibidos (facturas, boletas, notas de crédito) concilia, con un tipo y un puntaje. Requiere el adicional `reconciliation_suggestions` activo en la conexión del banco.",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "required": true,
+            "description": "Tupana ID de la empresa (`ment_…`).",
+            "schema": {
+              "type": "string",
+              "example": "ment_3672486436546233854"
+            }
+          },
+          {
+            "name": "account_id",
+            "in": "query",
+            "required": false,
+            "description": "Acota a una cuenta (`bacc_…`).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "movement_id",
+            "in": "query",
+            "required": false,
+            "description": "Acota a un movimiento (`move_…`).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "description": "Recomendaciones creadas desde esta fecha, inclusive.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Estado de la recomendación.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "suggested",
+                "applied",
+                "discarded"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "maximum": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recomendaciones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "total_pages": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "current_page": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "page_size": {
+                      "type": "integer",
+                      "example": 50
+                    },
+                    "next": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": null
+                    },
+                    "previous": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": null
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ReconciliationSuggestion"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Un filtro inválido (`code: parameter_invalid`, `param`)"
+          },
+          "403": {
+            "description": "Las recomendaciones no están activas en la conexión (`code: addon_required`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "detail": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Activa las recomendaciones de conciliación en esta conexión.",
+                  "code": "addon_required"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "La empresa o la cuenta no existen para esta API key"
+          }
+        }
+      }
+    },
+    "/movements/{movement_id}/reconciliation-suggestions/": {
+      "get": {
+        "operationId": "listMovementReconciliationSuggestions_v2",
+        "tags": [
+          "Recomendaciones de conciliación"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Recomendaciones de un movimiento",
+        "description": "Las recomendaciones de conciliación de un movimiento, la de mayor puntaje primero.",
+        "parameters": [
+          {
+            "name": "movement_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "move_Qm8102938475612"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "maximum": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recomendaciones del movimiento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "total_pages": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "current_page": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "page_size": {
+                      "type": "integer",
+                      "example": 50
+                    },
+                    "next": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": null
+                    },
+                    "previous": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": null
+                    },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ReconciliationSuggestion"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Las recomendaciones no están activas en la conexión (`code: addon_required`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "detail": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Activa las recomendaciones de conciliación en esta conexión.",
+                  "code": "addon_required"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El movimiento no existe para esta API key"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -12563,6 +12994,232 @@
               "$ref": "#/components/schemas/CardMovement"
             },
             "description": "Las líneas del estado de cuenta."
+          }
+        }
+      },
+      "ConnectionProducts": {
+        "type": "object",
+        "description": "Qué lee una conexión bancaria y qué adicionales tiene activos.",
+        "properties": {
+          "connection_id": {
+            "type": "string",
+            "example": "cred_5028174639201"
+          },
+          "active": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "accounts",
+                "credit_cards"
+              ]
+            },
+            "description": "Productos que la conexión lee hoy: `accounts` (saldos y movimientos) y/o `credit_cards`.",
+            "example": [
+              "accounts"
+            ]
+          },
+          "paused": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "accounts",
+                "credit_cards"
+              ]
+            },
+            "description": "Productos disponibles que el dueño pausó: no se leen ni se cobran.",
+            "example": []
+          },
+          "available": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "accounts",
+                "credit_cards"
+              ]
+            },
+            "description": "Productos que esta conexión puede leer, según el banco y el RUT.",
+            "example": [
+              "accounts",
+              "credit_cards"
+            ]
+          },
+          "card_price_uf": {
+            "type": "string",
+            "nullable": true,
+            "description": "UF netas al mes que suman las tarjetas, como texto; `null` cuando vienen incluidas o no se ofrecen.",
+            "example": null
+          },
+          "addons": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "reconciliation_suggestions"
+              ]
+            },
+            "description": "Adicionales activos en la conexión.",
+            "example": [
+              "reconciliation_suggestions"
+            ]
+          },
+          "available_addons": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "reconciliation_suggestions"
+              ]
+            },
+            "description": "Adicionales que se pueden activar en esta conexión.",
+            "example": [
+              "reconciliation_suggestions"
+            ]
+          },
+          "reconciliation_suggestions_price_uf": {
+            "type": "string",
+            "description": "UF netas al mes por cada bloque de movimientos, como texto.",
+            "example": "0.10"
+          },
+          "reconciliation_suggestions_block": {
+            "type": "integer",
+            "description": "Movimientos por bloque de cobro.",
+            "example": 1000
+          },
+          "reconciliation_suggestions_requires": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "sii",
+              null
+            ],
+            "description": "Lo que falta para activar las recomendaciones: `sii` si la empresa no tiene su SII conectado en Tupana; `null` si se pueden activar.",
+            "example": null
+          }
+        }
+      },
+      "ConnectionProductsUpdate": {
+        "type": "object",
+        "description": "Manda `active`, `addons` o ambos. Lo que no mandas no cambia.",
+        "properties": {
+          "active": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "enum": [
+                "accounts",
+                "credit_cards"
+              ]
+            },
+            "description": "Deja exactamente estos productos activos y pausa el resto de `available`. Al menos uno.",
+            "example": [
+              "accounts"
+            ]
+          },
+          "addons": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "reconciliation_suggestions"
+              ]
+            },
+            "description": "Deja exactamente estos adicionales activos. `[]` los apaga todos.",
+            "example": [
+              "reconciliation_suggestions"
+            ]
+          }
+        }
+      },
+      "ReconciliationSuggestionDocument": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Tupana ID del documento (`docu_…`).",
+            "example": "docu_4417209385561"
+          },
+          "folio": {
+            "type": "integer",
+            "example": 1834
+          },
+          "dte_type": {
+            "type": "integer",
+            "description": "Tipo de documento SII (33 factura, 34 factura exenta, 39 boleta, 61 nota de crédito…).",
+            "example": 33
+          },
+          "amount": {
+            "type": "integer",
+            "description": "Monto total del documento en pesos.",
+            "example": 1190000
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-11-03"
+          },
+          "counterpart_name": {
+            "type": "string",
+            "description": "Razón social del cliente o proveedor.",
+            "example": "Constructora Los Andes SpA"
+          }
+        }
+      },
+      "ReconciliationSuggestion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "rsug_8810293746521"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "perfect",
+              "partial",
+              "other_rut"
+            ],
+            "description": "`perfect`: montos y RUT calzan. `partial`: el RUT calza y el monto cubre una parte. `other_rut`: el monto calza pero el pago viene de otro RUT."
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Confianza de la recomendación, de 0 a 100.",
+            "example": 96
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "suggested",
+              "applied",
+              "discarded"
+            ],
+            "description": "`suggested`: pendiente. `applied`: la conciliación se registró. `discarded`: se descartó."
+          },
+          "movement_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Movimientos que concilia (`move_…`).",
+            "example": [
+              "move_Qm8102938475612"
+            ]
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconciliationSuggestionDocument"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-11-24T09:12:44-03:00"
           }
         }
       }

@@ -226,7 +226,9 @@
                   "api-reference/v2/connect/create-session",
                   "api-reference/v2/connections/list",
                   "api-reference/v2/connections/reauthorize",
-                  "api-reference/v2/connections/delete"
+                  "api-reference/v2/connections/delete",
+                  "api-reference/v2/connections/products-get",
+                  "api-reference/v2/connections/products-update"
                 ]
               },
               {
@@ -249,6 +251,14 @@
                   "api-reference/v2/movements/list",
                   "api-reference/v2/movements/get",
                   "api-reference/v2/movements/sync"
+                ]
+              },
+              {
+                "group": "Recomendaciones de conciliación",
+                "pages": [
+                  "api-reference/v2/banking/guides/reconciliation-suggestions",
+                  "api-reference/v2/reconciliation-suggestions/list",
+                  "api-reference/v2/reconciliation-suggestions/movement"
                 ]
               },
               {
