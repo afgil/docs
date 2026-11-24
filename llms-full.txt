@@ -606,7 +606,8 @@ Para SaaS, ERP y plataformas que facturan por API para sus clientes. Pagas por e
 | **Facturación** | **0,5 UF** al mes por empresa que enroles | Hasta 100 documentos o 1.000 boletas de venta al mes por empresa. Facturas, boletas, notas de crédito y boletas de honorarios. XML, PDF y estados del SII. Con el facturador de mercado de Tupana (sin restricciones de monto, cantidad de productos ni referencias) o con el facturador gratuito del SII, al mismo precio. Solo por API: no incluye la plataforma web. |
 | **Boletas de honorarios** | **$9.990** al mes por persona, IVA incluido | Para personas naturales que emiten sus boletas de honorarios electrónicas (DTE 80) por API. Hasta 100 boletas de honorarios al mes, con la retención del año y el PDF oficial del SII. Ver [Emitir una boleta de honorarios](https://docs.tupana.ai/api-reference/v2/honorary/emission). |
 | **Lectura SII** | **0,2 UF** al mes por empresa | Registro de compra y venta, boletas de honorarios emitidas y recibidas. Solo lectura; requiere la clave del SII de la empresa. |
-| **Lectura bancaria** | **0,35 UF** al mes por banco que enroles | Cuentas, saldos y movimientos sincronizados sin límite. En los bancos de personas con carga diaria de tarjetas (Banco Santander, Banco de Chile, BICE y Banco Falabella), las tarjetas de crédito vienen incluidas. |
+| **Lectura bancaria** | **0,35 UF** al mes por banco que enroles | Cuentas, saldos y movimientos sincronizados sin límite. Las tarjetas de crédito se conectan solo en los [bancos que las soportan](https://docs.tupana.ai/api-reference/v2/banking/guides/card-movement-lifecycle#bancos-con-carga-diaria-de-tarjetas); en los de personas (Banco Santander, Banco de Chile, BICE y Banco Falabella) vienen incluidas. |
+| **Recomendaciones de conciliación** | **0,1 UF** + IVA al mes por cada 1.000 movimientos de la empresa | Adicional opcional de la API bancaria: para cada movimiento, qué factura, boleta o nota de crédito concilia, con un tipo y un puntaje. Se cobra por bloque iniciado, según la fecha de los movimientos del mes anterior; un mes sin movimientos no se cobra. Requiere el SII de la empresa conectado en Tupana. Ver [Recomendaciones de conciliación](https://docs.tupana.ai/api-reference/v2/banking/guides/reconciliation-suggestions). |
 | **Recaudación** | **2% + IVA** de lo recaudado | Link de pago integrado a Transbank y webhook cuando llega el dinero. Sin costo fijo. |
 | **Sandbox** | **Gratis** | APIs, MCP, Tupana Connect, facturas y webhooks de prueba. |
 | **Bases de datos gratuitas** | **Gratis** | [Nómina de empresas del SII](https://docs.tupana.ai/api-reference/v2/free-databases/introduction), con cualquier API key. No consume cupo. |
@@ -621,6 +622,7 @@ Para SaaS, ERP y plataformas que facturan por API para sus clientes. Pagas por e
 | 10 empresas facturando | 10 × 0,5 UF | **5 UF** |
 | 10 empresas facturando y leyendo el SII | 10 × (0,5 + 0,2) UF | 7 UF |
 | 10 empresas facturando, con 1 banco cada una | 10 × 0,5 UF + 10 × 0,35 UF | 8,5 UF |
+| 1 empresa con 1 banco y recomendaciones de conciliación, 2.400 movimientos el mes anterior | 0,35 UF + 3 × 0,1 UF | 0,65 UF |
 | 100 empresas facturando | 100 × 0,5 UF | 50 UF |
 
 La recaudación se suma aparte: 2% + IVA de lo que cobras con el link de pago. Tabla completa en [developers.tupana.ai/pricing](https://developers.tupana.ai/pricing).
@@ -652,7 +654,10 @@ Son productos distintos. Los planes web (Independent 0,3 UF, Starter 1,0 UF, Pro
 El plan **Boletas de honorarios** cuesta $9.990 al mes por persona, IVA incluido, y permite hasta 100 boletas de honorarios al mes. Se emiten con el mismo endpoint de emisión de documentos, con el código 80.
 
 **¿Cuánto cuestan las tarjetas de crédito?**
-En las conexiones de personas (Banco Santander, Banco de Chile, BICE y Banco Falabella), las tarjetas vienen incluidas en la lectura bancaria. Si conectas solo las tarjetas, se cobra la lectura bancaria completa. Para los clientes de la plataforma Tupana, las tarjetas de Banco Santander empresas (Office Banking) son un adicional de 0,15 UF + IVA al mes por banco por empresa, y si la empresa conecta solo las tarjetas paga solo ese adicional. Ver [Tarjetas de crédito](https://docs.tupana.ai/api-reference/v2/banking/guides/credit-cards).
+Las tarjetas se conectan solo en los [bancos que las soportan](https://docs.tupana.ai/api-reference/v2/banking/guides/card-movement-lifecycle#bancos-con-carga-diaria-de-tarjetas): Banco Santander (personas, y empresas con Office Banking), Banco de Chile (personas y empresas), BICE y Banco Falabella (personas). En los demás bancos no se ofrecen en Tupana Connect. En las conexiones de personas (Banco Santander, Banco de Chile, BICE y Banco Falabella), las tarjetas vienen incluidas en la lectura bancaria. Si conectas solo las tarjetas, se cobra la lectura bancaria completa. Para los clientes de la plataforma Tupana, las tarjetas de empresas en Banco Santander (Office Banking) y Banco de Chile son un adicional de 0,15 UF + IVA al mes por banco por empresa, y si la empresa conecta solo las tarjetas paga solo ese adicional. Ver [Tarjetas de crédito](https://docs.tupana.ai/api-reference/v2/banking/guides/credit-cards).
+
+**¿Cuánto cuestan las recomendaciones de conciliación?**
+0,1 UF + IVA al mes por cada 1.000 movimientos de la empresa, por bloque iniciado y según la fecha de los movimientos del mes anterior: con 2.400 movimientos en octubre, pagas 0,3 UF en noviembre. Un mes sin movimientos no se cobra. Es un adicional opcional de la API bancaria, se activa por conexión y requiere el SII de la empresa conectado en Tupana. En sandbox es gratis. Ver [Recomendaciones de conciliación](https://docs.tupana.ai/api-reference/v2/banking/guides/reconciliation-suggestions).
 
 **¿Hay precio mínimo o costo fijo?**
 No. Pagas por las empresas enroladas en el mes. Si un mes no tienes ninguna, no pagas nada.
@@ -11325,8 +11330,11 @@ con cursor. Así pruebas el ciclo completo sin un banco real.
 
 ### Solo lectura
 
-Con una key sandbox, `DELETE /connections/{id}/` y
-`POST /connections/{id}/reauthorizations/` responden `403 sandbox_read_only`.
+Con una key sandbox, `DELETE /connections/{id}/`,
+`POST /connections/{id}/reauthorizations/` y `PATCH /connections/{id}/products/`
+responden `403 sandbox_read_only`. Las
+[recomendaciones de conciliación](https://docs.tupana.ai/api-reference/v2/banking/guides/reconciliation-suggestions)
+vienen siempre activas y gratis en sandbox.
 
 > **Info:** La key sandbox lee los datos bancarios de prueba sin permiso que activar. Para los webhooks,
 crea el webhook con `environment: "sandbox"` (o `"both"`).
@@ -11345,6 +11353,12 @@ Una tarjeta de crédito es una cuenta más en
 [`GET /bank-accounts/`](https://docs.tupana.ai/api-reference/v2/bank-accounts/list), con
 `type: "credit"` y `subtype: "credit_card"`. Los mismos endpoints de cuentas,
 movimientos y estados de cuenta sirven para la tarjeta.
+
+> **Nota:** Las tarjetas de crédito no están en todos los bancos: Tupana Connect ofrece
+conectarlas solo en los bancos que las soportan, hoy Banco Santander (personas,
+y empresas con Office Banking), Banco de Chile (personas y empresas), BICE y
+Banco Falabella (personas). Ver
+[Bancos con carga diaria de tarjetas](https://docs.tupana.ai/api-reference/v2/banking/guides/card-movement-lifecycle#bancos-con-carga-diaria-de-tarjetas).
 
 > **Info:** En los bancos con carga diaria de tarjetas, los cargos también están en
 [`/v2/card-movements/`](https://docs.tupana.ai/api-reference/v2/card-movements/list), con id estable,
@@ -11400,22 +11414,25 @@ Hoy las tarjetas entran por **cartola en PDF** (o por la integración con el
 emisor cuando existe), y la API lo dice en la conexión: `source: "manual_upload"`.
 Cuando se carga una cartola, la tarjeta aparece como cuenta, sus cargos como
 movimientos y la cartola como estado de cuenta, con el PDF original
-descargable. En Banco Santander (personas y empresas con Office Banking),
-Banco de Chile (personas), BICE (personas) y Banco Falabella (personas),
+descargable. En Banco Santander (personas, y empresas con Office Banking),
+Banco de Chile (personas y empresas), BICE (personas) y Banco Falabella
+(personas),
 Tupana Connect además carga los movimientos de la
 tarjeta todos los días: ver
 [Ciclo de vida de un movimiento de tarjeta](https://docs.tupana.ai/api-reference/v2/banking/guides/card-movement-lifecycle#bancos-con-carga-diaria-de-tarjetas).
 
-En Tupana Connect, el usuario elige **¿Qué quieres conectar?**: **Saldos y
-movimientos** o **Tarjetas de crédito**. Puede conectar solo las tarjetas.
+En los bancos que soportan tarjetas, Tupana Connect le pregunta al usuario
+**¿Qué quieres conectar?**: **Saldos y movimientos** o **Tarjetas de
+crédito**. Puede conectar solo las tarjetas. En los demás bancos esa opción no
+aparece.
 
 En las conexiones de personas (Banco Santander, Banco de Chile, BICE y Banco
 Falabella), la tarjeta viene incluida en la conexión del banco, sin costo
 adicional. Si conecta solo las tarjetas, se cobra la conexión del banco
 completa, igual que si conectara saldos y movimientos.
 
-Para los clientes de la plataforma Tupana, las tarjetas de Banco Santander
-empresas (Office Banking) son un adicional de 0,15 UF + IVA al mes por banco
+Para los clientes de la plataforma Tupana, las tarjetas de empresas en Banco
+Santander (Office Banking) y Banco de Chile son un adicional de 0,15 UF + IVA al mes por banco
 por empresa. Esta opción se ofrece en el Connect que se abre desde la
 plataforma Tupana. Si la empresa conecta solo las tarjetas, paga solo esos
 0,15 UF.
@@ -11719,7 +11736,7 @@ Estos bancos cargan los movimientos de tarjeta todos los días a través de
 | Banco | Personas | Empresas |
 | --- | :---: | :---: |
 | Banco Santander | ✓ | ✓ (Office Banking) |
-| Banco de Chile | ✓ | |
+| Banco de Chile | ✓ | ✓ |
 | BICE | ✓ | |
 | Banco Falabella | ✓ | |
 
@@ -11735,8 +11752,8 @@ movimientos de sus cuentas, sus tarjetas de crédito, o ambos.
 
 - **Personas** (Banco Santander, Banco de Chile, BICE y Banco Falabella): la
   tarjeta de crédito viene incluida en la conexión del banco.
-- **Banco Santander empresas (Office Banking)**: la tarjeta de crédito se lee
-  aparte de las cuentas, y por eso tiene un costo adicional.
+- **Empresas** (Banco Santander con Office Banking y Banco de Chile): la
+  tarjeta de crédito se lee aparte de las cuentas, y por eso tiene un costo adicional.
 
 ### Precio
 
@@ -11744,11 +11761,112 @@ movimientos de sus cuentas, sus tarjetas de crédito, o ambos.
   tarjeta de crédito viene incluida en la conexión del banco, sin costo
   adicional. Si se conectan solo las tarjetas, se cobra la conexión del banco
   completa.
-- **Banco Santander empresas (Office Banking)**: para los clientes de la
+- **Empresas** (Banco Santander con Office Banking y Banco de Chile): para los clientes de la
   plataforma Tupana, la tarjeta de crédito es un adicional de
   **0,15 UF + IVA al mes por banco por empresa**, que se ofrece en el Connect
   abierto desde la plataforma. Si la empresa conecta solo las tarjetas, paga
   solo esos 0,15 UF. Ver [Precios](https://docs.tupana.ai/precios).
+
+---
+
+## Ver productos y adicionales de una conexión
+
+Fuente: https://docs.tupana.ai/api-reference/v2/connections/products-get · Sección: API Bancaria / Conexiones
+
+Endpoint: `GET /connections/{connection_id}/products/` (detalle completo en la Parte 2).
+
+Qué lee una conexión bancaria y qué adicionales tiene activos.
+
+```bash
+curl https://api.tupana.ai/v2/connections/cred_5028174639201/products/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+- `active`, `paused` y `available`: los productos de la conexión, `accounts`
+  (saldos y movimientos) y `credit_cards`. Ver
+  [Tarjetas de crédito](https://docs.tupana.ai/api-reference/v2/banking/guides/credit-cards).
+- `addons` y `available_addons`: los adicionales activos y los que se pueden
+  activar, como `reconciliation_suggestions`. En una conexión creada desde la
+  plataforma Tupana, `available_addons` viene vacío: allí las recomendaciones
+  ya vienen incluidas en el módulo de conciliación.
+- `reconciliation_suggestions_price_uf` (`"0.10"`) y
+  `reconciliation_suggestions_block` (`1000`): el precio en UF netas al mes por
+  cada bloque de movimientos.
+- `reconciliation_suggestions_requires`: `"sii"` si la empresa no tiene su SII
+  conectado en Tupana; `null` si se pueden activar.
+
+Si la conexión no existe para tu API key, responde `404` con `code: "not_found"`.
+
+Lee [Recomendaciones de conciliación](https://docs.tupana.ai/api-reference/v2/banking/guides/reconciliation-suggestions).
+
+---
+
+## Cambiar productos y adicionales de una conexión
+
+Fuente: https://docs.tupana.ai/api-reference/v2/connections/products-update · Sección: API Bancaria / Conexiones
+
+Endpoint: `PATCH /connections/{connection_id}/products/` (detalle completo en la Parte 2).
+
+Cambia qué lee una conexión bancaria y qué adicionales tiene. Manda `active`,
+`addons` o ambos; lo que no mandas no cambia. Responde el estado nuevo, con la
+misma forma que el [`GET`](https://docs.tupana.ai/api-reference/v2/connections/products-get).
+
+### Adicionales
+
+`addons` deja exactamente esos adicionales activos. Para activar las
+[recomendaciones de conciliación](https://docs.tupana.ai/api-reference/v2/banking/guides/reconciliation-suggestions):
+
+```bash
+curl -X PATCH https://api.tupana.ai/v2/connections/cred_5028174639201/products/ \
+  -H "Authorization: Api-Key TU_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "addons": ["reconciliation_suggestions"] }'
+```
+
+Al activarlas, Tupana revisa los movimientos sin conciliar de los últimos 60
+días y desde ahí cada movimiento nuevo. Para apagarlas: `{ "addons": [] }`.
+Solo se activan en conexiones creadas por la API.
+
+> **Importante:** Las recomendaciones de conciliación tienen un costo adicional de 0,1 UF + IVA
+al mes por cada 1.000 movimientos de la empresa (por bloque iniciado, según la
+fecha de los movimientos del mes anterior). Un mes sin movimientos no se cobra.
+
+### Productos
+
+`active` deja exactamente esos productos encendidos (`accounts` y/o
+`credit_cards`, al menos uno) y pausa el resto de `available`. Un producto
+pausado deja de leerse y de cobrarse; lo que ya se leyó no se borra.
+
+```bash
+curl -X PATCH https://api.tupana.ai/v2/connections/cred_5028174639201/products/ \
+  -H "Authorization: Api-Key TU_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "active": ["credit_cards"] }'
+```
+
+### Errores
+
+Vienen en el [formato de la API v2](https://docs.tupana.ai/api-reference/v2/errors):
+
+```json
+{
+  "error": {
+    "type": "conflict_error",
+    "code": "conflict",
+    "message": "Esta conexión la usa otra cuenta: no se puede cambiar.",
+    "doc_url": "https://docs.tupana.ai/api-reference/v2/errors",
+    "request_id": "req_8f3a9c2b1e7d4"
+  }
+}
+```
+
+| Status | `code` | Cuándo |
+| --- | --- | --- |
+| `400` | `sii_required` | Activar `reconciliation_suggestions` sin el SII de la empresa conectado en Tupana. |
+| `400` | `bad_request` | Un valor que no está disponible en esta conexión, `active` vacío, o un adicional en una conexión creada desde la plataforma. |
+| `403` | `sandbox_read_only` | Con una API key de sandbox las conexiones son de solo lectura. |
+| `404` | `not_found` | La conexión bancaria no existe para tu API key. |
+| `409` | `conflict` | La conexión la usa otra cuenta: no se puede cambiar. |
 
 ---
 
@@ -12127,6 +12245,281 @@ key: una key sandbox recorre solo el [dataset sandbox](https://docs.tupana.ai/ap
 > **Info:** Lee la guía [Sincronizar con cursor](https://docs.tupana.ai/api-reference/v2/banking/guides/sync)
 para la receta completa: persistencia del cursor, qué hacer ante `cursor_expired`
 y cómo tratar `pending` y `posted`.
+
+---
+
+## Recomendaciones de conciliación
+
+Fuente: https://docs.tupana.ai/api-reference/v2/banking/guides/reconciliation-suggestions · Sección: API Bancaria / Recomendaciones de conciliación
+
+> Para cada movimiento bancario, qué factura, boleta o nota de crédito concilia, con un tipo y un puntaje. Un adicional que se activa por conexión bancaria
+
+## Recomendaciones de conciliación
+
+Con las recomendaciones de conciliación, Tupana revisa cada movimiento de la
+cuenta y te dice qué documentos emitidos o recibidos (facturas, boletas, notas
+de crédito) concilia. Cada recomendación trae un **tipo** y un **puntaje** de 0
+a 100, así tu sistema decide qué conciliar solo y qué mostrarle al usuario para
+que lo revise.
+
+> **Importante:** Las recomendaciones de conciliación tienen un costo adicional de 0,1 UF + IVA
+al mes por cada 1.000 movimientos de la empresa (por bloque iniciado, según la
+fecha de los movimientos del mes anterior). Un mes sin movimientos no se cobra.
+
+Por ejemplo, una empresa con 2.400 movimientos en octubre paga 0,3 UF + IVA en
+noviembre: son tres bloques iniciados.
+
+### Requisito: el SII de la empresa
+
+Las recomendaciones cruzan los movimientos del banco con los documentos de la
+empresa en el SII. La empresa necesita su **SII conectado en Tupana**: sin sus
+documentos no hay nada que recomendar.
+
+Si la empresa no lo tiene, el `GET` de los productos de la conexión lo dice
+con `reconciliation_suggestions_requires: "sii"`, y activarlas responde
+`400 sii_required`. Conecta el SII con
+[Tupana Connect](https://docs.tupana.ai/api-reference/v2/connect/tupana-connect) y vuelve a intentar.
+
+### Activarlas
+
+Se activan **por conexión bancaria**, con
+[`PATCH /connections/{connection_id}/products/`](https://docs.tupana.ai/api-reference/v2/connections/products-update):
+
+```bash
+curl -X PATCH https://api.tupana.ai/v2/connections/cred_5028174639201/products/ \
+  -H "Authorization: Api-Key TU_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "addons": ["reconciliation_suggestions"] }'
+```
+
+Al activarlas, Tupana revisa los movimientos sin conciliar de los **últimos 60
+días** y desde ahí cada movimiento nuevo que entra.
+
+Se activan en las conexiones creadas por la API. En una conexión creada desde
+la plataforma Tupana, `available_addons` viene vacío y activarlas responde
+`400`: allí las recomendaciones ya vienen incluidas en el módulo de
+conciliación.
+
+Para apagarlas, manda la lista vacía: `{ "addons": [] }`. Las recomendaciones
+que ya se crearon no se borran.
+
+Antes de activarlas puedes ver el precio y si falta algo con
+[`GET /connections/{connection_id}/products/`](https://docs.tupana.ai/api-reference/v2/connections/products-get):
+
+```json
+{
+  "connection_id": "cred_5028174639201",
+  "active": ["accounts"],
+  "paused": [],
+  "available": ["accounts", "credit_cards"],
+  "card_price_uf": null,
+  "addons": [],
+  "available_addons": ["reconciliation_suggestions"],
+  "reconciliation_suggestions_price_uf": "0.10",
+  "reconciliation_suggestions_block": 1000,
+  "reconciliation_suggestions_requires": null
+}
+```
+
+Los errores vienen en el [formato de la API v2](https://docs.tupana.ai/api-reference/v2/errors):
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "sii_required",
+    "message": "Conecta el SII de esta empresa para recibir recomendaciones de conciliación.",
+    "doc_url": "https://docs.tupana.ai/api-reference/v2/errors",
+    "request_id": "req_8f3a9c2b1e7d4"
+  }
+}
+```
+
+| Status | `code` | Cuándo |
+| --- | --- | --- |
+| `400` | `sii_required` | La empresa no tiene su SII conectado en Tupana. |
+| `400` | `bad_request` | Un adicional desconocido, o una conexión creada desde la plataforma. |
+| `403` | `sandbox_read_only` | Con una API key de sandbox las conexiones no se cambian. |
+| `409` | `conflict` | La conexión la usa otra cuenta: no se puede cambiar. |
+
+### Leerlas
+
+Las de una empresa, las más nuevas primero, con filtros por cuenta,
+movimiento, fecha de creación (`since`) y estado:
+[`GET /reconciliation-suggestions/`](https://docs.tupana.ai/api-reference/v2/reconciliation-suggestions/list).
+Sin `company_id`, trae las de todas las empresas de tu key que tienen el
+adicional activo.
+
+```bash
+curl "https://api.tupana.ai/v2/reconciliation-suggestions/?company_id=ment_3672486436546233854&status=suggested" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+Las de un movimiento:
+[`GET /movements/{movement_id}/reconciliation-suggestions/`](https://docs.tupana.ai/api-reference/v2/reconciliation-suggestions/movement).
+
+Las dos responden con la misma lista que el resto de la API v2:
+
+```json
+{
+  "data": [
+    {
+      "id": "brr_8810293746521",
+      "type": "perfect",
+      "score": 96,
+      "status": "suggested",
+      "movement_ids": ["move_Qm8102938475612"],
+      "documents": [
+        {
+          "id": "docu_4417209385561",
+          "folio": 1834,
+          "dte_type": 33,
+          "amount": 1190000.0,
+          "date": "2026-11-03",
+          "counterpart_name": "Constructora Los Andes SpA"
+        }
+      ],
+      "created_at": "2026-11-24T09:12:44-03:00"
+    }
+  ],
+  "meta": { "page": 1, "page_size": 50, "total": 1, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+Pagina con `page` y `page_size` (máximo 200). Cada recomendación trae:
+
+```json
+{
+  "id": "brr_8810293746521",
+  "type": "perfect",
+  "score": 96,
+  "status": "suggested",
+  "movement_ids": ["move_Qm8102938475612"],
+  "documents": [
+    {
+      "id": "docu_4417209385561",
+      "folio": 1834,
+      "dte_type": 33,
+      "amount": 1190000.0,
+      "date": "2026-11-03",
+      "counterpart_name": "Constructora Los Andes SpA"
+    }
+  ],
+  "created_at": "2026-11-24T09:12:44-03:00"
+}
+```
+
+#### El tipo
+
+| `type` | Qué significa |
+| --- | --- |
+| `perfect` | El monto y el RUT de la contraparte calzan con los documentos. |
+| `partial` | El RUT calza, pero el monto cubre solo una parte (un abono, o un pago que junta varios documentos y falta alguno). |
+| `other_rut` | El monto calza, pero el pago viene de otro RUT (por ejemplo, una empresa relacionada que paga por el cliente). |
+
+#### El puntaje y el estado
+
+`score` va de 0 a 100: mientras más alto, más segura la recomendación. Un
+`perfect` con puntaje alto suele poder conciliarse sin revisión; un
+`other_rut` conviene mostrárselo al usuario.
+
+`status` es `suggested` mientras nadie la toca, `applied` cuando la
+conciliación se registró y `discarded` cuando se descartó.
+
+Si las recomendaciones no están activas en la conexión de esa empresa, los dos
+endpoints responden `403`:
+
+```json
+{
+  "error": {
+    "type": "permission_error",
+    "code": "addon_required",
+    "message": "Activa las recomendaciones de conciliación en esta conexión.",
+    "doc_url": "https://docs.tupana.ai/api-reference/v2/errors",
+    "request_id": "req_8f3a9c2b1e7d4"
+  }
+}
+```
+
+### Sandbox
+
+En sandbox las recomendaciones son **gratis y están siempre activas**: no hay
+que activarlas. Funcionan con los datos de prueba del
+[sandbox bancario](https://docs.tupana.ai/api-reference/v2/banking/guides/sandbox), así que puedes
+probar la lectura completa antes de activarlas en producción.
+
+Se calculan al vuelo en cada consulta, sobre los 100 movimientos más
+recientes, y no se guardan. Por eso cambian algunas cosas:
+
+- El `id` tiene la forma `brr_sandbox_<movement_id>_<n>`, por ejemplo
+  `brr_sandbox_move_Qm8102938475612_1`.
+- `created_at` es el momento de la consulta, y `since` filtra por la fecha del
+  movimiento.
+- Todas vienen `suggested`, con `type` `perfect` o `partial` y `score` 100, 70
+  o 50. Filtrar por `applied` o `discarded` devuelve una lista vacía.
+- La lista puede venir vacía si ningún movimiento de prueba calza con un
+  documento.
+
+---
+
+## Listar recomendaciones de conciliación
+
+Fuente: https://docs.tupana.ai/api-reference/v2/reconciliation-suggestions/list · Sección: API Bancaria / Recomendaciones de conciliación
+
+Endpoint: `GET /reconciliation-suggestions/` (detalle completo en la Parte 2).
+
+Las recomendaciones de conciliación de una empresa: para cada movimiento, qué
+documentos emitidos o recibidos concilia, con su `type` y su `score`. Lee
+[Recomendaciones de conciliación](https://docs.tupana.ai/api-reference/v2/banking/guides/reconciliation-suggestions)
+para activarlas y entender cada campo.
+
+```bash
+curl "https://api.tupana.ai/v2/reconciliation-suggestions/?company_id=ment_3672486436546233854&status=suggested&page_size=100" \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+Las más nuevas primero. Filtra por `company_id`, `account_id`, `movement_id`,
+`since` (fecha de creación de la recomendación; con una key de sandbox, fecha
+del movimiento) y `status` (`suggested`, `applied`, `discarded`). Sin
+`company_id`, trae las de todas las empresas de tu key con el adicional activo.
+
+La respuesta usa el mismo envelope que el resto de los listados v2:
+
+```json
+{
+  "data": [ { "id": "brr_8810293746521", "type": "perfect", "score": 96, "status": "suggested", "...": "..." } ],
+  "meta": { "page": 1, "page_size": 50, "total": 1, "total_pages": 1 },
+  "links": { "next": null, "prev": null }
+}
+```
+
+Pagina con `page` y `page_size` (máximo 200).
+
+Si las recomendaciones no están activas, responde `403` con
+`code: "addon_required"` en el [formato de error v2](https://docs.tupana.ai/api-reference/v2/errors).
+
+---
+
+## Recomendaciones de un movimiento
+
+Fuente: https://docs.tupana.ai/api-reference/v2/reconciliation-suggestions/movement · Sección: API Bancaria / Recomendaciones de conciliación
+
+Endpoint: `GET /movements/{movement_id}/reconciliation-suggestions/` (detalle completo en la Parte 2).
+
+Las recomendaciones de conciliación de un movimiento (`move_…`), con el mismo
+envelope `{data, meta, links}` que [el listado](https://docs.tupana.ai/api-reference/v2/reconciliation-suggestions/list).
+Acepta los filtros `since` y `status` y pagina con `page` y `page_size`.
+
+```bash
+curl https://api.tupana.ai/v2/movements/move_Qm8102938475612/reconciliation-suggestions/ \
+  -H "Authorization: Api-Key TU_API_KEY"
+```
+
+Si las recomendaciones no están activas en la conexión de esa empresa,
+responde `403` con `code: "addon_required"`. Si el movimiento no existe para tu
+API key, `404` con `code: "not_found"`. Los errores vienen en el
+[formato de la API v2](https://docs.tupana.ai/api-reference/v2/errors).
 
 ---
 
@@ -17386,6 +17779,235 @@ Esquema: `CardStatementDetail`
 
 Respuesta `404`: El estado de cuenta no existe para esta API key
 
+### GET /v2/connections/{connection_id}/products/
+
+**Productos y adicionales de una conexión**
+
+Qué lee una conexión bancaria (`accounts` y/o `credit_cards`) y qué adicionales tiene activos, como las recomendaciones de conciliación. `available_addons` viene vacío en las conexiones creadas desde la plataforma Tupana, que ya incluyen las recomendaciones en su módulo de conciliación.
+
+URL completa: `GET https://api.tupana.ai/v2/connections/{connection_id}/products/`
+
+Parámetros:
+
+- `connection_id` (path, string; requerido): Id de la conexión bancaria (`cred_…`), el que devuelve GET /connections/.
+
+Respuesta `200`: Productos y adicionales
+
+Esquema: `ConnectionProducts`
+
+Respuesta `404`: La conexión bancaria no existe para esta API key
+
+Esquema: `ErrorV2`
+
+```json
+{
+  "error": {
+    "type": "not_found_error",
+    "code": "not_found",
+    "message": "No encontramos esa conexión bancaria.",
+    "suggested_action": "Revisa la URL y que el id exista en el ambiente de tu API key.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/not_found",
+    "request_id": "req_8f3a9c2b1e7d4"
+  }
+}
+```
+
+### PATCH /v2/connections/{connection_id}/products/
+
+**Cambiar productos y adicionales de una conexión**
+
+Manda `active`, `addons` o ambos; lo que no mandas no cambia. Con `active` dejas exactamente esos productos encendidos y pausas el resto: un producto pausado deja de leerse y de cobrarse, y lo ya leído no se borra. Con `addons` activas o apagas adicionales: `["reconciliation_suggestions"]` enciende las recomendaciones de conciliación (y revisa los movimientos sin conciliar de los últimos 60 días) y `[]` las apaga. Solo en conexiones creadas por la API; en una conexión de la plataforma responde `400`.
+
+URL completa: `PATCH https://api.tupana.ai/v2/connections/{connection_id}/products/`
+
+Parámetros:
+
+- `connection_id` (path, string; requerido): Id de la conexión bancaria (`cred_…`), el que devuelve GET /connections/.
+
+Cuerpo (`application/json`): `ConnectionProductsUpdate`
+
+- `active` (array de string): Deja exactamente estos productos activos y pausa el resto de `available`. Al menos uno.
+- `addons` (array de string): Deja exactamente estos adicionales activos. `[]` los apaga todos.
+
+Ejemplo de cuerpo:
+
+```json
+{
+  "addons": [
+    "reconciliation_suggestions"
+  ]
+}
+```
+
+Respuesta `200`: Estado nuevo de la conexión
+
+Esquema: `ConnectionProducts`
+
+Respuesta `400`: Valor inválido (`bad_request`) o la empresa no tiene su SII conectado (`sii_required`)
+
+Esquema: `ErrorV2`
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "sii_required",
+    "message": "Conecta el SII de esta empresa para recibir recomendaciones de conciliación.",
+    "doc_url": "https://docs.tupana.ai/api-reference/v2/errors",
+    "request_id": "req_8f3a9c2b1e7d4"
+  }
+}
+```
+
+Respuesta `403`: Con una API key de sandbox las conexiones son de solo lectura (`sandbox_read_only`)
+
+Esquema: `ErrorV2`
+
+```json
+{
+  "error": {
+    "type": "permission_error",
+    "code": "sandbox_read_only",
+    "message": "Con una API key de sandbox las conexiones son de solo lectura. Usa una key de producción para desactivar o reautorizar.",
+    "suggested_action": "Usa una API key de producción para esta operación.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/sandbox_read_only",
+    "request_id": "req_8f3a9c2b1e7d4"
+  }
+}
+```
+
+Respuesta `404`: La conexión bancaria no existe para esta API key
+
+Esquema: `ErrorV2`
+
+```json
+{
+  "error": {
+    "type": "not_found_error",
+    "code": "not_found",
+    "message": "No encontramos esa conexión bancaria.",
+    "suggested_action": "Revisa la URL y que el id exista en el ambiente de tu API key.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/not_found",
+    "request_id": "req_8f3a9c2b1e7d4"
+  }
+}
+```
+
+Respuesta `409`: La conexión la usa otra cuenta: no se puede cambiar (`conflict`)
+
+Esquema: `ErrorV2`
+
+```json
+{
+  "error": {
+    "type": "conflict_error",
+    "code": "conflict",
+    "message": "Esta conexión la usa otra cuenta: no se puede cambiar.",
+    "doc_url": "https://docs.tupana.ai/api-reference/v2/errors",
+    "request_id": "req_8f3a9c2b1e7d4"
+  }
+}
+```
+
+### GET /v2/reconciliation-suggestions/
+
+**Listar recomendaciones de conciliación**
+
+Para cada movimiento bancario, qué documentos emitidos o recibidos (facturas, boletas, notas de crédito) concilia, con un tipo y un puntaje, las más nuevas primero. Requiere el adicional `reconciliation_suggestions` activo en la conexión del banco. Sin `company_id`, lista las de todas las empresas de tu key que lo tienen activo. Con una key de sandbox son gratis, siempre activas y se calculan al vuelo sobre los 100 movimientos más recientes.
+
+URL completa: `GET https://api.tupana.ai/v2/reconciliation-suggestions/`
+
+Parámetros:
+
+- `company_id` (query, string): Tupana ID de la empresa (`ment_…`). Sin él, todas las empresas de tu key con el adicional activo.
+- `account_id` (query, string): Acota a una cuenta (`bacc_…`).
+- `movement_id` (query, string): Acota a un movimiento (`move_…`).
+- `since` (query, string (date)): Recomendaciones creadas desde esta fecha, inclusive. Con una key de sandbox filtra por la fecha del movimiento.
+- `status` (query, string; valores: `suggested`, `applied`, `discarded`): Estado de la recomendación. En sandbox todas son `suggested`: `applied` y `discarded` devuelven una lista vacía.
+- `page` (query, integer; default: `1`)
+- `page_size` (query, integer; default: `50`): Máximo 200; un valor mayor se recorta a 200.
+
+Respuesta `200`: Recomendaciones
+
+Esquema: object
+
+Respuesta `400`: Un filtro inválido (por ejemplo, `since` que no es fecha o un `status` desconocido)
+
+Respuesta `403`: Las recomendaciones no están activas en la conexión (`addon_required`)
+
+Esquema: `ErrorV2`
+
+```json
+{
+  "error": {
+    "type": "permission_error",
+    "code": "addon_required",
+    "message": "Activa las recomendaciones de conciliación en esta conexión.",
+    "doc_url": "https://docs.tupana.ai/api-reference/v2/errors",
+    "request_id": "req_8f3a9c2b1e7d4"
+  }
+}
+```
+
+Respuesta `404`: La empresa o la cuenta no existen para esta API key
+
+### GET /v2/movements/{movement_id}/reconciliation-suggestions/
+
+**Recomendaciones de un movimiento**
+
+Las recomendaciones de conciliación de un movimiento, en el mismo formato de lista que GET /reconciliation-suggestions/. Acepta los filtros `since` y `status`.
+
+URL completa: `GET https://api.tupana.ai/v2/movements/{movement_id}/reconciliation-suggestions/`
+
+Parámetros:
+
+- `movement_id` (path, string; requerido)
+- `since` (query, string (date)): Recomendaciones creadas desde esta fecha, inclusive (en sandbox, fecha del movimiento).
+- `status` (query, string; valores: `suggested`, `applied`, `discarded`): Estado de la recomendación.
+- `page` (query, integer; default: `1`)
+- `page_size` (query, integer; default: `50`)
+
+Respuesta `200`: Recomendaciones del movimiento
+
+Esquema: object
+
+Respuesta `403`: Las recomendaciones no están activas en la conexión (`addon_required`)
+
+Esquema: `ErrorV2`
+
+```json
+{
+  "error": {
+    "type": "permission_error",
+    "code": "addon_required",
+    "message": "Activa las recomendaciones de conciliación en esta conexión.",
+    "doc_url": "https://docs.tupana.ai/api-reference/v2/errors",
+    "request_id": "req_8f3a9c2b1e7d4"
+  }
+}
+```
+
+Respuesta `404`: El movimiento no existe para esta API key
+
+Esquema: `ErrorV2`
+
+```json
+{
+  "error": {
+    "type": "not_found_error",
+    "code": "not_found",
+    "message": "No encontramos ese movimiento.",
+    "suggested_action": "Revisa la URL y que el id exista en el ambiente de tu API key.",
+    "retryable": false,
+    "doc_url": "https://docs.tupana.ai/api-reference/errors/not_found",
+    "request_id": "req_8f3a9c2b1e7d4"
+  }
+}
+```
+
 ### Esquemas de Tupana API — v2
 
 #### `BookSummaryItem`
@@ -18494,6 +19116,72 @@ Tipo: object
 - `total_source` (string; valores: `bank`, `computed`): `bank`: el total lo informó el banco. `computed`: el banco no lo informó y Tupana lo calculó desde los movimientos.
 - `locked_at` (string (date-time), nullable; ej: `2026-10-26T08:40:11Z`): Cuándo quedó cerrado tras cuadrar. `null` si no cuadró.
 - `movements` (array de `CardMovement`): Las líneas del estado de cuenta.
+
+#### `ConnectionProducts`
+
+Qué lee una conexión bancaria y qué adicionales tiene activos.
+
+Tipo: object
+
+- `connection_id` (string; ej: `cred_5028174639201`)
+- `active` (array de string): Productos que la conexión lee hoy: `accounts` (saldos y movimientos) y/o `credit_cards`.
+- `paused` (array de string): Productos disponibles que el dueño pausó: no se leen ni se cobran.
+- `available` (array de string): Productos que esta conexión puede leer, según el banco y el RUT.
+- `card_price_uf` (string, nullable; ej: `None`): UF netas al mes que suman las tarjetas, como texto; `null` cuando vienen incluidas o no se ofrecen.
+- `addons` (array de string): Adicionales activos en la conexión.
+- `available_addons` (array de string): Adicionales que se pueden activar en esta conexión. Vacío en las conexiones creadas desde la plataforma Tupana.
+- `reconciliation_suggestions_price_uf` (string; ej: `0.10`): UF netas al mes por cada bloque de movimientos, como texto.
+- `reconciliation_suggestions_block` (integer; ej: `1000`): Movimientos por bloque de cobro.
+- `reconciliation_suggestions_requires` (string, nullable; valores: `sii`, `None`; ej: `None`): Lo que falta para activar las recomendaciones: `sii` si la empresa no tiene su SII conectado en Tupana; `null` si se pueden activar o si la conexión no es de la API.
+
+#### `ConnectionProductsUpdate`
+
+Manda `active`, `addons` o ambos. Lo que no mandas no cambia.
+
+Tipo: object
+
+- `active` (array de string): Deja exactamente estos productos activos y pausa el resto de `available`. Al menos uno.
+- `addons` (array de string): Deja exactamente estos adicionales activos. `[]` los apaga todos.
+
+#### `ReconciliationSuggestionDocument`
+
+Tipo: object
+
+- `id` (string; ej: `docu_4417209385561`): Tupana ID del documento (`docu_…`).
+- `folio` (integer, nullable; ej: `1834`)
+- `dte_type` (integer, nullable; ej: `33`): Tipo de documento SII (33 factura, 34 factura exenta, 39 boleta, 61 nota de crédito…).
+- `amount` (number; ej: `1190000.0`): Monto total del documento en pesos.
+- `date` (string (date), nullable; ej: `2026-11-03`)
+- `counterpart_name` (string, nullable; ej: `Constructora Los Andes SpA`): Razón social del cliente o proveedor.
+
+#### `ReconciliationSuggestion`
+
+Tipo: object
+
+- `id` (string; ej: `brr_8810293746521`): Id de la recomendación (`brr_…`). Con keys de sandbox tiene la forma `brr_sandbox_<movement_id>_<n>`.
+- `type` (string; valores: `perfect`, `partial`, `other_rut`): `perfect`: montos y RUT calzan. `partial`: el RUT calza y el monto cubre una parte. `other_rut`: el monto calza pero el pago viene de otro RUT. En sandbox solo `perfect` o `partial`.
+- `score` (integer; ej: `96`; mín. 0; máx. 100): Confianza de la recomendación, de 0 a 100. En sandbox, 100, 70 o 50.
+- `status` (string; valores: `suggested`, `applied`, `discarded`): `suggested`: pendiente. `applied`: la conciliación se registró. `discarded`: se descartó.
+- `movement_ids` (array de string): Movimientos que concilia (`move_…`).
+- `documents` (array de `ReconciliationSuggestionDocument`)
+- `created_at` (string (date-time); ej: `2026-11-24T09:12:44-03:00`): Cuándo se creó la recomendación. En sandbox, el momento de la consulta: se calculan al vuelo.
+
+#### `ErrorV2`
+
+Formato de error de la API v2. Ver /api-reference/v2/errors.
+
+Tipo: object
+
+- `error` (object)
+  - `type` (string; requerido; ej: `permission_error`)
+  - `code` (string; requerido; ej: `addon_required`)
+  - `message` (string; requerido)
+  - `param` (string)
+  - `resource` (string)
+  - `suggested_action` (string)
+  - `retryable` (boolean)
+  - `doc_url` (string (uri); requerido)
+  - `request_id` (string; requerido; ej: `req_8f3a9c2b1e7d4`)
 
 ## Tupana API - Recaudación (OpenAPI 1.0.0)
 

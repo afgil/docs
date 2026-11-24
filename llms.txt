@@ -179,6 +179,8 @@ Detalle: https://docs.tupana.ai/precios · https://developers.tupana.ai/pricing
 - [Sandbox bancario](https://docs.tupana.ai/api-reference/v2/banking/guides/sandbox): Prueba la API bancaria con una key sandbox contra los mismos endpoints: un set de datos sintético en tus propias empresas, que cambia todos los días
 - [Tarjetas de crédito](https://docs.tupana.ai/api-reference/v2/banking/guides/credit-cards): Una tarjeta es una cuenta con type credit: qué significa cada saldo, de dónde sale el dato y cómo leer sus cargos y estados de cuenta
 - [Ciclo de vida de un movimiento de tarjeta](https://docs.tupana.ai/api-reference/v2/banking/guides/card-movement-lifecycle): Por qué un cargo de tarjeta cambia después de aparecer, qué estados recorre, cómo se verifican los estados de cuenta y cómo integrarlo sin descuadrar tu contabilidad
+- [Ver productos y adicionales de una conexión](https://docs.tupana.ai/api-reference/v2/connections/products-get)
+- [Cambiar productos y adicionales de una conexión](https://docs.tupana.ai/api-reference/v2/connections/products-update)
 - [Listar instituciones](https://docs.tupana.ai/api-reference/v2/institutions/list)
 - [Listar cuentas bancarias](https://docs.tupana.ai/api-reference/v2/bank-accounts/list)
 - [Obtener una cuenta bancaria](https://docs.tupana.ai/api-reference/v2/bank-accounts/get)
@@ -186,6 +188,9 @@ Detalle: https://docs.tupana.ai/precios · https://developers.tupana.ai/pricing
 - [Listar movimientos de una cuenta](https://docs.tupana.ai/api-reference/v2/movements/list)
 - [Obtener un movimiento](https://docs.tupana.ai/api-reference/v2/movements/get)
 - [Sincronizar movimientos (cursor)](https://docs.tupana.ai/api-reference/v2/movements/sync)
+- [Recomendaciones de conciliación](https://docs.tupana.ai/api-reference/v2/banking/guides/reconciliation-suggestions): Para cada movimiento bancario, qué factura, boleta o nota de crédito concilia, con un tipo y un puntaje. Un adicional que se activa por conexión bancaria
+- [Listar recomendaciones de conciliación](https://docs.tupana.ai/api-reference/v2/reconciliation-suggestions/list)
+- [Recomendaciones de un movimiento](https://docs.tupana.ai/api-reference/v2/reconciliation-suggestions/movement)
 - [Listar estados de cuenta](https://docs.tupana.ai/api-reference/v2/statements/list)
 - [Obtener un estado de cuenta](https://docs.tupana.ai/api-reference/v2/statements/get)
 - [Listar movimientos de tarjeta](https://docs.tupana.ai/api-reference/v2/card-movements/list)
