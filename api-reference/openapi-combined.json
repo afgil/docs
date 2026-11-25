@@ -5108,12 +5108,14 @@
               "type": "string",
               "enum": [
                 "document.issued",
+                "document.issue_failed",
                 "document.delivered",
                 "document.rejected",
                 "document.trace_updated",
                 "document.paid",
                 "document.unpaid",
-                "document.cancelled"
+                "document.cancelled",
+                "batch.intake_failed"
               ]
             },
             "minItems": 1
@@ -5168,12 +5170,14 @@
               "type": "string",
               "enum": [
                 "document.issued",
+                "document.issue_failed",
                 "document.delivered",
                 "document.rejected",
                 "document.trace_updated",
                 "document.paid",
                 "document.unpaid",
-                "document.cancelled"
+                "document.cancelled",
+                "batch.intake_failed"
               ]
             }
           },
@@ -5286,12 +5290,14 @@
             "description": "Tipo de evento",
             "enum": [
               "document.issued",
+              "document.issue_failed",
               "document.delivered",
               "document.rejected",
               "document.trace_updated",
               "document.paid",
               "document.unpaid",
               "document.cancelled",
+              "batch.intake_failed",
               "scheduled_document.created",
               "scheduled_document.updated",
               "scheduled_document.executed",
@@ -5443,12 +5449,14 @@
               "type": "string",
               "enum": [
                 "document.issued",
+                "document.issue_failed",
                 "document.delivered",
                 "document.rejected",
                 "document.trace_updated",
                 "document.paid",
                 "document.unpaid",
-                "document.cancelled"
+                "document.cancelled",
+                "batch.intake_failed"
               ]
             },
             "minItems": 1
