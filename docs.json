@@ -404,7 +404,8 @@
                 "group": "Libros SII",
                 "pages": [
                   "api-reference/v2/book-summaries/list",
-                  "api-reference/v2/book-documents/list"
+                  "api-reference/v2/book-documents/list",
+                  "api-reference/v2/book-daily-summaries/list"
                 ]
               },
               {
