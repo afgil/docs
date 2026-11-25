@@ -17,6 +17,7 @@ Si construyes con Claude, Cursor o ChatGPT, conecta el [servidor MCP](/agentes/c
 |---|---|---|
 | Totales del libro por tipo de documento | [`GET /v2/book-summaries/`](/api-reference/v2/book-summaries/list) | Por período (`YYYYMM`) |
 | Libro de compras y libro de ventas, documento por documento | [`GET /v2/book-documents/`](/api-reference/v2/book-documents/list) | Por período y `operation=COMPRA` o `VENTA`, paginado |
+| Boletas (39, 41) y comprobantes de pago electrónico (48), día por día | [`GET /v2/book-daily-summaries/`](/api-reference/v2/book-daily-summaries/list) | Por período (`YYYYMM`), paginado |
 | Boletas de honorarios | [`GET /v2/documents/`](/api-reference/v2/documents/list) con `dte_type__code__in=80` o `90` | Por fecha de emisión, paginado |
 | Última sincronización de cada dato | `GET /v2/sync-status/` | Por empresa |
 
@@ -102,6 +103,7 @@ Todos los campos, incluidos los de `taxes`, `settlement` y `register_info`, con 
 - **Clave de cada fila:** `(document_id, operation)`. Un documento aparece una sola vez en cada libro de la empresa.
 - **Vuelve a leer al menos el mes en curso y el anterior** en cada sincronización. Una fila cambia: pasa de `PENDIENTE` a `REGISTRO` o a `RECLAMADO`, recibe acuse o reclamo, o entra tarde al período. Compara `synced_at` para saber cuáles cambiaron.
 - **Los totales de book-summaries** se actualizan en el mismo `id` (`bosu_…`); también son únicos por `(period, operation, dte_type_code)`.
+- **El desglose diario de boletas** no tiene `id`: se reemplaza en cada sincronización. Guárdalo por `(date, dte_type_code, channel_code)` y elimina los días del período que dejen de venir.
 
 ## 6. Reglas para contabilizar
 

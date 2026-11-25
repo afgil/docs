@@ -1228,6 +1228,7 @@ Esta guía es para un ERP o software contable que quiere traer, de cada empresa 
 |---|---|---|
 | Totales del libro por tipo de documento | [`GET /v2/book-summaries/`](https://docs.tupana.ai/api-reference/v2/book-summaries/list) | Por período (`YYYYMM`) |
 | Libro de compras y libro de ventas, documento por documento | [`GET /v2/book-documents/`](https://docs.tupana.ai/api-reference/v2/book-documents/list) | Por período y `operation=COMPRA` o `VENTA`, paginado |
+| Boletas (39, 41) y comprobantes de pago electrónico (48), día por día | [`GET /v2/book-daily-summaries/`](https://docs.tupana.ai/api-reference/v2/book-daily-summaries/list) | Por período (`YYYYMM`), paginado |
 | Boletas de honorarios | [`GET /v2/documents/`](https://docs.tupana.ai/api-reference/v2/documents/list) con `dte_type__code__in=80` o `90` | Por fecha de emisión, paginado |
 | Última sincronización de cada dato | `GET /v2/sync-status/` | Por empresa |
 
@@ -1313,6 +1314,7 @@ Todos los campos, incluidos los de `taxes`, `settlement` y `register_info`, con 
 - **Clave de cada fila:** `(document_id, operation)`. Un documento aparece una sola vez en cada libro de la empresa.
 - **Vuelve a leer al menos el mes en curso y el anterior** en cada sincronización. Una fila cambia: pasa de `PENDIENTE` a `REGISTRO` o a `RECLAMADO`, recibe acuse o reclamo, o entra tarde al período. Compara `synced_at` para saber cuáles cambiaron.
 - **Los totales de book-summaries** se actualizan en el mismo `id` (`bosu_…`); también son únicos por `(period, operation, dte_type_code)`.
+- **El desglose diario de boletas** no tiene `id`: se reemplaza en cada sincronización. Guárdalo por `(date, dte_type_code, channel_code)` y elimina los días del período que dejen de venir.
 
 ### 6. Reglas para contabilizar
 
@@ -5380,6 +5382,8 @@ Fuente: https://docs.tupana.ai/changelog · Sección: Guía de Usuario / Novedad
 > Historial completo de cambios de la API de facturación electrónica de Tupana para Chile: API v1 y v2, emisión de DTE al SII, webhooks, sandbox, Tupana Connect, cesiones, recaudación, folios, libros del SII, servidor MCP y SDKs.
 
 Aquí registramos cada cambio de la API de Tupana que se nota desde tu integración: endpoints nuevos, campos, eventos de webhook, tipos de documento, límites y cambios de comportamiento. Las fechas son las de salida a producción. Suscríbete por RSS para enterarte de cada novedad.
+
+  - Nuevo endpoint de [desglose diario de boletas](https://docs.tupana.ai/api-reference/v2/book-daily-summaries/list) (`/v1/book-daily-summaries/` y `/v2/book-daily-summaries/`): las boletas electrónicas (39), boletas exentas (41) y comprobantes de pago electrónico (48) del libro de ventas, día por día, con cantidad de documentos y montos. Es el detalle que el SII muestra al abrir la línea de resumen mensual. Se sincroniza junto con el resumen de libros y usa el mismo permiso `book_summary:access`.
 
   - Nuevo evento [`document.credit_note_applied`](https://docs.tupana.ai/user-guide/webhooks#documentcredit_note_applied): avisa cada vez que una nota de crédito abona una factura, por una parte o por el total. `data` es la factura y el bloque `credit_note_application` trae el monto abonado, el acumulado, el saldo y la nota de crédito. Ya está disponible en la configuración de webhooks y en la API.
   - [`document.cancelled`](https://docs.tupana.ai/user-guide/webhooks#documentcancelled) se envía cuando las notas de crédito cubren el 100% de la factura. Corrige un problema por el que el evento no salía en la mayoría de las anulaciones con nota de crédito. Una nota de crédito parcial no lo dispara.
@@ -14513,8 +14517,9 @@ Los endpoints de **Consultas** te dan lectura del estado tributario de una
 entidad, sin emitir nada:
 
 - **Libros SII** — el resumen del Registro de Compras y Ventas (RCV) del SII
-  por período (`book-summaries`) y su detalle documento por documento
-  (`book-documents`).
+  por período (`book-summaries`), su detalle documento por documento
+  (`book-documents`) y el desglose diario de boletas y comprobantes de pago
+  (`book-daily-summaries`).
 - **Sincronización** — dispara y consulta la sincronización de datos con el SII
   (`sync-requests`, `sync-status`).
 - **Folios** — disponibilidad y solicitudes de folios (CAF), y consultas de
@@ -14585,6 +14590,39 @@ Las facturas exentas (DTE 34) no tienen neto: `net_amount` es 0 y todo el monto 
 
 - `settlement`: en las liquidaciones de factura (DTE 43) trae el RUT del emisor de la liquidación y la comisión (neta, exenta e IVA). En los demás documentos es null.
 - `register_info`: los datos informativos del registro del SII, como monto no facturable, monto del período, pasajes nacionales e internacionales, datos del receptor extranjero, indicadores de venta sin costo y de servicio, y si el SII marca al emisor como agresivo.
+
+---
+
+## Desglose diario de boletas del libro de ventas del SII (API v2)
+
+Fuente: https://docs.tupana.ai/api-reference/v2/book-daily-summaries/list · Sección: API Consultas / Libros SII
+
+> Obtén por API las boletas electrónicas y comprobantes de pago electrónico de una empresa chilena día por día, tal como los muestra el Registro de Compras y Ventas del SII.
+
+Endpoint: `GET /book-daily-summaries/` (detalle completo en la Parte 2).
+
+### Para qué sirve
+
+El SII no informa las boletas documento por documento en el Registro de Compras y Ventas. Las boletas electrónicas (39), las boletas exentas (41) y los comprobantes de pago electrónico (48) aparecen en el libro de ventas como **una línea de resumen por mes**, que es lo que entrega [`GET /v2/book-summaries/`](https://docs.tupana.ai/api-reference/v2/book-summaries/list).
+
+Al abrir esa línea, el SII muestra cuánto se emitió cada día. Este endpoint entrega ese desglose: una fila por día con la cantidad de documentos y sus montos.
+
+```bash
+curl "https://api.tupana.ai/v2/book-daily-summaries/?master_entity_id=ment_4829301923847&period=202610&dte_type_code=39" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+### Cómo leerlo
+
+- **Solo vienen los días con documentos.** Un día sin boletas no trae fila.
+- **Una fila por día, tipo de documento y canal.** `channel_code` es el canal de la transacción que informa el SII. Si un día trae más de una fila para el mismo tipo, súmalas para obtener el total del día.
+- **La suma del mes calza con el resumen.** Los días de un tipo de documento suman la línea de ese tipo en `book-summaries` para el mismo período.
+- **Las filas no tienen `id`.** Se reemplazan en cada sincronización, porque el SII puede corregir días ya informados. Guárdalas por `(date, dte_type_code, channel_code)` y elimina los días del período que dejen de venir.
+- **No aplica al libro de compras.** El desglose existe solo para las ventas de la empresa.
+
+### Habilitación
+
+Usa la misma habilitación que el resumen de libros: si `meta.is_enabled` es `false`, la empresa no tiene activa la sincronización `BOOK_SUMMARY` y `data` viene vacío. La API key necesita el permiso `book_summary:access`.
 
 ---
 
@@ -17418,6 +17456,34 @@ Respuesta `403`: Sin acceso a la entidad, o la API key no tiene el permiso book_
 
 Esquema: object
 
+### GET /v2/book-daily-summaries/
+
+**Listar desglose diario de boletas del libro de ventas SII**
+
+Devuelve, día por día, las boletas electrónicas (39), boletas exentas (41) y comprobantes de pago electrónico (48) de un período. El SII informa estos documentos en el libro de ventas solo como un total mensual (ver book-summaries); este endpoint entrega el desglose por día que el SII muestra al abrir esa línea. Solo vienen los días con documentos, ordenados por fecha y tipo de documento. No hay una fila por boleta.
+
+URL completa: `GET https://api.tupana.ai/v2/book-daily-summaries/`
+
+Parámetros:
+
+- `master_entity_id` (query, string; requerido): ID de la entidad maestra. El public ID de la entidad (`ment_...`).
+- `period` (query, string; requerido): Período tributario a consultar, formato YYYYMM.
+- `dte_type_code` (query, string): Filtra por tipo de documento SII, separados por coma: `39` (boleta electrónica), `41` (boleta exenta electrónica), `48` (comprobante de pago electrónico). Si se omite, devuelve todos.
+- `page` (query, integer): Página (desde 1).
+- `page_size` (query, integer): Filas por página. Por defecto 25, máximo 100.
+
+Respuesta `200`: Desglose diario del período consultado
+
+Esquema: object
+
+Respuesta `400`: master_entity_id o period faltantes o inválidos, o dte_type_code mal formado
+
+Esquema: object
+
+Respuesta `403`: Sin acceso a la entidad, o la API key no tiene el permiso book_summary:access
+
+Esquema: object
+
 ### GET /v2/institutions/
 
 **Listar instituciones**
@@ -18240,6 +18306,21 @@ Tipo: object
 - `vat_amount` (integer): Monto IVA
 - `total_amount` (integer): Monto total
 - `scraped_at` (string (date-time)): Fecha/hora en que se obtuvo este resumen desde el SII
+
+#### `BookDailySummaryItem`
+
+Tipo: object
+
+- `period` (string; ej: `202610`): Período tributario YYYYMM
+- `date` (string (date); ej: `2026-10-14`): Día de emisión de los documentos
+- `dte_type_code` (integer; valores: `39`, `41`, `48`; ej: `39`): Tipo de documento SII: 39 boleta electrónica, 41 boleta exenta electrónica, 48 comprobante de pago electrónico
+- `channel_code` (integer; ej: `9`): Canal de la transacción tal como lo informa el SII. Un mismo día puede traer una fila por canal: súmalas para obtener el total del día.
+- `total_docs` (integer; ej: `12`): Cantidad de documentos emitidos ese día
+- `net_amount` (integer; ej: `84034`): Monto neto del día
+- `exempt_amount` (integer; ej: `0`): Monto exento del día
+- `vat_amount` (integer; ej: `15966`): IVA del día
+- `total_amount` (integer; ej: `100000`): Monto total del día
+- `synced_at` (string (date-time)): Fecha y hora en que Tupana leyó este día desde el SII
 
 #### `CessionListItem`
 

@@ -1,0 +1,29 @@
+---
+title: 'Desglose diario de boletas del libro de ventas del SII (API v2)'
+sidebarTitle: 'Listar desglose diario de boletas'
+description: 'Obtén por API las boletas electrónicas y comprobantes de pago electrónico de una empresa chilena día por día, tal como los muestra el Registro de Compras y Ventas del SII.'
+openapi: "api-reference/openapi-v2.json GET /book-daily-summaries/"
+---
+
+## Para qué sirve
+
+El SII no informa las boletas documento por documento en el Registro de Compras y Ventas. Las boletas electrónicas (39), las boletas exentas (41) y los comprobantes de pago electrónico (48) aparecen en el libro de ventas como **una línea de resumen por mes**, que es lo que entrega [`GET /v2/book-summaries/`](/api-reference/v2/book-summaries/list).
+
+Al abrir esa línea, el SII muestra cuánto se emitió cada día. Este endpoint entrega ese desglose: una fila por día con la cantidad de documentos y sus montos.
+
+```bash
+curl "https://api.tupana.ai/v2/book-daily-summaries/?master_entity_id=ment_4829301923847&period=202610&dte_type_code=39" \
+  -H "Authorization: Api-Key $TUPANA_API_KEY"
+```
+
+## Cómo leerlo
+
+- **Solo vienen los días con documentos.** Un día sin boletas no trae fila.
+- **Una fila por día, tipo de documento y canal.** `channel_code` es el canal de la transacción que informa el SII. Si un día trae más de una fila para el mismo tipo, súmalas para obtener el total del día.
+- **La suma del mes calza con el resumen.** Los días de un tipo de documento suman la línea de ese tipo en `book-summaries` para el mismo período.
+- **Las filas no tienen `id`.** Se reemplazan en cada sincronización, porque el SII puede corregir días ya informados. Guárdalas por `(date, dte_type_code, channel_code)` y elimina los días del período que dejen de venir.
+- **No aplica al libro de compras.** El desglose existe solo para las ventas de la empresa.
+
+## Habilitación
+
+Usa la misma habilitación que el resumen de libros: si `meta.is_enabled` es `false`, la empresa no tiene activa la sincronización `BOOK_SUMMARY` y `data` viene vacío. La API key necesita el permiso `book_summary:access`.

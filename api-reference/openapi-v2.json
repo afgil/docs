@@ -5633,6 +5633,162 @@
         }
       }
     },
+    "/book-daily-summaries/": {
+      "get": {
+        "operationId": "listBookDailySummaries_v2",
+        "tags": [
+          "Libros SII"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "summary": "Listar desglose diario de boletas del libro de ventas SII",
+        "description": "Devuelve, día por día, las boletas electrónicas (39), boletas exentas (41) y comprobantes de pago electrónico (48) de un período. El SII informa estos documentos en el libro de ventas solo como un total mensual (ver book-summaries); este endpoint entrega el desglose por día que el SII muestra al abrir esa línea. Solo vienen los días con documentos, ordenados por fecha y tipo de documento. No hay una fila por boleta.",
+        "parameters": [
+          {
+            "name": "master_entity_id",
+            "in": "query",
+            "required": true,
+            "description": "ID de la entidad maestra. El public ID de la entidad (`ment_...`).",
+            "schema": {
+              "type": "string",
+              "example": "ment_4829301923847"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": true,
+            "description": "Período tributario a consultar, formato YYYYMM.",
+            "schema": {
+              "type": "string",
+              "example": "202610"
+            }
+          },
+          {
+            "name": "dte_type_code",
+            "in": "query",
+            "required": false,
+            "description": "Filtra por tipo de documento SII, separados por coma: `39` (boleta electrónica), `41` (boleta exenta electrónica), `48` (comprobante de pago electrónico). Si se omite, devuelve todos.",
+            "schema": {
+              "type": "string",
+              "example": "39,41"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Página (desde 1).",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "description": "Filas por página. Por defecto 25, máximo 100.",
+            "schema": {
+              "type": "integer",
+              "example": 25
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Desglose diario del período consultado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BookDailySummaryItem"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "page_size": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "total_pages": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "is_enabled": {
+                          "type": "boolean",
+                          "description": "true si la empresa tiene habilitada la sincronización del resumen de libros (BOOK_SUMMARY), que también trae este desglose. Si es false, `data` estará vacío."
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "next": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "prev": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "master_entity_id o period faltantes o inválidos, o dte_type_code mal formado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "period is required in YYYYMM format."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sin acceso a la entidad, o la API key no tiene el permiso book_summary:access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Access denied."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/institutions/": {
       "get": {
         "operationId": "listInstitutions_v2",
@@ -8388,6 +8544,67 @@
             "type": "string",
             "format": "date-time",
             "description": "Fecha/hora en que se obtuvo este resumen desde el SII"
+          }
+        }
+      },
+      "BookDailySummaryItem": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "description": "Período tributario YYYYMM",
+            "example": "202610"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "Día de emisión de los documentos",
+            "example": "2026-10-14"
+          },
+          "dte_type_code": {
+            "type": "integer",
+            "enum": [
+              39,
+              41,
+              48
+            ],
+            "description": "Tipo de documento SII: 39 boleta electrónica, 41 boleta exenta electrónica, 48 comprobante de pago electrónico",
+            "example": 39
+          },
+          "channel_code": {
+            "type": "integer",
+            "description": "Canal de la transacción tal como lo informa el SII. Un mismo día puede traer una fila por canal: súmalas para obtener el total del día.",
+            "example": 9
+          },
+          "total_docs": {
+            "type": "integer",
+            "description": "Cantidad de documentos emitidos ese día",
+            "example": 12
+          },
+          "net_amount": {
+            "type": "integer",
+            "description": "Monto neto del día",
+            "example": 84034
+          },
+          "exempt_amount": {
+            "type": "integer",
+            "description": "Monto exento del día",
+            "example": 0
+          },
+          "vat_amount": {
+            "type": "integer",
+            "description": "IVA del día",
+            "example": 15966
+          },
+          "total_amount": {
+            "type": "integer",
+            "description": "Monto total del día",
+            "example": 100000
+          },
+          "synced_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha y hora en que Tupana leyó este día desde el SII"
           }
         }
       },
