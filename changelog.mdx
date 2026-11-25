@@ -8,6 +8,11 @@ rss: true
 
 Aquí registramos cada cambio de la API de Tupana que se nota desde tu integración: endpoints nuevos, campos, eventos de webhook, tipos de documento, límites y cambios de comportamiento. Las fechas son las de salida a producción. Suscríbete por RSS para enterarte de cada novedad.
 
+<Update label="24 de noviembre de 2026" description="Webhooks">
+  - Webhook [`batch.intake_failed`](/user-guide/webhooks#batchintake_failed): `data` agrega `is_sandbox`, igual que los eventos `document.*`, para saber si el lote se envió con una API key de sandbox o de producción.
+  - La guía de webhooks documenta el evento `batch.intake_failed` (cuándo llega, su payload y la forma de sus errores de validación) y lista los [códigos de error](/user-guide/webhooks#documentissue_failed) que puede traer `document.issue_failed`.
+</Update>
+
 <Update label="24 de noviembre de 2026" description="Links al PDF">
   - El link al PDF de los documentos vuelve a ser permanente: `pdf` y `pdf_url` en la API (v1 y v2) y `pdf_file` en el webhook `document.issued` traen una URL limpia de `cdn.tupana.ai`, sin firma y sin vencimiento, como antes del 15 de noviembre. Puedes guardarla y ponerla en tus correos.
   - Si guardaste un link al PDF entre el 15 y el 24 de noviembre, ese link vence. Vuelve a pedir el documento para obtener el link permanente.
