@@ -12,16 +12,26 @@ El SII no informa las boletas documento por documento en el Registro de Compras 
 Al abrir esa línea, el SII muestra cuánto se emitió cada día. Este endpoint entrega ese desglose: una fila por día con la cantidad de documentos y sus montos.
 
 ```bash
-curl "https://api.tupana.ai/v2/book-daily-summaries/?master_entity_id=ment_4829301923847&period=202610&dte_type_code=39" \
+curl "https://api.tupana.ai/v2/book-daily-summaries/?master_entity_id=ment_4829301923847&date_gte=2026-10-01&date_lte=2026-10-31&dte_type_code=39" \
   -H "Authorization: Api-Key $TUPANA_API_KEY"
 ```
+
+## Filtros
+
+Todos son opcionales y se combinan entre sí:
+
+- `date_gte` y `date_lte`: rango de días de emisión (`YYYY-MM-DD`), ambos inclusive. Puede cruzar meses.
+- `period`: un período tributario completo (`YYYYMM`). Equivale al mes calendario de la fecha.
+- `dte_type_code`: uno o más tipos de documento, separados por coma.
+
+Sin filtros, devuelve todos los días disponibles de la empresa, del más antiguo al más reciente, paginados.
 
 ## Cómo leerlo
 
 - **Solo vienen los días con documentos.** Un día sin boletas no trae fila.
 - **Una fila por día, tipo de documento y canal.** `channel_code` es el canal de la transacción que informa el SII. Si un día trae más de una fila para el mismo tipo, súmalas para obtener el total del día.
 - **La suma del mes calza con el resumen.** Los días de un tipo de documento suman la línea de ese tipo en `book-summaries` para el mismo período.
-- **Las filas no tienen `id`.** Se reemplazan en cada sincronización, porque el SII puede corregir días ya informados. Guárdalas por `(date, dte_type_code, channel_code)` y elimina los días del período que dejen de venir.
+- **Las filas no tienen `id`.** Se reemplazan en cada sincronización, porque el SII puede corregir días ya informados. Guárdalas por `(date, dte_type_code, channel_code)` y elimina los días del rango consultado que dejen de venir.
 - **No aplica al libro de compras.** El desglose existe solo para las ventas de la empresa.
 
 ## Habilitación

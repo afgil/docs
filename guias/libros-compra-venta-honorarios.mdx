@@ -17,7 +17,7 @@ Si construyes con Claude, Cursor o ChatGPT, conecta el [servidor MCP](/agentes/c
 |---|---|---|
 | Totales del libro por tipo de documento | [`GET /v2/book-summaries/`](/api-reference/v2/book-summaries/list) | Por período (`YYYYMM`) |
 | Libro de compras y libro de ventas, documento por documento | [`GET /v2/book-documents/`](/api-reference/v2/book-documents/list) | Por período y `operation=COMPRA` o `VENTA`, paginado |
-| Boletas (39, 41) y comprobantes de pago electrónico (48), día por día | [`GET /v2/book-daily-summaries/`](/api-reference/v2/book-daily-summaries/list) | Por período (`YYYYMM`), paginado |
+| Boletas (39, 41) y comprobantes de pago electrónico (48), día por día | [`GET /v2/book-daily-summaries/`](/api-reference/v2/book-daily-summaries/list) | Por rango de fechas (`date_gte`, `date_lte`) o por período, paginado |
 | Boletas de honorarios | [`GET /v2/documents/`](/api-reference/v2/documents/list) con `dte_type__code__in=80` o `90` | Por fecha de emisión, paginado |
 | Última sincronización de cada dato | `GET /v2/sync-status/` | Por empresa |
 

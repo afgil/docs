@@ -5645,7 +5645,7 @@
           }
         ],
         "summary": "Listar desglose diario de boletas del libro de ventas SII",
-        "description": "Devuelve, día por día, las boletas electrónicas (39), boletas exentas (41) y comprobantes de pago electrónico (48) de un período. El SII informa estos documentos en el libro de ventas solo como un total mensual (ver book-summaries); este endpoint entrega el desglose por día que el SII muestra al abrir esa línea. Solo vienen los días con documentos, ordenados por fecha y tipo de documento. No hay una fila por boleta.",
+        "description": "Devuelve, día por día, las boletas electrónicas (39), boletas exentas (41) y comprobantes de pago electrónico (48) de una empresa. Filtra por rango de fechas (`date_gte`, `date_lte`), por período tributario (`period`) o por ambos; sin filtros devuelve todos los días disponibles, paginados. El SII informa estos documentos en el libro de ventas solo como un total mensual (ver book-summaries); este endpoint entrega el desglose por día que el SII muestra al abrir esa línea. Solo vienen los días con documentos, ordenados por fecha y tipo de documento. No hay una fila por boleta.",
         "parameters": [
           {
             "name": "master_entity_id",
@@ -5660,11 +5660,33 @@
           {
             "name": "period",
             "in": "query",
-            "required": true,
-            "description": "Período tributario a consultar, formato YYYYMM.",
+            "required": false,
+            "description": "Período tributario, formato YYYYMM. Opcional: si se omite, no se filtra por período.",
             "schema": {
               "type": "string",
               "example": "202610"
+            }
+          },
+          {
+            "name": "date_gte",
+            "in": "query",
+            "required": false,
+            "description": "Devuelve los días desde esta fecha, inclusive. Formato YYYY-MM-DD.",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2026-10-01"
+            }
+          },
+          {
+            "name": "date_lte",
+            "in": "query",
+            "required": false,
+            "description": "Devuelve los días hasta esta fecha, inclusive. Formato YYYY-MM-DD.",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2026-10-31"
             }
           },
           {
@@ -5755,7 +5777,7 @@
             }
           },
           "400": {
-            "description": "master_entity_id o period faltantes o inválidos, o dte_type_code mal formado",
+            "description": "master_entity_id faltante o inválido, o period, date_gte, date_lte o dte_type_code mal formados",
             "content": {
               "application/json": {
                 "schema": {
@@ -5763,7 +5785,7 @@
                   "properties": {
                     "error": {
                       "type": "string",
-                      "example": "period is required in YYYYMM format."
+                      "example": "date_gte must be a date in YYYY-MM-DD format."
                     }
                   }
                 }
