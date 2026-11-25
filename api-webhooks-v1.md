@@ -133,7 +133,8 @@ Crea un nuevo webhook para la empresa del usuario.
 | `document.rejected` | Documento rechazado por el SII |
 | `document.paid` | Documento conciliado/pagado |
 | `document.unpaid` | Documento revertido de pagado a no pagado |
-| `document.cancelled` | Documento anulado o nota de crédito |
+| `document.cancelled` | Documento anulado o cubierto al 100% por notas de crédito |
+| `document.credit_note_applied` | Una nota de crédito abonó la factura, parcial o total |
 | `folio_request.completed` | Timbraje listo: el CAF se puede retirar |
 | `folio_request.failed` | El SII no autorizó folios; no se consumió ninguno |
 | `folio_request.authorized_without_caf` | El SII autorizó un rango y no entregó el CAF: esos folios ya salieron del stock del contribuyente |

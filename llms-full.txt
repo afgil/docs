@@ -833,7 +833,8 @@ curl -X POST https://api.tupana.ai/v2/webhooks/ \
 | Que se envió al receptor | `document.delivered` |
 | Cambios en la traza del SII (acuse, reclamo, cesión) | `document.trace_updated` |
 | Que se pagó o se revirtió el pago | `document.paid`, `document.unpaid` |
-| Que se anuló o se emitió una nota de crédito | `document.cancelled` |
+| Que se anuló, o que las notas de crédito la cubrieron por completo | `document.cancelled` |
+| Que una nota de crédito abonó la factura, por una parte o por el total | `document.credit_note_applied` |
 | Resultado de un documento programado | `scheduled_document.run_succeeded`, `scheduled_document.run_failed` |
 | Que una conexión quedó lista o requiere acción | `connection.active`, `connection.requires_action` |
 | Que un cobro se pagó o expiró | `payment_request.paid`, `payment_request.expired` |
@@ -4301,7 +4302,8 @@ Cada notificación incluye los siguientes headers:
 - **`document.rejected`**: El SII rechazó el documento
 - **`document.paid`**: El documento fue pagado (conciliación bancaria)
 - **`document.unpaid`**: El documento volvió de pagado a no pagado (se revirtió el pago/conciliación)
-- **`document.cancelled`**: El documento fue anulado o tiene nota de crédito
+- **`document.cancelled`**: El documento fue anulado, o sus notas de crédito cubren el 100% del monto
+- **`document.credit_note_applied`**: Una nota de crédito abonó la factura, por una parte o por el total. Llega uno por cada nota de crédito
 - **`document.trace_updated`**: Apareció un evento nuevo en la traza del SII (acuse de recibo, reclamo, rechazo). Es el único evento que se notifica tanto al emisor como al receptor del documento
 
 #### Eventos de documentos programados
@@ -4352,6 +4354,7 @@ Cada evento tiene una estructura de payload específica. Navega a cada evento pa
   - [document.paid](#documentpaid)
   - [document.unpaid](#documentunpaid)
   - [document.cancelled](#documentcancelled)
+  - [document.credit_note_applied](#documentcredit_note_applied)
   - [document.trace_updated](#documenttrace_updated)
 - [Eventos de Documentos Programados](#eventos-de-documentos-programados)
   - [scheduled_document.created](#scheduled_documentcreated)
@@ -4677,7 +4680,11 @@ idéntico al de `document.paid`; solo cambia el campo `event`.
 
 ##### document.cancelled
 
-Se dispara cuando un documento es anulado o tiene una nota de crédito asociada.
+Se dispara cuando un documento es anulado, o cuando las notas de crédito que
+se le aplicaron cubren el 100% de su monto. Una nota de crédito por una parte
+del monto no dispara este evento: la factura sigue vigente por su saldo. Para
+enterarte de cada nota de crédito, parcial o total, usa
+[`document.credit_note_applied`](#documentcredit_note_applied).
 
 ```json
 {
@@ -4708,6 +4715,67 @@ Se dispara cuando un documento es anulado o tiene una nota de crédito asociada.
 ```
 
 **Nota:** El campo `references` puede contener información sobre la nota de crédito o anulación asociada.
+
+##### document.credit_note_applied
+
+Se dispara cada vez que una **nota de crédito abona una factura**, sea por una
+parte del monto o por el total. El evento habla de la factura, no de la nota de
+crédito: `data` es la factura abonada y el bloque `credit_note_application`
+dice cuánto se abonó y con qué nota.
+
+- Llega **uno por cada nota de crédito**. Dos notas de crédito parciales sobre
+  la misma factura son dos eventos.
+- Cuando las notas de crédito completan el 100% de la factura, `status` es
+  `"total"` y además se dispara [`document.cancelled`](#documentcancelled). Si
+  estás suscrito a los dos, recibes ambos por la misma factura.
+- Una nota de crédito que solo corrige texto o datos del receptor no abona
+  nada y no dispara este evento.
+- La nota de crédito tiene además su propio `document.issued`.
+
+```json
+{
+  "event": "document.credit_note_applied",
+  "created_at": "2026-11-25T15:30:45.123456Z",
+  "data": {
+    "id": "docu_8371029384756",
+    "folio": "12345",
+    "date_issued": "2026-11-20",
+    "amount_with_iva": 119000.0,
+    "dte_type": { /* objeto dte_type completo */ },
+    "sender": { /* objeto sender completo */ },
+    "receiver": { /* objeto receiver completo */ },
+    "document_total": { /* objeto document_total completo */ },
+    "details": [ /* array de detalles completo */ ],
+    "xml_file": "https://s3.amazonaws.com/bucket/documento.xml",
+    "has_credit_note": true,
+    "credit_note_status": "partial_credit_note",
+    "credit_note_application": {
+      "status": "partial",
+      "applied_amount": 40000.0,
+      "credited_total": 40000.0,
+      "remaining_amount": 79000.0,
+      "credit_note": {
+        "id": "docu_8371029399001",
+        "folio": "801",
+        "date_issued": "2026-11-25",
+        "amount_with_iva": 40000.0,
+        "dte_type": { "code": "61", "description": "Nota de Crédito Electrónica" }
+      }
+    }
+  }
+}
+```
+
+Campos de `credit_note_application`:
+
+- **`status`**: `"partial"` si la factura queda con saldo, `"total"` si las notas de crédito cubren el 100% (string)
+- **`applied_amount`**: Monto que abonó esta nota de crédito a la factura (float)
+- **`credited_total`**: Monto abonado por todas las notas de crédito de la factura, incluida esta (float)
+- **`remaining_amount`**: Monto de la factura menos `credited_total`. No descuenta pagos (float)
+- **`credit_note`**: La nota de crédito que originó el evento (objeto con `id`, `folio`, `date_issued`, `amount_with_iva` y `dte_type`)
+
+En este evento `has_credit_note` es siempre `true` y `credit_note_status` es
+`"partial_credit_note"` o `"total_credit_note"`, igual que `status`.
 
 ##### document.trace_updated
 
@@ -5111,6 +5179,7 @@ Todos los payloads comparten esta estructura base:
 - **`pdf_file`**: URL del PDF del documento (string o null, solo en `document.issued`)
 - **`role`**: Punta del documento en la que está tu empresa, `"issuer"` o `"receiver"` (string, solo en `document.trace_updated`)
 - **`trace`**: Estado de la traza del SII (objeto, solo en `document.trace_updated`)
+- **`credit_note_application`**: Monto abonado y nota de crédito que lo originó (objeto, solo en `document.credit_note_applied`)
 
 ### Reintentos
 
@@ -5278,6 +5347,9 @@ Fuente: https://docs.tupana.ai/changelog · Sección: Guía de Usuario / Novedad
 > Historial completo de cambios de la API de facturación electrónica de Tupana para Chile: API v1 y v2, emisión de DTE al SII, webhooks, sandbox, Tupana Connect, cesiones, recaudación, folios, libros del SII, servidor MCP y SDKs.
 
 Aquí registramos cada cambio de la API de Tupana que se nota desde tu integración: endpoints nuevos, campos, eventos de webhook, tipos de documento, límites y cambios de comportamiento. Las fechas son las de salida a producción. Suscríbete por RSS para enterarte de cada novedad.
+
+  - Nuevo evento [`document.credit_note_applied`](https://docs.tupana.ai/user-guide/webhooks#documentcredit_note_applied): avisa cada vez que una nota de crédito abona una factura, por una parte o por el total. `data` es la factura y el bloque `credit_note_application` trae el monto abonado, el acumulado, el saldo y la nota de crédito. Ya está disponible en la configuración de webhooks y en la API.
+  - [`document.cancelled`](https://docs.tupana.ai/user-guide/webhooks#documentcancelled) se envía cuando las notas de crédito cubren el 100% de la factura. Corrige un problema por el que el evento no salía en la mayoría de las anulaciones con nota de crédito. Una nota de crédito parcial no lo dispara.
 
   - Webhook [`batch.intake_failed`](https://docs.tupana.ai/user-guide/webhooks#batchintake_failed): `data` agrega `is_sandbox`, igual que los eventos `document.*`, para saber si el lote se envió con una API key de sandbox o de producción.
   - La guía de webhooks documenta el evento `batch.intake_failed` (cuándo llega, su payload y la forma de sus errores de validación) y lista los [códigos de error](https://docs.tupana.ai/user-guide/webhooks#documentissue_failed) que puede traer `document.issue_failed`.
@@ -8389,7 +8461,8 @@ No puede existir un webhook con la misma URL para la misma entidad. Si intentas 
 - `folio_request.failed` - El SII no autorizó folios; no se consumió nada
 - `folio_request.authorized_without_caf` - El SII autorizó un rango y no entregó el archivo
 - `document.unpaid` - Documento revertido de pagado a no pagado
-- `document.cancelled` - Documento cancelado
+- `document.cancelled` - Documento anulado o cubierto al 100% por notas de crédito
+- `document.credit_note_applied` - Una nota de crédito abonó la factura, por una parte o por el total; trae el bloque `credit_note_application`
 - `batch.intake_failed` - Un lote de emisión masiva, o alguno de sus documentos, fue rechazado en la validación, antes de crear el documento
 - `connection.active` / `connection.requires_action` - Estado de una conexión de Tupana Connect
 - `bank_account.refreshed` - Una corrida de sync leyó la cuenta bancaria (saldo nuevo)
@@ -18331,7 +18404,7 @@ Notificación enviada a la URL del webhook. Headers: `X-Pana-Event-Id`, `X-Pana-
 
 Tipo: object
 
-- `event` (string; valores: `document.issued`, `document.issue_failed`, `document.delivered`, `document.rejected`, `document.trace_updated`, `document.paid`, `document.unpaid`, `document.cancelled`, `batch.intake_failed`, `scheduled_document.created`, `scheduled_document.updated`, `scheduled_document.executed`, `scheduled_document.failed`, `folio_request.completed`, `folio_request.failed`, `folio_request.authorized_without_caf`, `credential.validated`, `credential.invalid`, `webhook.test`, `bank_account.refreshed`, `bank_account.refresh_failed`, `movement.created`, `movement.updated`, `connection.degraded`): Tipo de evento
+- `event` (string; valores: `document.issued`, `document.issue_failed`, `document.delivered`, `document.rejected`, `document.trace_updated`, `document.paid`, `document.unpaid`, `document.cancelled`, `document.credit_note_applied`, `batch.intake_failed`, `scheduled_document.created`, `scheduled_document.updated`, `scheduled_document.executed`, `scheduled_document.failed`, `folio_request.completed`, `folio_request.failed`, `folio_request.authorized_without_caf`, `credential.validated`, `credential.invalid`, `webhook.test`, `bank_account.refreshed`, `bank_account.refresh_failed`, `movement.created`, `movement.updated`, `connection.degraded`): Tipo de evento
 - `created_at` (string (date-time)): Fecha y hora del evento (ISO 8601)
 - `data` (object): Datos del evento. Para `document.*`:
   - `id` (string; ej: `docu_8371029384756`): public_id del documento (`api_version` 2). Con `api_version` 1 es el id entero.
