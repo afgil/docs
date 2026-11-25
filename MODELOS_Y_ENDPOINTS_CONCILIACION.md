@@ -25,7 +25,7 @@ Listado de modelos y endpoints del backend (pana-backend) vinculados a la concil
 
 | Modelo | Archivo | Descripción |
 |--------|---------|-------------|
-| **Movement** | `apps/banking/app_models/movement.py` | Movimiento bancario (Fintoc). Campos relevantes para conciliación: `reconciled` (Boolean), `voucher` (FK a accounting.Voucher). |
+| **Movement** | `apps/banking/app_models/movement.py` | Movimiento bancario (conexión bancaria). Campos relevantes para conciliación: `reconciled` (Boolean), `voucher` (FK a accounting.Voucher). |
 
 ---
 

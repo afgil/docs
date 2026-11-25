@@ -33,7 +33,7 @@
 | 1029 | GET /v1/documents |
 | 786 | GET /api/activities/ |
 | 568 | GET /v1/documents/{num} |
-| 474 | POST /api/banking/fintoc/webhook/ |
+| 474 | POST /api/banking/aggregator/webhook/ |
 | 474 | GET /api/documents/batch/{guid}/ |
 | 441 | GET /api/searchs/history/ |
 | 363 | GET /api/master-entities/{num}/credentials/ |
@@ -76,7 +76,7 @@
 ### Medio
 
 9. **GET /api/v1/dashboard/summary/** – 118 hits, max 10 s.
-10. **POST /api/banking/fintoc/webhook/** – 474 hits, max 7 s.
+10. **POST /api/banking/aggregator/webhook/** – 474 hits, max 7 s.
 
 ---
 

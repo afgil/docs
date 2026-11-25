@@ -60,7 +60,7 @@
 - Monto
 - Fecha
 - Glosa / descripción
-- Origen (Shopify, Fintoc, Manual)
+- Origen (Shopify, banco, manual)
 - Estado (Pendiente, Conciliado, Limpio)
 
 **Estados de fila:**
