@@ -47,7 +47,8 @@ No puede existir un webhook con la misma URL para la misma entidad. Si intentas 
 - `folio_request.failed` - El SII no autorizó folios; no se consumió nada
 - `folio_request.authorized_without_caf` - El SII autorizó un rango y no entregó el archivo
 - `document.unpaid` - Documento revertido de pagado a no pagado
-- `document.cancelled` - Documento cancelado
+- `document.cancelled` - Documento anulado o cubierto al 100% por notas de crédito
+- `document.credit_note_applied` - Una nota de crédito abonó la factura, por una parte o por el total; trae el bloque `credit_note_application`
 - `batch.intake_failed` - Un lote de emisión masiva, o alguno de sus documentos, fue rechazado en la validación, antes de crear el documento
 - `connection.active` / `connection.requires_action` - Estado de una conexión de Tupana Connect
 - `bank_account.refreshed` - Una corrida de sync leyó la cuenta bancaria (saldo nuevo)

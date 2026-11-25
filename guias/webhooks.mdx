@@ -38,7 +38,8 @@ curl -X POST https://api.tupana.ai/v2/webhooks/ \
 | Que se envió al receptor | `document.delivered` |
 | Cambios en la traza del SII (acuse, reclamo, cesión) | `document.trace_updated` |
 | Que se pagó o se revirtió el pago | `document.paid`, `document.unpaid` |
-| Que se anuló o se emitió una nota de crédito | `document.cancelled` |
+| Que se anuló, o que las notas de crédito la cubrieron por completo | `document.cancelled` |
+| Que una nota de crédito abonó la factura, por una parte o por el total | `document.credit_note_applied` |
 | Resultado de un documento programado | `scheduled_document.run_succeeded`, `scheduled_document.run_failed` |
 | Que una conexión quedó lista o requiere acción | `connection.active`, `connection.requires_action` |
 | Que un cobro se pagó o expiró | `payment_request.paid`, `payment_request.expired` |

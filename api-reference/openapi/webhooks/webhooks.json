@@ -228,6 +228,7 @@
                                 "document.paid",
                                 "document.unpaid",
                                 "document.cancelled",
+                                "document.credit_note_applied",
                                 "batch.intake_failed"
                             ]
                         },
@@ -290,6 +291,7 @@
                                 "document.paid",
                                 "document.unpaid",
                                 "document.cancelled",
+                                "document.credit_note_applied",
                                 "batch.intake_failed"
                             ]
                         }
@@ -410,6 +412,7 @@
                             "document.paid",
                             "document.unpaid",
                             "document.cancelled",
+                            "document.credit_note_applied",
                             "batch.intake_failed",
                             "scheduled_document.created",
                             "scheduled_document.updated",
@@ -569,6 +572,7 @@
                                 "document.paid",
                                 "document.unpaid",
                                 "document.cancelled",
+                                "document.credit_note_applied",
                                 "batch.intake_failed"
                             ]
                         },

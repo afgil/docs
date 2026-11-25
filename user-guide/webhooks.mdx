@@ -119,7 +119,8 @@ Cada notificación incluye los siguientes headers:
 - **`document.rejected`**: El SII rechazó el documento
 - **`document.paid`**: El documento fue pagado (conciliación bancaria)
 - **`document.unpaid`**: El documento volvió de pagado a no pagado (se revirtió el pago/conciliación)
-- **`document.cancelled`**: El documento fue anulado o tiene nota de crédito
+- **`document.cancelled`**: El documento fue anulado, o sus notas de crédito cubren el 100% del monto
+- **`document.credit_note_applied`**: Una nota de crédito abonó la factura, por una parte o por el total. Llega uno por cada nota de crédito
 - **`document.trace_updated`**: Apareció un evento nuevo en la traza del SII (acuse de recibo, reclamo, rechazo). Es el único evento que se notifica tanto al emisor como al receptor del documento
 
 ### Eventos de documentos programados
@@ -170,6 +171,7 @@ Cada evento tiene una estructura de payload específica. Navega a cada evento pa
   - [document.paid](#documentpaid)
   - [document.unpaid](#documentunpaid)
   - [document.cancelled](#documentcancelled)
+  - [document.credit_note_applied](#documentcredit_note_applied)
   - [document.trace_updated](#documenttrace_updated)
 - [Eventos de Documentos Programados](#eventos-de-documentos-programados)
   - [scheduled_document.created](#scheduled_documentcreated)
@@ -495,7 +497,11 @@ idéntico al de `document.paid`; solo cambia el campo `event`.
 
 #### document.cancelled
 
-Se dispara cuando un documento es anulado o tiene una nota de crédito asociada.
+Se dispara cuando un documento es anulado, o cuando las notas de crédito que
+se le aplicaron cubren el 100% de su monto. Una nota de crédito por una parte
+del monto no dispara este evento: la factura sigue vigente por su saldo. Para
+enterarte de cada nota de crédito, parcial o total, usa
+[`document.credit_note_applied`](#documentcredit_note_applied).
 
 ```json
 {
@@ -526,6 +532,67 @@ Se dispara cuando un documento es anulado o tiene una nota de crédito asociada.
 ```
 
 **Nota:** El campo `references` puede contener información sobre la nota de crédito o anulación asociada.
+
+#### document.credit_note_applied
+
+Se dispara cada vez que una **nota de crédito abona una factura**, sea por una
+parte del monto o por el total. El evento habla de la factura, no de la nota de
+crédito: `data` es la factura abonada y el bloque `credit_note_application`
+dice cuánto se abonó y con qué nota.
+
+- Llega **uno por cada nota de crédito**. Dos notas de crédito parciales sobre
+  la misma factura son dos eventos.
+- Cuando las notas de crédito completan el 100% de la factura, `status` es
+  `"total"` y además se dispara [`document.cancelled`](#documentcancelled). Si
+  estás suscrito a los dos, recibes ambos por la misma factura.
+- Una nota de crédito que solo corrige texto o datos del receptor no abona
+  nada y no dispara este evento.
+- La nota de crédito tiene además su propio `document.issued`.
+
+```json
+{
+  "event": "document.credit_note_applied",
+  "created_at": "2026-11-25T15:30:45.123456Z",
+  "data": {
+    "id": "docu_8371029384756",
+    "folio": "12345",
+    "date_issued": "2026-11-20",
+    "amount_with_iva": 119000.0,
+    "dte_type": { /* objeto dte_type completo */ },
+    "sender": { /* objeto sender completo */ },
+    "receiver": { /* objeto receiver completo */ },
+    "document_total": { /* objeto document_total completo */ },
+    "details": [ /* array de detalles completo */ ],
+    "xml_file": "https://s3.amazonaws.com/bucket/documento.xml",
+    "has_credit_note": true,
+    "credit_note_status": "partial_credit_note",
+    "credit_note_application": {
+      "status": "partial",
+      "applied_amount": 40000.0,
+      "credited_total": 40000.0,
+      "remaining_amount": 79000.0,
+      "credit_note": {
+        "id": "docu_8371029399001",
+        "folio": "801",
+        "date_issued": "2026-11-25",
+        "amount_with_iva": 40000.0,
+        "dte_type": { "code": "61", "description": "Nota de Crédito Electrónica" }
+      }
+    }
+  }
+}
+```
+
+Campos de `credit_note_application`:
+
+- **`status`**: `"partial"` si la factura queda con saldo, `"total"` si las notas de crédito cubren el 100% (string)
+- **`applied_amount`**: Monto que abonó esta nota de crédito a la factura (float)
+- **`credited_total`**: Monto abonado por todas las notas de crédito de la factura, incluida esta (float)
+- **`remaining_amount`**: Monto de la factura menos `credited_total`. No descuenta pagos (float)
+- **`credit_note`**: La nota de crédito que originó el evento (objeto con `id`, `folio`, `date_issued`, `amount_with_iva` y `dte_type`)
+
+En este evento `has_credit_note` es siempre `true` y `credit_note_status` es
+`"partial_credit_note"` o `"total_credit_note"`, igual que `status`.
 
 #### document.trace_updated
 
@@ -935,6 +1002,7 @@ Todos los payloads comparten esta estructura base:
 - **`pdf_file`**: URL del PDF del documento (string o null, solo en `document.issued`)
 - **`role`**: Punta del documento en la que está tu empresa, `"issuer"` o `"receiver"` (string, solo en `document.trace_updated`)
 - **`trace`**: Estado de la traza del SII (objeto, solo en `document.trace_updated`)
+- **`credit_note_application`**: Monto abonado y nota de crédito que lo originó (objeto, solo en `document.credit_note_applied`)
 
 ## Reintentos
 
