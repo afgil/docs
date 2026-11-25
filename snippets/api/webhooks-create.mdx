@@ -39,6 +39,7 @@ No puede existir un webhook con la misma URL para la misma entidad. Si intentas 
 
 ### Eventos disponibles
 - `document.issued` - Documento emitido exitosamente
+- `document.issue_failed` - Falló la emisión de un documento; trae el bloque `error` con su código
 - `document.delivered` - Documento entregado al receptor
 - `document.rejected` - Documento rechazado por el SII
 - `document.paid` - Documento pagado
@@ -47,6 +48,7 @@ No puede existir un webhook con la misma URL para la misma entidad. Si intentas 
 - `folio_request.authorized_without_caf` - El SII autorizó un rango y no entregó el archivo
 - `document.unpaid` - Documento revertido de pagado a no pagado
 - `document.cancelled` - Documento cancelado
+- `batch.intake_failed` - Un lote de emisión masiva, o alguno de sus documentos, fue rechazado en la validación, antes de crear el documento
 - `connection.active` / `connection.requires_action` - Estado de una conexión de Tupana Connect
 - `bank_account.refreshed` - Una corrida de sync leyó la cuenta bancaria (saldo nuevo)
 - `movement.created` - Esa corrida trajo movimientos nuevos (lista de ids, uno por cuenta y corrida)
@@ -55,4 +57,24 @@ No puede existir un webhook con la misma URL para la misma entidad. Si intentas 
 - `card_movement.created` / `card_movement.billed` / `card_movement.updated` / `card_movement.removed` / `card_movement.reversed` - Cambios en movimientos de tarjeta de crédito
 - `card_statement.mismatch` - Un estado de cuenta de tarjeta no cuadró
 
-Los eventos bancarios se detallan en [Webhooks bancarios](/api-reference/v2/banking/webhooks).
+Los eventos bancarios se detallan en [Webhooks bancarios](/api-reference/v2/banking/webhooks). El payload de cada evento está en la [guía de webhooks](/user-guide/webhooks#payloads-por-evento).
+
+### Errores que pueden llegar en un evento
+
+**`document.issue_failed`** trae en `data.error` el campo `catalog_code`, un código estable contra el que puedes programar, junto con `retryable`, `suggested_action`, `user_message` y `doc_url`. Estos son sus valores posibles:
+
+| `catalog_code` | Qué significa | ¿Reenviar? |
+|----------------|---------------|:----------:|
+| [`sii_unavailable`](/api-reference/errors/sii_unavailable) | El SII no estuvo disponible | Sí |
+| [`sii_session_expired`](/api-reference/errors/sii_session_expired) | La sesión del SII venció | Sí |
+| [`service_unavailable`](/api-reference/errors/service_unavailable) | Nuestro servicio no estuvo disponible por un momento | Sí |
+| [`internal_error`](/api-reference/errors/internal_error) | Error interno de Tupana | Sí |
+| [`sii_rejected`](/api-reference/errors/sii_rejected) | El SII rechazó el documento por sus datos | No, corrige lo que indica `message` |
+| [`sii_unauthorized`](/api-reference/errors/sii_unauthorized) | La empresa no está autorizada en el SII para emitir | No, revisa la habilitación en el SII |
+| [`no_active_credentials`](/api-reference/errors/no_active_credentials) | La empresa no tiene credenciales activas | No, reconecta la empresa |
+| [`unprocessable`](/api-reference/errors/unprocessable) | Los datos del documento no se pueden procesar | No, ajusta los datos |
+| [`conflict`](/api-reference/errors/conflict) | El documento choca con uno que ya existe | No, consulta el estado actual |
+
+Para decidir si reenviar usa el `retryable` del evento, y deja un caso por defecto: `catalog_code` puede venir en `null`. Más detalle en [`document.issue_failed`](/user-guide/webhooks#documentissue_failed).
+
+**`batch.intake_failed`** no trae códigos. Cada documento rechazado viene en `data.rejected_documents` con `errors`, el error de validación por campo con la misma forma que un `400` de la API. Para esos documentos no llega ningún evento `document.*`: corrígelos y envíalos en un lote nuevo. Más detalle en [`batch.intake_failed`](/user-guide/webhooks#batchintake_failed).
