@@ -130,6 +130,10 @@ Cada notificación incluye los siguientes headers:
 - **`scheduled_document.run_succeeded`**: La ejecución de un documento programado fue exitosa
 - **`scheduled_document.run_failed`**: La ejecución de un documento programado falló
 
+### Eventos de lote
+
+- **`batch.intake_failed`**: Un lote de emisión masiva, o alguno de sus documentos, fue rechazado en la validación, antes de crear el documento
+
 ### Eventos de credenciales
 
 - **`credential.validated`**: Una credencial SII fue validada exitosamente contra el SII
@@ -173,6 +177,8 @@ Cada evento tiene una estructura de payload específica. Navega a cada evento pa
   - [scheduled_document.run_started](#scheduled_documentrun_started)
   - [scheduled_document.run_succeeded](#scheduled_documentrun_succeeded)
   - [scheduled_document.run_failed](#scheduled_documentrun_failed)
+- [Eventos de Lote](#eventos-de-lote)
+  - [batch.intake_failed](#batchintake_failed)
 - [Eventos de Credenciales](#eventos-de-credenciales)
   - [credential.validated](#credentialvalidated)
   - [credential.invalid](#credentialinvalid)
@@ -337,6 +343,26 @@ El evento se envía cuando el fallo es **definitivo**: un error permanente, o un
 | `code`, `type` | Clasificación interna del intento (`type` es `temporary_error` o `permanent_error`). Se mantienen por compatibilidad; para programar usa `catalog_code` y `retryable`. |
 
 `catalog_code`, `suggested_action`, `retryable` y `doc_url` pueden venir en `null` cuando no podemos atribuir el fallo con certeza. En ese caso **no reenvíes el documento a ciegas**: consulta su estado primero, porque podría estar emitido.
+
+##### Códigos de error posibles
+
+Estos son los valores que puede traer `catalog_code` en este evento:
+
+| `catalog_code` | Qué significa | ¿Reenviar? |
+|----------------|---------------|:----------:|
+| [`sii_unavailable`](/api-reference/errors/sii_unavailable) | El SII no estuvo disponible | Sí |
+| [`sii_session_expired`](/api-reference/errors/sii_session_expired) | La sesión del SII venció | Sí |
+| [`service_unavailable`](/api-reference/errors/service_unavailable) | Nuestro servicio no estuvo disponible por un momento | Sí |
+| [`internal_error`](/api-reference/errors/internal_error) | Error interno de Tupana | Sí |
+| [`sii_rejected`](/api-reference/errors/sii_rejected) | El SII rechazó el documento por sus datos | No, corrige lo que indica `message` |
+| [`sii_unauthorized`](/api-reference/errors/sii_unauthorized) | La empresa no está autorizada en el SII para emitir | No, revisa la habilitación en el SII |
+| [`no_active_credentials`](/api-reference/errors/no_active_credentials) | La empresa no tiene credenciales activas | No, reconecta la empresa |
+| [`unprocessable`](/api-reference/errors/unprocessable) | Los datos del documento no se pueden procesar | No, ajusta los datos |
+| [`conflict`](/api-reference/errors/conflict) | El documento choca con uno que ya existe | No, consulta el estado actual |
+
+La columna **¿Reenviar?** es la regla general de cada código. Para decidir en tu integración usa el `retryable` que viene en el evento: puede llegar en `false` para un código que normalmente se reintenta. Deja además un caso por defecto para un `catalog_code` que no conozcas o que venga en `null`, y muestra `user_message`.
+
+Los errores de validación de un documento enviado por lote no llegan por este evento, porque el documento no se alcanza a crear: llegan por [`batch.intake_failed`](#batchintake_failed).
 
 #### document.updated
 
@@ -733,6 +759,67 @@ Se dispara cuando falla la ejecución de un documento programado.
   }
 }
 ```
+
+### Eventos de Lote
+
+#### batch.intake_failed
+
+Se dispara cuando un lote enviado a la [emisión masiva](/guias/emision-masiva) no pasa la validación. Ocurre después de que la API respondió `202` y **antes de crear el documento**, así que para los documentos rechazados nunca llega un evento `document.*`: hay que corregirlos y enviarlos en un lote nuevo.
+
+```json
+{
+  "event": "batch.intake_failed",
+  "created_at": "2026-11-19T12:32:13.176389+00:00",
+  "data": {
+    "batch_id": "29789a90-2cf2-5c1d-b330-fb5ecd005781",
+    "documents_count": 2,
+    "status": "processing",
+    "is_sandbox": false,
+    "master_entity": {
+      "id": "ment_4829301923847",
+      "name": "Empresa Emisora S.A.",
+      "tax_id": "76.123.456-7"
+    },
+    "rejected_documents_count": 1,
+    "rejected_documents": [
+      {
+        "index": 0,
+        "errors": {
+          "document_receiver": {
+            "non_field_errors": [
+              "Campos obligatorios faltantes: district (comuna), city (ciudad)"
+            ]
+          }
+        },
+        "json_param": {
+          "external_order_id": "PED-1001"
+        }
+      }
+    ]
+  }
+}
+```
+
+| Campo | Descripción |
+|-------|-------------|
+| `batch_id` | El id del lote que devolvió la API al recibirlo. |
+| `documents_count` | Cuántos documentos traía el lote. |
+| `status` | Estado del lote: `failed` si no se va a emitir ningún documento; otro valor si el resto del lote sigue su curso. |
+| `is_sandbox` | `true` si el lote se envió con una API key de sandbox. |
+| `master_entity` | La empresa emisora del lote. |
+| `rejected_documents_count` | Total de documentos rechazados. |
+| `rejected_documents` | Detalle de los rechazados, hasta 50. Cada uno trae `index` (posición en el arreglo `documents` que enviaste), `errors` y el `json_param` que mandaste en ese documento, para que lo cruces con tu propio identificador. |
+
+El evento llega en dos situaciones:
+
+- **Se rechazaron uno o más documentos.** Trae `rejected_documents`. Si se rechazaron todos, `status` es `failed`. Si se rechazaron solo algunos, los demás siguen su curso y reciben sus eventos `document.issued` o `document.issue_failed`.
+- **Falló el lote completo.** El lote está mal formado, o no pudimos resolver la empresa emisora o sus credenciales. `status` es `failed` y no vienen `rejected_documents` ni `rejected_documents_count`. Si no pudimos determinar la empresa emisora, el evento se envía a los webhooks de todas las empresas de la cuenta.
+
+##### Errores de validación
+
+`errors` no trae códigos: es el error de validación de ese documento, con la misma forma que el cuerpo de un `400` de la API. Las llaves son los campos del documento que enviaste (por ejemplo `document_receiver`, `details`, `header`, `export_data`), anidadas igual que en tu solicitud, y cada valor es la lista de mensajes de ese campo. `non_field_errors` agrupa los mensajes que no pertenecen a un solo campo.
+
+Los mensajes son texto en español para mostrarle a una persona y pueden cambiar, así que no los parsees. Para programar, usa las llaves: te dicen qué campo corregir.
 
 ### Eventos de Credenciales
 
