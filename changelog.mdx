@@ -9,7 +9,7 @@ rss: true
 Aquí registramos cada cambio de la API de Tupana que se nota desde tu integración: endpoints nuevos, campos, eventos de webhook, tipos de documento, límites y cambios de comportamiento. Las fechas son las de salida a producción. Suscríbete por RSS para enterarte de cada novedad.
 
 <Update label="25 de noviembre de 2026" description="Libros del SII">
-  - Nuevo endpoint de [desglose diario de boletas](/api-reference/v2/book-daily-summaries/list) (`/v1/book-daily-summaries/` y `/v2/book-daily-summaries/`): las boletas electrónicas (39), boletas exentas (41) y comprobantes de pago electrónico (48) del libro de ventas, día por día, con cantidad de documentos y montos. Es el detalle que el SII muestra al abrir la línea de resumen mensual. Se sincroniza junto con el resumen de libros y usa el mismo permiso `book_summary:access`.
+  - Nuevo endpoint de [desglose diario de boletas](/api-reference/v2/book-daily-summaries/list) (`/v1/book-daily-summaries/` y `/v2/book-daily-summaries/`): las boletas electrónicas (39), boletas exentas (41) y comprobantes de pago electrónico (48) del libro de ventas, día por día, con cantidad de documentos y montos. Es el detalle que el SII muestra al abrir la línea de resumen mensual. Se filtra por rango de fechas (`date_gte`, `date_lte`), por período (`period`) o por tipo de documento; todos los filtros son opcionales. Se sincroniza junto con el resumen de libros y usa el mismo permiso `book_summary:access`.
 </Update>
 
 <Update label="25 de noviembre de 2026" description="Webhooks">
