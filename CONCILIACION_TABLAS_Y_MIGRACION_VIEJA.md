@@ -14,10 +14,10 @@
 
 ### Modelo nuevo (documento de pago tipo 100)
 
-- **`documents.Document`** (dte_type code 100): documento de pago (uno por movimiento de ingreso, creado desde Fintoc o manual).
+- **`documents.Document`** (dte_type code 100): documento de pago (uno por movimiento de ingreso, creado desde la conexión bancaria o manual).
 - **`documents.DocumentPaymentMetadata`**
   - `document_id` (OneToOne con Document 100).
-  - `movement_id` (FK opcional a `banking.Movement`): movimiento origen cuando viene de Fintoc.
+  - `movement_id` (FK opcional a `banking.Movement`): movimiento origen cuando viene de la conexión bancaria.
   - **`reconciliation_status`**: `unmatched` | `suggested` | `reconciled` | `cleaned`. **Este campo es el que usa la pantalla “movimientos por conciliar”**: se listan Document 100 con `reconciliation_status = 'unmatched'`.
 - **`accounting.BankReconciliation`**
   - `payment_document_id` (FK opcional a Document 100): documento de pago asociado (1 pago → N facturas).

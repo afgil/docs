@@ -15,7 +15,7 @@ El módulo de cobranza permite a las empresas gestionar cuentas por cobrar: list
 
 **Flujo:**
 
-1. **Movimientos bancarios:** Se importan desde Fintoc u otra integración. Cada `Movement` tiene monto, fecha, glosa y RUT del pagador.
+1. **Movimientos bancarios:** Se importan desde la conexión bancaria u otra integración. Cada `Movement` tiene monto, fecha, glosa y RUT del pagador.
 2. **Recomendaciones:** `ReconciliationRecommendationService` sugiere emparejar movimientos con facturas pendientes por monto, RUT y glosa. Usa `ClientPaymentRut` para asociar RUT de pagador con receptor (cliente).
 3. **Conciliación manual:** El usuario crea una `BankReconciliation` que vincula uno o más `Movement` con uno o más `Document` mediante `BankReconciliationDocument`.
 4. **`BankReconciliationDocument`:** Para cada documento conciliado guarda `reconciled_amount` y `mark_as_paid` (True/False).

@@ -431,7 +431,7 @@ Métricas CloudWatch (últimos 3 días) y asignación por contenedor:
 | 1 | 1174 | 1174 | 1174 | POST /api/ads/track-conversion/ |
 | 1 | 1106 | 1106 | 1106 | POST /api/master-entities/{num}/documents/{num}/traces/refresh/ |
 | 3 | 310 | 411 | 929 | GET /api/master-entities/{num}/customers-configuration/ |
-| 17 | 51 | 710 | 874 | POST /api/banking/fintoc/webhook/ |
+| 17 | 51 | 710 | 874 | POST /api/banking/aggregator/webhook/ |
 | 5 | 162 | 178 | 811 | GET /api/master-entities/{num}/documents/ |
 | 16 | 38 | 58 | 601 | GET /api/master-entities/{num}/configurations/ |
 | 2 | 290 | 299 | 579 | GET /api/master-entities/{num}/collection/clients/ |
@@ -448,7 +448,7 @@ Métricas CloudWatch (últimos 3 días) y asignación por contenedor:
 | 1 | 1174 | POST /api/ads/track-conversion/ |
 | 1 | 1106 | POST traces/refresh |
 | 60 | 734 | GET /v1/master-entities |
-| 17 | 710 | POST /api/banking/fintoc/webhook/ |
+| 17 | 710 | POST /api/banking/aggregator/webhook/ |
 | 60 | 634 | GET /v1/documents |
 
 **Prioridad de optimización (alto impacto + alta latencia):**
@@ -458,7 +458,7 @@ Métricas CloudWatch (últimos 3 días) y asignación por contenedor:
 3. **POST /api/master-entities/{num}/addresses/sync/** – 2.9 s avg.
 4. **GET /api/credentials/{num}/sii-companies/** – 1.4 s.
 5. **POST /api/emails/batch-render/** – 121 ms avg, 389 ms max; 13 hits.
-6. **POST /api/banking/fintoc/webhook/** – Max 710 ms; 17 hits.
+6. **POST /api/banking/aggregator/webhook/** – Max 710 ms; 17 hits.
 
 **Candidatos por código (alineados con traces):**
 
