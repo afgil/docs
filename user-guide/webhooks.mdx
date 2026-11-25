@@ -888,6 +888,39 @@ El evento llega en dos situaciones:
 
 Los mensajes son texto en español para mostrarle a una persona y pueden cambiar, así que no los parsees. Para programar, usa las llaves: te dicen qué campo corregir.
 
+##### `non_field_errors`
+
+`non_field_errors` no es un código de error: es la llave donde va un mensaje cuando la regla que falló mira **varios campos a la vez**, así que no se puede colgar de uno solo. Siempre aparece dentro del bloque al que pertenece la regla. En el ejemplo de arriba está dentro de `document_receiver`, y el mensaje dice cuáles son los campos que faltan:
+
+```json
+"errors": {
+  "document_receiver": {
+    "non_field_errors": [
+      "Campos obligatorios faltantes: district (comuna), city (ciudad)"
+    ]
+  }
+}
+```
+
+Trátalo como "hay que corregir algo en este bloque": la llave que lo contiene (`document_receiver`) te dice dónde, y el mensaje te dice qué.
+
+##### Validaciones más frecuentes
+
+Esta tabla no es exhaustiva y los textos pueden cambiar; sirve para saber qué esperar bajo cada llave.
+
+| Llave en `errors` | Cuándo aparece |
+|-------------------|----------------|
+| `document_receiver.non_field_errors` | Faltan datos obligatorios del receptor para ese tipo de documento: giro (`business_activity`), dirección (`address`), comuna (`district`) o ciudad (`city`). El mensaje lista los que faltan. |
+| `document_receiver.rut` | El RUT del receptor viene vacío, tiene un formato inválido o su dígito verificador no calza. |
+| `document_receiver.<campo>` | Ese campo del receptor es obligatorio y viene vacío. |
+| `details[].item_name` | El nombre del ítem supera los 80 caracteres. |
+| `details[].unit_price` | Precio unitario negativo en un tipo de documento que no admite líneas negativas. |
+| `details[].item_code` | Se envió `item_type_code` sin `item_code`. |
+| `references[].reference_reason` | La razón de la referencia supera los 90 caracteres. |
+| `references[].reference_type` / `dte_type_code` | El tipo de documento referenciado no existe en el catálogo. |
+| `export_data` | En un documento de exportación falta `destination_country_code`, `currency_code` o `sale_mode_code`, o alguno de sus códigos no es de las tablas del SII. |
+| Cualquier otro campo | Falta un campo requerido, o su valor tiene un tipo o formato inválido. |
+
 ### Eventos de Credenciales
 
 Estos eventos se disparan por credencial individual, incluyendo las creadas vía [creación de credenciales en lote](/api-reference/credentials/batch). El webhook se configura por `master_entity`, y una credencial puede estar asociada a más de una entidad: si eso ocurre, se envía una notificación por cada entidad que tenga un webhook suscrito al evento.
